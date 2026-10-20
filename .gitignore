@@ -47,3 +47,6 @@ pnpm-debug.log*
 # claude code local state
 .claude/settings.local.json
 .claude/agent-memory-local/
+
+# sample recorder (tools/record-samples): model download cache
+tools/record-samples/.cache/
