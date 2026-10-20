@@ -75,7 +75,7 @@ function audit() {
   const unrec = document.querySelector('.legend [data-marker="ring"] [data-role="legend-not-recorded"]');
   if (!unrec || getComputedStyle(unrec).strokeDasharray !== '4px, 3px') problems.push('legend "not recorded" key has no 4 3 dashed sample');
   const keys = [...document.querySelectorAll('.legend [data-marker]')].map((e) => `${e.dataset.marker}:${e.textContent}`).join();
-  if (keys !== 'bud:can grow,knot:grown,ring:not recorded') problems.push(`legend marker key is ${keys}`);
+  if (keys !== 'bud:filled dot: can grow,knot:dot in a ring: grown,ring:hollow ring, dashed branch: not recorded') problems.push(`legend marker key is ${keys}`);
   return problems;
 }
 

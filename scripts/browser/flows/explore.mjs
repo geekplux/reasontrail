@@ -106,7 +106,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   if (!url.endsWith('/?path=1.0')) fail(`F14: URL is ${url}`);
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL });
   await page.getByRole('button', { name: 'Copy link' }).click();
-  await page.getByText('Link copied').waitFor({ timeout: 2_000 });
+  await page.locator('.share-status', { hasText: 'Link copied' }).waitFor({ timeout: 2_000 });
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   if (copied !== url) fail(`Copy link wrote ${copied}, expected ${url}`);
 
@@ -114,7 +114,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await page.setViewportSize({ width: 390, height: 844 });
   const pageWidth = () => page.evaluate(() => document.documentElement.scrollWidth);
   await page.getByRole('button', { name: 'Copy link' }).click();
-  await page.getByText('Link copied').waitFor({ timeout: 2_000 });
+  await page.locator('.share-status', { hasText: 'Link copied' }).waitFor({ timeout: 2_000 });
   if ((await pageWidth()) > 390) fail(`390 px after copy: page is ${await pageWidth()} px wide`);
   await page.evaluate(() => Object.defineProperty(navigator.clipboard, 'writeText', { value: () => Promise.reject(new Error('denied')), configurable: true }));
   await page.getByRole('button', { name: 'Copy link' }).click();

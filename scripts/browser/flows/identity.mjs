@@ -64,15 +64,15 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   );
   fold.filter((f) => f.bottom > 800 || f.right > 1280).forEach((f) => fail(`desktop: ${f.sel} is below the fold (${JSON.stringify(f)})`));
 
-  // The garden scroll region is a tab stop exactly when it overflows (re-checked on resize).
+  // The garden scroll region is never a tab stop (phase 5): the focused branch scrolls itself into view.
   const checkScrollStop = async (where) => {
     const ok = await page
       .waitForFunction(() => {
         const el = document.querySelector('.garden-scroll');
-        return el.scrollWidth > el.clientWidth === (el.getAttribute('tabindex') === '0');
+        return !el.hasAttribute('tabindex') && !!el.querySelector('[role="treeitem"][tabindex="0"]');
       }, null, { timeout: 2000 })
       .then(() => true, () => false);
-    if (!ok) fail(`${where}: .garden-scroll tab stop does not follow whether it overflows`);
+    if (!ok) fail(`${where}: .garden-scroll is a tab stop, or the tree has none`);
   };
   await checkScrollStop('desktop');
 
