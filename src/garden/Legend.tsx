@@ -9,12 +9,14 @@ const KEYS: [MarkerKind, string][] = [
   ['ring', 'not recorded'],
 ];
 
+type SampleKind = 'legend-sample' | 'legend-other' | 'legend-not-recorded';
+
 /** A 32 px butt-capped line sample at the real branch width. */
-function Sample({ p, other = false }: { p: number; other?: boolean }) {
+function Sample({ p, kind = 'legend-sample' }: { p: number; kind?: SampleKind }) {
   const w = branchWidth(p);
   return (
     <svg width={SAMPLE_W} height={20} aria-hidden="true" data-band={band(p)}>
-      <line data-role={other ? 'legend-other' : 'legend-sample'} data-p={p} x1={0} x2={SAMPLE_W} y1={10} y2={10} strokeWidth={w} />
+      <line data-role={kind} data-p={p} x1={0} x2={SAMPLE_W} y1={10} y2={10} strokeWidth={w} />
     </svg>
   );
 }
@@ -32,7 +34,7 @@ export function Legend() {
           </span>
         ))}
         <span className="legend-item">
-          <Sample p={0.25} other />
+          <Sample p={0.25} kind="legend-other" />
           other tokens
         </span>
       </p>
@@ -42,6 +44,7 @@ export function Legend() {
             <svg width={20} height={20} viewBox="-10 -10 20 20" aria-hidden="true" data-band="hi">
               <Marker kind={kind} />
             </svg>
+            {kind === 'ring' ? <Sample p={0.05} kind="legend-not-recorded" /> : null}
             {text}
           </span>
         ))}

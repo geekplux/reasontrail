@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { pathTo, type GardenTree } from './buildTree';
-import { layoutGarden, remainderLabel, valueWidth } from './layout';
+import { EMPTY_TEXT, layoutGarden, remainderLabel, valueWidth } from './layout';
 import * as M from './metrics';
 import { band, branchWidth, describeBranch, formatPct, formatToken, formatValue, MARKER, wsRuns, type MarkerKind } from './scales';
 
@@ -39,6 +39,12 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover }: Ga
   const box = layout.viewBox;
   const other = layout.remainders.find((r) => r.parentKey === '');
   const summary = garden.children.map((b) => describeBranch(b.token, b.p)).join(', ') + (other ? `; other tokens ${formatPct(other.p)}` : '');
+  const empty = garden.children.length === 0;
+  // Value label box (spec §5): right of the label, or above the row on an expanded branch so it never covers its own fork.
+  const valueH = M.VALUE_PX + 2 * M.VALUE_PAD_Y + 2;
+  const above = labelled?.branch.state === 'expanded';
+  const valueX = labelled ? (above ? labelled.labelX : labelled.labelEnd + M.FORK_DX) : 0;
+  const valueY = labelled ? (above ? labelled.y - 10 - valueH : labelled.y - valueH / 2) : 0;
 
   // Test hook + "first wow" timing mark, set once the first layout is in the DOM.
   useEffect(() => {
@@ -52,16 +58,16 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover }: Ga
       data-testid="garden"
       className="garden"
       role="img"
-      aria-label={`Garden of next-token choices after the prompt. Top branches: ${summary}.`}
+      aria-label={empty ? 'Garden after the prompt: no recorded branches.' : `Garden of next-token choices after the prompt. Top branches: ${summary}.`}
       viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
       width={box.width}
       height={box.height}
       style={{ fontSize: M.TOKEN_PX }}
     >
       <circle className="seed" cx={0} cy={0} r={M.SEED_R} />
-      {garden.children.length === 0 ? (
+      {empty ? (
         <text className="garden-empty" x={M.LABEL_DX} y={0} dominantBaseline="middle">
-          This garden has no recorded branches.
+          {EMPTY_TEXT}
         </text>
       ) : null}
       {layout.remainders.map((r) => (
@@ -101,15 +107,15 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover }: Ga
         );
       })}
       {labelled ? (
-        <g data-role="value-label" data-key={labelled.branch.key} aria-hidden="true" pointerEvents="none">
-          <rect
-            x={labelled.labelEnd + M.FORK_DX}
-            y={labelled.y - M.VALUE_PX / 2 - M.VALUE_PAD_Y - 1}
-            width={valueWidth(labelled.branch)}
-            height={M.VALUE_PX + 2 * M.VALUE_PAD_Y + 2}
-            rx={2}
-          />
-          <text x={labelled.labelEnd + M.FORK_DX + M.VALUE_PAD_X} y={labelled.y} dominantBaseline="middle" fontSize={M.VALUE_PX}>
+        <g
+          data-role="value-label"
+          data-key={labelled.branch.key}
+          aria-hidden="true"
+          onPointerEnter={() => onHover?.(labelled.branch.key)}
+          onPointerLeave={() => onHover?.(null)}
+        >
+          <rect x={valueX} y={valueY} width={valueWidth(labelled.branch)} height={valueH} rx={2} />
+          <text x={valueX + M.VALUE_PAD_X} y={valueY + valueH / 2} dominantBaseline="middle" fontSize={M.VALUE_PX}>
             {formatValue(labelled.branch)}
           </text>
         </g>

@@ -35,6 +35,8 @@ export interface GardenLayout {
 type Datum = { branch?: GardenBranch | undefined; remainder?: number; parentKey: string; children: Datum[] };
 
 const textWidth = (text: string, px: number) => [...text].length * M.GLYPH_EM * px;
+/** Shown (and measured) when a garden has no branches at all. */
+export const EMPTY_TEXT = 'This garden has no recorded branches.';
 export const remainderLabel = (p: number) => `other ${formatPct(p)}`;
 /** Width of the rendered value label box for a branch. */
 export const valueWidth = (b: GardenBranch) => textWidth(formatValue(b), M.VALUE_PX) + 2 * M.VALUE_PAD_X;
@@ -54,7 +56,7 @@ export function layoutGarden(garden: GardenTree): GardenLayout {
   const labelEnd = (b: GardenBranch, tipX: number) => tipX + M.LABEL_DX + textWidth(formatToken(b.token), M.TOKEN_PX);
   const branches: BranchLayout[] = [];
   const remainders: RemainderLayout[] = [];
-  let right = M.ROOT_FORK_X;
+  let right = garden.children.length === 0 ? M.LABEL_DX + textWidth(EMPTY_TEXT, M.TOKEN_PX) : M.ROOT_FORK_X;
   let top = 0;
   let bottom = 0;
   for (const parent of root.descendants()) {

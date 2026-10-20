@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSample } from '../samples';
 import { buildTree, defaultExpanded, flattenBranches, pathTo, type GardenBranch, type GardenTree } from './buildTree';
-import { initialScrollLeft, layoutGarden } from './layout';
-import { COL, HIT_H } from './metrics';
+import { EMPTY_TEXT, initialScrollLeft, layoutGarden } from './layout';
+import { bundle } from './linkPath';
+import { COL, GLYPH_EM, HIT_H, LABEL_DX, PAD, ROOT_FORK_X, TOKEN_PX } from './metrics';
+import { branchWidth } from './scales';
 
 const garden = buildTree(defaultSample, defaultExpanded(defaultSample));
 const pos = (t: GardenTree) => new Map(layoutGarden(t).branches.map((b) => [b.branch.key, [b.tipX, b.y] as const]));
@@ -50,6 +52,26 @@ describe('layoutGarden', () => {
     const before = pos(garden);
     const after = pos(grow(key));
     for (const [k, v] of before) expect(after.get(k)).toEqual(v);
+  });
+
+  it.each(['', ' looked'])('fork %j: children then the remainder leave forkX stacked by bundle(parentY, widths)', (parentKey) => {
+    const l = layoutGarden(garden);
+    const parent = l.branches.find((b) => b.branch.key === parentKey);
+    const [forkX, parentY] = parent ? [parent.forkX, parent.y] : [ROOT_FORK_X, 0];
+    const kids = l.branches.filter((b) => (parent ? parent.branch.children : garden.children).includes(b.branch)).sort((a, b) => a.branch.rank - b.branch.rank);
+    const rest = l.remainders.find((r) => r.parentKey === parentKey)!;
+    const links = [...kids.map((k) => k.link), rest.link];
+    const ys = bundle(parentY, [...kids.map((k) => branchWidth(k.branch.p)), branchWidth(rest.p)]);
+    links.forEach((d, i) => {
+      expect(d.startsWith(`M${forkX},`)).toBe(true);
+      expect(Number(/^M[^,]+,([^ ]+) /.exec(d)![1])).toBeCloseTo(ys[i]!, 9);
+    });
+  });
+
+  it('makes an empty garden wide enough for its message', () => {
+    const { viewBox } = layoutGarden({ prompt: 'x', children: [] });
+    expect(EMPTY_TEXT).toHaveLength(37);
+    expect(viewBox.width).toBeGreaterThanOrEqual(2 * PAD + LABEL_DX + 37 * GLYPH_EM * TOKEN_PX);
   });
 
   it('gives every branch a hit rect at least 24 px tall that overlaps no other', () => {

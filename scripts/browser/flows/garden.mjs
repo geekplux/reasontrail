@@ -52,8 +52,8 @@ function audit() {
       const p = Number(r.dataset.p);
       if (Math.abs(p - expected) > 0.0005) problems.push(`remainder ${parent.key}: data-p ${p} != 1 - Σp = ${expected}`);
       if (r.textContent !== `other ${fmt(p)}`) problems.push(`remainder ${parent.key}: label ${r.textContent}`);
-      if (getComputedStyle(r).pointerEvents !== 'none' || r.querySelector('[tabindex]') || r.hasAttribute('tabindex'))
-        problems.push(`remainder ${parent.key}: interactive`);
+      const inert = [r, r.querySelector('path'), r.querySelector('text')].every((e) => getComputedStyle(e).pointerEvents === 'none');
+      if (!inert || r.querySelector('[tabindex]') || r.hasAttribute('tabindex')) problems.push(`remainder ${parent.key}: interactive`);
       if (getComputedStyle(r.querySelector('path')).strokeDasharray !== '6px, 4px') problems.push(`remainder ${parent.key}: not dashed 6 4`);
     }
   }
@@ -67,6 +67,8 @@ function audit() {
   const other = document.querySelector('.legend [data-role="legend-other"]');
   if (!other || getComputedStyle(other).strokeDasharray !== '6px, 4px' || !other.closest('.legend-item').textContent.includes('other tokens'))
     problems.push('legend has no dashed "other tokens" sample');
+  const unrec = document.querySelector('.legend [data-marker="ring"] [data-role="legend-not-recorded"]');
+  if (!unrec || getComputedStyle(unrec).strokeDasharray !== '4px, 3px') problems.push('legend "not recorded" key has no 4 3 dashed sample');
   const keys = [...document.querySelectorAll('.legend [data-marker]')].map((e) => `${e.dataset.marker}:${e.textContent}`).join();
   if (keys !== 'bud:can grow,knot:grown,ring:not recorded') problems.push(`legend marker key is ${keys}`);
   return problems;
@@ -112,6 +114,11 @@ export async function run({ page, baseURL, shot, log, fail }) {
   };
   await hover(thin);
   await shot('garden-hover-thin');
+
+  // WCAG 1.4.13 hoverable: moving the pointer from the branch onto its value label keeps the label.
+  const label = await page.locator(`[data-role="value-label"][data-key="${thin.key}"] rect`).boundingBox();
+  await page.mouse.move(label.x + label.width / 2, label.y + label.height / 2, { steps: 4 });
+  if ((await page.locator(`[data-role="value-label"][data-key="${thin.key}"]`).count()) !== 1) fail('value label vanished when hovered');
 
   // A depth-2 branch stays hovered for the CVD and dark screenshots, so the selected style is in every one.
   const deep = await page.$eval('g[data-key=" looked around"]', (g) => ({ key: g.dataset.key, p: Number(g.dataset.p), depth: 2 }));
