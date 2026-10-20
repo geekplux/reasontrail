@@ -1,5 +1,6 @@
 // Helpers for scripts/check-browser.mjs: argument parsing, the detached preview server and its cleanup.
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 
@@ -37,7 +38,7 @@ export function startPreview(port) {
 }
 
 /** Polls `url` until it answers 200, the child exits, or `timeoutMs` passes. */
-export async function waitForHttp(url, child, timeoutMs = 20_000) {
+export async function waitForHttp(url, child, timeoutMs = 60_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (child.exitCode !== null) throw new Error(`preview server exited early (code ${child.exitCode})`);
@@ -106,4 +107,9 @@ export function watchContext(context, origin, problems) {
     });
     page.on('pageerror', (err) => problems.push(`page error: ${err.message}`));
   });
+}
+
+/** A committed sample garden (src/samples/<id>.json), so flows derive tokens and numbers instead of hard-coding them. */
+export function loadSample(id) {
+  return JSON.parse(readFileSync(new URL(`../../src/samples/${id}.json`, import.meta.url), 'utf8'));
 }

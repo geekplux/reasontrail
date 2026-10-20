@@ -43,7 +43,6 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   if (!tree.name.value.startsWith('Garden of next-token choices') || order.join('|') !== owned.join('|') || !order[1]?.startsWith('out,')) fail(`A2: AX order ${JSON.stringify(order)}`);
   const attrs = await page.getByRole('treeitem', { name: 'looked, 8.9 percent', exact: true }).evaluate((g) => ['level', 'setsize', 'posinset', 'expanded'].map((a) => g.getAttribute(`aria-${a}`)).join(' '));
   if (attrs !== '1 5 1 true') fail(`A2: " looked" has level/setsize/posinset/expanded ${attrs}`);
-  if (!(await page.getByRole('treeitem', { name: 'turned, 3.7 percent, not in this recording' }).count())) fail('A2: " turned" is not named as not recorded');
 
   // A1: arrows reach the least probable branch at every level; focus shows its value label and the focus ring.
   const branches = await visible(page);
@@ -77,7 +76,13 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowLeft');
   if ((await page.locator(branch(' entered')).getAttribute('aria-expanded')) !== 'false' || (await focused(page)) !== ' entered') fail('Left, Left: not collapsed with focus on it');
+  // A branch outside the recording (depth 3, off the recorded spines): named so, and Enter says so.
+  await page.keyboard.press('Home');
   await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter'); // grows the first child of " looked"
+  await page.keyboard.press('ArrowRight');
+  const name = await page.evaluate(() => document.activeElement?.ariaLabel);
+  if (!name?.endsWith(', not in this recording')) fail(`A2: depth-3 branch is named ${name}`);
   await page.keyboard.press('Enter');
   const said = () => document.querySelector('[data-role="live"]').textContent.trim() === 'Not in this recording.';
   await page.waitForFunction(said, null, { timeout: 2_000 }).catch(async () => fail(`not recorded: live region says ${await live()}`));

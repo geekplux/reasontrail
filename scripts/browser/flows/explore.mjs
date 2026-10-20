@@ -1,8 +1,13 @@
 // Explore flow (phase 4): grow and collapse recorded branches (anchored on screen), the not-recorded note with no
 // requests, reduced motion, expansion timing (P3), share links (copy, reload, broken), and mobile.
 import { axeProblems } from '../axe.mjs';
+import { loadSample } from '../lib.mjs';
 
-const ENTERED = [' entered the', ' entered,', ' entered his', ' entered a', ' entered and'];
+const { nodes } = loadSample('lighthouse');
+const ENTERED = nodes[' entered'].map((c) => ` entered${c.token}`);
+// A depth-3 branch outside the recording: the first child of " looked"'s first child (not on a recorded spine).
+const OPENER = ` looked${nodes[' looked'][0].token}`;
+const UNRECORDED = nodes[OPENER].map((c) => OPENER + c.token).find((k) => !Object.hasOwn(nodes, k));
 const hit = (key) => `g.branch[data-key="${key}"] [data-role="hit"]`;
 const same = (a, b) => [...a].sort().join('|') === [...b].sort().join('|');
 
@@ -89,12 +94,13 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   log(`P3 expand times ${times.map((t) => t.toFixed(1)).join(', ')} ms, median ${median.toFixed(1)}`);
   if (!(median <= 200)) fail(`P3: median expansion ${median} ms > 200`);
 
-  // F4: an unrecorded branch shows a calm note and makes no request.
+  // F4: an unrecorded branch shows a calm note (next to it, or on the readout line) and makes no request.
   requests.length = 0;
-  await page.locator(hit(' turned')).click();
-  // No free spot next to " turned" (the " looked" remainder is there), so the note is on the readout line.
-  const note = await page.locator('.readout .inline-note').textContent();
-  if (note !== 'Not in this recording.' || (await page.locator('.garden-note').count()) || requests.length) fail(`F4: note ${note}, requests ${requests.join(', ')}`);
+  await page.locator(hit(OPENER)).click();
+  await page.locator(hit(UNRECORDED)).click();
+  const notes = await page.locator('.garden-note .inline-note, .readout .inline-note').allTextContents();
+  log(`F4: ${JSON.stringify(UNRECORDED)} note ${JSON.stringify(notes)}`);
+  if (notes.join() !== 'Not in this recording.' || requests.length) fail(`F4: notes ${JSON.stringify(notes)}, requests ${requests.join(', ')}`);
   for (const p of await axeProblems(page, 'explore not recorded')) fail(p);
   await shot('explore-not-recorded');
 
