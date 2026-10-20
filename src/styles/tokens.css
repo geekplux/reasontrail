@@ -1,0 +1,76 @@
+/*
+ * Design tokens: the "specimen plate" identity (PLAN §3). Every colour in the app comes from here.
+ * Palette contrasts and CVD distances are asserted by tokens.test.ts; edit both together.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Light theme, "paper" (default) */
+  --tg-paper: #f6f3ea;
+  --tg-surface: #fffdf7;
+  --tg-ink: #1c2620;
+  --tg-ink-muted: #4d5a52;
+  --tg-rule: #d9d3c3;
+  --tg-branch-lo: #5f7d6c;
+  --tg-branch-mid: #3d6150;
+  --tg-branch-hi: #1f4535;
+  --tg-accent: #b4530a;
+  --tg-focus: #2f55d4;
+  --tg-error: #a3292b;
+
+  /* Type: IBM Plex Mono 500 for tokens and numbers, Instrument Serif Italic for names, system UI for the rest */
+  --tg-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --tg-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --tg-font-serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+
+  /* Type scale: base 16 px, ratio 1.25 */
+  --tg-text-sm: 0.8rem; /* 12.8 px: probability labels, fine print */
+  --tg-text-md: 1rem;
+  --tg-text-lg: 1.25rem;
+  --tg-text-xl: 1.5625rem;
+  --tg-text-2xl: 1.953rem;
+  --tg-token-size: 14px; /* token labels; never under 12 px */
+
+  /* Spacing 4/8/12/16/24/32/48; paper corners; hairlines instead of shadows */
+  --tg-space-1: 4px;
+  --tg-space-2: 8px;
+  --tg-space-3: 12px;
+  --tg-space-4: 16px;
+  --tg-space-5: 24px;
+  --tg-space-6: 32px;
+  --tg-space-7: 48px;
+  --tg-radius: 2px;
+  --tg-hairline: 1px solid var(--tg-rule);
+  --tg-measure: 72ch;
+
+  /* Motion (§3.4); zeroed under prefers-reduced-motion below */
+  --tg-ease-grow: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --tg-dur-grow: 180ms;
+  --tg-dur-fade: 120ms;
+  --tg-dur-reshape: 120ms;
+}
+
+/* Dark theme, "night garden" */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tg-paper: #111813;
+    --tg-surface: #18211b;
+    --tg-ink: #e9eee7;
+    --tg-ink-muted: #a8b4aa;
+    --tg-rule: #2c372f;
+    --tg-branch-lo: #7fa48f;
+    --tg-branch-mid: #a9cdb8;
+    --tg-branch-hi: #d4ebdc;
+    --tg-accent: #f0a04b;
+    --tg-focus: #8db0ff;
+    --tg-error: #ff8f87;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tg-dur-grow: 0ms;
+    --tg-dur-fade: 0ms;
+    --tg-dur-reshape: 0ms;
+  }
+}
