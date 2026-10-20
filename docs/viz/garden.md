@@ -25,7 +25,7 @@ Per visible branch the data model (`buildTree`) provides `key`, `token`, `p` (co
 | State | tip marker shape + dash pattern (table §3) | colour never distinguishes a state on its own | 3–10 |
 | Selected / hovered branch | casing + ring + underline + value label | §3 | 3 |
 | Sampled path | accent stroke with ink outline + diamond markers | §3 | 7 |
-| Temperature | widths and labels recomputed from tempered `p'` (D8, remainder included); **layout never depends on T** | widths transition 120 ms; labels switch instantly; "approximate (top-k only)" note when T ≠ 1. Phase 7 adds its own rows here. | 7 |
+| Temperature | widths and labels recomputed from tempered `p'` (D8, remainder included); **layout never depends on T** | widths transition 120 ms; labels switch instantly; "approximate (top-k only)" note when T ≠ 1. Full rules §10 | 7 |
 
 ## 3. States: marker and line style (independent of colour)
 
@@ -102,7 +102,7 @@ Layout (`layout.ts`, pure): `d3-hierarchy` `tree().nodeSize([ROW, COL])` on the 
 | Collapse | immediate unmount, no exit animation | 4 |
 | Existing nodes after growth or collapse | none: jump to the new y at once; the activated node is anchored on screen (§4 growth stability) | 4 |
 | Reshape | `stroke-width` set as a CSS property (`style`), transition `--tg-dur-reshape` | 7 |
-| Sampled walk | 80 ms per edge, cap 600 ms | 7 |
+| Sampled walk | 80 ms per edge, cap 600 ms (§10.3) | 7 |
 
 Reduced motion: durations are 0 ms (already in tokens/base). **No code waits on `transitionend` / `animationend`** and no timer is keyed to a duration: state updates are synchronous and CSS animates the result. The phase-7 walk checks `matchMedia('(prefers-reduced-motion: reduce)')` and applies the whole path in one update.
 
@@ -150,3 +150,55 @@ Re-stepping `--tg-error` was tried (5 candidates per theme, crimson to pink): no
 11. Desktop 1280×800 shows the whole default garden without scrolling; at 390×844 the expanded fork and all its child labels are inside the scroll viewport on load and the scroll cue text is present.
 12. No hex colours in `src/**/*.tsx`; `--tg-error` and `--tg-accent` are not used on any phase-3 stroke; `grep -rn "transitionend\|animationend" src` finds nothing.
 13. Screenshots per PLAN phase 3 are committed; in each CVD screenshot bud, knot, ring, remainder and the selected style remain distinguishable by shape/dash alone (dataviz-designer and a11y-reviewer confirm); the ramp re-validates with `validate_palette.js --ordinal` in both themes.
+
+## 10. Phase 7: temperature, entropy, sampled path
+
+### 10.1 Temperature (D8) -> encoding
+
+`temper(ps, r, T)` in `src/llm/temperature.ts`, per expanded node: `q_i = p_i^(1/T) / Z` over the k children **and** the remainder `r` as one pseudo-token, computed in log space (`logp/T − max`) so T = 0.1 never underflows. T = 1 returns the inputs unchanged; T = 0 gives rank 0 `1` and every other child and the remainder `0` (each hidden token is ≤ `p_k`, so rank 0 is the true argmax; ties go to the lower rank).
+
+| Data | Channel | Rule |
+|---|---|---|
+| tempered `q` | stroke width, band colour, value label, accessible name | `branchWidth(q)`, `band(q)`, `formatPct(q)`; `data-p` = shown (tempered) value, new `data-p-recorded` = recorded `p` |
+| tempered `pathP` | value label `path x%`, readout | product of `q` from the root |
+| tempered remainder | dashed stub width + `other x%` label | `branchWidth(q_r)`; omitted when `q_r < 0.0005` (so it vanishes at T = 0) |
+| T ≠ 1 | text note `≈ approximate (top-k only)` | in the control row right after the slider `<output>` (`--tg-text-sm`, `--tg-ink-muted`), referenced by the slider's `aria-describedby`; also appended to the Table view caption. It is a link to `#how-to-read` that opens the panel and focuses its summary |
+| Legend | unchanged | it maps width <-> %, which T does not change |
+
+Layout never depends on T: memoize `layoutGarden` on the visible tree only, and reserve the value-label width for the **worst-case string** of the row's kind (`100.0% · path 100.0%`, plus the entropy suffix for expanded rows), not the current text. Only widths, bands and text update. Width transitions 120 ms via `style.strokeWidth` (§6); band colour and labels switch instantly. The Table view shows both `Recorded` and `At T x.x` columns.
+
+### 10.2 Entropy (uncertainty after a token)
+
+`H = −Σ q·log2 q` over the k tempered children plus the tempered remainder (`src/garden/entropy.ts`); `0·log 0 = 0`. Maximum for k = 5 is log2 6 = 2.58 bits. Bands: **low** `H < 1.0`, **medium** `1.0 ≤ H < 2.0`, **high** `H ≥ 2.0` (recorded samples at T = 1: 22 / 135 / 77 of 234 forks). Format: one decimal, `1.4 bits`, plus the band word; "≈ n choices" = `2^H`, one decimal, Table view only.
+
+- Value label of an **expanded** branch (hover, selection, focus): suffix ` · next 1.4 bits, medium`.
+- Accessible name of an expanded treeitem: "…, uncertainty after it: medium, 1.4 bits".
+- Table view: column `Uncertainty after` (`1.4 bits · medium · ≈ 2.6 choices`) on expanded rows; caption line "After the prompt: …" for the root fork.
+- Optional fork cue (dataviz review may cut it for clutter): 1 / 2 / 3 short ticks (1 px, 6 px tall, 3 px apart, `--tg-ink-muted`, `aria-hidden`) above the stem at `forkX`, `data-entropy-band`. Never a colour change.
+
+### 10.3 Sampled path
+
+- Algorithm (`samplePath.ts`): mulberry32(seed); at each node draw one `u` and pick by cumulative tempered `q` in rank order, remainder last. Walks recorded data with **zero calls**; recorded-but-closed nodes on the path are expanded. The path is a pure function of (sample, T, seed): changing T with a path shown re-samples instantly (no walk).
+- Stop reasons, shown in the readout and announced once (polite): `not-recorded` "the recording ends here" (stop node keeps its `ring`); `other` "drew a token outside the top 5 (other x%)" (the remainder stub gets the ink underlay + accent dash, label `other x% · sampled`); `depth-cap` "depth limit (12 tokens)"; phase 10 adds `unexpanded` "this branch has not grown yet" (never triggers a model call) and `end`.
+- Highlight: §3 row (ink underlay `w + 3`, accent at `w`, diamonds on every path tip except the stop node). Each path link has `data-sampled-step = i`.
+- Walk: one state update; CSS only. Accent path `pathLength="1"`, `stroke-dasharray: 1`, `stroke-dashoffset` 1 -> 0 over `step = min(80, 600/n)` ms linear, `animation-delay: i·step`; diamond fades in at the end of its edge. Reduced motion: duration and delay 0, the full path at once. No timers, no `animationend`.
+- Readout: `Sampled (T 1.0, seed 7): <prompt><tokens> · path x% · stopped: <reason>`. "New seed" picks a random integer 1–9999 and samples. Changing sample clears the path.
+
+### 10.4 Controls and "How to read"
+
+- Control row (§3.3), after the sample picker: `<label>Temperature</label>` + native `<input type="range" min="0" max="2" step="0.1">` (default 1.0) + `<output>` `T 1.0` / `T 0 (greedy)`; presets as `<button aria-pressed>` "0 (greedy)", "1.0", "1.5"; then "Sample a path", "New seed". URL `t` is clamped to [0, 2] and rounded to 0.1 (invalid -> 1); `seed` is an integer 1–9999.
+- "How to read this garden": footer `<details id="how-to-read">` (§3.3), ≤ 120 words, closed by default; on mobile it sits above the sticky readout's reserved space.
+
+### 10.5 Phase 7 acceptance criteria
+
+1. `temperature.test.ts`: T = 1 identity; T = 0 -> `[1,0,…]`, remainder 0; Σq + q_r = 1 ± 1e-9 for T ∈ {0.1, 0.5, 1.5, 2}; lowering T never lowers `q_0`; T = 0.1 with logprob −30 gives finite values.
+2. `entropy.test.ts`: uniform over 6 = 2.585 bits; one-hot = 0; band at 0.999 / 1.0 / 1.999 / 2.0 = low / medium / medium / high.
+3. Browser, for T ∈ {0.2, 1, 1.8}: every `[data-role=branch-stroke]` has computed `stroke-width` = `branchWidth(data-p)` ± 0.01 and `data-p` = tempered value of `data-p-recorded`; every remainder width follows `q_r`; node `(tipX, y)` positions are identical across the three; 0 network requests.
+4. The `approximate (top-k only)` note is present iff T ≠ 1 and is in the slider's accessible description.
+5. Focusing an expanded branch shows `next x.x bits, <band>` matching `entropy(q)`; the Table view has the `Recorded`, `At T` and `Uncertainty after` columns.
+6. Same (sample, T, seed) gives the same path twice; at T = 0 the path is the rank-0 chain; readout shows the sentence and stop reason, and the live region announces it once.
+7. Sampled links have the ink underlay and accent stroke; path tips show `diamond` except the stop node; in `sampled-path-cvd-deuteranopia.png` the path is identifiable by outline and diamonds alone.
+8. Reduced motion: the full path is drawn on the first frame after the click (computed animation duration and delay 0).
+9. `?sample=recipe&t=1.5&seed=7` restores slider, widths and the same path; `t=9` clamps to 2.
+10. Keyboard alone operates slider (arrows step 0.1), presets, Sample, New seed and the details panel; the note link opens and focuses the panel.
+11. P4: one slider step with the largest sample fully expanded re-renders in ≤ 100 ms (median of 3); layout is not recomputed (memo hit).
