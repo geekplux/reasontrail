@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App } from './App';
 import { SOURCE_URL } from './components/AppShell';
 import { buildTree, defaultExpanded } from './garden/buildTree';
@@ -11,11 +11,27 @@ import { defaultSample } from './samples';
 
 const garden = buildTree(defaultSample, defaultExpanded(defaultSample));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  window.history.replaceState(null, '', '/');
+  vi.restoreAllMocks();
+});
+
+/** Renders the app and lets the recorded provider answer (microtasks) and the 100 ms URL debounce run. */
+async function renderApp(search = '') {
+  window.history.replaceState(null, '', `/${search}`);
+  let out!: ReturnType<typeof render>;
+  await act(async () => {
+    out = render(<App />);
+  });
+  return out;
+}
+const settle = () => act(() => new Promise((r) => setTimeout(r, 150)));
+const branch = (c: HTMLElement, key: string) => c.querySelector(`g[data-key="${key}"]`)!;
 
 describe('App', () => {
-  it('renders the root five branches with test hooks, markers and the remainder', () => {
-    const { container } = render(<App />);
+  it('renders the root five branches with test hooks, markers and the remainder', async () => {
+    const { container } = await renderApp();
     const svg = container.querySelector('[data-testid="garden"]');
     expect(svg?.getAttribute('data-ready')).toBe('true');
     expect(svg?.getAttribute('aria-label')).toMatch(/^Garden of next-token choices.*“ looked” 8\.9%.*; other tokens 77\.7%\.$/);
@@ -47,10 +63,10 @@ describe('App', () => {
     expect(screen.getByText('Reading:').parentElement?.textContent).toBe('Reading: The old lighthouse keeper opened the door and·looked·down path 0.3%');
   });
 
-  it('frames the garden with the shell: wordmark header, specimen label, footer', () => {
-    render(<App />);
+  it('frames the garden with the shell: wordmark header, specimen label, footer', async () => {
+    await renderApp();
     expect(screen.getByRole('link', { name: 'token-garden' }).textContent).toBe('token-garden');
-    expect(screen.getByRole('banner').querySelector('.header-link')?.getAttribute('href')).toBe(SOURCE_URL);
+    expect(screen.getByRole('banner').querySelector('a.header-link')?.getAttribute('href')).toBe(SOURCE_URL);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The lighthouse keeper');
     const specimen = screen.getByRole('region', { name: 'The lighthouse keeper' });
     expect(specimen.textContent).toContain('SmolLM2-135M (q8)');
@@ -59,5 +75,44 @@ describe('App', () => {
     // Nothing overflows without layout (happy-dom), so the scroll region is not a tab stop.
     expect(screen.getByRole('region', { name: 'Garden drawing' }).hasAttribute('tabindex')).toBe(false);
     expect(screen.getByRole('contentinfo').textContent).toContain('nothing you do with samples leaves your browser');
+  });
+
+  it('grows and collapses on click through the provider, with no network, and the URL follows the selection', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const { container } = await renderApp();
+    await act(async () => void fireEvent.click(branch(container, ' entered')));
+    expect(branch(container, ' entered').getAttribute('data-state')).toBe('expanded');
+    expect(branch(container, ' entered the')).not.toBeNull();
+    expect(screen.getByText('Reading:')).not.toBeNull();
+    await settle();
+    expect(window.location.search).toBe('?path=1');
+    await act(async () => void fireEvent.click(branch(container, ' entered')));
+    expect(branch(container, ' entered').getAttribute('data-state')).toBe('expandable');
+    await act(async () => void fireEvent.click(branch(container, ' turned')));
+    expect(container.querySelector('.garden-note')?.textContent).toBe('○Not in this recording.');
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['?path=1.0', ' entered the', 'expanded', null],
+    ['?path=9.9', null, 'expandable', "iPart of this link isn't in the recording."],
+    ['?sample=nope&path=1', null, 'expandable', "iThat garden isn't here, so here is “The lighthouse keeper”."],
+  ])('restores %s', async (search, selected, entered, notice) => {
+    const { container } = await renderApp(search);
+    expect(container.querySelector('[data-role="value-label"]')?.getAttribute('data-key') ?? null).toBe(selected);
+    expect(branch(container, ' entered').getAttribute('data-state')).toBe(entered);
+    expect(container.querySelector('.garden-figure > .inline-note')?.textContent ?? null).toBe(notice);
+  });
+
+  it('copies the link, or selects it in a text field when the clipboard is unavailable', async () => {
+    await renderApp('?path=1');
+    const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('denied'));
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    const button = screen.getByRole('button', { name: 'Copy link' });
+    await act(async () => void fireEvent.click(button));
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
+    expect(screen.getByText('Link copied')).not.toBeNull();
+    await act(async () => void fireEvent.click(button));
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Link to this view' }).value).toBe(window.location.href);
   });
 });

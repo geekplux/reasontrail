@@ -35,6 +35,16 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   border-bottom: var(--tg-hairline);
 }
 .brand { text-decoration: none; border-radius: var(--tg-radius); }
+.header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--tg-space-2) var(--tg-space-5); }
+.share { display: inline-flex; align-items: center; gap: var(--tg-space-2); }
+.share-button { border: 0; background: none; font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; cursor: pointer; }
+.share-status { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.share-field { width: 14rem; font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: var(--tg-hairline); border-radius: var(--tg-radius); }
+
+/* Inline notes (PLAN §3.6): a glyph names the kind, the text says it; colour only repeats it. */
+.inline-note { display: inline-flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); padding: 2px var(--tg-space-2); font-size: var(--tg-text-sm); line-height: 16px; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
+.inline-note-glyph { font-family: var(--tg-font-mono); font-weight: 500; color: var(--tg-ink-muted); }
+.inline-note[data-variant='error'] .inline-note-glyph { color: var(--tg-error); }
 
 /* Header and footer links: muted ink, underlined, with a hit area at least 24 px tall. */
 .header-link, .footer-link {
@@ -101,6 +111,9 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 
 /* Narrow screens scroll the drawing sideways; labels are never shrunk below their size. */
 .garden-scroll { overflow-x: auto; overflow-y: hidden; border-radius: var(--tg-radius); }
+.garden-canvas { position: relative; width: max-content; }
+.garden-note { position: absolute; display: flex; pointer-events: none; }
+.garden-note .inline-note { height: 18px; margin: 0; padding-block: 0; line-height: 16px; white-space: nowrap; }
 
 .garden-figure figcaption {
   max-width: var(--tg-measure);
@@ -118,10 +131,13 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 [data-band='hi'] { --tg-band: var(--tg-branch-hi); }
 .garden path, .legend line { fill: none; stroke: var(--tg-band); stroke-linecap: butt; stroke-linejoin: round; }
 .garden .branch path { pointer-events: visibleStroke; }
-.garden [data-state='not-recorded'] > [data-role='branch-stroke'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
+.garden .branch { cursor: pointer; }
+/* Dash patterns of garden strokes are attributes from dashArray(): they scale with the stroke width. */
+.garden [data-state='not-recorded'] > [data-role='branch-stroke'] { stroke: var(--tg-ink-muted); }
 .garden .on-path > [data-role='branch-stroke'] { stroke: var(--tg-ink); }
 .garden .on-path > [data-role='casing'] { stroke: var(--tg-paper); }
-.garden [data-role='remainder'] path, .legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); stroke-dasharray: 6 4; }
+.garden [data-role='remainder'] path { stroke: var(--tg-ink-muted); }
+.legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); stroke-dasharray: 6 4; }
 .legend [data-role='legend-not-recorded'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
 .garden [data-role='remainder'] text, .garden-empty { fill: var(--tg-ink-muted); }
 .marker-bud { fill: var(--tg-band); }
@@ -140,6 +156,16 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   white-space: pre;
 }
 .garden [data-ws], .readout [data-ws] { fill: var(--tg-ink-muted); color: var(--tg-ink-muted); }
+
+/* Motion (PLAN §3.4, spec §6): only newly grown branches animate (data-ready is set after the first view, so that
+   one is already grown); everything else jumps. Nothing waits for transitionend. Reduced motion zeroes it all below. */
+.garden .branch { clip-path: inset(-40px); transition: clip-path var(--tg-dur-grow) var(--tg-ease-grow); }
+.garden .branch text { transition: opacity var(--tg-dur-fade) ease-out 60ms; }
+.garden [data-role='branch-stroke'] { transition: stroke-width var(--tg-dur-reshape) ease-out; }
+@starting-style {
+  .garden[data-ready] .branch { clip-path: inset(-40px 100% -40px -40px); }
+  .garden[data-ready] .branch text { opacity: 0; }
+}
 
 /* Path readout under the drawing: token boundaries are breaks in the underline. Sticky at the bottom on mobile. */
 .readout { margin: var(--tg-space-2) 0 0; padding: var(--tg-space-2) 0; font-family: var(--tg-font-mono); font-weight: 500; }

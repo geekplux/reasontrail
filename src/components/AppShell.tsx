@@ -3,17 +3,20 @@ import { Wordmark } from '../brand/Wordmark';
 
 export const SOURCE_URL = 'https://github.com/geekplux/token-garden';
 
-/** Page frame: header with the wordmark, the main area, and a footer with the privacy line and source link. */
-export function AppShell({ children }: { children: ReactNode }) {
+/** Page frame: header with the wordmark (+ `actions`), the main area, and a footer with the privacy line and source link. */
+export function AppShell({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
   return (
     <>
       <header className="site-header">
         <a className="brand" href="./">
           <Wordmark />
         </a>
-        <a className="header-link" href={SOURCE_URL}>
-          GitHub
-        </a>
+        <div className="header-actions">
+          {actions}
+          <a className="header-link" href={SOURCE_URL}>
+            GitHub
+          </a>
+        </div>
       </header>
       <main className="site-main">{children}</main>
       <footer className="site-footer">
