@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { App } from './App';
+import { SOURCE_URL } from './components/AppShell';
 
 afterEach(cleanup);
 
@@ -32,13 +33,15 @@ describe('App', () => {
 
   it('frames the garden with the shell: wordmark header, specimen label, footer', () => {
     render(<App />);
-    expect(screen.getByRole('banner').textContent).toBe('token-garden');
+    expect(screen.getByRole('link', { name: 'token-garden' }).textContent).toBe('token-garden');
+    expect(screen.getByRole('banner').querySelector('.header-link')?.getAttribute('href')).toBe(SOURCE_URL);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The lighthouse keeper');
     const specimen = screen.getByRole('region', { name: 'The lighthouse keeper' });
     expect(specimen.textContent).toContain('SmolLM2-135M (q8)');
     expect(specimen.textContent).toContain('k = 5');
     expect(specimen.querySelector('time')?.getAttribute('datetime')).toBe('2026-10-19');
-    expect(screen.getByRole('region', { name: 'Garden drawing' }).getAttribute('tabindex')).toBe('0');
+    // Nothing overflows without layout (happy-dom), so the scroll region is not a tab stop.
+    expect(screen.getByRole('region', { name: 'Garden drawing' }).hasAttribute('tabindex')).toBe(false);
     expect(screen.getByRole('contentinfo').textContent).toContain('nothing you do with samples leaves your browser');
   });
 });

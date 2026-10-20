@@ -52,6 +52,9 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     fail('"garden" is not set in Instrument Serif Italic');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
+  // One name for the brand link, not "token - garden"; the header also links to the source.
+  if ((await page.getByRole('link', { name: 'token-garden', exact: true }).count()) !== 1) fail('brand link is not named "token-garden"');
+  if ((await page.locator('header').getByRole('link', { name: 'GitHub', exact: true }).count()) !== 1) fail('header has no GitHub link');
 
   const fold = await page.evaluate(() =>
     ['.site-header', '.specimen', '[data-testid="garden"]'].map((sel) => {
@@ -60,6 +63,18 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     }),
   );
   fold.filter((f) => f.bottom > 800 || f.right > 1280).forEach((f) => fail(`desktop: ${f.sel} is below the fold (${JSON.stringify(f)})`));
+
+  // The garden scroll region is a tab stop exactly when it overflows (re-checked on resize).
+  const checkScrollStop = async (where) => {
+    const ok = await page
+      .waitForFunction(() => {
+        const el = document.querySelector('.garden-scroll');
+        return el.scrollWidth > el.clientWidth === (el.getAttribute('tabindex') === '0');
+      }, null, { timeout: 2000 })
+      .then(() => true, () => false);
+    if (!ok) fail(`${where}: .garden-scroll tab stop does not follow whether it overflows`);
+  };
+  await checkScrollStop('desktop');
 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const duration = await page.evaluate(() => {
@@ -107,6 +122,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   if (mobile.pageOverflow > 0) fail(`mobile: page overflows horizontally by ${mobile.pageOverflow}px`);
   if (mobile.outside.length) fail(`mobile: overflowing outside the garden scroller: ${mobile.outside.join(', ')}`);
   if (mobile.label < 12) fail(`mobile: token labels render at ${mobile.label.toFixed(1)}px (< 12px)`);
+  await checkScrollStop('mobile');
   for (const p of await axeProblems(page, 'light mobile')) fail(p);
   await shot('identity-mobile');
 
