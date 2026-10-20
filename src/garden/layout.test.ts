@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { defaultSample } from '../samples';
 import { buildTree, defaultExpanded, flattenBranches, pathTo, type GardenBranch, type GardenTree } from './buildTree';
 import { EMPTY_TEXT, initialScrollLeft, layoutGarden } from './layout';
 import { bundle } from './linkPath';
 import { COL, GLYPH_EM, HIT_H, LABEL_DX, PAD, ROOT_FORK_X, TOKEN_PX } from './metrics';
 import { branchWidth } from './scales';
+import type { SampleGarden } from '../samples/types';
+import tiny from '../test/fixtures/tiny-garden.json';
 
-const garden = buildTree(defaultSample, defaultExpanded(defaultSample));
+const sample = tiny as SampleGarden;
+const garden = buildTree(sample, defaultExpanded(sample));
 const pos = (t: GardenTree) => new Map(layoutGarden(t).branches.map((b) => [b.branch.key, [b.tipX, b.y] as const]));
 
 /** The garden with five synthetic children (p 0.3 … 0.1, so a remainder too) grown under `key`. */
@@ -21,18 +23,18 @@ function grow(key: string): GardenTree {
 }
 
 describe('layoutGarden', () => {
-  it('lays out the lighthouse default deterministically: root left, depth to the right, siblings 40 px apart', () => {
-    expect(layoutGarden(garden)).toEqual(layoutGarden(buildTree(defaultSample, defaultExpanded(defaultSample))));
+  it('lays out the default garden deterministically: root left, depth to the right, siblings 40 px apart', () => {
+    expect(layoutGarden(garden)).toEqual(layoutGarden(buildTree(sample, defaultExpanded(sample))));
     const p = pos(garden);
-    expect([...p.keys()]).toHaveLength(10);
-    expect(p.get(' looked')).toEqual([180, -100]);
-    expect(p.get(' entered')).toEqual([180, -60]);
-    expect(p.get(' looked out')).toEqual([360, -200]);
-    expect(p.get(' looked down')).toEqual([360, -40]);
+    expect([...p.keys()]).toHaveLength(6);
+    expect(p.get(' mat')).toEqual([180, -60]);
+    expect(p.get(' sofa')).toEqual([180, -20]);
+    expect(p.get(' mat and')).toEqual([360, -120]);
+    expect(p.get(' mat by')).toEqual([360, -40]);
     const { remainders } = layoutGarden(garden);
     expect(remainders.map((r) => [r.parentKey, r.tipX, r.y])).toEqual([
-      ['', 180, 100],
-      [' looked', 360, 0],
+      ['', 180, 60],
+      [' mat', 360, 0],
     ]);
     expect(remainders[0]!.p).toBeCloseTo(1 - garden.children.reduce((s, b) => s + b.p, 0), 12);
   });
@@ -54,7 +56,7 @@ describe('layoutGarden', () => {
     for (const [k, v] of before) expect(after.get(k)).toEqual(v);
   });
 
-  it.each(['', ' looked'])('fork %j: children then the remainder leave forkX stacked by bundle(parentY, widths)', (parentKey) => {
+  it.each(['', ' mat'])('fork %j: children then the remainder leave forkX stacked by bundle(parentY, widths)', (parentKey) => {
     const l = layoutGarden(garden);
     const parent = l.branches.find((b) => b.branch.key === parentKey);
     const [forkX, parentY] = parent ? [parent.forkX, parent.y] : [ROOT_FORK_X, 0];
@@ -75,7 +77,7 @@ describe('layoutGarden', () => {
   });
 
   it('gives every branch a hit rect at least 24 px tall that overlaps no other', () => {
-    const hits = layoutGarden(grow(' looked out')).branches.map((b) => b.hit);
+    const hits = layoutGarden(grow(' mat and')).branches.map((b) => b.hit);
     for (const [i, a] of hits.entries()) {
       expect(a.height).toBeGreaterThanOrEqual(HIT_H);
       for (const b of hits.slice(i + 1)) {
@@ -87,6 +89,6 @@ describe('layoutGarden', () => {
 
   it('starts mobile scrolled to the deepest open fork on the most likely path', () => {
     expect(initialScrollLeft(garden)).toBe(COL);
-    expect(initialScrollLeft(buildTree(defaultSample, new Set()))).toBe(0);
+    expect(initialScrollLeft(buildTree(sample, new Set()))).toBe(0);
   });
 });
