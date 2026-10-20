@@ -29,7 +29,6 @@
   --tg-text-lg: 1.25rem;
   --tg-text-xl: 1.5625rem;
   --tg-text-2xl: 1.953rem;
-  --tg-token-size: 14px; /* token labels; never under 12 px */
 
   /* Spacing 4/8/12/16/24/32/48; paper corners; hairlines instead of shadows */
   --tg-space-1: 4px;

@@ -6,7 +6,7 @@ import { useOverflows } from './useOverflows';
 function Scroller() {
   const [ref, overflows] = useOverflows<HTMLDivElement>();
   return (
-    <div ref={ref} data-testid="scroller" role="region" aria-label="Scroller" tabIndex={overflows ? 0 : undefined}>
+    <div ref={ref} data-testid="scroller" role="region" aria-label="Scroller" tabIndex={overflows ? 0 : undefined} data-position={overflows ?? 'none'}>
       <svg />
     </div>
   );
@@ -50,6 +50,10 @@ describe('useOverflows', () => {
     setWidths(800, 390);
     act(() => notify());
     expect(el.getAttribute('tabindex')).toBe('0');
+    expect(el.dataset.position).toBe('start');
+    vi.spyOn(HTMLElement.prototype, 'scrollLeft', 'get').mockReturnValue(410);
+    act(() => notify());
+    expect(el.dataset.position).toBe('end');
 
     setWidths(800, 1000);
     act(() => notify());

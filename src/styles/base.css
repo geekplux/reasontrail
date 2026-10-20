@@ -108,19 +108,49 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   font-size: var(--tg-text-sm);
   color: var(--tg-ink-muted);
 }
+.scroll-cue { margin: 0 0 var(--tg-space-1); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+
+/* Garden encoding (docs/viz/garden.md). Sizes come from metrics.ts; colour is only ever a second channel. */
 .garden { display: block; }
 .garden .seed { fill: var(--tg-ink); }
-.garden [data-role='branch-stroke'] { fill: none; stroke: var(--tg-branch-hi); stroke-linecap: round; }
-.garden .node { fill: var(--tg-paper); stroke: var(--tg-branch-hi); stroke-width: 1.5; }
+[data-band='lo'] { --tg-band: var(--tg-branch-lo); }
+[data-band='mid'] { --tg-band: var(--tg-branch-mid); }
+[data-band='hi'] { --tg-band: var(--tg-branch-hi); }
+.garden path, .legend line { fill: none; stroke: var(--tg-band); stroke-linecap: butt; stroke-linejoin: round; }
+.garden path { pointer-events: visibleStroke; }
+.garden [data-state='not-recorded'] > [data-role='branch-stroke'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
+.garden .on-path > [data-role='branch-stroke'] { stroke: var(--tg-ink); }
+.garden .on-path > [data-role='casing'] { stroke: var(--tg-paper); }
+.garden [data-role='remainder'] path, .legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); stroke-dasharray: 6 4; }
+.garden [data-role='remainder'] text, .garden-empty { fill: var(--tg-ink-muted); }
+.marker-bud { fill: var(--tg-band); }
+.marker-knot { fill: none; stroke: var(--tg-band); stroke-width: 1.5; }
+.marker-ring { fill: var(--tg-paper); stroke: var(--tg-ink-muted); stroke-width: 1.5; }
+.garden .selected-ring { fill: none; stroke: var(--tg-ink); stroke-width: 2; }
+.garden .selected-underline { stroke: var(--tg-ink); stroke-width: 1; }
+.garden [data-role='hit'] { fill: transparent; }
+.garden [data-role='value-label'] rect { fill: var(--tg-surface); stroke: var(--tg-ink-muted); stroke-width: 1; }
 
 .garden text {
   font-family: var(--tg-font-mono);
   font-weight: 500;
-  font-size: var(--tg-token-size);
   font-variant-numeric: tabular-nums;
   fill: var(--tg-ink);
   white-space: pre;
 }
+.garden [data-ws], .readout [data-ws] { fill: var(--tg-ink-muted); color: var(--tg-ink-muted); }
+
+/* Path readout under the drawing: token boundaries are breaks in the underline. Sticky at the bottom on mobile. */
+.readout { margin: var(--tg-space-2) 0 0; padding: var(--tg-space-2) 0; font-family: var(--tg-font-mono); font-weight: 500; }
+.readout-kicker { font-family: var(--tg-font-ui); font-weight: 400; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.readout-prompt { color: var(--tg-ink-muted); white-space: pre-wrap; }
+.readout-token { margin-left: 2px; border-bottom: 1px solid var(--tg-ink-muted); white-space: pre; }
+.readout-p { font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
+
+.legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; }
+.legend-title { color: var(--tg-ink); }
+.legend-item { display: inline-flex; align-items: center; gap: var(--tg-space-2); font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
 
 .site-footer {
   display: flex;
@@ -137,6 +167,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 @media (max-width: 47.99rem) {
   .site-header, .site-footer { padding-inline: var(--tg-space-4); }
   .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
+  .readout { position: sticky; bottom: 0; background: var(--tg-surface); border-top: var(--tg-hairline); }
 }
 
 /* Reduced motion: no transitions or animations anywhere (A5). */

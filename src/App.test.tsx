@@ -3,32 +3,48 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { App } from './App';
 import { SOURCE_URL } from './components/AppShell';
+import { buildTree, defaultExpanded } from './garden/buildTree';
+import { GardenView } from './garden/GardenView';
+import { PathReadout } from './garden/PathReadout';
+import { branchWidth, formatValue } from './garden/scales';
+import { defaultSample } from './samples';
+
+const garden = buildTree(defaultSample, defaultExpanded(defaultSample));
 
 afterEach(cleanup);
 
 describe('App', () => {
-  it('renders the prompt and the root five branches with test hooks', () => {
+  it('renders the root five branches with test hooks, markers and the remainder', () => {
     const { container } = render(<App />);
-    expect(screen.getByText('The old lighthouse keeper opened the door and')).toBeTruthy();
     const svg = container.querySelector('[data-testid="garden"]');
     expect(svg?.getAttribute('data-ready')).toBe('true');
-    expect(svg?.getAttribute('aria-label')).toMatch(/Garden of next-token choices/);
+    expect(svg?.getAttribute('aria-label')).toMatch(/^Garden of next-token choices.*“ looked” 8\.9%.*; other tokens 77\.7%\.$/);
+    expect(svg?.querySelector('title')).toBeNull();
 
-    const root = [...container.querySelectorAll('g[data-depth="1"]')];
-    expect(root.map((g) => g.querySelector('text')?.textContent)).toEqual([
-      ' looked',
-      ' entered',
-      ' turned',
-      ' the',
-      ' stood',
-    ]);
-    const ps = root.map((g) => Number(g.getAttribute('data-p')));
-    expect([...ps].sort((a, b) => b - a)).toEqual(ps);
-    const widths = root.map((g) => Number(g.querySelector('[data-role="branch-stroke"]')?.getAttribute('stroke-width')));
-    for (let i = 1; i < widths.length; i++) expect(widths[i]!).toBeLessThan(widths[i - 1]!);
-    expect(root[0]?.getAttribute('data-state')).toBe('expanded');
-    expect(root[0]?.querySelector('title')?.textContent).toBe('“ looked” 8.9%');
-    expect(svg?.getAttribute('aria-label')).toContain('“ looked” 8.9%'); // same token form as the tooltip
+    const width = (g: Element) => Number(g.querySelector('[data-role="branch-stroke"]')?.getAttribute('stroke-width'));
+    const root = [...container.querySelectorAll('g[data-depth="1"]')].sort((a, b) => width(b) - width(a));
+    expect(root.map((g) => g.querySelector('text')?.textContent)).toEqual(['·looked', '·entered', '·turned', '·the', '·stood']);
+    expect(root.map((g) => g.getAttribute('data-marker'))).toEqual(['knot', 'bud', 'ring', 'ring', 'ring']);
+    for (const g of container.querySelectorAll('g[data-key]')) {
+      expect(Math.abs(width(g) - branchWidth(Number(g.getAttribute('data-p'))))).toBeLessThan(0.01); // data-p has 4 decimals
+    }
+    const remainder = container.querySelector('[data-role="remainder"][data-parent=""]');
+    expect(remainder?.textContent).toBe('other 77.7%');
+    expect(remainder?.getAttribute('pointer-events')).toBe('none');
+    expect(remainder?.hasAttribute('tabindex')).toBe(false);
+    expect(screen.getByText('Most likely:').parentElement?.textContent).toBe('Most likely: The old lighthouse keeper opened the door and·looked·out path 2.7%');
+  });
+
+  it('labels the selected branch without any pointer events, and the readout follows it', () => {
+    const { container } = render(<GardenView garden={garden} selectedKey=" looked down" />);
+    const g = container.querySelector('g[data-key=" looked down"]');
+    const label = container.querySelector('[data-role="value-label"]');
+    expect(label?.getAttribute('data-key')).toBe(' looked down');
+    expect(label?.textContent).toBe(formatValue({ p: Number(g?.getAttribute('data-p')), pathP: Math.exp(-2.417 - 3.4), depth: 2 }));
+    expect([...container.querySelectorAll('.on-path')].map((e) => e.getAttribute('data-key'))).toEqual([' looked down', ' looked']);
+    cleanup();
+    render(<PathReadout garden={garden} labelledKey=" looked down" />);
+    expect(screen.getByText('Reading:').parentElement?.textContent).toBe('Reading: The old lighthouse keeper opened the door and·looked·down path 0.3%');
   });
 
   it('frames the garden with the shell: wordmark header, specimen label, footer', () => {

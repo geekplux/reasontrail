@@ -1,38 +1,44 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { hierarchy, tree, type HierarchyPointNode } from 'd3-hierarchy';
-import type { GardenBranch, GardenTree } from './buildTree';
-import { branchWidth, describeBranch } from './scales';
+import { pathTo, type GardenTree } from './buildTree';
+import { layoutGarden, remainderLabel, valueWidth } from './layout';
+import * as M from './metrics';
+import { band, branchWidth, describeBranch, formatPct, formatToken, formatValue, MARKER, wsRuns, type MarkerKind } from './scales';
 
-const ROW = 40; // vertical distance between sibling branches
-const COL = 180; // horizontal distance between depths
-const FONT = 14; // px, matches --tg-token-size; labels are never scaled down (mobile scrolls instead)
-const PAD = 16;
-
-type Datum = { branch: GardenBranch | null; children: Datum[] };
-
-function toDatum(t: GardenTree): Datum {
-  const wrap = (b: GardenBranch): Datum => ({ branch: b, children: b.children.map(wrap) });
-  return { branch: null, children: t.children.map(wrap) };
+/** A tip marker: the state's shape (spec §3). Also used by the legend. */
+export function Marker({ kind, x = 0, y = 0 }: { kind: MarkerKind; x?: number; y?: number }) {
+  if (kind === 'ring') return <circle className="marker-ring" cx={x} cy={y} r={M.MARKER_R} />;
+  return (
+    <>
+      <circle className="marker-bud" cx={x} cy={y} r={M.MARKER_R} />
+      {kind === 'knot' ? <circle className="marker-knot" cx={x} cy={y} r={M.KNOT_R} /> : null}
+    </>
+  );
 }
 
-/** Label width estimate: monospace advance (0.6em) per char, so layout never measures text. */
-const labelWidth = (token: string) => token.length * FONT * 0.6;
-
-/** Where a node's outgoing links start: the seed for the root, the end of the label otherwise. */
-function outX(n: HierarchyPointNode<Datum>): number {
-  return n.data.branch ? n.y + 8 + labelWidth(n.data.branch.token) + 12 : n.y;
+/** Token text with whitespace glyphs in their own muted runs. */
+export function WsText({ text, Run }: { text: string; Run: 'tspan' | 'span' }) {
+  return wsRuns(text).map((r, i) => (r.ws ? <Run key={i} data-ws="">{r.text}</Run> : r.text));
 }
 
-export function GardenView({ garden }: { garden: GardenTree }) {
+interface GardenViewProps {
+  garden: GardenTree;
+  /** Click (phase 4) or focus (phase 5) selection; labelled when nothing is hovered. */
+  selectedKey: string | null;
+  hoverKey?: string | null;
+  onHover?(key: string | null): void;
+}
+
+export function GardenView({ garden, selectedKey, hoverKey = null, onHover }: GardenViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const layout = useMemo(() => tree<Datum>().nodeSize([ROW, COL])(hierarchy(toDatum(garden))), [garden]);
-  const nodes = layout.descendants();
-  const minX = Math.min(...nodes.map((n) => n.x));
-  const maxX = Math.max(...nodes.map((n) => n.x));
-  const maxY = Math.max(...nodes.map((n) => outX(n)));
-  const width = maxY + PAD * 2;
-  const height = maxX - minX + ROW + PAD;
-  const summary = garden.children.map((b) => describeBranch(b.token, b.p)).join(', ');
+  const layout = useMemo(() => layoutGarden(garden), [garden]);
+  const labelledKey = hoverKey ?? selectedKey;
+  const onPath = new Set(labelledKey ? pathTo(garden, labelledKey).map((b) => b.key) : []);
+  const labelled = layout.branches.find((b) => b.branch.key === labelledKey);
+  // Thin links on top near the fork: draw in ascending p.
+  const drawn = [...layout.branches].sort((a, b) => a.branch.p - b.branch.p);
+  const box = layout.viewBox;
+  const other = layout.remainders.find((r) => r.parentKey === '');
+  const summary = garden.children.map((b) => describeBranch(b.token, b.p)).join(', ') + (other ? `; other tokens ${formatPct(other.p)}` : '');
 
   // Test hook + "first wow" timing mark, set once the first layout is in the DOM.
   useEffect(() => {
@@ -47,39 +53,67 @@ export function GardenView({ garden }: { garden: GardenTree }) {
       className="garden"
       role="img"
       aria-label={`Garden of next-token choices after the prompt. Top branches: ${summary}.`}
-      viewBox={`${-PAD} ${minX - ROW / 2} ${width} ${height}`}
-      width={width}
-      height={height}
+      viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
+      width={box.width}
+      height={box.height}
+      style={{ fontSize: M.TOKEN_PX }}
     >
-      <circle className="seed" cx={0} cy={0} r={5} />
-      {nodes.slice(1).map((n) => {
-        const b = n.data.branch!;
-        const parent = n.parent!;
-        const x0 = outX(parent);
-        const y0 = parent.x;
-        const mid = (x0 + n.y) / 2;
+      <circle className="seed" cx={0} cy={0} r={M.SEED_R} />
+      {garden.children.length === 0 ? (
+        <text className="garden-empty" x={M.LABEL_DX} y={0} dominantBaseline="middle">
+          This garden has no recorded branches.
+        </text>
+      ) : null}
+      {layout.remainders.map((r) => (
+        <g key={r.parentKey} data-role="remainder" data-parent={r.parentKey} data-p={r.p.toFixed(4)} pointerEvents="none">
+          <path d={r.link} strokeWidth={branchWidth(r.p).toFixed(4)} />
+          <text x={r.tipX + M.LABEL_DX} y={r.y} dominantBaseline="middle" fontSize={M.VALUE_PX}>
+            {remainderLabel(r.p)}
+          </text>
+        </g>
+      ))}
+      {drawn.map(({ branch: b, tipX, y, labelX, labelEnd, link, hit }) => {
+        const w = branchWidth(b.p);
+        const self = b.key === labelledKey;
         return (
           <g
             key={b.key}
-            className="branch"
+            className={onPath.has(b.key) ? 'branch on-path' : 'branch'}
             data-key={b.key}
             data-p={b.p.toFixed(4)}
             data-state={b.state}
+            data-marker={MARKER[b.state]}
+            data-band={band(b.p)}
             data-depth={b.depth}
+            onPointerEnter={() => onHover?.(b.key)}
+            onPointerLeave={() => onHover?.(null)}
           >
-            <title>{describeBranch(b.token, b.p)}</title>
-            <path
-              data-role="branch-stroke"
-              d={`M${x0},${y0} C${mid},${y0} ${mid},${n.x} ${n.y},${n.x}`}
-              strokeWidth={branchWidth(b.p).toFixed(4)}
-            />
-            <circle className="node" cx={n.y} cy={n.x} r={3} />
-            <text x={n.y + 8} y={n.x} dominantBaseline="middle" fontSize={FONT}>
-              {b.token}
+            {onPath.has(b.key) ? <path data-role="casing" d={link} strokeWidth={w + 4} /> : null}
+            <path data-role="branch-stroke" d={link} strokeWidth={w.toFixed(4)} />
+            <Marker kind={MARKER[b.state]} x={tipX} y={y} />
+            {self ? <circle className="selected-ring" cx={tipX} cy={y} r={M.SELECTED_R} /> : null}
+            <text x={labelX} y={y} dominantBaseline="middle">
+              <WsText text={formatToken(b.token)} Run="tspan" />
             </text>
+            {self ? <line className="selected-underline" x1={labelX} x2={labelEnd} y1={y + 9.5} y2={y + 9.5} /> : null}
+            <rect data-role="hit" {...hit} />
           </g>
         );
       })}
+      {labelled ? (
+        <g data-role="value-label" data-key={labelled.branch.key} aria-hidden="true" pointerEvents="none">
+          <rect
+            x={labelled.labelEnd + M.FORK_DX}
+            y={labelled.y - M.VALUE_PX / 2 - M.VALUE_PAD_Y - 1}
+            width={valueWidth(labelled.branch)}
+            height={M.VALUE_PX + 2 * M.VALUE_PAD_Y + 2}
+            rx={2}
+          />
+          <text x={labelled.labelEnd + M.FORK_DX + M.VALUE_PAD_X} y={labelled.y} dominantBaseline="middle" fontSize={M.VALUE_PX}>
+            {formatValue(labelled.branch)}
+          </text>
+        </g>
+      ) : null}
     </svg>
   );
 }
