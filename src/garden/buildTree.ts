@@ -27,12 +27,17 @@ export interface GardenTree {
   children: GardenBranch[];
 }
 
-function branchesAt(sample: SampleGarden, parentKey: string, parentP: number, depth: number, expanded: ReadonlySet<string>): GardenBranch[] {
-  const choices = sample.nodes[parentKey] ?? [];
+/** The prompt and the next-token lists known so far, by continuation key ('' = root). */
+export type TreeSource = Pick<SampleGarden, 'prompt' | 'nodes'>;
+/** Whether a branch can be grown (recorded); decides `expandable` vs `not-recorded` before anyone clicks. */
+export type CanGrow = (key: string) => boolean;
+
+function branchesAt(src: TreeSource, canGrow: CanGrow, parentKey: string, parentP: number, depth: number, expanded: ReadonlySet<string>): GardenBranch[] {
+  const choices = src.nodes[parentKey] ?? [];
   return choices.map((choice, rank) => {
     const key = parentKey + choice.token;
-    const recorded = key in sample.nodes;
-    const open = recorded && expanded.has(key);
+    const recorded = canGrow(key);
+    const open = expanded.has(key) && Object.hasOwn(src.nodes, key);
     const p = Math.exp(choice.logprob);
     return {
       key,
@@ -43,20 +48,23 @@ function branchesAt(sample: SampleGarden, parentKey: string, parentP: number, de
       depth,
       rank,
       state: open ? 'expanded' : recorded ? 'expandable' : 'not-recorded',
-      children: open ? branchesAt(sample, key, parentP * p, depth + 1, expanded) : [],
+      children: open ? branchesAt(src, canGrow, key, parentP * p, depth + 1, expanded) : [],
     };
   });
 }
 
-/** Builds the visible tree: the root is always open; other recorded keys open when in `expanded`. */
-export function buildTree(sample: SampleGarden, expanded: ReadonlySet<string>): GardenTree {
-  return { prompt: sample.prompt, children: branchesAt(sample, '', 1, 1, expanded) };
+/**
+ * Builds the visible tree: the root is always open; other keys open when in `expanded` and their children are known.
+ * `canGrow` defaults to "has a list in `src.nodes`", which is right when `src` is a whole recording.
+ */
+export function buildTree(src: TreeSource, expanded: ReadonlySet<string>, canGrow: CanGrow = (key) => Object.hasOwn(src.nodes, key)): GardenTree {
+  return { prompt: src.prompt, children: branchesAt(src, canGrow, '', 1, 1, expanded) };
 }
 
 /** Default expansion (PLAN D11): the root plus its most probable child, if that child is recorded. */
 export function defaultExpanded(sample: SampleGarden): Set<string> {
   const top = sample.nodes['']?.[0];
-  return new Set(top && top.token in sample.nodes ? [top.token] : []);
+  return new Set(top && Object.hasOwn(sample.nodes, top.token) ? [top.token] : []);
 }
 
 /** Depth-first list of every visible branch, in drawing order. */
