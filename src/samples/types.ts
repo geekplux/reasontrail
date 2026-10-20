@@ -1,8 +1,4 @@
-/** One next-token choice: decoded token text (verbatim, may start with a space) and its natural-log probability. */
-export interface TokenChoice {
-  token: string;
-  logprob: number;
-}
+import type { TokenChoice } from '../../shared/llm/types';
 
 /** Where a recorded garden's distributions came from. */
 export interface SampleModel {
