@@ -28,11 +28,25 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .site-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--tg-space-4);
   height: 56px;
   padding: 0 var(--tg-space-6);
   border-bottom: var(--tg-hairline);
 }
 .brand { text-decoration: none; border-radius: var(--tg-radius); }
+
+/* Header and footer links: muted ink, underlined, with a hit area at least 24 px tall. */
+.header-link, .footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: var(--tg-space-1) var(--tg-space-2);
+  margin-inline: calc(-1 * var(--tg-space-2)); /* the padding widens the hit area, not the gap to the page edge */
+  border-radius: var(--tg-radius);
+  color: var(--tg-ink-muted);
+}
+.header-link { font-size: var(--tg-text-sm); }
 .wordmark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 22px; line-height: 1; }
 .logo-mark { width: 1.6em; height: 1.6em; color: var(--tg-branch-hi); }
 .wordmark-token { font-family: var(--tg-font-mono); font-weight: 500; letter-spacing: -0.01em; }
@@ -81,6 +95,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .specimen-fields dd { margin: 0; padding-bottom: var(--tg-space-1); border-bottom: var(--tg-hairline); }
 .specimen-fields abbr { text-decoration: none; }
 .specimen-prompt { font-family: var(--tg-font-mono); font-weight: 500; }
+.specimen-num { font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
 .specimen-note { margin: var(--tg-space-3) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .garden-figure { margin: 0; min-width: 0; }
 

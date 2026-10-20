@@ -11,12 +11,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         <a className="brand" href="./">
           <Wordmark />
         </a>
+        <a className="header-link" href={SOURCE_URL}>
+          GitHub
+        </a>
       </header>
       <main className="site-main">{children}</main>
       <footer className="site-footer">
         <p>Runs offline; nothing you do with samples leaves your browser.</p>
         <p>
-          <a href={SOURCE_URL}>Source on GitHub</a>
+          <a className="footer-link" href={SOURCE_URL}>
+            Source on GitHub
+          </a>
         </p>
       </footer>
     </>

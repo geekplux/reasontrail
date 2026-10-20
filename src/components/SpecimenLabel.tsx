@@ -18,7 +18,9 @@ export function SpecimenLabel({ sample }: { sample: SampleGarden }) {
         <dd>{modelLabel(sample.model)}</dd>
         <dt>Branches per fork</dt>
         <dd>
-          <abbr title="top-k">k</abbr> = {sample.k}
+          <span className="specimen-num">
+            <abbr title="top-k">k</abbr> = {sample.k}
+          </span>
         </dd>
         <dt>Recorded on</dt>
         <dd>
