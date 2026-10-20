@@ -19,10 +19,12 @@ export async function run({ page, baseURL, shot, log, fail }) {
   );
   log(`root branches: ${root.map((b) => `${JSON.stringify(b.label)} p=${b.p} w=${b.w}`).join('; ')}`);
   if (root.length !== 5) fail(`expected 5 root branches, got ${root.length}`);
-  root.forEach((b) => b.label !== b.key && fail(`label ${JSON.stringify(b.label)} != key ${JSON.stringify(b.key)}`));
+  // Labels show whitespace as · (spec §2); branches are drawn thinnest first, so compare in probability order.
+  root.forEach((b) => b.label !== b.key.replaceAll(' ', '·') && fail(`label ${JSON.stringify(b.label)} != key ${JSON.stringify(b.key)}`));
+  root.sort((a, b) => b.w - a.w);
   for (let i = 1; i < root.length; i++) {
     const [a, b] = [root[i - 1], root[i]];
-    if (a.p < b.p) fail(`data-p order does not match label order at ${JSON.stringify(b.label)}`);
+    if (a.p < b.p) fail(`data-p order does not match stroke-width order at ${JSON.stringify(b.label)}`);
     if (!(a.w > b.w)) fail(`stroke-width not strictly ordered: ${a.label}=${a.w} vs ${b.label}=${b.w}`);
   }
   const ready = await page.evaluate(() => performance.getEntriesByName('tg:garden-ready')[0]?.startTime);
