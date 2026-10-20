@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { readUrlState, writeUrlState } from './app/urlState';
 import { AppShell } from './components/AppShell';
+import { LiveRegion, useAnnouncer } from './components/LiveRegion';
 import { ShareButton } from './components/ShareButton';
 import { SpecimenLabel } from './components/SpecimenLabel';
 import { InlineNote } from './components/states/InlineNote';
@@ -10,6 +11,8 @@ import { GardenView } from './garden/GardenView';
 import { initialScrollLeft, layoutGarden, placeNote } from './garden/layout';
 import { Legend } from './garden/Legend';
 import { PathReadout } from './garden/PathReadout';
+import { grewMessage } from './garden/scales';
+import { TableView } from './garden/TableView';
 import { useGarden } from './garden/useGarden';
 import { RecordedProvider } from './llm/recordedProvider';
 import { defaultSample, samples } from './samples';
@@ -27,7 +30,7 @@ function boot() {
 
 export function App() {
   const [{ sample, ranks, unknown, valid, provider }] = useState(boot);
-  const { state, opened, activate } = useGarden(provider, sample.prompt, sample.k, ranks);
+  const { state, opened, activate, select } = useGarden(provider, sample.prompt, sample.k, ranks);
   // Children come only from provider answers (state.nodes); the recording's key list only marks what can grow.
   const garden = useMemo(
     () => buildTree({ prompt: sample.prompt, nodes: state.nodes }, state.expanded, (key) => Object.hasOwn(sample.nodes, key)),
@@ -36,6 +39,16 @@ export function App() {
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const selectedKey = state.selectedKey;
   const [scrollRef, position] = useOverflows<HTMLDivElement>();
+  const [message, announce] = useAnnouncer();
+  const [table, setTable] = useState(false);
+  // The branch last activated, until its outcome (grown, collapsed, not recorded) is known and announced once.
+  const pending = useRef<string | null>(null);
+  const [activations, setActivations] = useState(0);
+  const onActivate = (key: string) => {
+    pending.current = key;
+    setActivations((n) => n + 1);
+    activate(key);
+  };
   const notice = unknown
     ? `That garden isn't here, so here is “${sample.title}”.`
     : !valid || opened?.complete === false
@@ -54,6 +67,24 @@ export function App() {
     scrollRef.current.scrollLeft = initialScrollLeft(garden);
   }, [scrollRef, opened, garden]);
 
+  useEffect(() => {
+    const key = activations > 0 ? pending.current : null; // re-checked after each activation and each answer
+    if (key === null || state.status[key] === 'loading') return;
+    pending.current = null;
+    const b = pathTo(garden, key).at(-1);
+    if (state.status[key] === 'not-recorded') announce(NOT_RECORDED);
+    else if (b?.state === 'expanded') announce(grewMessage(b));
+  }, [activations, garden, state.status, announce]);
+
+  // Phones: the sticky readout covers the bottom of the viewport, so focus scrolling keeps that much clear (A1).
+  useEffect(() => {
+    const readout = document.querySelector<HTMLElement>('[data-role="readout"]');
+    if (!readout || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => document.documentElement.style.setProperty('--tg-readout-h', `${readout.offsetHeight}px`));
+    observer.observe(readout);
+    return () => observer.disconnect();
+  }, []);
+
   // The address bar always reopens this view (F14): replaceState, debounced so rapid selection changes write once.
   useEffect(() => {
     if (!opened) return;
@@ -65,7 +96,7 @@ export function App() {
   }, [opened, selectedKey, garden, sample]);
 
   return (
-    <AppShell actions={<ShareButton />}>
+    <AppShell actions={<ShareButton announce={announce} />}>
       <div className="plate">
         <SpecimenLabel sample={sample} />
         <figure className="garden-figure">
@@ -75,8 +106,8 @@ export function App() {
               {SCROLL_CUE[position]}
             </p>
           ) : null}
-          {/* Scrolls sideways on narrow screens instead of shrinking the labels; a tab stop only when it scrolls. */}
-          <div ref={scrollRef} className="garden-scroll" role="region" aria-label="Garden drawing" tabIndex={position ? 0 : undefined}>
+          {/* Scrolls sideways on narrow screens instead of shrinking the labels; never its own tab stop: the focused branch scrolls into view. */}
+          <div ref={scrollRef} className="garden-scroll" role="region" aria-label="Garden drawing">
             {/* Sized by the drawing, so the overflow check sees it grow; the branch note is positioned in it. */}
             <div className="garden-canvas">
               {opened ? (
@@ -85,8 +116,9 @@ export function App() {
                   selectedKey={selectedKey}
                   hoverKey={hoverKey}
                   onHover={setHoverKey}
-                  onActivate={activate}
-                  note={noteBox ? { box: noteBox, content: <InlineNote variant="not-recorded">{NOT_RECORDED}</InlineNote> } : null}
+                  onActivate={onActivate}
+                  onSelect={select}
+                  note={noteBox ? { box: noteBox, content: <InlineNote variant="not-recorded" announced>{NOT_RECORDED}</InlineNote> } : null}
                 />
               ) : null}
             </div>
@@ -94,8 +126,15 @@ export function App() {
           <PathReadout
             garden={garden}
             labelledKey={hoverKey ?? selectedKey}
-            note={missing && !noteBox ? <InlineNote as="span" variant="not-recorded" className="readout-note">{NOT_RECORDED}</InlineNote> : null}
+            note={missing && !noteBox ? <InlineNote as="span" variant="not-recorded" className="readout-note" announced>{NOT_RECORDED}</InlineNote> : null}
           />
+          <LiveRegion message={message} />
+          <p className="view-toggle-row">
+            <button type="button" className="view-toggle" aria-pressed={table} onClick={() => setTable((t) => !t)}>
+              Table view
+            </button>
+          </p>
+          {table ? <TableView garden={garden} /> : null}
           <Legend />
           <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
         </figure>

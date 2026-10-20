@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { pathTo, type GardenTree } from './buildTree';
+import { treeKeyAction, visibleItems } from './keyboard';
 import { EMPTY_TEXT, layoutGarden, remainderLabel, valueWidth, type Box } from './layout';
 import * as M from './metrics';
-import { band, branchWidth, dashArray, describeBranch, formatPct, formatToken, formatValue, MARKER, wsRuns, type MarkerKind } from './scales';
+import { band, branchWidth, dashArray, formatPct, formatToken, formatValue, MARKER, spokenBranch, wsRuns, type MarkerKind } from './scales';
 
 /** A tip marker: the state's shape (spec §3). Also used by the legend. */
 export function Marker({ kind, x = 0, y = 0 }: { kind: MarkerKind; x?: number; y?: number }) {
@@ -28,19 +29,28 @@ interface GardenViewProps {
   onHover?(key: string | null): void;
   /** Click (phase 4) or Enter/Space (phase 5) on a branch. */
   onActivate?(key: string): void;
+  /** Keyboard focus moved to a branch (arrows, Home, End): it becomes the selection. */
+  onSelect?(key: string): void;
   /** A note placed by `placeNote` next to one branch (e.g. "Not in this recording."), in drawing coordinates. */
   note?: { box: Box; content: ReactNode } | null;
 }
 
-/** The hit rect of the branch with `key` (keys are arbitrary text, so no attribute selector). */
-const hitOf = (svg: SVGSVGElement | null, key: string | undefined) =>
-  [...(svg?.querySelectorAll('g[data-key]') ?? [])].find((g) => g.getAttribute('data-key') === key)?.querySelector('[data-role="hit"]');
+/** The branch group with `key`, and its hit rect (keys are arbitrary text, so no attribute selector). */
+const groupOf = (svg: SVGSVGElement | null, key: string | undefined) =>
+  [...(svg?.querySelectorAll<SVGGElement>('g.branch') ?? [])].find((g) => g.getAttribute('data-key') === key);
+const hitOf = (svg: SVGSVGElement | null, key: string | undefined) => groupOf(svg, key)?.querySelector('[data-role="hit"]');
+const TREE_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ']);
 
-export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onActivate, note = null }: GardenViewProps) {
+export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onActivate, onSelect, note = null }: GardenViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const anchor = useRef<{ key: string; top: number; open: boolean } | null>(null);
   const dropSlack = useRef<(() => void) | null>(null);
   const layout = useMemo(() => layoutGarden(garden), [garden]);
+  const items = useMemo(() => visibleItems(garden), [garden]);
+  const byKey = new Map(items.map((it, i) => [it.branch.key, { ...it, i }]));
+  const uid = useId();
+  // Roving tabindex (A1): the garden is one tab stop, on the selected branch (or the first one).
+  const tabKey = selectedKey !== null && byKey.has(selectedKey) ? selectedKey : items[0]?.branch.key;
   const labelledKey = hoverKey ?? selectedKey;
   const onPath = new Set(labelledKey ? pathTo(garden, labelledKey).map((b) => b.key) : []);
   const labelled = layout.branches.find((b) => b.branch.key === labelledKey);
@@ -48,7 +58,6 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
   const drawn = [...layout.branches].sort((a, b) => a.branch.p - b.branch.p);
   const box = layout.viewBox;
   const other = layout.remainders.find((r) => r.parentKey === '');
-  const summary = garden.children.map((b) => describeBranch(b.token, b.p)).join(', ') + (other ? `; other tokens ${formatPct(other.p)}` : '');
   const empty = garden.children.length === 0;
   // Value label box (spec §5): right of the label, or above the row on an expanded branch so it never covers its own fork.
   const valueH = M.VALUE_PX + 2 * M.VALUE_PAD_Y + 2;
@@ -97,14 +106,37 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
     for (const kid of [kids[0], kids.at(-1)]) hitOf(svgRef.current, kid?.key)?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
   }, [layout]);
 
+  // Click, Enter/Space, Right on a closed branch, Left on an open one: one handler, so all of them stay anchored (spec §4).
+  const activate = (key: string) => {
+    const top = hitOf(svgRef.current, key)?.getBoundingClientRect().top ?? 0;
+    anchor.current = { key, top, open: byKey.get(key)?.branch.state === 'expanded' };
+    performance.mark('tg:activate-start');
+    onActivate?.(key);
+  };
+
+  const onKeyDown = (key: string, e: KeyboardEvent) => {
+    if ( !TREE_KEYS.has(e.key) || e.altKey || e.ctrlKey || e.metaKey) return;
+    e.preventDefault();
+    const action = treeKeyAction(items, key, e.key);
+    if (action?.type === 'activate') activate(action.key);
+    else if (action) {
+      onSelect?.(action.key);
+      groupOf(svgRef.current, action.key)?.focus({ preventScroll: true });
+      // scroll-padding keeps it clear of the sticky readout on phones.
+      hitOf(svgRef.current, action.key)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  };
+
   return (
     <>
       <svg
         ref={svgRef}
         data-testid="garden"
         className="garden"
-        role="img"
-        aria-label={empty ? 'Garden after the prompt: no recorded branches.' : `Garden of next-token choices after the prompt. Top branches: ${summary}.`}
+        role={empty ? 'img' : 'tree'}
+        // Strokes are drawn thinnest-last (paint order); aria-owns gives assistive tech the tree order instead.
+        aria-owns={empty ? undefined : items.map((_, i) => `${uid}b${i}`).join(' ')}
+        aria-label={empty ? 'Garden after the prompt: no recorded branches.' : `Garden of next-token choices after the prompt${other ? `; other tokens ${formatPct(other.p)}` : ''}`}
         viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
         width={box.width}
         height={box.height}
@@ -112,12 +144,12 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
       >
         <circle className="seed" cx={0} cy={0} r={M.SEED_R} />
         {empty ? (
-          <text className="garden-empty" x={M.LABEL_DX} y={0} dominantBaseline="middle">
+          <text className="garden-empty" aria-hidden="true" x={M.LABEL_DX} y={0} dominantBaseline="middle">
             {EMPTY_TEXT}
           </text>
         ) : null}
         {layout.remainders.map((r) => (
-          <g key={r.parentKey} data-role="remainder" data-parent={r.parentKey} data-p={r.p.toFixed(4)} pointerEvents="none">
+          <g key={r.parentKey} aria-hidden="true" data-role="remainder" data-parent={r.parentKey} data-p={r.p.toFixed(4)} pointerEvents="none">
             <path d={r.link} strokeWidth={branchWidth(r.p).toFixed(4)} strokeDasharray={dashArray('other', branchWidth(r.p), r.length)} />
             <text x={r.tipX + M.LABEL_DX} y={r.y} dominantBaseline="middle" fontSize={M.VALUE_PX}>
               {remainderLabel(r.p)}
@@ -137,14 +169,19 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
               data-marker={MARKER[b.state]}
               data-band={band(b.p)}
               data-depth={b.depth}
+              role="treeitem"
+              id={`${uid}b${byKey.get(b.key)?.i}`}
+              tabIndex={b.key === tabKey ? 0 : -1}
+              aria-label={spokenBranch(b)}
+              aria-level={b.depth}
+              aria-setsize={byKey.get(b.key)?.setSize}
+              aria-posinset={b.rank + 1}
+              aria-expanded={b.state === 'not-recorded' ? undefined : b.state === 'expanded'}
+              aria-selected={b.key === selectedKey}
               onPointerEnter={() => onHover?.(b.key)}
               onPointerLeave={() => onHover?.(null)}
-              onClick={(e) => {
-                const top = e.currentTarget.querySelector('[data-role="hit"]')?.getBoundingClientRect().top ?? 0;
-                anchor.current = { key: b.key, top, open: b.state === 'expanded' };
-                performance.mark('tg:activate-start');
-                onActivate?.(b.key);
-              }}
+              onClick={() => activate(b.key)}
+              onKeyDown={(e) => onKeyDown(b.key, e)}
             >
               {onPath.has(b.key) ? <path data-role="casing" d={link} strokeWidth={w + 4} /> : null}
               <path data-role="branch-stroke" d={link} strokeWidth={w.toFixed(4)} strokeDasharray={b.state === 'not-recorded' ? dashArray('not-recorded', w, length) : undefined} />

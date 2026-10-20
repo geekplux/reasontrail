@@ -34,7 +34,7 @@ describe('App', () => {
     const { container } = await renderApp();
     const svg = container.querySelector('[data-testid="garden"]');
     expect(svg?.getAttribute('data-ready')).toBe('true');
-    expect(svg?.getAttribute('aria-label')).toMatch(/^Garden of next-token choices.*“ looked” 8\.9%.*; other tokens 77\.7%\.$/);
+    expect(svg?.getAttribute('aria-label')).toBe('Garden of next-token choices after the prompt; other tokens 77.7%');
     expect(svg?.querySelector('title')).toBeNull();
 
     const width = (g: Element) => Number(g.querySelector('[data-role="branch-stroke"]')?.getAttribute('stroke-width'));
@@ -108,14 +108,49 @@ describe('App', () => {
   });
 
   it('copies the link, or selects it in a text field when the clipboard is unavailable', async () => {
-    await renderApp('?path=1');
+    const { container } = await renderApp('?path=1');
     const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('denied'));
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     const button = screen.getByRole('button', { name: 'Copy link' });
     await act(async () => void fireEvent.click(button));
     expect(writeText).toHaveBeenCalledWith(window.location.href);
-    expect(screen.getByText('Link copied')).not.toBeNull();
+    expect(container.querySelector('.share-status')?.textContent).toBe('Link copied');
+    expect(screen.getByRole('status').textContent).toBe('Link copied');
     await act(async () => void fireEvent.click(button));
     expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Link to this view' }).value).toBe(window.location.href);
+  });
+
+  it('is a keyboard tree with ARIA, announces growth once, and has a table view with the same numbers', async () => {
+    const { container } = await renderApp();
+    const item = (key: string) => branch(container, key) as SVGGElement;
+    const key = async (k: string, target: string) => act(async () => void fireEvent.keyDown(item(target), { key: k }));
+    expect(screen.getByRole('tree').getAttribute('aria-label')).toMatch(/^Garden of next-token choices/);
+    expect([...container.querySelectorAll('[role="treeitem"][tabindex="0"]')].map((g) => g.getAttribute('data-key'))).toEqual([' looked']);
+    const looked = screen.getByRole('treeitem', { name: 'looked, 8.9 percent' });
+    expect([looked.getAttribute('aria-level'), looked.getAttribute('aria-setsize'), looked.getAttribute('aria-posinset'), looked.getAttribute('aria-expanded')]).toEqual(['1', '5', '1', 'true']);
+    expect(item(' turned').getAttribute('aria-label')).toBe('turned, 3.7 percent, not in this recording');
+    expect(item(' turned').hasAttribute('aria-expanded')).toBe(false);
+    await key('End', ' looked');
+    expect(document.activeElement).toBe(item(' stood'));
+    expect(item(' stood').getAttribute('aria-selected')).toBe('true');
+    expect(container.querySelector('[data-role="value-label"]')?.getAttribute('data-key')).toBe(' stood');
+    await key('Home', ' stood');
+    await key('ArrowDown', ' looked');
+    await key('ArrowDown', ' looked out');
+    expect(document.activeElement?.getAttribute('data-key')).toBe(' looked around');
+    await key('ArrowLeft', ' looked around');
+    await key('Enter', ' looked');
+    expect(item(' looked').getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(item(' looked'));
+    await key('ArrowRight', ' looked');
+    await settle();
+    expect(screen.getByRole('status').textContent).toMatch(/^Grew ‘looked’: 5 branches, top ‘out’ \d+\.\d percent$/);
+    await act(async () => void fireEvent.click(screen.getByRole('button', { name: 'Table view' })));
+    const rows = [...screen.getByRole('table').querySelectorAll('tbody tr')];
+    const drawn = [...container.querySelectorAll('[role="treeitem"]')];
+    expect(rows.map((r) => r.getAttribute('data-key')).sort()).toEqual(drawn.map((g) => g.getAttribute('data-key')).sort());
+    // Same numbers as the drawing: the treeitem's name carries its percentage.
+    for (const r of rows) expect(item(r.getAttribute('data-key')!).getAttribute('aria-label')).toContain(`, ${r.querySelector('[data-role="p"]')?.textContent?.replace('%', ' percent')}`);
+    expect(screen.getByRole('rowheader', { name: 'looked out' })).not.toBeNull();
   });
 });

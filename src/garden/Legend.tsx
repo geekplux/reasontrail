@@ -1,12 +1,12 @@
 import { Marker } from './GardenView';
 import { LEGEND_P } from './metrics';
-import { band, branchWidth, dashArray, formatPct, type MarkerKind } from './scales';
+import { band, branchWidth, dashArray, formatPct, STATE_TEXT, type MarkerKind } from './scales';
 
 const SAMPLE_W = 32;
-const KEYS: [MarkerKind, string][] = [
-  ['bud', 'can grow'],
-  ['knot', 'grown'],
-  ['ring', 'not recorded'],
+const KEYS: [MarkerKind, string, string][] = [
+  ['bud', 'filled dot', STATE_TEXT.expandable],
+  ['knot', 'dot in a ring', STATE_TEXT.expanded],
+  ['ring', 'hollow ring, dashed branch', STATE_TEXT['not-recorded']],
 ];
 
 type SampleKind = 'legend-sample' | 'legend-other' | 'legend-not-recorded';
@@ -48,17 +48,18 @@ export function Legend() {
           other tokens
         </span>
       </p>
-      <p className="legend-row">
-        {KEYS.map(([kind, text]) => (
-          <span key={kind} className="legend-item" data-marker={kind}>
+      <ul className="legend-row" aria-label="Branch tips">
+        {KEYS.map(([kind, shape, text]) => (
+          <li key={kind} className="legend-item" data-marker={kind}>
             <svg width={20} height={20} viewBox="-10 -10 20 20" aria-hidden="true" data-band="hi">
               <Marker kind={kind} />
             </svg>
             {kind === 'ring' ? <Sample p={0.05} kind="legend-not-recorded" /> : null}
+            <span className="visually-hidden">{shape}: </span>
             {text}
-          </span>
+          </li>
         ))}
-      </p>
+      </ul>
     </div>
   );
 }

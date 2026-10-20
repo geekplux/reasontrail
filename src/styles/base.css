@@ -147,7 +147,10 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .marker-ring { fill: var(--tg-paper); stroke: var(--tg-ink-muted); stroke-width: 1.5; }
 .garden .selected-ring { fill: none; stroke: var(--tg-ink); stroke-width: 2; }
 .garden .selected-underline { stroke: var(--tg-ink); stroke-width: 1; }
-.garden [data-role='hit'] { fill: transparent; }
+.garden [data-role='hit'] { fill: transparent; scroll-margin: 4px; /* the focus ring is never clipped by the sideways scroller */ }
+/* Keyboard focus (A1): the global ring is drawn around the row's hit rect, on top of the selected style. */
+.garden .branch:focus { outline: none; box-shadow: none; }
+.garden .branch:focus-visible > [data-role='hit'] { stroke: var(--tg-focus); stroke-width: 2; }
 .garden [data-role='value-label'] rect { fill: var(--tg-surface); stroke: var(--tg-ink-muted); stroke-width: 1; pointer-events: fill; }
 
 .garden text {
@@ -177,8 +180,20 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .readout-p { font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
 .readout-note { margin: 0 0 0 var(--tg-space-2); font-family: var(--tg-font-ui); font-weight: 400; vertical-align: middle; }
 
+/* Table view (A3): the text alternative, toggled under the readout. */
+.view-toggle-row { margin: var(--tg-space-2) 0; }
+.view-toggle { min-height: 24px; padding: var(--tg-space-1) var(--tg-space-2); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); cursor: pointer; }
+.view-toggle[aria-pressed='true'] { color: var(--tg-paper); background: var(--tg-ink); }
+.table-scroll { overflow-x: auto; margin-bottom: var(--tg-space-2); }
+.garden-table { border-collapse: collapse; font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
+.garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--tg-ink-muted); }
+.garden-table th, .garden-table td { padding: 2px var(--tg-space-2); border-bottom: var(--tg-hairline); text-align: start; vertical-align: top; }
+.garden-table tbody th { font-family: var(--tg-font-mono); font-weight: 500; white-space: pre; }
+.garden-table td:nth-child(-n + 4) { text-align: end; }
+.garden-table [data-ws], .table-prefix { color: var(--tg-ink-muted); }
+
 .legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-.legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; }
+.legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; padding: 0; list-style: none; }
 .legend-title { color: var(--tg-ink); }
 .legend-item { display: inline-flex; align-items: center; gap: var(--tg-space-2); font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
 
@@ -198,6 +213,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   .site-header, .site-footer { padding-inline: var(--tg-space-4); }
   .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
   .readout { position: sticky; bottom: 0; background: var(--tg-surface); border-top: var(--tg-hairline); }
+  html { scroll-padding-bottom: var(--tg-readout-h, 0px); }
+  .garden-table th, .garden-table td { padding-inline: var(--tg-space-1); }
 }
 
 /* Reduced motion: no transitions or animations anywhere (A5). */

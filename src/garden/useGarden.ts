@@ -43,5 +43,8 @@ export function useGarden(provider: LogprobProvider, prompt: string, k: number, 
     [state, provider, prompt, k],
   );
 
-  return { state, opened, activate };
+  /** Keyboard focus moved: the focused branch is the selection. */
+  const select = useCallback((key: string) => dispatch({ type: 'select', key }), []);
+
+  return { state, opened, activate, select };
 }

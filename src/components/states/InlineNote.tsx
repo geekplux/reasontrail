@@ -15,10 +15,14 @@ const GLYPH: Record<NoteVariant, ReactNode> = {
   error: '!',
 };
 
-/** A calm, short note: glyph + text, announced politely when it appears. `as="span"` for use inside a paragraph. */
-export function InlineNote({ variant, children, className, as: Tag = 'p' }: { variant: NoteVariant; children: ReactNode; className?: string; as?: 'p' | 'span' }) {
+/**
+ * A calm, short note: glyph + text. Not a live region: changes are announced once through `LiveRegion`, and
+ * `announced` hides a note the live region already said (and the branch's name carries), so nothing is read twice.
+ */
+export function InlineNote(props: { variant: NoteVariant; children: ReactNode; className?: string; as?: 'p' | 'span'; announced?: boolean }) {
+  const { variant, children, className, as: Tag = 'p', announced } = props;
   return (
-    <Tag role="status" className={className ? `inline-note ${className}` : 'inline-note'} data-variant={variant}>
+    <Tag aria-hidden={announced || undefined} className={className ? `inline-note ${className}` : 'inline-note'} data-variant={variant}>
       <span className="inline-note-glyph" aria-hidden="true">
         {GLYPH[variant]}
       </span>
