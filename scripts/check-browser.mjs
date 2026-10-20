@@ -68,9 +68,10 @@ try {
     const page = await context.newPage();
     const log = (msg) => console.log(`[${name}] ${msg}`);
     const fail = (msg) => problems.push(`[${name}] ${msg}`);
-    const shot = async (file) => {
+    // `target` is the page by default, or any Playwright locator/page (e.g. an element, or a page in another context).
+    const shot = async (file, target = page) => {
       const path = join(outDir, `${file}.png`);
-      await page.screenshot({ path });
+      await target.screenshot({ path });
       log(`screenshot ${path}`);
     };
     try {
