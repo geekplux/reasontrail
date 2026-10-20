@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useReducer, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { ProviderError, type LogprobProvider } from '../../shared/llm/types';
+import { ProviderError, type LogprobProvider, type TokenChoice } from '../../shared/llm/types';
 import { gardenReducer, initialGardenState, openPath } from './state';
 
 /**
@@ -46,5 +46,8 @@ export function useGarden(provider: LogprobProvider, prompt: string, k: number, 
   /** Keyboard focus moved: the focused branch is the selection. */
   const select = useCallback((key: string) => dispatch({ type: 'select', key }), []);
 
-  return { state, opened, activate, select };
+  /** Opens known keys at once (a sampled path over recorded data: no provider call), keeping the selection. */
+  const reveal = useCallback((nodes: Record<string, TokenChoice[]>, keys: string[]) => dispatch({ type: 'openPath', nodes, expand: keys }), []);
+
+  return { state, opened, activate, select, reveal };
 }

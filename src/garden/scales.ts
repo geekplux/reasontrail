@@ -1,4 +1,5 @@
-import type { BranchState, GardenBranch } from './buildTree';
+import type { BranchState, Fork, GardenBranch } from './buildTree';
+import { entropyBand, formatEntropy } from './entropy';
 import { DASH_FROM, MAX_GLYPHS } from './metrics';
 
 /** Branch stroke width in px, linear in the conditional probability (PLAN D5): 1.5 px floor, 20 px at p = 1. */
@@ -34,9 +35,10 @@ export function formatPct(p: number): string {
   return `${(p * 100).toFixed(1)}%`;
 }
 
-/** The value label: the branch's own chance, plus the whole continuation's chance below the first fork. */
-export function formatValue(b: { p: number; pathP: number; depth: number }): string {
-  return b.depth > 1 ? `${formatPct(b.p)} · path ${formatPct(b.pathP)}` : formatPct(b.p);
+/** The value label: the branch's own chance, the whole continuation's chance below the first fork, the entropy once open. */
+export function formatValue(b: { p: number; pathP: number; depth: number; next?: Pick<Fork, 'entropy'> | undefined }): string {
+  const value = b.depth > 1 ? `${formatPct(b.p)} · path ${formatPct(b.pathP)}` : formatPct(b.p);
+  return b.next ? `${value} · next ${formatEntropy(b.next.entropy)}` : value;
 }
 
 const WS: Record<string, string> = { ' ': '·', '\n': '↵', '\t': '⇥', '\u00a0': '⍽' };
@@ -98,9 +100,10 @@ export function spokenToken(token: string): string {
 export const spokenPct = (p: number) => formatPct(p).replace('<', 'less than ').replace('%', ' percent');
 
 /** A branch's accessible name: "looked, 8.9 percent" (+ path chance below the first fork, + "not in this recording"). */
-export function spokenBranch(b: Pick<GardenBranch, 'token' | 'p' | 'pathP' | 'depth' | 'state'>): string {
+export function spokenBranch(b: Pick<GardenBranch, 'token' | 'p' | 'pathP' | 'depth' | 'state' | 'next'>): string {
   const path = b.depth > 1 ? `, path ${spokenPct(b.pathP)}` : '';
-  return `${spokenToken(b.token)}, ${spokenPct(b.p)}${path}${b.state === 'not-recorded' ? ', not in this recording' : ''}`;
+  const next = b.next ? `, uncertainty after it: ${entropyBand(b.next.entropy)}, ${b.next.entropy.toFixed(1)} bits` : '';
+  return `${spokenToken(b.token)}, ${spokenPct(b.p)}${path}${b.state === 'not-recorded' ? ', not in this recording' : ''}${next}`;
 }
 
 /** The polite announcement after a branch grows: "Grew ‘looked’: 5 branches, top ‘out’ 30.1 percent". */

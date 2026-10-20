@@ -29,6 +29,7 @@ describe('scales', () => {
   it('adds the path chance below the first fork', () => {
     expect(formatValue({ p: 0.447, pathP: 0.447, depth: 1 })).toBe('44.7%');
     expect(formatValue({ p: 0.301, pathP: 0.0269, depth: 2 })).toBe('30.1% · path 2.7%');
+    expect(formatValue({ p: 0.301, pathP: 0.0269, depth: 2, next: { entropy: 1.44 } })).toBe('30.1% · path 2.7% · next 1.4 bits, medium');
   });
 
   it.each([
@@ -98,6 +99,7 @@ describe('dashArray', () => {
   it('names branches and growth in words', () => {
     const b = { token: ' looked', p: 0.0892, pathP: 0.0892, depth: 1, state: 'expanded' as const };
     expect(spokenBranch(b)).toBe('looked, 8.9 percent');
+    expect(spokenBranch({ ...b, next: { rest: 0, entropy: 1.44 } })).toBe('looked, 8.9 percent, uncertainty after it: medium, 1.4 bits');
     expect(spokenBranch({ ...b, depth: 2, pathP: 0.0002, state: 'not-recorded' })).toBe('looked, 8.9 percent, path less than 0.1 percent, not in this recording');
     const out = { ...b, token: ' out', p: 0.301 };
     expect(grewMessage({ token: ' looked', children: [out, out] as never })).toBe('Grew ‘looked’: 2 branches, top ‘out’ 30.1 percent');

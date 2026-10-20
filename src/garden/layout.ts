@@ -28,9 +28,18 @@ export interface RemainderLayout {
   length: number;
 }
 
+/** A fork's bundle: where it leaves and its tips in bundle order (`key` null = the remainder stub). */
+export interface ForkLayout {
+  parentKey: string;
+  x: number;
+  y: number;
+  tips: { key: string | null; tipX: number; y: number }[];
+}
+
 export interface GardenLayout {
   branches: BranchLayout[];
   remainders: RemainderLayout[];
+  forks: ForkLayout[];
   viewBox: { x: number; y: number; width: number; height: number };
 }
 
@@ -41,7 +50,16 @@ const textWidth = (text: string, px: number) => [...text].length * M.GLYPH_EM * 
 export const EMPTY_TEXT = 'This garden has no recorded branches.';
 export const remainderLabel = (p: number) => `other ${formatPct(p)}`;
 /** Width of the rendered value label box for a branch. */
-export const valueWidth = (b: GardenBranch) => textWidth(formatValue(b), M.VALUE_PX) + 2 * M.VALUE_PAD_X;
+export const valueWidth = (b: Parameters<typeof formatValue>[0]) => textWidth(formatValue(b), M.VALUE_PX) + 2 * M.VALUE_PAD_X;
+/** The widest value label a row of this kind can show at any temperature, so the layout never depends on T. */
+const reservedValueWidth = (b: GardenBranch) => valueWidth({ p: 1, pathP: 1, depth: b.depth, next: b.next && { entropy: 1.5 } });
+const REMAINDER_RESERVE = `${remainderLabel(1)} · sampled`;
+
+/** A fork's links at the given stroke widths (bundle order): temperature restacks the bundle, never moves a tip. */
+export function forkLinks(f: ForkLayout, widths: readonly number[]) {
+  const ys = bundle(f.y, widths);
+  return f.tips.map((t, i) => ({ link: linkPath(f.x, ys[i]!, t.tipX, t.y), length: linkLength(f.x, ys[i]!, t.tipX, t.y) }));
+}
 
 function toDatum(parentKey: string, list: GardenBranch[], branch?: GardenBranch): Datum {
   const children = list.map((b) => toDatum(b.key, b.children, b));
@@ -58,25 +76,27 @@ export function layoutGarden(garden: GardenTree): GardenLayout {
   const labelEnd = (b: GardenBranch, tipX: number) => tipX + M.LABEL_DX + textWidth(formatToken(b.token), M.TOKEN_PX);
   const branches: BranchLayout[] = [];
   const remainders: RemainderLayout[] = [];
+  const forks: ForkLayout[] = [];
   let right = garden.children.length === 0 ? M.LABEL_DX + textWidth(EMPTY_TEXT, M.TOKEN_PX) : M.ROOT_FORK_X;
   let top = 0;
   let bottom = 0;
   for (const parent of root.descendants()) {
     if (!parent.children) continue;
     const forkX = parent.data.branch ? labelEnd(parent.data.branch, parent.depth * M.COL) + M.FORK_DX : M.ROOT_FORK_X;
-    const ys = bundle(parent.x, parent.children.map((c) => branchWidth(c.data.branch?.p ?? c.data.remainder ?? 0)));
+    const fork: ForkLayout = { parentKey: parent.data.branch?.key ?? '', x: forkX, y: parent.x, tips: [] };
+    for (const c of parent.children) fork.tips.push({ key: c.data.branch?.key ?? null, tipX: c.depth * M.COL, y: c.x });
+    forks.push(fork);
+    const links = forkLinks(fork, parent.children.map((c) => branchWidth(c.data.branch?.p ?? c.data.remainder ?? 0)));
     parent.children.forEach((child, i) => {
-      const tipX = child.depth * M.COL;
-      const y = child.x;
-      const link = linkPath(forkX, ys[i]!, tipX, y);
-      const length = linkLength(forkX, ys[i]!, tipX, y);
+      const { tipX, y } = fork.tips[i]!;
+      const { link, length } = links[i]!;
       top = Math.min(top, y);
       bottom = Math.max(bottom, y);
       const b = child.data.branch;
       if (!b) {
         const p = child.data.remainder!;
         remainders.push({ parentKey: child.data.parentKey, p, tipX, y, link, length });
-        right = Math.max(right, tipX + M.LABEL_DX + textWidth(remainderLabel(p), M.VALUE_PX));
+        right = Math.max(right, tipX + M.LABEL_DX + textWidth(REMAINDER_RESERVE, M.VALUE_PX));
         return;
       }
       const end = labelEnd(b, tipX);
@@ -84,12 +104,13 @@ export function layoutGarden(garden: GardenTree): GardenLayout {
       const hit = { x: hitX, y: y - M.HIT_H / 2, width: end + M.FORK_DX - hitX, height: M.HIT_H };
       branches.push({ branch: b, tipX, y, labelX: tipX + M.LABEL_DX, labelEnd: end, forkX: end + M.FORK_DX, link, length, hit });
       // Room for the value label to the right of every label, so it never has to flip over the links.
-      right = Math.max(right, end + M.FORK_DX + valueWidth(b));
+      right = Math.max(right, end + M.FORK_DX + reservedValueWidth(b));
     });
   }
   return {
     branches,
     remainders,
+    forks,
     viewBox: { x: -M.PAD, y: top - M.ROW / 2, width: right + 2 * M.PAD, height: bottom - top + M.ROW },
   };
 }

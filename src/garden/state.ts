@@ -18,7 +18,8 @@ export type GardenAction =
   | { type: 'toggle'; key: string }
   | { type: 'select'; key: string | null }
   | { type: 'status'; key: string; status: NodeStatus }
-  | { type: 'openPath'; nodes: Record<string, TokenChoice[]>; expand: string[]; select: string | null };
+  /** Merge answers and open keys; `select` (when given) replaces the selection. */
+  | { type: 'openPath'; nodes: Record<string, TokenChoice[]>; expand: string[]; select?: string | null };
 
 export const initialGardenState: GardenState = { nodes: {}, expanded: new Set(), status: {}, selectedKey: null };
 
@@ -46,7 +47,7 @@ export function gardenReducer(s: GardenState, a: GardenAction): GardenState {
     case 'openPath': {
       const nodes = { ...s.nodes, ...a.nodes };
       const expanded = new Set([...s.expanded, ...a.expand.filter((k) => Object.hasOwn(nodes, k))]);
-      return { ...s, nodes, expanded, selectedKey: a.select };
+      return { ...s, nodes, expanded, selectedKey: a.select === undefined ? s.selectedKey : a.select };
     }
   }
 }

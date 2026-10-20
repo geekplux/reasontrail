@@ -1,4 +1,6 @@
+import { temperChoices } from '../llm/temperature';
 import type { SampleGarden } from '../samples/types';
+import { entropy } from './entropy';
 
 /** Phase 10 adds the live-only states (`leaf` = end of text, `loading`, `error`, `depth-limit`). */
 export type BranchState = 'expandable' | 'expanded' | 'not-recorded';
@@ -9,8 +11,9 @@ export interface GardenBranch {
   key: string;
   token: string;
   logprob: number;
-  /** Conditional probability exp(logprob). */
+  /** Shown conditional probability: exp(logprob), tempered (PLAN D8); equal to `recordedP` at T = 1. */
   p: number;
+  recordedP: number;
   /** Probability of the whole continuation: the product of `p` from the root. */
   pathP: number;
   /** 1 for the root's branches. */
@@ -19,12 +22,20 @@ export interface GardenBranch {
   rank: number;
   state: BranchState;
   children: GardenBranch[];
+  /** Once open: the shown chance of everything outside its children, and the entropy (bits) of its fork. */
+  next?: Fork;
+}
+
+export interface Fork {
+  rest: number;
+  entropy: number;
 }
 
 /** The visible garden: the prompt plus its first-level branches. */
 export interface GardenTree {
   prompt: string;
   children: GardenBranch[];
+  next?: Fork;
 }
 
 /** The prompt and the next-token lists known so far, by continuation key ('' = root). */
@@ -32,33 +43,38 @@ export type TreeSource = Pick<SampleGarden, 'prompt' | 'nodes'>;
 /** Whether a branch can be grown (recorded); decides `expandable` vs `not-recorded` before anyone clicks. */
 export type CanGrow = (key: string) => boolean;
 
-function branchesAt(src: TreeSource, canGrow: CanGrow, parentKey: string, parentP: number, depth: number, expanded: ReadonlySet<string>): GardenBranch[] {
+function forkAt(src: TreeSource, canGrow: CanGrow, parentKey: string, parentP: number, depth: number, expanded: ReadonlySet<string>, t: number) {
   const choices = src.nodes[parentKey] ?? [];
-  return choices.map((choice, rank) => {
+  const { q, rest } = temperChoices(choices, t);
+  const children = choices.map((choice, rank): GardenBranch => {
     const key = parentKey + choice.token;
     const recorded = canGrow(key);
     const open = expanded.has(key) && Object.hasOwn(src.nodes, key);
-    const p = Math.exp(choice.logprob);
+    const p = q[rank]!;
+    const sub = open ? forkAt(src, canGrow, key, parentP * p, depth + 1, expanded, t) : null;
     return {
       key,
       token: choice.token,
       logprob: choice.logprob,
       p,
+      recordedP: Math.exp(choice.logprob),
       pathP: parentP * p,
       depth,
       rank,
       state: open ? 'expanded' : recorded ? 'expandable' : 'not-recorded',
-      children: open ? branchesAt(src, canGrow, key, parentP * p, depth + 1, expanded) : [],
+      children: sub?.children ?? [],
+      ...(sub ? { next: sub.next } : {}),
     };
   });
+  return { children, next: { rest, entropy: entropy([...q, rest]) } };
 }
 
 /**
- * Builds the visible tree: the root is always open; other keys open when in `expanded` and their children are known.
+ * Builds the visible tree at temperature `t`: the root is always open; other keys open when in `expanded` and their children are known.
  * `canGrow` defaults to "has a list in `src.nodes`", which is right when `src` is a whole recording.
  */
-export function buildTree(src: TreeSource, expanded: ReadonlySet<string>, canGrow: CanGrow = (key) => Object.hasOwn(src.nodes, key)): GardenTree {
-  return { prompt: src.prompt, children: branchesAt(src, canGrow, '', 1, 1, expanded) };
+export function buildTree(src: TreeSource, expanded: ReadonlySet<string>, canGrow: CanGrow = (key) => Object.hasOwn(src.nodes, key), t = 1): GardenTree {
+  return { prompt: src.prompt, ...forkAt(src, canGrow, '', 1, 1, expanded, t) };
 }
 
 /** Default expansion (PLAN D11): the root plus its most probable child, if that child is recorded. */
