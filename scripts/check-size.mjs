@@ -1,0 +1,66 @@
+#!/usr/bin/env node
+// Size budgets (PLAN P1) and the runtime-dependency allowlist (PLAN Q2), checked on dist/ after `pnpm build`.
+// Usage: pnpm check:size [--dist <dir>] [--package <package.json>]
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { gzipSync } from 'node:zlib';
+
+/** Runtime dependencies allowed in package.json; adding one needs a DECISIONS.md entry and an edit here. */
+export const RUNTIME_ALLOWLIST = ['@fontsource/ibm-plex-mono', '@fontsource/instrument-serif', 'd3-hierarchy', 'react', 'react-dom'];
+export const BUDGETS = { jsGzip: 130 * 1024, cssGzip: 15 * 1024, fontBytes: 45 * 1024, fontFiles: 2 };
+
+/** Problems with the runtime dependency list: anything missing from or extra to the allowlist. */
+export function checkDependencies(deps = {}) {
+  const names = Object.keys(deps);
+  return [
+    ...names.filter((n) => !RUNTIME_ALLOWLIST.includes(n)).map((n) => `runtime dependency not in the allowlist: ${n}`),
+    ...RUNTIME_ALLOWLIST.filter((n) => !names.includes(n)).map((n) => `allowlisted runtime dependency missing: ${n}`),
+  ];
+}
+
+/** Assets the first view loads, read from the built index.html: entry + modulepreload JS and stylesheets. */
+export function initialAssets(html) {
+  const attr = (re) => [...html.matchAll(re)].map((m) => m[1].replace(/^\//, ''));
+  return {
+    js: [...attr(/<script[^>]*type="module"[^>]*src="([^"]+)"/g), ...attr(/<link[^>]*rel="modulepreload"[^>]*href="([^"]+)"/g)],
+    css: attr(/<link[^>]*rel="stylesheet"[^>]*href="([^"]+)"/g),
+  };
+}
+
+/** Compares measured sizes with BUDGETS; returns human-readable problems. */
+export function checkBudgets({ jsGzip, cssGzip, fontBytes, fontFiles }) {
+  const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
+  const problems = [];
+  if (jsGzip > BUDGETS.jsGzip) problems.push(`initial JS ${kb(jsGzip)} gzip > ${kb(BUDGETS.jsGzip)}`);
+  if (cssGzip > BUDGETS.cssGzip) problems.push(`CSS ${kb(cssGzip)} gzip > ${kb(BUDGETS.cssGzip)}`);
+  if (fontBytes > BUDGETS.fontBytes) problems.push(`fonts ${kb(fontBytes)} > ${kb(BUDGETS.fontBytes)}`);
+  if (fontFiles > BUDGETS.fontFiles) problems.push(`${fontFiles} font files > ${BUDGETS.fontFiles}`);
+  return problems;
+}
+
+function main(argv) {
+  const arg = (name, fallback) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback);
+  const dist = resolve(arg('--dist', 'dist'));
+  const pkg = JSON.parse(readFileSync(resolve(arg('--package', 'package.json')), 'utf8'));
+  const html = readFileSync(join(dist, 'index.html'), 'utf8');
+  const { js, css } = initialAssets(html);
+  const gz = (files) => files.reduce((sum, f) => sum + gzipSync(readFileSync(join(dist, f))).length, 0);
+  // Browsers that support woff2 never fetch the .woff fallbacks, so the first view's fonts are the woff2 files.
+  const fonts = readdirSync(join(dist, 'assets')).filter((f) => f.endsWith('.woff2'));
+  const sizes = {
+    jsGzip: gz(js),
+    cssGzip: gz(css),
+    fontBytes: fonts.reduce((sum, f) => sum + statSync(join(dist, 'assets', f)).size, 0),
+    fontFiles: fonts.length,
+  };
+  const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
+  console.log(`initial JS ${kb(sizes.jsGzip)} gzip (${js.length} file(s)), CSS ${kb(sizes.cssGzip)} gzip, fonts ${kb(sizes.fontBytes)} in ${sizes.fontFiles} woff2 file(s)`);
+  const problems = [...(js.length ? [] : ['no entry script found in index.html']), ...checkDependencies(pkg.dependencies), ...checkBudgets(sizes)];
+  if (problems.length) {
+    console.error(`check:size FAILED:\n${problems.map((p) => `  - ${p}`).join('\n')}`);
+    process.exitCode = 1;
+  } else console.log('check:size passed');
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2));
