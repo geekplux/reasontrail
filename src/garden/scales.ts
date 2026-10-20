@@ -39,12 +39,12 @@ export function formatValue(b: { p: number; pathP: number; depth: number }): str
   return b.depth > 1 ? `${formatPct(b.p)} · path ${formatPct(b.pathP)}` : formatPct(b.p);
 }
 
-const WS: Record<string, string> = { ' ': '·', '\n': '↵', '\t': '⇥' };
+const WS: Record<string, string> = { ' ': '·', '\n': '↵', '\t': '⇥', '\u00a0': '⍽' };
 const WS_GLYPHS = new Set(Object.values(WS));
 
-/** Token text with visible whitespace: space -> ·, newline -> ↵, tab -> ⇥. */
+/** Token text with visible whitespace: space -> ·, newline -> ↵, tab -> ⇥, non-breaking space -> ⍽. */
 export function visibleWs(token: string): string {
-  return token.replace(/[ \n\t]/g, (c) => WS[c]!);
+  return token.replace(/[ \n\t\u00a0]/g, (c) => WS[c]!);
 }
 
 /** A token label: visible whitespace, at most MAX_GLYPHS glyphs (first 11 + …). */
@@ -73,11 +73,25 @@ export const MARKER: Record<BranchState, MarkerKind> = { expandable: 'bud', expa
 /** What each state means, in words (table view, legend, accessible names). */
 export const STATE_TEXT: Record<BranchState, string> = { expandable: 'can grow', expanded: 'grown', 'not-recorded': 'not recorded' };
 
-const SPOKEN_WS: Record<string, string> = { ' ': 'space', '\n': 'newline', '\t': 'tab' };
+const SPOKEN_WS: Record<string, string> = { ' ': 'space', '\n': 'newline', '\t': 'tab', '\u00a0': 'non-breaking space' };
 
-/** A token as a screen reader should say it: its text without edge spaces, or its whitespace by name. */
+/** Screen readers skip lone punctuation, so punctuation-only tokens are spoken by name. */
+const SPOKEN_PUNCT: Record<string, string> = {
+  ',': 'comma', '.': 'period', '!': 'exclamation mark', '?': 'question mark', ':': 'colon', ';': 'semicolon',
+  "'": 'apostrophe', '’': 'apostrophe', '"': 'quote', '“': 'open quote', '”': 'close quote', '-': 'hyphen',
+  '—': 'em dash', '_': 'underscore', '/': 'slash', '…': 'ellipsis',
+};
+
+/**
+ * A token as a screen reader should say it: its text without edge whitespace; punctuation-only text by name
+ * ("comma", "ellipsis"); whitespace-only tokens by name with runs counted ("space", "6 spaces", "3 newlines").
+ */
 export function spokenToken(token: string): string {
-  return token.trim() || [...token].map((c) => SPOKEN_WS[c] ?? c).join(' ');
+  const t = token.trim().replace(/\.\.\./g, '…');
+  if (t && !/[\p{L}\p{N}]/u.test(t)) return [...t].map((c) => SPOKEN_PUNCT[c] ?? c).join(' ');
+  if (t) return t;
+  const runs = token.match(/(.)\1*/gsu) ?? [];
+  return runs.map((r) => (r.length > 1 ? `${r.length} ${SPOKEN_WS[r[0]!] ?? r[0]}s` : (SPOKEN_WS[r] ?? r))).join(' ');
 }
 
 /** A percentage in words: 0.0892 -> "8.9 percent", tiny -> "less than 0.1 percent". */

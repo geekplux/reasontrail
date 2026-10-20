@@ -37,6 +37,8 @@ describe('scales', () => {
     ['\tx y', '⇥x·y'],
     ['abcdefghijklmno', 'abcdefghijk…'],
     ['abcdefghijkl', 'abcdefghijkl'],
+    ['a\u00a0b', 'a⍽b'],
+    ['\u00a0', '⍽'],
   ])('formatToken(%j) = %s', (t, s) => expect(formatToken(t)).toBe(s));
 
   it('splits whitespace glyphs into their own runs', () => {
@@ -45,6 +47,10 @@ describe('scales', () => {
       { text: 'the', ws: false },
       { text: '↵↵', ws: true },
       { text: 'x', ws: false },
+    ]);
+    expect(wsRuns('⍽a')).toEqual([
+      { text: '⍽', ws: true },
+      { text: 'a', ws: false },
     ]);
   });
 });
@@ -66,8 +72,27 @@ describe('dashArray', () => {
 
   it.each([
     [' looked', 'looked'],
-    ['\n\n', 'newline newline'],
+    ['\n\n', '2 newlines'],
     [' ', 'space'],
+    ['      ', '6 spaces'],
+    ['\n\n\n', '3 newlines'],
+    ['\n ', 'newline space'],
+    ['\t', 'tab'],
+    ['\u00a0', 'non-breaking space'],
+    ['\u00a0\u00a0', '2 non-breaking spaces'],
+    ['x\u00a0', 'x'],
+    [',', 'comma'],
+    [' .', 'period'],
+    ['?!', 'question mark exclamation mark'],
+    ['’', 'apostrophe'],
+    ['...', 'ellipsis'],
+    [' …', 'ellipsis'],
+    ['“', 'open quote'],
+    [' —', 'em dash'],
+    ['.\n', 'period'],
+    ['#', '#'],
+    ["'s", "'s"],
+    ['3.', '3.'],
   ])('spokenToken(%j) = %s', (t, out) => expect(spokenToken(t)).toBe(out));
 
   it('names branches and growth in words', () => {

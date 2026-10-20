@@ -13,8 +13,7 @@ export function SamplePicker(props: { samples: readonly SampleGarden[]; value: s
         {samples.map((s) => (
           <label key={s.id} className="picker-option">
             <input type="radio" name="sample" value={s.id} checked={s.id === value} onChange={() => onChange(s.id)} />
-            {s.title}
-            <span className="visually-hidden">: {s.prompt}</span>
+            {s.title}<span className="visually-hidden">{`: ${s.prompt}`}</span>
           </label>
         ))}
       </div>
