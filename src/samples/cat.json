@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "cat",
+  "title": "The cat at night",
+  "prompt": "In the middle of the night, the cat",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-20",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " was", "logprob": -2.861 },
+      { "token": "’", "logprob": -3.001 },
+      { "token": "\n", "logprob": -3.112 },
+      { "token": ",", "logprob": -3.21 },
+      { "token": " is", "logprob": -3.691 }
+    ],
+    " was": [
+      { "token": " sitting", "logprob": -2.362 },
+      { "token": "\n", "logprob": -3.067 },
+      { "token": " trying", "logprob": -3.576 },
+      { "token": " in", "logprob": -3.733 },
+      { "token": " lying", "logprob": -3.894 }
+    ],
+    " was sitting": [
+      { "token": " on", "logprob": -0.513 },
+      { "token": " in", "logprob": -2.52 },
+      { "token": " at", "logprob": -3.693 },
+      { "token": " down", "logprob": -3.768 },
+      { "token": " with", "logprob": -3.821 }
+    ],
+    " was sitting on": [
+      { "token": " the", "logprob": -0.696 },
+      { "token": " a", "logprob": -1.823 },
+      { "token": " my", "logprob": -2.392 },
+      { "token": " her", "logprob": -2.882 },
+      { "token": " his", "logprob": -3.557 }
+    ],
+    " was sitting on the": [
+      { "token": " edge", "logprob": -1.201 },
+      { "token": " floor", "logprob": -2.354 },
+      { "token": " bed", "logprob": -3.036 },
+      { "token": " couch", "logprob": -3.854 },
+      { "token": " wall", "logprob": -4.053 }
+    ],
+    " was sitting on the edge": [
+      { "token": " of", "logprob": -0.085 },
+      { "token": "\n", "logprob": -4.285 },
+      { "token": ",", "logprob": -4.313 },
+      { "token": " and", "logprob": -4.637 },
+      { "token": " with", "logprob": -5.208 }
+    ],
+    " was sitting on the edge of": [
+      { "token": " the", "logprob": -0.535 },
+      { "token": " a", "logprob": -1.33 },
+      { "token": " her", "logprob": -2.883 },
+      { "token": " an", "logprob": -4.271 },
+      { "token": " his", "logprob": -4.361 }
+    ],
+    " was\n": [
+      { "token": "making", "logprob": -3.681 },
+      { "token": "\n", "logprob": -3.844 },
+      { "token": "s", "logprob": -3.979 },
+      { "token": "t", "logprob": -4.049 },
+      { "token": "turn", "logprob": -4.126 }
+    ],
+    " was trying": [
+      { "token": " to", "logprob": -0.21 },
+      { "token": " hard", "logprob": -2.962 },
+      { "token": "\n", "logprob": -3.382 },
+      { "token": " desperately", "logprob": -4.576 },
+      { "token": " out", "logprob": -5.187 }
+    ],
+    " was in": [
+      { "token": " the", "logprob": -1.323 },
+      { "token": " a", "logprob": -2.368 },
+      { "token": " full", "logprob": -3.192 },
+      { "token": " bed", "logprob": -3.255 },
+      { "token": " front", "logprob": -3.318 }
+    ],
+    " was lying": [
+      { "token": " on", "logprob": -1.143 },
+      { "token": " down", "logprob": -1.521 },
+      { "token": " in", "logprob": -2.288 },
+      { "token": " asleep", "logprob": -3.815 },
+      { "token": " quietly", "logprob": -3.924 }
+    ],
+    "’": [
+      { "token": "s", "logprob": -0.29 },
+      { "token": "ll", "logprob": -3.265 },
+      { "token": " was", "logprob": -3.658 },
+      { "token": "re", "logprob": -3.88 },
+      { "token": "t", "logprob": -4.273 }
+    ],
+    "’s": [
+      { "token": " paws", "logprob": -2.532 },
+      { "token": " owner", "logprob": -3.054 },
+      { "token": " nose", "logprob": -3.739 },
+      { "token": " mind", "logprob": -3.765 },
+      { "token": " paw", "logprob": -4.025 }
+    ],
+    "’s paws": [
+      { "token": " are", "logprob": -2.37 },
+      { "token": "\n", "logprob": -2.452 },
+      { "token": ",", "logprob": -2.501 },
+      { "token": " touch", "logprob": -2.663 },
+      { "token": " were", "logprob": -3.061 }
+    ],
+    "’s paws are": [
+      { "token": "\n", "logprob": -2.487 },
+      { "token": " on", "logprob": -3.128 },
+      { "token": " in", "logprob": -3.512 },
+      { "token": " cl", "logprob": -3.775 },
+      { "token": " used", "logprob": -3.807 }
+    ],
+    "’s paws are\n": [
+      { "token": "\n", "logprob": -2.945 },
+      { "token": "t", "logprob": -3.494 },
+      { "token": "s", "logprob": -3.496 },
+      { "token": "p", "logprob": -3.728 },
+      { "token": "l", "logprob": -3.785 }
+    ],
+    "’s paws are\n\n": [
+      { "token": "\n", "logprob": -0.334 },
+      { "token": "1", "logprob": -2.51 },
+      { "token": " ", "logprob": -2.95 },
+      { "token": "2", "logprob": -3.821 },
+      { "token": "3", "logprob": -3.867 }
+    ],
+    "’ll": [
+      { "token": " come", "logprob": -2.62 },
+      { "token": " be", "logprob": -2.63 },
+      { "token": "\n", "logprob": -3.001 },
+      { "token": " run", "logprob": -3.437 },
+      { "token": " wake", "logprob": -3.521 }
+    ],
+    "’ was": [
+      { "token": "\n", "logprob": -2.217 },
+      { "token": " sitting", "logprob": -3.057 },
+      { "token": " in", "logprob": -3.954 },
+      { "token": " watching", "logprob": -4.159 },
+      { "token": " on", "logprob": -4.25 }
+    ],
+    "’re": [
+      { "token": " watching", "logprob": -3.938 },
+      { "token": "ca", "logprob": -3.944 },
+      { "token": "wolf", "logprob": -4.197 },
+      { "token": "ps", "logprob": -4.493 },
+      { "token": " going", "logprob": -4.515 }
+    ],
+    "’t": [
+      { "token": " be", "logprob": -3.502 },
+      { "token": "\n", "logprob": -3.662 },
+      { "token": " come", "logprob": -3.722 },
+      { "token": " look", "logprob": -3.776 },
+      { "token": " go", "logprob": -3.858 }
+    ],
+    "\n": [
+      { "token": "s", "logprob": -2.911 },
+      { "token": "l", "logprob": -3.605 },
+      { "token": "was", "logprob": -3.681 },
+      { "token": "will", "logprob": -3.805 },
+      { "token": "\n", "logprob": -3.82 }
+    ],
+    "\ns": [
+      { "token": "uddenly", "logprob": -1.31 },
+      { "token": "its", "logprob": -1.589 },
+      { "token": "ang", "logprob": -2.022 },
+      { "token": "pr", "logprob": -2.561 },
+      { "token": "aw", "logprob": -3.064 }
+    ],
+    "\nl": [
+      { "token": "ur", "logprob": -1.667 },
+      { "token": "ays", "logprob": -2.608 },
+      { "token": "ooks", "logprob": -2.76 },
+      { "token": "ifted", "logprob": -3.12 },
+      { "token": "ooked", "logprob": -3.151 }
+    ],
+    "\nwas": [
+      { "token": " sitting", "logprob": -3.041 },
+      { "token": "n", "logprob": -3.446 },
+      { "token": " still", "logprob": -3.799 },
+      { "token": " looking", "logprob": -3.858 },
+      { "token": " lying", "logprob": -3.988 }
+    ],
+    "\nwill": [
+      { "token": " lie", "logprob": -2.762 },
+      { "token": " be", "logprob": -3.106 },
+      { "token": " come", "logprob": -3.504 },
+      { "token": " sleep", "logprob": -3.788 },
+      { "token": " look", "logprob": -3.976 }
+    ],
+    "\n\n": [
+      { "token": "\n", "logprob": -0.272 },
+      { "token": "1", "logprob": -2.719 },
+      { "token": "      ", "logprob": -3.29 },
+      { "token": "\n\n\n", "logprob": -3.745 },
+      { "token": " ", "logprob": -3.926 }
+    ],
+    ",": [
+      { "token": "\n", "logprob": -2.755 },
+      { "token": " who", "logprob": -3.008 },
+      { "token": " with", "logprob": -3.687 },
+      { "token": " a", "logprob": -3.934 },
+      { "token": " in", "logprob": -4.039 }
+    ],
+    ",\n": [
+      { "token": "\n", "logprob": -2.897 },
+      { "token": "in", "logprob": -3.223 },
+      { "token": "s", "logprob": -3.408 },
+      { "token": "with", "logprob": -3.778 },
+      { "token": "as", "logprob": -3.828 }
+    ],
+    ", who": [
+      { "token": " was", "logprob": -1.328 },
+      { "token": " had", "logprob": -1.619 },
+      { "token": " is", "logprob": -1.963 },
+      { "token": " has", "logprob": -3.466 },
+      { "token": "\n", "logprob": -3.854 }
+    ],
+    ", with": [
+      { "token": " its", "logprob": -1.408 },
+      { "token": " a", "logprob": -2.256 },
+      { "token": " the", "logprob": -2.566 },
+      { "token": " his", "logprob": -3.003 },
+      { "token": "\n", "logprob": -3.015 }
+    ],
+    ", a": [
+      { "token": " young", "logprob": -1.746 },
+      { "token": "\n", "logprob": -2.573 },
+      { "token": " boy", "logprob": -3.465 },
+      { "token": " dog", "logprob": -3.507 },
+      { "token": " large", "logprob": -3.805 }
+    ],
+    ", in": [
+      { "token": " her", "logprob": -1.973 },
+      { "token": " the", "logprob": -2.051 },
+      { "token": " his", "logprob": -2.637 },
+      { "token": " a", "logprob": -2.744 },
+      { "token": " front", "logprob": -3.343 }
+    ],
+    " is": [
+      { "token": "\n", "logprob": -2.089 },
+      { "token": " sitting", "logprob": -2.688 },
+      { "token": " in", "logprob": -3.13 },
+      { "token": " still", "logprob": -3.506 },
+      { "token": " not", "logprob": -3.763 }
+    ],
+    " is\n": [
+      { "token": "s", "logprob": -2.829 },
+      { "token": "t", "logprob": -3.525 },
+      { "token": "\n", "logprob": -3.568 },
+      { "token": "w", "logprob": -3.971 },
+      { "token": "in", "logprob": -4.056 }
+    ],
+    " is sitting": [
+      { "token": " on", "logprob": -0.685 },
+      { "token": " in", "logprob": -2.849 },
+      { "token": " with", "logprob": -3.019 },
+      { "token": " down", "logprob": -3.173 },
+      { "token": " at", "logprob": -3.831 }
+    ],
+    " is in": [
+      { "token": " the", "logprob": -2.103 },
+      { "token": " a", "logprob": -2.493 },
+      { "token": " full", "logprob": -2.495 },
+      { "token": " charge", "logprob": -3.629 },
+      { "token": " an", "logprob": -3.732 }
+    ],
+    " is still": [
+      { "token": " in", "logprob": -2.782 },
+      { "token": "\n", "logprob": -3.065 },
+      { "token": " asleep", "logprob": -3.206 },
+      { "token": " sleeping", "logprob": -3.409 },
+      { "token": " on", "logprob": -3.487 }
+    ],
+    " is not": [
+      { "token": "\n", "logprob": -3.02 },
+      { "token": " able", "logprob": -3.042 },
+      { "token": " alone", "logprob": -3.587 },
+      { "token": " allowed", "logprob": -3.736 },
+      { "token": " asleep", "logprob": -3.902 }
+    ]
+  }
+}

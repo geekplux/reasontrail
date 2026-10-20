@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "recipe",
+  "title": "Two cups of",
+  "prompt": "The recipe calls for two cups of",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-20",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " flour", "logprob": -2.581 },
+      { "token": " milk", "logprob": -3.114 },
+      { "token": " water", "logprob": -3.18 },
+      { "token": " the", "logprob": -3.713 },
+      { "token": " brown", "logprob": -3.741 }
+    ],
+    " flour": [
+      { "token": ",", "logprob": -1.056 },
+      { "token": " and", "logprob": -2.043 },
+      { "token": " mixed", "logprob": -2.692 },
+      { "token": ".", "logprob": -2.777 },
+      { "token": " per", "logprob": -2.877 }
+    ],
+    " flour,": [
+      { "token": " two", "logprob": -2.016 },
+      { "token": " but", "logprob": -2.385 },
+      { "token": " one", "logprob": -2.437 },
+      { "token": " ", "logprob": -2.997 },
+      { "token": " and", "logprob": -3.051 }
+    ],
+    " flour and": [
+      { "token": " two", "logprob": -0.798 },
+      { "token": " one", "logprob": -2.448 },
+      { "token": " three", "logprob": -2.637 },
+      { "token": " a", "logprob": -3.147 },
+      { "token": " four", "logprob": -3.292 }
+    ],
+    " flour and two": [
+      { "token": " cups", "logprob": -0.713 },
+      { "token": " large", "logprob": -3.158 },
+      { "token": " ", "logprob": -3.552 },
+      { "token": " c", "logprob": -3.583 },
+      { "token": " tablespoons", "logprob": -3.78 }
+    ],
+    " flour and two cups": [
+      { "token": " of", "logprob": -0.01 },
+      { "token": " each", "logprob": -6.77 },
+      { "token": " water", "logprob": -7.328 },
+      { "token": "\n", "logprob": -7.336 },
+      { "token": " for", "logprob": -7.576 }
+    ],
+    " flour and two cups of": [
+      { "token": " milk", "logprob": -1.311 },
+      { "token": " water", "logprob": -2.052 },
+      { "token": " sugar", "logprob": -3.29 },
+      { "token": " baking", "logprob": -3.345 },
+      { "token": " cold", "logprob": -3.468 }
+    ],
+    " flour and two cups of milk": [
+      { "token": ",", "logprob": -1.26 },
+      { "token": ".", "logprob": -1.262 },
+      { "token": " and", "logprob": -2.586 },
+      { "token": " for", "logprob": -3.022 },
+      { "token": " to", "logprob": -3.544 }
+    ],
+    " flour mixed": [
+      { "token": " with", "logprob": -0.253 },
+      { "token": " up", "logprob": -2.992 },
+      { "token": " together", "logprob": -3.371 },
+      { "token": " into", "logprob": -3.506 },
+      { "token": " in", "logprob": -3.754 }
+    ],
+    " flour mixed with": [
+      { "token": " ", "logprob": -1.21 },
+      { "token": " the", "logprob": -2.15 },
+      { "token": " a", "logprob": -2.211 },
+      { "token": " two", "logprob": -2.333 },
+      { "token": " one", "logprob": -3.068 }
+    ],
+    " flour mixed with ": [
+      { "token": "1", "logprob": -0.729 },
+      { "token": "2", "logprob": -1.374 },
+      { "token": "3", "logprob": -2.401 },
+      { "token": "4", "logprob": -3.163 },
+      { "token": "½", "logprob": -3.331 }
+    ],
+    " flour mixed with 1": [
+      { "token": " cup", "logprob": -1.025 },
+      { "token": "/", "logprob": -1.88 },
+      { "token": " tablespoon", "logprob": -2.528 },
+      { "token": " teaspoon", "logprob": -2.689 },
+      { "token": " tbsp", "logprob": -2.731 }
+    ],
+    " flour mixed with 1 cup": [
+      { "token": " of", "logprob": -0.23 },
+      { "token": " cold", "logprob": -3.056 },
+      { "token": " water", "logprob": -3.293 },
+      { "token": " milk", "logprob": -4.665 },
+      { "token": " each", "logprob": -4.796 }
+    ],
+    " flour.": [
+      { "token": " I", "logprob": -1.253 },
+      { "token": "\n", "logprob": -2.302 },
+      { "token": " The", "logprob": -2.731 },
+      { "token": " This", "logprob": -3.027 },
+      { "token": " If", "logprob": -3.465 }
+    ],
+    " flour per": [
+      { "token": " cup", "logprob": -1.118 },
+      { "token": " recipe", "logprob": -1.681 },
+      { "token": " pint", "logprob": -3.227 },
+      { "token": " ", "logprob": -3.245 },
+      { "token": " pound", "logprob": -3.312 }
+    ],
+    " milk": [
+      { "token": ",", "logprob": -0.858 },
+      { "token": " and", "logprob": -2.058 },
+      { "token": ".", "logprob": -2.516 },
+      { "token": " with", "logprob": -2.962 },
+      { "token": " for", "logprob": -3.172 }
+    ],
+    " milk,": [
+      { "token": " one", "logprob": -2.348 },
+      { "token": " then", "logprob": -2.585 },
+      { "token": " two", "logprob": -2.702 },
+      { "token": " but", "logprob": -3.107 },
+      { "token": " a", "logprob": -3.124 }
+    ],
+    " milk and": [
+      { "token": " two", "logprob": -1.38 },
+      { "token": " a", "logprob": -1.486 },
+      { "token": " one", "logprob": -2.127 },
+      { "token": " three", "logprob": -2.953 },
+      { "token": " the", "logprob": -3.349 }
+    ],
+    " milk.": [
+      { "token": " I", "logprob": -1.932 },
+      { "token": "\n", "logprob": -2.091 },
+      { "token": " The", "logprob": -2.789 },
+      { "token": " This", "logprob": -2.999 },
+      { "token": " You", "logprob": -3.082 }
+    ],
+    " milk with": [
+      { "token": " cream", "logprob": -1.539 },
+      { "token": " a", "logprob": -2.721 },
+      { "token": " the", "logprob": -3.097 },
+      { "token": " butter", "logprob": -3.374 },
+      { "token": " two", "logprob": -3.444 }
+    ],
+    " milk for": [
+      { "token": " each", "logprob": -0.965 },
+      { "token": " every", "logprob": -1.738 },
+      { "token": " the", "logprob": -2.849 },
+      { "token": " a", "logprob": -3.159 },
+      { "token": " two", "logprob": -3.498 }
+    ],
+    " water": [
+      { "token": ",", "logprob": -1.421 },
+      { "token": " and", "logprob": -2.005 },
+      { "token": " to", "logprob": -2.507 },
+      { "token": ".", "logprob": -2.619 },
+      { "token": " mixed", "logprob": -3.371 }
+    ],
+    " water,": [
+      { "token": " but", "logprob": -1.647 },
+      { "token": " two", "logprob": -2.583 },
+      { "token": " and", "logprob": -3.01 },
+      { "token": " then", "logprob": -3.046 },
+      { "token": " ", "logprob": -3.145 }
+    ],
+    " water and": [
+      { "token": " a", "logprob": -1.513 },
+      { "token": " two", "logprob": -1.849 },
+      { "token": " one", "logprob": -2.364 },
+      { "token": " ", "logprob": -2.624 },
+      { "token": " salt", "logprob": -3.558 }
+    ],
+    " water to": [
+      { "token": " make", "logprob": -1.414 },
+      { "token": " be", "logprob": -2.067 },
+      { "token": " use", "logprob": -2.956 },
+      { "token": " create", "logprob": -3.401 },
+      { "token": " bring", "logprob": -3.516 }
+    ],
+    " water.": [
+      { "token": "\n", "logprob": -1.609 },
+      { "token": " Add", "logprob": -2.399 },
+      { "token": " I", "logprob": -2.57 },
+      { "token": " The", "logprob": -2.845 },
+      { "token": " Place", "logprob": -3.46 }
+    ],
+    " water mixed": [
+      { "token": " with", "logprob": -0.186 },
+      { "token": " together", "logprob": -2.858 },
+      { "token": " in", "logprob": -3.629 },
+      { "token": " into", "logprob": -3.667 },
+      { "token": " to", "logprob": -4.108 }
+    ],
+    " the": [
+      { "token": " same", "logprob": -3.095 },
+      { "token": " liquid", "logprob": -3.524 },
+      { "token": " mixture", "logprob": -3.738 },
+      { "token": " ground", "logprob": -4.391 },
+      { "token": " sweet", "logprob": -4.398 }
+    ],
+    " the same": [
+      { "token": "-", "logprob": -2.805 },
+      { "token": " type", "logprob": -3.037 },
+      { "token": " medium", "logprob": -3.04 },
+      { "token": " liquid", "logprob": -3.528 },
+      { "token": " kind", "logprob": -3.577 }
+    ],
+    " the liquid": [
+      { "token": ",", "logprob": -2.187 },
+      { "token": " to", "logprob": -2.197 },
+      { "token": " nitrogen", "logprob": -3.053 },
+      { "token": " white", "logprob": -3.36 },
+      { "token": " black", "logprob": -3.416 }
+    ],
+    " the mixture": [
+      { "token": ",", "logprob": -1.15 },
+      { "token": " to", "logprob": -1.626 },
+      { "token": " and", "logprob": -2.393 },
+      { "token": ".", "logprob": -2.955 },
+      { "token": " with", "logprob": -3.65 }
+    ],
+    " the ground": [
+      { "token": " up", "logprob": -2.309 },
+      { "token": " beef", "logprob": -2.83 },
+      { "token": " flour", "logprob": -3.058 },
+      { "token": " meat", "logprob": -3.555 },
+      { "token": " green", "logprob": -3.624 }
+    ],
+    " the sweet": [
+      { "token": "-", "logprob": -1.944 },
+      { "token": ",", "logprob": -2.043 },
+      { "token": " stuff", "logprob": -2.715 },
+      { "token": " and", "logprob": -3.221 },
+      { "token": " red", "logprob": -3.768 }
+    ],
+    " brown": [
+      { "token": " sugar", "logprob": -0.948 },
+      { "token": " rice", "logprob": -1.111 },
+      { "token": " milk", "logprob": -3.584 },
+      { "token": " vinegar", "logprob": -4.09 },
+      { "token": " bread", "logprob": -4.175 }
+    ],
+    " brown sugar": [
+      { "token": ",", "logprob": -0.991 },
+      { "token": " and", "logprob": -1.208 },
+      { "token": ".", "logprob": -3.161 },
+      { "token": " to", "logprob": -3.269 },
+      { "token": " with", "logprob": -3.299 }
+    ],
+    " brown rice": [
+      { "token": ",", "logprob": -1.292 },
+      { "token": " flour", "logprob": -1.333 },
+      { "token": " and", "logprob": -2.783 },
+      { "token": ".", "logprob": -3.032 },
+      { "token": " with", "logprob": -3.458 }
+    ],
+    " brown milk": [
+      { "token": " and", "logprob": -1.504 },
+      { "token": ",", "logprob": -1.531 },
+      { "token": " with", "logprob": -2.507 },
+      { "token": ".", "logprob": -2.925 },
+      { "token": " to", "logprob": -3.021 }
+    ],
+    " brown vinegar": [
+      { "token": ",", "logprob": -1.567 },
+      { "token": " and", "logprob": -1.689 },
+      { "token": " mixed", "logprob": -2.601 },
+      { "token": " to", "logprob": -2.839 },
+      { "token": " with", "logprob": -3.313 }
+    ],
+    " brown bread": [
+      { "token": " flour", "logprob": -1.82 },
+      { "token": ",", "logprob": -2.043 },
+      { "token": " and", "logprob": -2.273 },
+      { "token": " dough", "logprob": -2.359 },
+      { "token": " with", "logprob": -3.152 }
+    ]
+  }
+}
