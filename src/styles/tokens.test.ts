@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { contrast, deltaE, parseHex, type Cvd } from './colorMath';
 import css from './tokens.css?raw';
+import favicon from '../../public/favicon.svg?raw';
+import logo from '../../public/logo.svg?raw';
+import indexHtml from '../../index.html?raw';
 
 /** Extracts `--tg-*: #hex` declarations from a CSS fragment. */
 function colours(fragment: string): Record<string, string> {
@@ -70,5 +73,20 @@ describe('CVD distance (CIE76 ΔE after Machado 2009 simulation)', () => {
   const cases = DISTINCT.flatMap(([theme, a, b]) => VISION.map((v) => [theme, a, b, v ?? 'normal'] as const));
   it.each(cases)('%s --tg-%s vs --tg-%s stays >= 20 (%s vision)', (theme, a, b, v) => {
     expect(deltaE(c(theme, a), c(theme, b), v === 'normal' ? undefined : v)).toBeGreaterThanOrEqual(20);
+  });
+});
+
+// Static assets cannot read CSS variables, so they carry copies of the palette; keep them in step with tokens.css.
+describe('static assets match tokens.css', () => {
+  const lower = (hex: string) => hex.toLowerCase();
+  it.each([['favicon.svg', favicon], ['logo.svg', logo]])('%s draws in --tg-branch-hi per theme', (_, svg) => {
+    const light = /svg\s*\{\s*color:\s*(#[0-9a-f]{3,6})/i.exec(svg.slice(0, svg.indexOf('@media')))?.[1];
+    const dark = /prefers-color-scheme:\s*dark\)\s*\{\s*svg\s*\{\s*color:\s*(#[0-9a-f]{3,6})/i.exec(svg)?.[1];
+    expect([light && lower(light), dark && lower(dark)]).toEqual([lower(c('light', 'branch-hi')), lower(c('dark', 'branch-hi'))]);
+  });
+
+  it.each(Object.keys(themes) as Theme[])('index.html theme-color for %s is --tg-paper', (theme) => {
+    const meta = new RegExp(`name="theme-color"\\s+content="(#[0-9a-f]{3,6})"\\s+media="\\(prefers-color-scheme: ${theme}\\)"`, 'i');
+    expect(lower(meta.exec(indexHtml)?.[1] ?? 'missing')).toBe(lower(c(theme, 'paper')));
   });
 });
