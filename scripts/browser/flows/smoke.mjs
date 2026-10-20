@@ -14,7 +14,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
       key: g.getAttribute('data-key'),
       label: g.querySelector('text')?.textContent,
       p: Number(g.getAttribute('data-p')),
-      w: Number(g.querySelector('[data-role="branch-stroke"]')?.getAttribute('stroke-width')),
+      w: parseFloat(getComputedStyle(g.querySelector('[data-role="branch-stroke"]')).strokeWidth),
     })),
   );
   log(`root branches: ${root.map((b) => `${JSON.stringify(b.label)} p=${b.p} w=${b.w}`).join('; ')}`);

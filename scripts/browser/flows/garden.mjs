@@ -105,7 +105,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   // Hover the thinnest branch: the value label is computed from its data-p.
   const thin = await page.$$eval('[data-testid="garden"] g[data-state]', (gs) =>
     gs
-      .map((g) => ({ key: g.dataset.key, p: Number(g.dataset.p), depth: Number(g.dataset.depth), w: Number(g.querySelector('[data-role="branch-stroke"]').getAttribute('stroke-width')) }))
+      .map((g) => ({ key: g.dataset.key, p: Number(g.dataset.p), depth: Number(g.dataset.depth), w: parseFloat(getComputedStyle(g.querySelector('[data-role="branch-stroke"]')).strokeWidth) }))
       .sort((a, b) => a.w - b.w)[0],
   );
   const hover = async (b) => {

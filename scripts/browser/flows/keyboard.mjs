@@ -41,7 +41,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   const owned = await page.evaluate(() => document.querySelector('[role="tree"]').getAttribute('aria-owns').split(' ').map((id) => document.getElementById(id).ariaLabel));
   log(`AX: ${tree.name.value} > ${order.slice(0, 3).join(' | ')} …`);
   if (!tree.name.value.startsWith('Garden of next-token choices') || order.join('|') !== owned.join('|') || !order[1]?.startsWith('out,')) fail(`A2: AX order ${JSON.stringify(order)}`);
-  const attrs = await page.getByRole('treeitem', { name: 'looked, 8.9 percent', exact: true }).evaluate((g) => ['level', 'setsize', 'posinset', 'expanded'].map((a) => g.getAttribute(`aria-${a}`)).join(' '));
+  const attrs = await page.getByRole('treeitem', { name: /^looked, 8\.9 percent, uncertainty after it: / }).evaluate((g) => ['level', 'setsize', 'posinset', 'expanded'].map((a) => g.getAttribute(`aria-${a}`)).join(' '));
   if (attrs !== '1 5 1 true') fail(`A2: " looked" has level/setsize/posinset/expanded ${attrs}`);
 
   // A1: arrows reach the least probable branch at every level; focus shows its value label and the focus ring.
