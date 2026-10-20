@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { branchWidth, formatPct } from './scales';
+import { branchWidth, describeBranch, formatPct } from './scales';
 
 describe('branchWidth', () => {
   it('is 1.5 + 18.5·p, clamped to [0, 1]', () => {
@@ -21,5 +21,11 @@ describe('formatPct', () => {
     expect(formatPct(0.0892)).toBe('8.9%');
     expect(formatPct(0.0001)).toBe('<0.1%');
     expect(formatPct(0)).toBe('0.0%');
+  });
+});
+
+describe('describeBranch', () => {
+  it('keeps the verbatim token (leading space included) in quotes, then the percentage', () => {
+    expect(describeBranch(' looked', 0.0892)).toBe('“ looked” 8.9%');
   });
 });

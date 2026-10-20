@@ -9,3 +9,8 @@ export function formatPct(p: number): string {
   if (p > 0 && p < 0.0005) return '<0.1%';
   return `${(p * 100).toFixed(1)}%`;
 }
+
+/** One text form for a branch, shared by the tooltip and the accessible summary: the verbatim token in quotes + percentage. */
+export function describeBranch(token: string, p: number): string {
+  return `“${token}” ${formatPct(p)}`;
+}

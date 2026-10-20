@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { hierarchy, tree, type HierarchyPointNode } from 'd3-hierarchy';
 import type { GardenBranch, GardenTree } from './buildTree';
-import { branchWidth, formatPct } from './scales';
+import { branchWidth, describeBranch } from './scales';
 
 const ROW = 40; // vertical distance between sibling branches
 const COL = 180; // horizontal distance between depths
-const FONT = 14;
+const FONT = 14; // px, matches --tg-token-size; labels are never scaled down (mobile scrolls instead)
 const PAD = 16;
 
 type Datum = { branch: GardenBranch | null; children: Datum[] };
@@ -32,7 +32,7 @@ export function GardenView({ garden }: { garden: GardenTree }) {
   const maxY = Math.max(...nodes.map((n) => outX(n)));
   const width = maxY + PAD * 2;
   const height = maxX - minX + ROW + PAD;
-  const summary = garden.children.map((b) => `“${b.token.trim()}” ${formatPct(b.p)}`).join(', ');
+  const summary = garden.children.map((b) => describeBranch(b.token, b.p)).join(', ');
 
   // Test hook + "first wow" timing mark, set once the first layout is in the DOM.
   useEffect(() => {
@@ -49,7 +49,7 @@ export function GardenView({ garden }: { garden: GardenTree }) {
       aria-label={`Garden of next-token choices after the prompt. Top branches: ${summary}.`}
       viewBox={`${-PAD} ${minX - ROW / 2} ${width} ${height}`}
       width={width}
-      style={{ maxWidth: '100%', height: 'auto' }}
+      height={height}
     >
       <circle className="seed" cx={0} cy={0} r={5} />
       {nodes.slice(1).map((n) => {
@@ -67,7 +67,7 @@ export function GardenView({ garden }: { garden: GardenTree }) {
             data-state={b.state}
             data-depth={b.depth}
           >
-            <title>{`“${b.token}” ${formatPct(b.p)}`}</title>
+            <title>{describeBranch(b.token, b.p)}</title>
             <path
               data-role="branch-stroke"
               d={`M${x0},${y0} C${mid},${y0} ${mid},${n.x} ${n.y},${n.x}`}

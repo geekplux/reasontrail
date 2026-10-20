@@ -27,5 +27,18 @@ describe('App', () => {
     for (let i = 1; i < widths.length; i++) expect(widths[i]!).toBeLessThan(widths[i - 1]!);
     expect(root[0]?.getAttribute('data-state')).toBe('expanded');
     expect(root[0]?.querySelector('title')?.textContent).toBe('“ looked” 8.9%');
+    expect(svg?.getAttribute('aria-label')).toContain('“ looked” 8.9%'); // same token form as the tooltip
+  });
+
+  it('frames the garden with the shell: wordmark header, specimen label, footer', () => {
+    render(<App />);
+    expect(screen.getByRole('banner').textContent).toBe('token-garden');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The lighthouse keeper');
+    const specimen = screen.getByRole('region', { name: 'The lighthouse keeper' });
+    expect(specimen.textContent).toContain('SmolLM2-135M (q8)');
+    expect(specimen.textContent).toContain('k = 5');
+    expect(specimen.querySelector('time')?.getAttribute('datetime')).toBe('2026-10-19');
+    expect(screen.getByRole('region', { name: 'Garden drawing' }).getAttribute('tabindex')).toBe('0');
+    expect(screen.getByRole('contentinfo').textContent).toContain('nothing you do with samples leaves your browser');
   });
 });

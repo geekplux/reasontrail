@@ -3,11 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>token-garden: watch next-token probabilities grow</title>
     <meta name="description" content="Watch a language model's possible next tokens grow as a garden of branches. Works offline with built-in samples." />
-    <link rel="icon" href="data:," />
-    <title>token-garden</title>
+    <meta name="theme-color" content="#f6f3ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111813" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="token-garden: watch next-token probabilities grow" />
+    <meta property="og:description" content="Type a beginning and see what a language model might say next, drawn as a garden of branches whose thickness is probability. Built-in samples work offline, with no key." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
+    <noscript>
+      <p style="max-width: 72ch; padding: 24px; font-family: system-ui, sans-serif">
+        token-garden draws a language model's possible next tokens as a garden of branches, where a thicker branch is a
+        more likely token. It needs JavaScript to run. Read about it at
+        <a href="https://github.com/geekplux/token-garden#readme">github.com/geekplux/token-garden</a>.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

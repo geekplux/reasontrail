@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { AppShell } from './components/AppShell';
+import { SpecimenLabel } from './components/SpecimenLabel';
 import { buildTree, defaultExpanded } from './garden/buildTree';
 import { GardenView } from './garden/GardenView';
 import { defaultSample } from './samples';
@@ -8,27 +10,17 @@ export function App() {
   const garden = useMemo(() => buildTree(defaultSample, defaultExpanded(defaultSample)), []);
 
   return (
-    <>
-      <header className="site-header">
-        <p className="wordmark">token-garden</p>
-      </header>
-      <main>
-        <h1>{sample.title}</h1>
-        <p className="prompt">
-          <span className="visually-hidden">Prompt: </span>
-          {sample.prompt}
-        </p>
+    <AppShell>
+      <div className="plate">
+        <SpecimenLabel sample={sample} />
         <figure className="garden-figure">
-          <GardenView garden={garden} />
-          <figcaption>
-            Each branch is one possible next token; a thicker branch is a more likely token. Hover a branch for its
-            probability. Recorded with {sample.model.name}.{sample.model.note ? ` ${sample.model.note}` : ''}
-          </figcaption>
+          {/* Scrolls sideways on narrow screens instead of shrinking the labels; focusable so keyboards can scroll it. */}
+          <div className="garden-scroll" role="region" aria-label="Garden drawing" tabIndex={0}>
+            <GardenView garden={garden} />
+          </div>
+          <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
         </figure>
-      </main>
-      <footer className="site-footer">
-        <p>Runs offline; nothing you do with samples leaves your browser.</p>
-      </footer>
-    </>
+      </div>
+    </AppShell>
   );
 }

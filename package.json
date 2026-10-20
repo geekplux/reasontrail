@@ -16,9 +16,12 @@
     "lint": "oxlint --deny-warnings",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
+    "check:size": "node scripts/check-size.mjs",
     "check:browser": "node scripts/check-browser.mjs"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5",
+    "@fontsource/instrument-serif": "^5",
     "d3-hierarchy": "^3",
     "react": "^19",
     "react-dom": "^19"

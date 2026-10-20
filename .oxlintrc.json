@@ -9,7 +9,8 @@
   "rules": {
     "typescript/no-explicit-any": "error",
     "react/react-in-jsx-scope": "off",
-    "jsx-a11y/prefer-tag-over-role": "off"
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/no-noninteractive-tabindex": ["error", { "roles": ["tabpanel", "region"] }]
   },
   "ignorePatterns": ["dist/**", ".tmp/**", "node_modules/**", "docs/screenshots/**"]
 }
