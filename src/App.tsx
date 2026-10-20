@@ -3,6 +3,7 @@ import { readUrlState, writeUrlState } from './app/urlState';
 import { AppShell } from './components/AppShell';
 import { LiveRegion, useAnnouncer } from './components/LiveRegion';
 import { ShareButton } from './components/ShareButton';
+import { SamplePicker } from './components/SamplePicker';
 import { SpecimenLabel } from './components/SpecimenLabel';
 import { InlineNote } from './components/states/InlineNote';
 import { useOverflows } from './components/useOverflows';
@@ -20,16 +21,47 @@ import { defaultSample, samples } from './samples';
 const NOT_RECORDED = 'Not in this recording.';
 const SCROLL_CUE = { start: 'Scroll sideways for more →', middle: '← Scroll sideways →', end: '← Scroll sideways to the seed' };
 
-/** What the address bar asked for, read once: the garden, the path to reopen, and whether anything was off. */
+/** What the address bar asks for: the garden, the path to reopen, and whether anything was off. */
 function boot() {
   const url = readUrlState(window.location.search);
   const sample = samples.find((s) => s.id === url.sample) ?? defaultSample;
   const unknown = url.sample !== null && sample.id !== url.sample;
   return { sample, ranks: unknown ? [] : url.path, unknown, valid: url.valid, provider: new RecordedProvider(sample) };
 }
+type View = ReturnType<typeof boot> & { n: number };
 
+/**
+ * The picker and the garden it shows. Choosing a garden, or going back/forward to a share link (no network needed),
+ * mounts a fresh garden: default expansion (D11) or the link's path, and the URL follows it.
+ */
 export function App() {
-  const [{ sample, ranks, unknown, valid, provider }] = useState(boot);
+  const [view, setView] = useState<View>(() => ({ ...boot(), n: 0 }));
+  const [message, announce] = useAnnouncer();
+  useEffect(() => {
+    const reopen = () => setView((v) => ({ ...boot(), n: v.n + 1 }));
+    window.addEventListener('popstate', reopen);
+    return () => window.removeEventListener('popstate', reopen);
+  }, []);
+  const choose = (id: string) => {
+    const sample = samples.find((s) => s.id === id) ?? defaultSample;
+    // A new history entry, so Back reopens the garden (and fork) the reader came from, offline too.
+    const next = writeUrlState(window.location.search, { sample: sample.id === defaultSample.id ? null : sample.id, path: [] });
+    history.pushState(null, '', `${window.location.pathname}${next}${window.location.hash}`);
+    setView((v) => ({ sample, ranks: [], unknown: false, valid: true, provider: new RecordedProvider(sample), n: v.n + 1 }));
+  };
+  return (
+    <AppShell actions={<ShareButton announce={announce} />}>
+      <div className="controls">
+        <SamplePicker samples={samples} value={view.sample.id} onChange={choose} />
+      </div>
+      <Garden key={view.n} view={view} announce={announce} />
+      <LiveRegion message={message} />
+    </AppShell>
+  );
+}
+
+function Garden({ view, announce }: { view: View; announce(text: string): void }) {
+  const { sample, ranks, unknown, valid, provider } = view;
   const { state, opened, activate, select } = useGarden(provider, sample.prompt, sample.k, ranks);
   // Children come only from provider answers (state.nodes); the recording's key list only marks what can grow.
   const garden = useMemo(
@@ -39,7 +71,6 @@ export function App() {
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const selectedKey = state.selectedKey;
   const [scrollRef, position] = useOverflows<HTMLDivElement>();
-  const [message, announce] = useAnnouncer();
   const [table, setTable] = useState(false);
   // The branch last activated, until its outcome (grown, collapsed, not recorded) is known and announced once.
   const pending = useRef<string | null>(null);
@@ -96,49 +127,46 @@ export function App() {
   }, [opened, selectedKey, garden, sample]);
 
   return (
-    <AppShell actions={<ShareButton announce={announce} />}>
-      <div className="plate">
-        <SpecimenLabel sample={sample} />
-        <figure className="garden-figure">
-          {notice ? <InlineNote variant="info">{notice}</InlineNote> : null}
-          {position ? (
-            <p className="scroll-cue" aria-hidden="true">
-              {SCROLL_CUE[position]}
-            </p>
-          ) : null}
-          {/* Scrolls sideways on narrow screens instead of shrinking the labels; never its own tab stop: the focused branch scrolls into view. */}
-          <div ref={scrollRef} className="garden-scroll" role="region" aria-label="Garden drawing">
-            {/* Sized by the drawing, so the overflow check sees it grow; the branch note is positioned in it. */}
-            <div className="garden-canvas">
-              {opened ? (
-                <GardenView
-                  garden={garden}
-                  selectedKey={selectedKey}
-                  hoverKey={hoverKey}
-                  onHover={setHoverKey}
-                  onActivate={onActivate}
-                  onSelect={select}
-                  note={noteBox ? { box: noteBox, content: <InlineNote variant="not-recorded" announced>{NOT_RECORDED}</InlineNote> } : null}
-                />
-              ) : null}
-            </div>
-          </div>
-          <PathReadout
-            garden={garden}
-            labelledKey={hoverKey ?? selectedKey}
-            note={missing && !noteBox ? <InlineNote as="span" variant="not-recorded" className="readout-note" announced>{NOT_RECORDED}</InlineNote> : null}
-          />
-          <LiveRegion message={message} />
-          <p className="view-toggle-row">
-            <button type="button" className="view-toggle" aria-pressed={table} onClick={() => setTable((t) => !t)}>
-              Table view
-            </button>
+    <div className="plate">
+      <SpecimenLabel sample={sample} />
+      <figure className="garden-figure">
+        {notice ? <InlineNote variant="info">{notice}</InlineNote> : null}
+        {position ? (
+          <p className="scroll-cue" aria-hidden="true">
+            {SCROLL_CUE[position]}
           </p>
-          {table ? <TableView garden={garden} /> : null}
-          <Legend />
-          <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
-        </figure>
-      </div>
-    </AppShell>
+        ) : null}
+        {/* Scrolls sideways on narrow screens instead of shrinking the labels; never its own tab stop: the focused branch scrolls into view. */}
+        <div ref={scrollRef} className="garden-scroll" role="region" aria-label="Garden drawing">
+          {/* Sized by the drawing, so the overflow check sees it grow; the branch note is positioned in it. */}
+          <div className="garden-canvas">
+            {opened ? (
+              <GardenView
+                garden={garden}
+                selectedKey={selectedKey}
+                hoverKey={hoverKey}
+                onHover={setHoverKey}
+                onActivate={onActivate}
+                onSelect={select}
+                note={noteBox ? { box: noteBox, content: <InlineNote variant="not-recorded" announced>{NOT_RECORDED}</InlineNote> } : null}
+              />
+            ) : null}
+          </div>
+        </div>
+        <PathReadout
+          garden={garden}
+          labelledKey={hoverKey ?? selectedKey}
+          note={missing && !noteBox ? <InlineNote as="span" variant="not-recorded" className="readout-note" announced>{NOT_RECORDED}</InlineNote> : null}
+        />
+        <p className="view-toggle-row">
+          <button type="button" className="view-toggle" aria-pressed={table} onClick={() => setTable((t) => !t)}>
+            Table view
+          </button>
+        </p>
+        {table ? <TableView garden={garden} /> : null}
+        <Legend />
+        <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
+      </figure>
+    </div>
   );
 }

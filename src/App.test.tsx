@@ -13,7 +13,8 @@ import { defaultSample } from './samples';
 // lighthouse fixture rather than the re-recordable samples in src/samples/.
 vi.mock('./samples', async () => {
   const fixture = (await import('./test/fixtures/lighthouse-handmade.json')).default;
-  return { samples: [fixture], defaultSample: fixture };
+  const tiny = (await import('./test/fixtures/tiny-garden.json')).default;
+  return { samples: [fixture, tiny], defaultSample: fixture };
 });
 
 const garden = buildTree(defaultSample, defaultExpanded(defaultSample));
@@ -107,10 +108,11 @@ describe('App', () => {
     ['?path=1.0', ' entered the', 'expanded', null],
     ['?path=9.9', null, 'expandable', "iPart of this link isn't in the recording."],
     ['?sample=nope&path=1', null, 'expandable', "iThat garden isn't here, so here is “The lighthouse keeper”."],
+    ['?sample=tiny&path=0.1', ' mat.', null, null],
   ])('restores %s', async (search, selected, entered, notice) => {
     const { container } = await renderApp(search);
     expect(container.querySelector('[data-role="value-label"]')?.getAttribute('data-key') ?? null).toBe(selected);
-    expect(branch(container, ' entered').getAttribute('data-state')).toBe(entered);
+    expect(branch(container, ' entered')?.getAttribute('data-state') ?? null).toBe(entered);
     expect(container.querySelector('.garden-figure > .inline-note')?.textContent ?? null).toBe(notice);
   });
 
@@ -159,5 +161,32 @@ describe('App', () => {
     // Same numbers as the drawing: the treeitem's name carries its percentage.
     for (const r of rows) expect(item(r.getAttribute('data-key')!).getAttribute('aria-label')).toContain(`, ${r.querySelector('[data-role="p"]')?.textContent?.replace('%', ' percent')}`);
     expect(screen.getByRole('rowheader', { name: 'looked out' })).not.toBeNull();
+  });
+
+  it('switches gardens from the picker, resetting the expansion and the URL; back/forward reopens a share link', async () => {
+    const { container } = await renderApp('?path=1');
+    const radios = screen.getAllByRole<HTMLInputElement>('radio');
+    expect(screen.getByRole('group', { name: 'Recorded gardens' })).not.toBeNull();
+    expect(radios.map((r) => [r.name, r.checked, r.labels?.[0]?.textContent])).toEqual([
+      ['sample', true, 'The lighthouse keeper: The old lighthouse keeper opened the door and'],
+      ['sample', false, 'Tiny test garden: The cat curled up on the'],
+    ]);
+    const entries = window.history.length;
+    await act(async () => void fireEvent.click(radios[1]!));
+    await settle();
+    expect(window.history.length).toBe(entries + 1); // Back returns to the garden the reader came from
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Tiny test garden');
+    expect(branch(container, ' mat').getAttribute('data-state')).toBe('expanded'); // D11 default expansion
+    expect(container.querySelector('[data-role="value-label"]')).toBeNull();
+    expect(window.location.search).toBe('?sample=tiny');
+    await act(async () => void fireEvent.click(radios[0]!));
+    await settle();
+    expect(window.location.search).toBe('');
+    expect(branch(container, ' entered').getAttribute('data-state')).toBe('expandable');
+
+    window.history.pushState(null, '', '/?sample=tiny&path=0.1');
+    await act(async () => void window.dispatchEvent(new PopStateEvent('popstate')));
+    expect(screen.getByRole<HTMLInputElement>('radio', { name: /^Tiny/ }).checked).toBe(true);
+    expect(container.querySelector('[data-role="value-label"]')?.getAttribute('data-key')).toBe(' mat.');
   });
 });

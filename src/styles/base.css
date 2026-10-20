@@ -71,6 +71,15 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   font-size: 1.27em; /* Instrument Serif has a small x-height; this matches Plex Mono's */
 }
 
+/* Control row (PLAN §3.3): the sample picker as native radios drawn as labelled tabs; the chosen one is bold with a filled dot. */
+.controls { padding: var(--tg-space-4) var(--tg-space-6) 0; }
+.picker { margin: 0; padding: 0; border: 0; min-width: 0; }
+.picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--tg-ink-muted); }
+.picker-options { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); }
+.picker-option { display: inline-flex; align-items: center; gap: var(--tg-space-1); min-height: 24px; padding: var(--tg-space-1) var(--tg-space-2); font-size: var(--tg-text-sm); background: var(--tg-surface); border: var(--tg-hairline); border-radius: var(--tg-radius); cursor: pointer; }
+.picker-option input { margin: 0; accent-color: var(--tg-ink); cursor: pointer; }
+.picker-option:has(input:checked) { font-weight: 600; border-color: var(--tg-ink); }
+
 /* Plate: specimen label on the left edge, the garden growing to the right, full bleed. */
 .site-main { flex: 1; }
 
@@ -212,6 +221,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 @media (max-width: 47.99rem) {
   .site-header, .site-footer { padding-inline: var(--tg-space-4); }
   .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
+  .controls { padding: var(--tg-space-3) var(--tg-space-4) 0; }
   .readout { position: sticky; bottom: 0; background: var(--tg-surface); border-top: var(--tg-hairline); }
   html { scroll-padding-bottom: var(--tg-readout-h, 0px); }
   .garden-table th, .garden-table td { padding-inline: var(--tg-space-1); }
