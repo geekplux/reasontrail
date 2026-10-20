@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "lighthouse",
+  "title": "The lighthouse keeper",
+  "prompt": "The old lighthouse keeper opened the door and",
+  "model": {
+    "provider": "fixture",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8",
+    "note": "Hand-checked fixture: the first fork is real SmolLM2-135M output; the deeper forks are illustrative."
+  },
+  "recordedAt": "2026-10-19",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " looked", "logprob": -2.417 },
+      { "token": " entered", "logprob": -3.125 },
+      { "token": " turned", "logprob": -3.31 },
+      { "token": " the", "logprob": -3.615 },
+      { "token": " stood", "logprob": -3.616 }
+    ],
+    " looked": [
+      { "token": " out", "logprob": -1.2 },
+      { "token": " around", "logprob": -1.9 },
+      { "token": " at", "logprob": -2.3 },
+      { "token": " up", "logprob": -2.6 },
+      { "token": " down", "logprob": -3.4 }
+    ],
+    " entered": [
+      { "token": " the", "logprob": -0.9 },
+      { "token": ",", "logprob": -2.8 },
+      { "token": " his", "logprob": -3.0 },
+      { "token": " a", "logprob": -3.3 },
+      { "token": " and", "logprob": -3.6 }
+    ]
+  }
+}

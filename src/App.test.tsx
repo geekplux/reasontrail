@@ -9,6 +9,13 @@ import { PathReadout } from './garden/PathReadout';
 import { branchWidth, formatValue } from './garden/scales';
 import { defaultSample } from './samples';
 
+// These tests pin exact numbers and "not in this recording" paths, so they run on the hand-made
+// lighthouse fixture rather than the re-recordable samples in src/samples/.
+vi.mock('./samples', async () => {
+  const fixture = (await import('./test/fixtures/lighthouse-handmade.json')).default;
+  return { samples: [fixture], defaultSample: fixture };
+});
+
 const garden = buildTree(defaultSample, defaultExpanded(defaultSample));
 
 afterEach(() => {

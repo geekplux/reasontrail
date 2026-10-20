@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { buildTree, defaultExpanded, flattenBranches, pathTo, type GardenBranch, type GardenTree } from './buildTree';
 import { EMPTY_TEXT, initialScrollLeft, layoutGarden, placeNote } from './layout';
-import { defaultSample } from '../samples';
 import { bundle } from './linkPath';
 import { COL, GLYPH_EM, HIT_H, LABEL_DX, PAD, ROOT_FORK_X, TOKEN_PX } from './metrics';
 import { branchWidth } from './scales';
 import type { SampleGarden } from '../samples/types';
+import lighthouseFixture from '../test/fixtures/lighthouse-handmade.json';
 import tiny from '../test/fixtures/tiny-garden.json';
 
 const sample = tiny as SampleGarden;
@@ -95,8 +95,9 @@ describe('layoutGarden', () => {
 });
 
 describe('placeNote', () => {
-  it('never covers the " looked" remainder stub when " turned" in the default lighthouse garden gets its note', () => {
-    const tree = buildTree(defaultSample, defaultExpanded(defaultSample));
+  it('never covers the " looked" remainder stub when " turned" in the hand-made lighthouse fixture gets its note', () => {
+    const fixture = lighthouseFixture as SampleGarden;
+    const tree = buildTree(fixture, defaultExpanded(fixture));
     const layout = layoutGarden(tree);
     const box = placeNote(layout, ' turned', 'Not in this recording.'.length);
     const stub = layout.remainders.find((r) => r.parentKey === ' looked')!;
