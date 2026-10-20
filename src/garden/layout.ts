@@ -99,3 +99,39 @@ export function initialScrollLeft(garden: GardenTree): number {
   const open = mostLikelyPath(garden).filter((b) => b.state === 'expanded');
   return Math.max(0, (open.at(-1)?.depth ?? 0) * M.COL + M.PAD - 16);
 }
+
+export interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+const hits = (a: Box, b: Box) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+const span = (x0: number, x1: number, y0: number, y1: number): Box => ({ x: x0, y: Math.min(y0, y1), width: x1 - x0, height: Math.abs(y1 - y0) });
+
+/**
+ * Where a branch note (e.g. "Not in this recording.") goes without covering data (spec §5): below the branch's label,
+ * else above it, else nowhere (`null`: show it on the path readout). A candidate is rejected if it leaves the drawing
+ * or overlaps any incoming link's box or any label. Width is estimated from the glyph count like labels, never measured.
+ */
+export function placeNote(layout: GardenLayout, key: string, glyphs: number): Box | null {
+  const at = layout.branches.find((b) => b.branch.key === key);
+  if (!at) return null;
+  const width = (glyphs + 2) * M.GLYPH_EM * M.VALUE_PX + 2 * M.NOTE_PAD_X;
+  const link = (parentKey: string, tipX: number, y: number) => {
+    const p = layout.branches.find((b) => b.branch.key === parentKey);
+    return span(p ? p.forkX : M.ROOT_FORK_X, tipX, p ? p.y : 0, y);
+  };
+  const half = M.TOKEN_PX / 2;
+  const taken: Box[] = [
+    ...layout.branches.flatMap((b) => [link(b.branch.key.slice(0, b.branch.key.length - b.branch.token.length), b.tipX, b.y), span(b.labelX, b.labelEnd, b.y - half, b.y + half)]),
+    ...layout.remainders.flatMap((r) => [
+      link(r.parentKey, r.tipX, r.y),
+      span(r.tipX + M.LABEL_DX, r.tipX + M.LABEL_DX + [...remainderLabel(r.p)].length * M.GLYPH_EM * M.VALUE_PX, r.y - half, r.y + half),
+    ]),
+  ];
+  const { y: top, height } = layout.viewBox;
+  const candidates = [at.y + M.HIT_H / 2, at.y - M.HIT_H / 2 - M.NOTE_H].map((y): Box => ({ x: at.labelX, y, width, height: M.NOTE_H }));
+  return candidates.find((c) => c.y >= top && c.y + c.height <= top + height && !taken.some((t) => hits(c, t))) ?? null;
+}

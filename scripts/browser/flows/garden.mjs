@@ -70,7 +70,7 @@ function audit() {
     if (!l.closest('.legend-item').textContent.includes(fmt(Number(l.dataset.p)))) problems.push(`legend sample ${l.dataset.p}: no direct label`);
   }
   const other = document.querySelector('.legend [data-role="legend-other"]');
-  if (!other || getComputedStyle(other).strokeDasharray !== '6px, 4px' || !other.closest('.legend-item').textContent.includes('other tokens'))
+  if (!other || !getComputedStyle(other).strokeDasharray.startsWith('6px, ') /* gap fitted to the 32 px sample */ || !other.closest('.legend-item').textContent.includes('other tokens'))
     problems.push('legend has no dashed "other tokens" sample');
   const unrec = document.querySelector('.legend [data-marker="ring"] [data-role="legend-not-recorded"]');
   if (!unrec || getComputedStyle(unrec).strokeDasharray !== '4px, 3px') problems.push('legend "not recorded" key has no 4 3 dashed sample');

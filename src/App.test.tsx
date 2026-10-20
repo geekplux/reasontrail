@@ -89,7 +89,10 @@ describe('App', () => {
     await act(async () => void fireEvent.click(branch(container, ' entered')));
     expect(branch(container, ' entered').getAttribute('data-state')).toBe('expandable');
     await act(async () => void fireEvent.click(branch(container, ' turned')));
-    expect(container.querySelector('.garden-note')?.textContent).toBe('○Not in this recording.');
+    // No free spot next to " turned" (it would cover the " looked" remainder), so the note joins the readout line.
+    expect(container.querySelector('.garden-note')).toBeNull();
+    expect(container.querySelector('.readout .inline-note')?.textContent).toBe('Not in this recording.');
+    expect(container.querySelector('.readout .inline-note circle')?.getAttribute('r')).toBe('4');
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 

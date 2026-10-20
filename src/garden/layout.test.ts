@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildTree, defaultExpanded, flattenBranches, pathTo, type GardenBranch, type GardenTree } from './buildTree';
-import { EMPTY_TEXT, initialScrollLeft, layoutGarden } from './layout';
+import { EMPTY_TEXT, initialScrollLeft, layoutGarden, placeNote } from './layout';
+import { defaultSample } from '../samples';
 import { bundle } from './linkPath';
 import { COL, GLYPH_EM, HIT_H, LABEL_DX, PAD, ROOT_FORK_X, TOKEN_PX } from './metrics';
 import { branchWidth } from './scales';
@@ -90,5 +91,29 @@ describe('layoutGarden', () => {
   it('starts mobile scrolled to the deepest open fork on the most likely path', () => {
     expect(initialScrollLeft(garden)).toBe(COL);
     expect(initialScrollLeft(buildTree(sample, new Set()))).toBe(0);
+  });
+});
+
+describe('placeNote', () => {
+  it('never covers the " looked" remainder stub when " turned" in the default lighthouse garden gets its note', () => {
+    const tree = buildTree(defaultSample, defaultExpanded(defaultSample));
+    const layout = layoutGarden(tree);
+    const box = placeNote(layout, ' turned', 'Not in this recording.'.length);
+    const stub = layout.remainders.find((r) => r.parentKey === ' looked')!;
+    const looked = layout.branches.find((b) => b.branch.key === ' looked')!;
+    // The stub's bbox: from the fork to its tip, between the fork slot and its own row (plus half its stroke).
+    const half = branchWidth(stub.p) / 2;
+    const [y0, y1] = [Math.min(looked.y, stub.y) - half, Math.max(looked.y, stub.y) + half];
+    const intersects = !!box && box.x < stub.tipX && looked.forkX < box.x + box.width && box.y < y1 && y0 < box.y + box.height;
+    expect(intersects).toBe(false);
+    // Above would cover the stub's link too, so the note moves to the readout line.
+    expect(box).toBeNull();
+  });
+
+  it('puts the note below the label when that is free, and returns null for an unknown key', () => {
+    const layout = layoutGarden(garden);
+    const roof = layout.branches.find((b) => b.branch.key === ' roof')!;
+    expect(placeNote(layout, ' roof', 22)).toMatchObject({ x: roof.labelX, y: roof.y + HIT_H / 2 });
+    expect(placeNote(layout, 'nope', 22)).toBeNull();
   });
 });

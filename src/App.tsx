@@ -7,13 +7,14 @@ import { InlineNote } from './components/states/InlineNote';
 import { useOverflows } from './components/useOverflows';
 import { buildTree, pathTo } from './garden/buildTree';
 import { GardenView } from './garden/GardenView';
-import { initialScrollLeft } from './garden/layout';
+import { initialScrollLeft, layoutGarden, placeNote } from './garden/layout';
 import { Legend } from './garden/Legend';
 import { PathReadout } from './garden/PathReadout';
 import { useGarden } from './garden/useGarden';
 import { RecordedProvider } from './llm/recordedProvider';
 import { defaultSample, samples } from './samples';
 
+const NOT_RECORDED = 'Not in this recording.';
 const SCROLL_CUE = { start: 'Scroll sideways for more →', middle: '← Scroll sideways →', end: '← Scroll sideways to the seed' };
 
 /** What the address bar asked for, read once: the garden, the path to reopen, and whether anything was off. */
@@ -41,6 +42,8 @@ export function App() {
       ? "Part of this link isn't in the recording."
       : null;
   const missing = selectedKey !== null && state.status[selectedKey] === 'not-recorded';
+  // Next to the branch where it covers nothing, else on the readout line (spec §5).
+  const noteBox = useMemo(() => (missing ? placeNote(layoutGarden(garden), selectedKey, NOT_RECORDED.length) : null), [missing, garden, selectedKey]);
 
   // Narrow screens start at the open fork rather than at the seed (spec §8), once when the garden opens
   // (never after a click, which would undo the anchoring); wide ones clamp to 0.
@@ -83,12 +86,16 @@ export function App() {
                   hoverKey={hoverKey}
                   onHover={setHoverKey}
                   onActivate={activate}
-                  note={missing ? { key: selectedKey, content: <InlineNote variant="not-recorded">Not in this recording.</InlineNote> } : null}
+                  note={noteBox ? { box: noteBox, content: <InlineNote variant="not-recorded">{NOT_RECORDED}</InlineNote> } : null}
                 />
               ) : null}
             </div>
           </div>
-          <PathReadout garden={garden} labelledKey={hoverKey ?? selectedKey} />
+          <PathReadout
+            garden={garden}
+            labelledKey={hoverKey ?? selectedKey}
+            note={missing && !noteBox ? <InlineNote as="span" variant="not-recorded" className="readout-note">{NOT_RECORDED}</InlineNote> : null}
+          />
           <Legend />
           <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
         </figure>

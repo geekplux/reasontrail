@@ -1,6 +1,6 @@
 import { Marker } from './GardenView';
 import { LEGEND_P } from './metrics';
-import { band, branchWidth, formatPct, type MarkerKind } from './scales';
+import { band, branchWidth, dashArray, formatPct, type MarkerKind } from './scales';
 
 const SAMPLE_W = 32;
 const KEYS: [MarkerKind, string][] = [
@@ -16,7 +16,17 @@ function Sample({ p, kind = 'legend-sample' }: { p: number; kind?: SampleKind })
   const w = branchWidth(p);
   return (
     <svg width={SAMPLE_W} height={20} aria-hidden="true" data-band={band(p)}>
-      <line data-role={kind} data-p={p} x1={0} x2={SAMPLE_W} y1={10} y2={10} strokeWidth={w} />
+      <line
+        data-role={kind}
+        data-p={p}
+        x1={0}
+        x2={SAMPLE_W}
+        y1={10}
+        y2={10}
+        strokeWidth={w}
+        // The "other tokens" sample is fitted like the real stubs, so it ends on a whole dash.
+        strokeDasharray={kind === 'legend-other' ? dashArray('other', w, SAMPLE_W) : undefined}
+      />
     </svg>
   );
 }

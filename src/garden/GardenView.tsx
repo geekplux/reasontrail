@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
 import { pathTo, type GardenTree } from './buildTree';
-import { EMPTY_TEXT, layoutGarden, remainderLabel, valueWidth } from './layout';
+import { EMPTY_TEXT, layoutGarden, remainderLabel, valueWidth, type Box } from './layout';
 import * as M from './metrics';
 import { band, branchWidth, dashArray, describeBranch, formatPct, formatToken, formatValue, MARKER, wsRuns, type MarkerKind } from './scales';
 
@@ -28,8 +28,8 @@ interface GardenViewProps {
   onHover?(key: string | null): void;
   /** Click (phase 4) or Enter/Space (phase 5) on a branch. */
   onActivate?(key: string): void;
-  /** A note anchored under one branch (e.g. "Not in this recording."). */
-  note?: { key: string; content: ReactNode } | null;
+  /** A note placed by `placeNote` next to one branch (e.g. "Not in this recording."), in drawing coordinates. */
+  note?: { box: Box; content: ReactNode } | null;
 }
 
 /** The hit rect of the branch with `key` (keys are arbitrary text, so no attribute selector). */
@@ -39,6 +39,7 @@ const hitOf = (svg: SVGSVGElement | null, key: string | undefined) =>
 export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onActivate, note = null }: GardenViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const anchor = useRef<{ key: string; top: number; open: boolean } | null>(null);
+  const dropSlack = useRef<(() => void) | null>(null);
   const layout = useMemo(() => layoutGarden(garden), [garden]);
   const labelledKey = hoverKey ?? selectedKey;
   const onPath = new Set(labelledKey ? pathTo(garden, labelledKey).map((b) => b.key) : []);
@@ -55,13 +56,12 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
   const valueX = labelled ? (above ? labelled.labelX : labelled.labelEnd + M.FORK_DX) : 0;
   // Above: bottom edge 9 px over the row, so the box overlaps its own hit rect (reachable) but not the row above's.
   const valueY = labelled ? (above ? labelled.y - 9 - valueH : labelled.y - valueH / 2) : 0;
-  const noted = note ? layout.branches.find((b) => b.branch.key === note.key) : undefined;
-  const noteBelow = noted ? noted.y + M.HIT_H / 2 + M.NOTE_H <= box.y + box.height : true;
 
   // Test hook + "first wow" timing mark, set once the first layout is in the DOM.
   useEffect(() => {
     svgRef.current?.setAttribute('data-ready', 'true');
     performance.mark('tg:garden-ready');
+    return () => dropSlack.current?.();
   }, []);
 
   // Growth stability (spec §4): keep the activated branch still on screen, then bring its new children into view.
@@ -70,12 +70,26 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
     anchor.current = null;
     const hit = a && hitOf(svgRef.current, a.key);
     if (!a || !hit) return;
-    // Slack under the page lets the scroll compensate fully when growth above the branch is taller than the page
-    // can scroll; it is recomputed (and usually dropped) on the next activation.
-    document.body.style.paddingBottom = '';
+    // Temporary slack under the figure (inside main, above the footer) lets the scroll compensate fully when growth
+    // above the branch is taller than the page can scroll; dropped on the next activation or once scrolled back up.
+    dropSlack.current?.();
     const delta = hit.getBoundingClientRect().top - a.top;
     const room = document.documentElement.scrollHeight - window.innerHeight - window.scrollY;
-    if (delta > room) document.body.style.paddingBottom = `${Math.ceil(delta - room)}px`;
+    const figure = svgRef.current?.closest('figure');
+    if (delta > room && figure) {
+      const px = Math.ceil(delta - room);
+      figure.style.paddingBottom = `${px}px`;
+      const onScroll = () => {
+        if (window.scrollY <= document.documentElement.scrollHeight - window.innerHeight - px) drop();
+      };
+      const drop = () => {
+        figure.style.paddingBottom = '';
+        window.removeEventListener('scroll', onScroll);
+        dropSlack.current = null;
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      dropSlack.current = drop;
+    }
     window.scrollBy({ top: delta, behavior: 'instant' });
     performance.mark('tg:activate-end');
     performance.measure(a.open ? 'tg:collapse' : 'tg:expand', 'tg:activate-start', 'tg:activate-end');
@@ -159,8 +173,8 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
           </g>
         ) : null}
       </svg>
-      {noted && note ? (
-        <div className="garden-note" style={{ left: noted.labelX - box.x, top: noted.y - box.y + (noteBelow ? M.HIT_H / 2 : -M.HIT_H / 2 - M.NOTE_H) }}>
+      {note ? (
+        <div className="garden-note" style={{ left: note.box.x - box.x, top: note.box.y - box.y }}>
           {note.content}
         </div>
       ) : null}

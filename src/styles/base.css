@@ -28,22 +28,24 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .site-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--tg-space-4);
-  height: 56px;
+  min-height: 56px;
   padding: 0 var(--tg-space-6);
   border-bottom: var(--tg-hairline);
 }
 .brand { text-decoration: none; border-radius: var(--tg-radius); }
-.header-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--tg-space-2) var(--tg-space-5); }
-.share { display: inline-flex; align-items: center; gap: var(--tg-space-2); }
+.header-actions { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--tg-space-2) var(--tg-space-5); }
+.share { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--tg-space-2); min-width: 0; }
 .share-button { border: 0; background: none; font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; cursor: pointer; }
 .share-status { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-.share-field { width: 14rem; font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: var(--tg-hairline); border-radius: var(--tg-radius); }
+.share-field { width: min(14rem, 100%); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
 
 /* Inline notes (PLAN §3.6): a glyph names the kind, the text says it; colour only repeats it. */
 .inline-note { display: inline-flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); padding: 2px var(--tg-space-2); font-size: var(--tg-text-sm); line-height: 16px; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
 .inline-note-glyph { font-family: var(--tg-font-mono); font-weight: 500; color: var(--tg-ink-muted); }
+.inline-note-ring { display: block; fill: none; stroke: currentColor; stroke-width: 1.5; }
 .inline-note[data-variant='error'] .inline-note-glyph { color: var(--tg-error); }
 
 /* Header and footer links: muted ink, underlined, with a hit area at least 24 px tall. */
@@ -137,7 +139,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .garden .on-path > [data-role='branch-stroke'] { stroke: var(--tg-ink); }
 .garden .on-path > [data-role='casing'] { stroke: var(--tg-paper); }
 .garden [data-role='remainder'] path { stroke: var(--tg-ink-muted); }
-.legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); stroke-dasharray: 6 4; }
+.legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); }
 .legend [data-role='legend-not-recorded'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
 .garden [data-role='remainder'] text, .garden-empty { fill: var(--tg-ink-muted); }
 .marker-bud { fill: var(--tg-band); }
@@ -173,6 +175,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .readout-prompt { color: var(--tg-ink-muted); white-space: pre-wrap; }
 .readout-token { margin-left: 2px; border-bottom: 1px solid var(--tg-ink-muted); white-space: pre; }
 .readout-p { font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
+.readout-note { margin: 0 0 0 var(--tg-space-2); font-family: var(--tg-font-ui); font-weight: 400; vertical-align: middle; }
 
 .legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; }

@@ -10,6 +10,13 @@ export function ShareButton() {
     if (fallback !== null) field.current?.select();
   }, [fallback]);
 
+  // "Link copied" is a passing confirmation: cleared after 4 s (the timer goes with the message or the component).
+  useEffect(() => {
+    if (message !== 'Link copied') return;
+    const timer = setTimeout(() => setMessage(''), 4000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
   const copy = async () => {
     const url = window.location.href;
     setMessage('');

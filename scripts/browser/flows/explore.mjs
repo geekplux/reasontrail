@@ -92,8 +92,9 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   // F4: an unrecorded branch shows a calm note and makes no request.
   requests.length = 0;
   await page.locator(hit(' turned')).click();
-  const note = await page.locator('.garden-note').textContent();
-  if (note !== '○Not in this recording.' || requests.length) fail(`F4: note ${note}, requests ${requests.join(', ')}`);
+  // No free spot next to " turned" (the " looked" remainder is there), so the note is on the readout line.
+  const note = await page.locator('.readout .inline-note').textContent();
+  if (note !== 'Not in this recording.' || (await page.locator('.garden-note').count()) || requests.length) fail(`F4: note ${note}, requests ${requests.join(', ')}`);
   for (const p of await axeProblems(page, 'explore not recorded')) fail(p);
   await shot('explore-not-recorded');
 
@@ -108,6 +109,19 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await page.getByText('Link copied').waitFor({ timeout: 2_000 });
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   if (copied !== url) fail(`Copy link wrote ${copied}, expected ${url}`);
+
+  // WCAG 1.4.10: at 390 px the header (after a copy, and with the fallback field) never widens the page.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const pageWidth = () => page.evaluate(() => document.documentElement.scrollWidth);
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  await page.getByText('Link copied').waitFor({ timeout: 2_000 });
+  if ((await pageWidth()) > 390) fail(`390 px after copy: page is ${await pageWidth()} px wide`);
+  await page.evaluate(() => Object.defineProperty(navigator.clipboard, 'writeText', { value: () => Promise.reject(new Error('denied')), configurable: true }));
+  await page.getByRole('button', { name: 'Copy link' }).click();
+  await page.getByLabel('Link to this view').waitFor({ timeout: 2_000 });
+  if ((await pageWidth()) > 390) fail(`390 px copy fallback: page is ${await pageWidth()} px wide`);
+  await shot('explore-copy-fallback-mobile');
+  await page.setViewportSize({ width: 1280, height: 800 });
 
   await page.mouse.move(0, 0);
   requests.length = 0;
