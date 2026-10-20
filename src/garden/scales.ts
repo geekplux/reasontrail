@@ -1,4 +1,4 @@
-import type { BranchState } from './buildTree';
+import type { BranchState, GardenBranch } from './buildTree';
 import { DASH_FROM, MAX_GLYPHS } from './metrics';
 
 /** Branch stroke width in px, linear in the conditional probability (PLAN D5): 1.5 px floor, 20 px at p = 1. */
@@ -70,7 +70,27 @@ export type MarkerKind = 'bud' | 'knot' | 'ring';
 /** Tip marker per state (spec §3): shape, not colour, tells the states apart. */
 export const MARKER: Record<BranchState, MarkerKind> = { expandable: 'bud', expanded: 'knot', 'not-recorded': 'ring' };
 
-/** One text form for a branch in the accessible summary: the verbatim token in quotes + percentage. */
-export function describeBranch(token: string, p: number): string {
-  return `“${token}” ${formatPct(p)}`;
+/** What each state means, in words (table view, legend, accessible names). */
+export const STATE_TEXT: Record<BranchState, string> = { expandable: 'can grow', expanded: 'grown', 'not-recorded': 'not recorded' };
+
+const SPOKEN_WS: Record<string, string> = { ' ': 'space', '\n': 'newline', '\t': 'tab' };
+
+/** A token as a screen reader should say it: its text without edge spaces, or its whitespace by name. */
+export function spokenToken(token: string): string {
+  return token.trim() || [...token].map((c) => SPOKEN_WS[c] ?? c).join(' ');
+}
+
+/** A percentage in words: 0.0892 -> "8.9 percent", tiny -> "less than 0.1 percent". */
+export const spokenPct = (p: number) => formatPct(p).replace('<', 'less than ').replace('%', ' percent');
+
+/** A branch's accessible name: "looked, 8.9 percent" (+ path chance below the first fork, + "not in this recording"). */
+export function spokenBranch(b: Pick<GardenBranch, 'token' | 'p' | 'pathP' | 'depth' | 'state'>): string {
+  const path = b.depth > 1 ? `, path ${spokenPct(b.pathP)}` : '';
+  return `${spokenToken(b.token)}, ${spokenPct(b.p)}${path}${b.state === 'not-recorded' ? ', not in this recording' : ''}`;
+}
+
+/** The polite announcement after a branch grows: "Grew ‘looked’: 5 branches, top ‘out’ 30.1 percent". */
+export function grewMessage(b: Pick<GardenBranch, 'token' | 'children'>): string {
+  const [top, n] = [b.children[0], b.children.length];
+  return `Grew ‘${spokenToken(b.token)}’: ${n} ${n === 1 ? 'branch' : 'branches'}${top ? `, top ‘${spokenToken(top.token)}’ ${spokenPct(top.p)}` : ''}`;
 }

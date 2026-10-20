@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { band, branchWidth, dashArray, describeBranch, formatPct, formatToken, formatValue, wsRuns } from './scales';
+import { band, branchWidth, dashArray, formatPct, formatToken, formatValue, grewMessage, spokenBranch, spokenToken, wsRuns } from './scales';
 
 describe('scales', () => {
   it.each([
@@ -47,10 +47,6 @@ describe('scales', () => {
       { text: 'x', ws: false },
     ]);
   });
-
-  it('describes a branch with the verbatim token', () => {
-    expect(describeBranch(' looked', 0.0892)).toBe('“ looked” 8.9%');
-  });
 });
 
 describe('dashArray', () => {
@@ -66,5 +62,20 @@ describe('dashArray', () => {
     expect(dash).toBe(12);
     const periods = (150 - dash) / (dash + gap);
     expect(Math.abs(periods - Math.round(periods))).toBeLessThan(0.01);
+  });
+
+  it.each([
+    [' looked', 'looked'],
+    ['\n\n', 'newline newline'],
+    [' ', 'space'],
+  ])('spokenToken(%j) = %s', (t, out) => expect(spokenToken(t)).toBe(out));
+
+  it('names branches and growth in words', () => {
+    const b = { token: ' looked', p: 0.0892, pathP: 0.0892, depth: 1, state: 'expanded' as const };
+    expect(spokenBranch(b)).toBe('looked, 8.9 percent');
+    expect(spokenBranch({ ...b, depth: 2, pathP: 0.0002, state: 'not-recorded' })).toBe('looked, 8.9 percent, path less than 0.1 percent, not in this recording');
+    const out = { ...b, token: ' out', p: 0.301 };
+    expect(grewMessage({ token: ' looked', children: [out, out] as never })).toBe('Grew ‘looked’: 2 branches, top ‘out’ 30.1 percent');
+    expect(grewMessage({ token: ' a', children: [] })).toBe('Grew ‘a’: 0 branches');
   });
 });
