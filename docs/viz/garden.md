@@ -155,7 +155,14 @@ Re-stepping `--tg-error` was tried (5 candidates per theme, crimson to pink): no
 
 ### 10.1 Temperature (D8) -> encoding
 
-`temper(ps, r, T)` in `src/llm/temperature.ts`, per expanded node: `q_i = p_i^(1/T) / Z` over the k children **and** the remainder `r` as one pseudo-token, computed in log space (`logp/T − max`) so T = 0.1 never underflows. T = 1 returns the inputs unchanged; T = 0 gives rank 0 `1` and every other child and the remainder `0` (each hidden token is ≤ `p_k`, so rank 0 is the true argmax; ties go to the lower rank).
+`temper(ps, r, T)` in `src/llm/temperature.ts`, per expanded node (DECISIONS 2026-10-20, "remainder as hidden tokens"). The remainder `r = 1 − Σp_i` is **not** one pseudo-token: it is modelled as `n` equal hidden tokens, each `r/n` and therefore ≤ the smallest shown chance `p_min = min(ps)`:
+
+- `n = max(1, ceil(r / p_min − 1e-9))` when `r > 0` (the `1e-9` stops float noise from adding a token when `r/p_min` is an exact integer); `r ≤ 0` -> remainder weight 0.
+- Weights: `w_i = p_i^(1/T)` for the k shown tokens, `w_r = n·(r/n)^(1/T)` for the remainder. `q_i = w_i / Z`, `q_r = w_r / Z`, `Z = Σw_i + w_r`.
+- Log space so T = 0.1 and logprob −30 never underflow: `log w_i = log p_i / T`, `log w_r = log n + log(r/n) / T`; subtract the max before `exp`. `n` may be large (e.g. 10⁵) - never materialise the hidden tokens.
+- T = 1 returns the inputs unchanged (`w_r = n·r/n = r`). For T > 1 the hidden mass grows (flatter); for T < 1 it shrinks, and as T -> 0⁺ everything converges to rank 0, so the slider is continuous down to greedy.
+- T = 0 (greedy): rank 0 gets `1`, every other child and the remainder `0`. Rank 0 is the true argmax because every hidden token is ≤ `p_min` ≤ `p_0`; ties go to the lower rank, and a hidden token tying `p_0` still loses (accepted: only when all shown chances are equal).
+- Entropy (§10.2) and sampling (§10.3) keep the tempered remainder as **one** outcome `q_r` (an "other" draw is one stop reason); entropy is therefore a lower bound, which "How to read" may say in one clause.
 
 | Data | Channel | Rule |
 |---|---|---|
@@ -191,7 +198,8 @@ Layout never depends on T: memoize `layoutGarden` on the visible tree only, and 
 
 ### 10.5 Phase 7 acceptance criteria
 
-1. `temperature.test.ts`: T = 1 identity; T = 0 -> `[1,0,…]`, remainder 0; Σq + q_r = 1 ± 1e-9 for T ∈ {0.1, 0.5, 1.5, 2}; lowering T never lowers `q_0`; T = 0.1 with logprob −30 gives finite values.
+1. `temperature.test.ts`: T = 1 identity; T = 0 -> `[1,0,…]`, remainder 0; Σq + q_r = 1 ± 1e-9 for T ∈ {0.1, 0.5, 1.5, 2}; lowering T never lowers `q_0`; T = 0.1 with logprob −30 gives finite values. Remainder as hidden tokens: (a) `q_r` is non-decreasing in T over {0.1, 0.2, …, 2} and `q_r ≤ r` for every T < 1, `q_r ≥ r` for T > 1; (b) regression for the old bug, `ps = [0.2, 0.1, 0.05, 0.03, 0.02]`, `r = 0.6` (n = 30): at T = 0.2 `q_r < 0.01` and `q_0 > 0.95` (as one pseudo-token `q_r` would be ≈ 0.99); (c) continuity, T = 0.05 is within 1e-5 of the T = 0 result for that input; (d) `n` exact-integer case `ps = [0.5, 0.25]`, `r = 0.25` gives n = 1, and at T = 2 matches `p^(1/2)` normalised over three tokens; (e) `r = 0` gives `q_r = 0` for every T.
+3a. Browser on the default sample: at T = 0.2 every fork's `other` label is ≤ its value at T = 1, and no `other` label reads `100%`.
 2. `entropy.test.ts`: uniform over 6 = 2.585 bits; one-hot = 0; band at 0.999 / 1.0 / 1.999 / 2.0 = low / medium / medium / high.
 3. Browser, for T ∈ {0.2, 1, 1.8}: every `[data-role=branch-stroke]` has computed `stroke-width` = `branchWidth(data-p)` ± 0.01 and `data-p` = tempered value of `data-p-recorded`; every remainder width follows `q_r`; node `(tipX, y)` positions are identical across the three; 0 network requests.
 4. The `approximate (top-k only)` note is present iff T ≠ 1 and is in the slider's accessible description.
