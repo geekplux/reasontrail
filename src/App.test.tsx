@@ -5,6 +5,7 @@ import { App } from './App';
 import { SOURCE_URL } from './components/AppShell';
 import { buildTree, defaultExpanded } from './garden/buildTree';
 import { GardenView } from './garden/GardenView';
+import { layoutGarden } from './garden/layout';
 import { PathReadout } from './garden/PathReadout';
 import { branchWidth, formatValue } from './garden/scales';
 import { defaultSample } from './samples';
@@ -45,7 +46,7 @@ describe('App', () => {
     expect(svg?.getAttribute('aria-label')).toBe('Garden of next-token choices after the prompt; other tokens 77.7%');
     expect(svg?.querySelector('title')).toBeNull();
 
-    const width = (g: Element) => Number(g.querySelector('[data-role="branch-stroke"]')?.getAttribute('stroke-width'));
+    const width = (g: Element) => Number(g.querySelector<SVGPathElement>('[data-role="branch-stroke"]')?.style.strokeWidth);
     const root = [...container.querySelectorAll('g[data-depth="1"]')].sort((a, b) => width(b) - width(a));
     expect(root.map((g) => g.querySelector('text')?.textContent)).toEqual(['·looked', '·entered', '·turned', '·the', '·stood']);
     expect(root.map((g) => g.getAttribute('data-marker'))).toEqual(['knot', 'bud', 'ring', 'ring', 'ring']);
@@ -60,7 +61,7 @@ describe('App', () => {
   });
 
   it('labels the selected branch without any pointer events, and the readout follows it', () => {
-    const { container } = render(<GardenView garden={garden} selectedKey=" looked down" />);
+    const { container } = render(<GardenView garden={garden} layout={layoutGarden(garden)} selectedKey=" looked down" />);
     const g = container.querySelector('g[data-key=" looked down"]');
     const label = container.querySelector('[data-role="value-label"]');
     expect(label?.getAttribute('data-key')).toBe(' looked down');
@@ -135,7 +136,7 @@ describe('App', () => {
     const key = async (k: string, target: string) => act(async () => void fireEvent.keyDown(item(target), { key: k }));
     expect(screen.getByRole('tree').getAttribute('aria-label')).toMatch(/^Garden of next-token choices/);
     expect([...container.querySelectorAll('[role="treeitem"][tabindex="0"]')].map((g) => g.getAttribute('data-key'))).toEqual([' looked']);
-    const looked = screen.getByRole('treeitem', { name: 'looked, 8.9 percent' });
+    const looked = screen.getByRole('treeitem', { name: /^looked, 8\.9 percent, uncertainty after it: (low|medium|high), \d\.\d bits$/ });
     expect([looked.getAttribute('aria-level'), looked.getAttribute('aria-setsize'), looked.getAttribute('aria-posinset'), looked.getAttribute('aria-expanded')]).toEqual(['1', '5', '1', 'true']);
     expect(item(' turned').getAttribute('aria-label')).toBe('turned, 3.7 percent, not in this recording');
     expect(item(' turned').hasAttribute('aria-expanded')).toBe(false);

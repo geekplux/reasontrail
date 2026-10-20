@@ -79,6 +79,11 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .picker-option { display: inline-flex; align-items: center; gap: var(--tg-space-1); min-height: 24px; padding: var(--tg-space-1) var(--tg-space-2); font-size: var(--tg-text-sm); background: var(--tg-surface); border: var(--tg-hairline); border-radius: var(--tg-radius); cursor: pointer; }
 .picker-option input { margin: 0; accent-color: var(--tg-ink); cursor: pointer; }
 .picker-option:has(input:checked) { font-weight: 600; border-color: var(--tg-ink); }
+.controls-row, .temperature { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2); }
+.controls-row { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); }
+.temperature input { width: 9rem; margin: 0; accent-color: var(--tg-ink); }
+.temperature output { min-width: 7.5em; font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
+.temperature-note { color: var(--tg-ink-muted); }
 
 /* Plate: specimen label on the left edge, the garden growing to the right, full bleed. */
 .site-main { flex: 1; }
@@ -148,6 +153,10 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .garden .on-path > [data-role='branch-stroke'] { stroke: var(--tg-ink); }
 .garden .on-path > [data-role='casing'] { stroke: var(--tg-paper); }
 .garden [data-role='remainder'] path { stroke: var(--tg-ink-muted); }
+/* Sampled path (spec §3, §10.3): ink underlay + accent stroke + diamond tips, so it reads without colour. */
+.garden path[data-role='sampled-underlay'] { stroke: var(--tg-ink); }
+.garden path[data-role='sampled-stroke'] { stroke: var(--tg-accent); }
+.marker-diamond { fill: var(--tg-accent); stroke: var(--tg-ink); stroke-width: 1; }
 .legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); }
 .legend [data-role='legend-not-recorded'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
 .garden [data-role='remainder'] text, .garden-empty { fill: var(--tg-ink-muted); }
@@ -175,7 +184,12 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
    one is already grown); everything else jumps. Nothing waits for transitionend. Reduced motion zeroes it all below. */
 .garden .branch { clip-path: inset(-40px); transition: clip-path var(--tg-dur-grow) var(--tg-ease-grow); }
 .garden .branch text { transition: opacity var(--tg-dur-fade) ease-out 60ms; }
-.garden [data-role='branch-stroke'] { transition: stroke-width var(--tg-dur-reshape) ease-out; }
+.garden [data-role='branch-stroke'], .garden [data-role='remainder-stroke'] { transition: stroke-width var(--tg-dur-reshape) ease-out; }
+/* The sampled walk: CSS only, edge i drawn after i steps; diamonds and the "other" stub fade in at their edge's end. */
+.garden[data-walk] [data-walk] { animation: tg-fade var(--tg-dur-fade) linear calc(var(--i) * var(--tg-step)) backwards; }
+.garden[data-walk] [data-walk='draw'] { animation: tg-draw var(--tg-step) linear calc(var(--i) * var(--tg-step)) backwards; }
+@keyframes tg-draw { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+@keyframes tg-fade { from { opacity: 0; } }
 @starting-style {
   .garden[data-ready] .branch { clip-path: inset(-40px 100% -40px -40px); }
   .garden[data-ready] .branch text { opacity: 0; }
@@ -187,6 +201,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .readout-prompt { color: var(--tg-ink-muted); white-space: pre-wrap; }
 .readout-token { margin-left: 2px; border-bottom: 1px solid var(--tg-ink-muted); white-space: pre; }
 .readout-p { font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
+.readout-sampled { margin: 0 0 var(--tg-space-2); font-family: var(--tg-font-mono); font-weight: 500; }
+.readout-token-sampled { border-bottom-color: var(--tg-accent); border-bottom-width: 2px; }
 .readout-note { margin: 0 0 0 var(--tg-space-2); font-family: var(--tg-font-ui); font-weight: 400; vertical-align: middle; }
 
 /* Table view (A3): the text alternative, toggled under the readout. */
@@ -198,7 +214,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--tg-ink-muted); }
 .garden-table th, .garden-table td { padding: 2px var(--tg-space-2); border-bottom: var(--tg-hairline); text-align: start; vertical-align: top; }
 .garden-table tbody th { font-family: var(--tg-font-mono); font-weight: 500; white-space: pre; }
-.garden-table td:nth-child(-n + 4) { text-align: end; }
+.garden-table td:nth-child(-n + 5) { text-align: end; }
 .garden-table [data-ws], .table-prefix { color: var(--tg-ink-muted); }
 
 .legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
@@ -217,6 +233,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   color: var(--tg-ink-muted);
 }
 .site-footer p { margin: 0; }
+.how-to-read { flex-basis: 100%; max-width: var(--tg-measure); }
+.how-to-read summary { cursor: pointer; color: var(--tg-ink); }
 
 @media (max-width: 47.99rem) {
   .site-header, .site-footer { padding-inline: var(--tg-space-4); }
@@ -233,6 +251,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
     animation-duration: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0s !important;
+    animation-delay: 0s !important;
     transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
