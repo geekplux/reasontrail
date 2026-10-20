@@ -1,9 +1,5 @@
 /* Base layout and elements for the "specimen plate" identity (PLAN §3.3). Colours only via tokens.css. */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 html {
   background: var(--tg-paper);
@@ -12,29 +8,12 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
-
-body {
-  margin: 0;
-}
-
-#root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-a {
-  color: inherit;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-}
+body { margin: 0; }
+#root { display: flex; flex-direction: column; min-height: 100vh; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 
 /* Focus: 2 px cornflower ring with a 2 px paper gap, on every focusable thing. */
-:focus-visible {
-  outline: 2px solid var(--tg-focus);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 2px var(--tg-paper);
-}
+:focus-visible { outline: 2px solid var(--tg-focus); outline-offset: 2px; box-shadow: 0 0 0 2px var(--tg-paper); }
 
 .visually-hidden {
   position: absolute;
@@ -53,31 +32,10 @@ a {
   padding: 0 var(--tg-space-6);
   border-bottom: var(--tg-hairline);
 }
-
-.brand {
-  text-decoration: none;
-  border-radius: var(--tg-radius);
-}
-
-.wordmark {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
-  font-size: 22px;
-  line-height: 1;
-}
-
-.logo-mark {
-  width: 1.6em;
-  height: 1.6em;
-  color: var(--tg-branch-hi);
-}
-
-.wordmark-token {
-  font-family: var(--tg-font-mono);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
+.brand { text-decoration: none; border-radius: var(--tg-radius); }
+.wordmark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 22px; line-height: 1; }
+.logo-mark { width: 1.6em; height: 1.6em; color: var(--tg-branch-hi); }
+.wordmark-token { font-family: var(--tg-font-mono); font-weight: 500; letter-spacing: -0.01em; }
 
 .wordmark-garden {
   margin-left: 0.25em;
@@ -88,9 +46,7 @@ a {
 }
 
 /* Plate: specimen label on the left edge, the garden growing to the right, full bleed. */
-.site-main {
-  flex: 1;
-}
+.site-main { flex: 1; }
 
 .plate {
   display: grid;
@@ -120,49 +76,16 @@ a {
   margin: var(--tg-space-1) 0 var(--tg-space-3);
   font: italic 400 var(--tg-text-2xl) / 1.1 var(--tg-font-serif);
 }
-
-.specimen-fields {
-  margin: 0;
-}
-
-.specimen-fields dt {
-  margin-top: var(--tg-space-2);
-  font-size: var(--tg-text-sm);
-  color: var(--tg-ink-muted);
-}
-
-.specimen-fields dd {
-  margin: 0;
-  padding-bottom: var(--tg-space-1);
-  border-bottom: var(--tg-hairline);
-}
-
-.specimen-fields abbr {
-  text-decoration: none;
-}
-
-.specimen-prompt {
-  font-family: var(--tg-font-mono);
-  font-weight: 500;
-}
-
-.specimen-note {
-  margin: var(--tg-space-3) 0 0;
-  font-size: var(--tg-text-sm);
-  color: var(--tg-ink-muted);
-}
-
-.garden-figure {
-  margin: 0;
-  min-width: 0;
-}
+.specimen-fields { margin: 0; }
+.specimen-fields dt { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.specimen-fields dd { margin: 0; padding-bottom: var(--tg-space-1); border-bottom: var(--tg-hairline); }
+.specimen-fields abbr { text-decoration: none; }
+.specimen-prompt { font-family: var(--tg-font-mono); font-weight: 500; }
+.specimen-note { margin: var(--tg-space-3) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.garden-figure { margin: 0; min-width: 0; }
 
 /* Narrow screens scroll the drawing sideways; labels are never shrunk below their size. */
-.garden-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  border-radius: var(--tg-radius);
-}
+.garden-scroll { overflow-x: auto; overflow-y: hidden; border-radius: var(--tg-radius); }
 
 .garden-figure figcaption {
   max-width: var(--tg-measure);
@@ -170,26 +93,10 @@ a {
   font-size: var(--tg-text-sm);
   color: var(--tg-ink-muted);
 }
-
-.garden {
-  display: block;
-}
-
-.garden .seed {
-  fill: var(--tg-ink);
-}
-
-.garden [data-role='branch-stroke'] {
-  fill: none;
-  stroke: var(--tg-branch-hi);
-  stroke-linecap: round;
-}
-
-.garden .node {
-  fill: var(--tg-paper);
-  stroke: var(--tg-branch-hi);
-  stroke-width: 1.5;
-}
+.garden { display: block; }
+.garden .seed { fill: var(--tg-ink); }
+.garden [data-role='branch-stroke'] { fill: none; stroke: var(--tg-branch-hi); stroke-linecap: round; }
+.garden .node { fill: var(--tg-paper); stroke: var(--tg-branch-hi); stroke-width: 1.5; }
 
 .garden text {
   font-family: var(--tg-font-mono);
@@ -210,29 +117,16 @@ a {
   font-size: var(--tg-text-sm);
   color: var(--tg-ink-muted);
 }
-
-.site-footer p {
-  margin: 0;
-}
+.site-footer p { margin: 0; }
 
 @media (max-width: 47.99rem) {
-  .site-header,
-  .site-footer {
-    padding-inline: var(--tg-space-4);
-  }
-
-  .plate {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--tg-space-4);
-    padding: var(--tg-space-4);
-  }
+  .site-header, .site-footer { padding-inline: var(--tg-space-4); }
+  .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
 }
 
 /* Reduced motion: no transitions or animations anywhere (A5). */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0s !important;
