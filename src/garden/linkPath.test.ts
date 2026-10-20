@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bundle, linkPath } from './linkPath';
+import { bundle, linkLength, linkPath } from './linkPath';
 import { GAP } from './metrics';
 
 describe('bundle', () => {
@@ -21,5 +21,12 @@ describe('bundle', () => {
 describe('linkPath', () => {
   it('starts at the fork, runs a stem, then curves to 4 px before the tip', () => {
     expect(linkPath(100, -3, 180, 40)).toBe('M100,-3 H108 C142,-3 142,40 176,40');
+  });
+});
+
+describe('linkLength', () => {
+  it('is the straight run for a level link and grows with the drop', () => {
+    expect(linkLength(10, 5, 180, 5)).toBeCloseTo(180 - 4 - 10, 6);
+    expect(linkLength(10, 5, 180, 85)).toBeGreaterThan(Math.hypot(166 - 8, 80) + 8);
   });
 });

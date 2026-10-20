@@ -21,4 +21,6 @@ export const KNOT_R = 7;
 export const SELECTED_R = 9;
 export const VALUE_PAD_X = 6;
 export const VALUE_PAD_Y = 2;
+export const NOTE_H = 18; // a branch note (InlineNote): fits the gap between two rows' labels
+export const DASH_FROM = 8; // dash patterns scale with stroke width above this, so thick dashes stay dashes
 export const LEGEND_P = [0.05, 0.25, 0.75] as const;

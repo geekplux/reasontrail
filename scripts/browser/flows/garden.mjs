@@ -24,6 +24,12 @@ function audit() {
     probe.remove();
     return value;
   };
+  // Dash patterns scale with stroke width above 8 px, gaps stretched to end on a whole dash (scales.ts dashArray).
+  const dashOk = (cs, [dash, gap]) => {
+    const s = Math.max(1, parseFloat(cs.strokeWidth) / 8);
+    const [d, g] = cs.strokeDasharray.split(',').map(parseFloat);
+    return Math.abs(d - dash * s) < 0.02 && g >= (gap * s) / 2 && g <= gap * s * 1.5;
+  };
   const svg = document.querySelector('[data-testid="garden"]');
   if (svg.querySelector('title')) problems.push('garden contains a <title>');
   const MARKER = { expandable: 'bud', expanded: 'knot', 'not-recorded': 'ring' };
@@ -38,8 +44,7 @@ function audit() {
     const colour = state === 'not-recorded' ? '--tg-ink-muted' : `--tg-branch-${band}`;
     if (cs.stroke !== token(colour)) problems.push(`${key}: stroke ${cs.stroke} != ${colour}`);
     if (MARKER[state] !== marker) problems.push(`${key}: state ${state} has marker ${marker}`);
-    const dash = state === 'not-recorded' ? '4px, 3px' : 'none';
-    if (cs.strokeDasharray !== dash) problems.push(`${key}: dash ${cs.strokeDasharray} != ${dash}`);
+    if (state === 'not-recorded' ? !dashOk(cs, [4, 3]) : cs.strokeDasharray !== 'none') problems.push(`${key}: dash ${cs.strokeDasharray} on ${state}`);
     if (state !== 'not-recorded' && g.querySelector('.marker-ring')) problems.push(`${key}: hollow marker on ${state}`);
   }
   const forks = [{ key: '', depth: 0 }, ...branches.filter((g) => g.dataset.state === 'expanded').map((g) => ({ key: g.dataset.key, depth: Number(g.dataset.depth) }))];
@@ -54,7 +59,7 @@ function audit() {
       if (r.textContent !== `other ${fmt(p)}`) problems.push(`remainder ${parent.key}: label ${r.textContent}`);
       const inert = [r, r.querySelector('path'), r.querySelector('text')].every((e) => getComputedStyle(e).pointerEvents === 'none');
       if (!inert || r.querySelector('[tabindex]') || r.hasAttribute('tabindex')) problems.push(`remainder ${parent.key}: interactive`);
-      if (getComputedStyle(r.querySelector('path')).strokeDasharray !== '6px, 4px') problems.push(`remainder ${parent.key}: not dashed 6 4`);
+      if (!dashOk(getComputedStyle(r.querySelector('path')), [6, 4])) problems.push(`remainder ${parent.key}: not dashed 6 4 (scaled)`);
     }
   }
   const samples = [...document.querySelectorAll('.legend [data-role="legend-sample"]')];

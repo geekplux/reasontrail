@@ -1,10 +1,24 @@
 import type { BranchState } from './buildTree';
-import { MAX_GLYPHS } from './metrics';
+import { DASH_FROM, MAX_GLYPHS } from './metrics';
 
 /** Branch stroke width in px, linear in the conditional probability (PLAN D5): 1.5 px floor, 20 px at p = 1. */
 export function branchWidth(p: number): number {
   const clamped = Math.min(1, Math.max(0, p));
   return 1.5 + 18.5 * clamped;
+}
+
+const DASH = { 'not-recorded': [4, 3], other: [6, 4] } as const;
+
+/**
+ * Dash pattern for a dashed stroke: `4 3` (not recorded) or `6 4` (other tokens), scaled by `w / 8` on thick strokes.
+ * Given the path length, the gap is stretched slightly so the stroke ends on a whole dash, never a sliver.
+ */
+export function dashArray(kind: keyof typeof DASH, w: number, length = 0): string {
+  const s = Math.max(1, w / DASH_FROM);
+  const [dash, gap] = DASH[kind].map((d) => d * s) as [number, number];
+  const n = Math.round((length - dash) / (dash + gap));
+  const fitted = n >= 1 ? (length - dash) / n - dash : gap;
+  return [dash, fitted >= gap / 2 ? fitted : gap].map((d) => Number(d.toFixed(2))).join(' ');
 }
 
 export type Band = 'lo' | 'mid' | 'hi';

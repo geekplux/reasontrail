@@ -1,6 +1,6 @@
 import { hierarchy, tree } from 'd3-hierarchy';
 import { mostLikelyPath, type GardenBranch, type GardenTree } from './buildTree';
-import { bundle, linkPath } from './linkPath';
+import { bundle, linkLength, linkPath } from './linkPath';
 import * as M from './metrics';
 import { branchWidth, formatPct, formatToken, formatValue } from './scales';
 
@@ -12,8 +12,9 @@ export interface BranchLayout {
   labelEnd: number;
   /** Where this branch's own children leave (label end + FORK_DX). */
   forkX: number;
-  /** The incoming link, from the parent's fork bundle to this tip. */
+  /** The incoming link, from the parent's fork bundle to this tip, and its length (for dash fitting). */
   link: string;
+  length: number;
   hit: { x: number; y: number; width: number; height: number };
 }
 
@@ -24,6 +25,7 @@ export interface RemainderLayout {
   tipX: number;
   y: number;
   link: string;
+  length: number;
 }
 
 export interface GardenLayout {
@@ -67,19 +69,20 @@ export function layoutGarden(garden: GardenTree): GardenLayout {
       const tipX = child.depth * M.COL;
       const y = child.x;
       const link = linkPath(forkX, ys[i]!, tipX, y);
+      const length = linkLength(forkX, ys[i]!, tipX, y);
       top = Math.min(top, y);
       bottom = Math.max(bottom, y);
       const b = child.data.branch;
       if (!b) {
         const p = child.data.remainder!;
-        remainders.push({ parentKey: child.data.parentKey, p, tipX, y, link });
+        remainders.push({ parentKey: child.data.parentKey, p, tipX, y, link, length });
         right = Math.max(right, tipX + M.LABEL_DX + textWidth(remainderLabel(p), M.VALUE_PX));
         return;
       }
       const end = labelEnd(b, tipX);
       const hitX = tipX - M.HIT_BEFORE;
       const hit = { x: hitX, y: y - M.HIT_H / 2, width: end + M.FORK_DX - hitX, height: M.HIT_H };
-      branches.push({ branch: b, tipX, y, labelX: tipX + M.LABEL_DX, labelEnd: end, forkX: end + M.FORK_DX, link, hit });
+      branches.push({ branch: b, tipX, y, labelX: tipX + M.LABEL_DX, labelEnd: end, forkX: end + M.FORK_DX, link, length, hit });
       // Room for the value label to the right of every label, so it never has to flip over the links.
       right = Math.max(right, end + M.FORK_DX + valueWidth(b));
     });

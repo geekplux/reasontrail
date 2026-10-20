@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { band, branchWidth, describeBranch, formatPct, formatToken, formatValue, wsRuns } from './scales';
+import { band, branchWidth, dashArray, describeBranch, formatPct, formatToken, formatValue, wsRuns } from './scales';
 
 describe('scales', () => {
   it.each([
@@ -50,5 +50,21 @@ describe('scales', () => {
 
   it('describes a branch with the verbatim token', () => {
     expect(describeBranch(' looked', 0.0892)).toBe('“ looked” 8.9%');
+  });
+});
+
+describe('dashArray', () => {
+  it.each([
+    ['not-recorded', 1.5, '4 3'],
+    ['other', 8, '6 4'],
+    ['not-recorded', 20, '10 7.5'],
+    ['other', 16, '12 8'],
+  ] as const)('%s at %s px is %s', (kind, w, dash) => expect(dashArray(kind, w)).toBe(dash));
+
+  it('stretches the gap so a stroke of known length ends on a whole dash', () => {
+    const [dash, gap] = dashArray('other', 16, 150).split(' ').map(Number) as [number, number];
+    expect(dash).toBe(12);
+    const periods = (150 - dash) / (dash + gap);
+    expect(Math.abs(periods - Math.round(periods))).toBeLessThan(0.01);
   });
 });
