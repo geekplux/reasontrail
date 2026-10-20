@@ -2,7 +2,7 @@ STATE: IN-PROGRESS
 
 # Status
 
-- Current phase: 6 (`phase-6-recorded-samples`): recorder (llm-integration) then picker UI
+- Current phase: 6 verified PASS; PR submitted
 - Plan: `docs/PLAN.md` (13 phases; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
@@ -14,7 +14,7 @@ STATE: IN-PROGRESS
 | 3 | `phase-3-garden-encoding` | [#4](https://github.com/geekplux/token-garden/pull/4) | PASS, PR open | 1 |
 | 4 | `phase-4-explore-share` | [#5](https://github.com/geekplux/token-garden/pull/5) | PASS, PR open | 1 |
 | 5 | `phase-5-keyboard-a11y` | [#6](https://github.com/geekplux/token-garden/pull/6) | PASS, PR open | 1 |
-| 6 | `phase-6-recorded-samples` | - | in progress | 0 |
+| 6 | `phase-6-recorded-samples` | - | PASS, PR open | 1 |
 | 7 | `phase-7-temperature-sampling` | - | pending | 0 |
 | 8 | `phase-8-worker-core` | - | pending | 0 |
 | 9 | `phase-9-worker-limits` | - | pending | 0 |
@@ -28,4 +28,4 @@ STATE: IN-PROGRESS
 - Move `ci/github-workflow.yml` to `.github/workflows/` (needs `workflow` token scope).
 - Provide a valid Cloudflare API token (for live-mode checks and deploy).
 
-Last updated: 2026-10-20 19:32 UTC (phase 5 PR opened, phase 6 started)
+Last updated: 2026-10-20 22:42 UTC (phase 6 verified)
