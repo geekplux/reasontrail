@@ -1,7 +1,17 @@
+import type { BranchState } from './buildTree';
+import { MAX_GLYPHS } from './metrics';
+
 /** Branch stroke width in px, linear in the conditional probability (PLAN D5): 1.5 px floor, 20 px at p = 1. */
 export function branchWidth(p: number): number {
   const clamped = Math.min(1, Math.max(0, p));
   return 1.5 + 18.5 * clamped;
+}
+
+export type Band = 'lo' | 'mid' | 'hi';
+
+/** Probability band, the secondary colour channel (`--tg-branch-<band>`). */
+export function band(p: number): Band {
+  return p < 0.1 ? 'lo' : p < 0.4 ? 'mid' : 'hi';
 }
 
 /** Probability as a short percentage label, e.g. 0.447 -> "44.7%", tiny values -> "<0.1%". */
@@ -10,7 +20,43 @@ export function formatPct(p: number): string {
   return `${(p * 100).toFixed(1)}%`;
 }
 
-/** One text form for a branch, shared by the tooltip and the accessible summary: the verbatim token in quotes + percentage. */
+/** The value label: the branch's own chance, plus the whole continuation's chance below the first fork. */
+export function formatValue(b: { p: number; pathP: number; depth: number }): string {
+  return b.depth > 1 ? `${formatPct(b.p)} · path ${formatPct(b.pathP)}` : formatPct(b.p);
+}
+
+const WS: Record<string, string> = { ' ': '·', '\n': '↵', '\t': '⇥' };
+const WS_GLYPHS = new Set(Object.values(WS));
+
+/** Token text with visible whitespace: space -> ·, newline -> ↵, tab -> ⇥. */
+export function visibleWs(token: string): string {
+  return token.replace(/[ \n\t]/g, (c) => WS[c]!);
+}
+
+/** A token label: visible whitespace, at most MAX_GLYPHS glyphs (first 11 + …). */
+export function formatToken(token: string): string {
+  const glyphs = [...visibleWs(token)];
+  return glyphs.length > MAX_GLYPHS ? `${glyphs.slice(0, MAX_GLYPHS - 1).join('')}…` : glyphs.join('');
+}
+
+/** Splits shown text into runs so whitespace glyphs can be set in a muted colour. */
+export function wsRuns(text: string): { text: string; ws: boolean }[] {
+  const runs: { text: string; ws: boolean }[] = [];
+  for (const c of text) {
+    const ws = WS_GLYPHS.has(c);
+    const last = runs.at(-1);
+    if (last?.ws === ws) last.text += c;
+    else runs.push({ text: c, ws });
+  }
+  return runs;
+}
+
+export type MarkerKind = 'bud' | 'knot' | 'ring';
+
+/** Tip marker per state (spec §3): shape, not colour, tells the states apart. */
+export const MARKER: Record<BranchState, MarkerKind> = { expandable: 'bud', expanded: 'knot', 'not-recorded': 'ring' };
+
+/** One text form for a branch in the accessible summary: the verbatim token in quotes + percentage. */
 export function describeBranch(token: string, p: number): string {
   return `“${token}” ${formatPct(p)}`;
 }
