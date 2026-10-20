@@ -15,6 +15,7 @@ pnpm lint            # oxlint
 pnpm typecheck       # tsc --noEmit
 pnpm test            # Vitest, single run
 pnpm build           # production build into dist/
+pnpm check:size      # size budgets on dist/ and the runtime dependency allowlist
 pnpm check:browser   # build, preview, headless Chrome flows + axe, screenshots in .tmp/screenshots/
 ```
 
