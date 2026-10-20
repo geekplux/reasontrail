@@ -48,7 +48,9 @@ export function Legend() {
           other tokens
         </span>
       </p>
-      <ul className="legend-row" aria-label="Branch tips">
+      {/* Safari drops list semantics under list-style: none, so the role is not redundant here. */}
+      {/* oxlint-disable-next-line jsx-a11y/no-redundant-roles */}
+      <ul className="legend-row" role="list" aria-label="Branch tips">
         {KEYS.map(([kind, shape, text]) => (
           <li key={kind} className="legend-item" data-marker={kind}>
             <svg width={20} height={20} viewBox="-10 -10 20 20" aria-hidden="true" data-band="hi">

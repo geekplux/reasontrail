@@ -182,6 +182,9 @@ export function GardenView({ garden, selectedKey, hoverKey = null, onHover, onAc
               onPointerLeave={() => onHover?.(null)}
               onClick={() => activate(b.key)}
               onKeyDown={(e) => onKeyDown(b.key, e)}
+              onFocus={() => {
+                if (b.key !== selectedKey) onSelect?.(b.key);
+              }}
             >
               {onPath.has(b.key) ? <path data-role="casing" d={link} strokeWidth={w + 4} /> : null}
               <path data-role="branch-stroke" d={link} strokeWidth={w.toFixed(4)} strokeDasharray={b.state === 'not-recorded' ? dashArray('not-recorded', w, length) : undefined} />

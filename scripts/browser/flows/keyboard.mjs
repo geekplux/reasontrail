@@ -28,6 +28,10 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   // A1: Tab reaches the garden, on its first branch; the tree is one tab stop and the scroll wrapper none.
   if (!(await pressTo(page, 'Tab', ' looked'))) fail('Tab never reached the garden');
   if ((await page.locator('[role="treeitem"][tabindex="0"]').count()) !== 1 || (await page.locator('.garden-scroll[tabindex]').count())) fail('A1: tab stops');
+  // Focus arriving by Tab selects the branch: its value label shows and it is the selected treeitem.
+  const tabLabel = await page.locator('[data-role="value-label"][data-key=" looked"]').textContent().catch(() => null);
+  if (!tabLabel?.startsWith('8.9%')) fail(`A1: Tab focus label on " looked" is ${tabLabel}`);
+  if ((await page.evaluate(() => document.activeElement?.getAttribute('aria-selected'))) !== 'true') fail('A1: Tab-focused treeitem is not aria-selected');
 
   // A2: Chrome's accessibility tree has the named tree in tree order (aria-owns), not the drawing's paint order.
   const { nodes } = await (await context.newCDPSession(page)).send('Accessibility.getFullAXTree');
