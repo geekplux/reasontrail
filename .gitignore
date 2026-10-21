@@ -6,6 +6,7 @@ node_modules/
 dist/
 dist-ssr/
 build/
+!shared/session/build/
 out/
 coverage/
 .tmp/

@@ -18,5 +18,6 @@
     "noUnusedParameters": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["worker", "shared"]
+  "include": ["worker", "shared"],
+  "exclude": ["shared/session/**/*.test.ts"]
 }

@@ -14,7 +14,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "oxlint --deny-warnings",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.worker.json",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.session.json",
     "test": "vitest run",
     "check:size": "node scripts/check-size.mjs",
     "check:browser": "node scripts/check-browser.mjs",
