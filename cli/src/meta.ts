@@ -11,6 +11,7 @@ export const EXIT = { ok: 0, usage: 1, notFound: 2, unreadable: 3 } as const;
 export const HELP = `${PKG_NAME} ${VERSION}: see what your coding agent did.
 
 Usage: npx ${PKG_NAME} [session] [options]
+       npx ${PKG_NAME} install-skill [--target claude|grok|codex|all] [--dry-run] [--force]
 
   session            a session .jsonl path or a session id (default: the newest session for this folder)
 
@@ -25,6 +26,9 @@ Options:
   --no-open          print the path instead of opening a browser
   -h, --help         this help
   -v, --version      the version
+
+install-skill puts the /${PKG_NAME} skill into ~/.claude/skills (Grok Build reads it too; ~/.grok/skills
+when ~/.claude is absent). It never replaces a file you changed unless --force is given.
 
 Writes <tmp>/reasontrail/<source>-<id>.html by default. Runs locally; nothing is uploaded.
 

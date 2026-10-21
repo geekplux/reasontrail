@@ -10,6 +10,7 @@ import { redactGraph, redactSession } from '../../shared/session/redact';
 import type { ViewerPayload } from '../../src/map/loadGraph';
 import { parseArgs } from './args';
 import { renderHtml } from './html';
+import { installSkill } from './installSkill';
 import { listSessions, locate, readSession, type LocateContext } from './locate/index';
 import { EXIT, HELP, PKG_NAME, VERSION } from './meta';
 import { openFile } from './open';
@@ -20,12 +21,15 @@ export interface RunContext extends LocateContext {
   /** Path of the viewer template (cli/dist/viewer.html next to the built CLI). */
   template: string;
   open?: (file: string) => boolean;
+  /** Path of the running CLI (for install-skill); defaults to cli.mjs next to the template. */
+  cli?: string;
 }
 
 const safe = (id: string) => id.replace(/[^\w.-]/g, '-').slice(0, 80) || 'session';
 const kb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 export function run(argv: readonly string[], ctx: RunContext): number {
+  if (argv[0] === 'install-skill') return installSkill(argv.slice(1), { ...ctx, cli: ctx.cli ?? join(dirname(ctx.template), 'cli.mjs') });
   const opts = parseArgs(argv);
   if ('error' in opts) {
     ctx.err(`${PKG_NAME}: ${opts.error}\nRun "${PKG_NAME} --help" for usage.`);
@@ -105,5 +109,6 @@ if (isEntry()) {
     out: (l) => process.stdout.write(`${l}\n`),
     err: (l) => process.stderr.write(`${l}\n`),
     template: join(dirname(fileURLToPath(import.meta.url)), 'viewer.html'),
+    cli: fileURLToPath(import.meta.url),
   });
 }
