@@ -530,6 +530,7 @@ See `wireframe-glance-mobile.png`.
 
 - The same four regions as text, in the same order: the task card (§8.9), At a glance, "Route" and "Where it got stuck" merged into one list, and the destination.
 - **Plain document structure, no ARIA widget roles.** Each region is a `<section>` with an `<h2>` ("Task", "At a glance", "Route", "Destination").
+- The page has one visually hidden `<h1>Reasoning map</h1>` as the first child of `<main>` (also on the error state), so the `<h2>` regions sit under a page heading; the task title stays visible as styled text, not as the `<h1>`.
 - The route is an `<ol>` of episodes. Each `<li>` has the glyph (`aria-hidden`), the title, the counts, trouble chips (plate glyph + number + short label) and the lane.
 - Delegate episodes contain a nested `<ol>` for their lanes. Each episode has a disclosure `<button aria-expanded="false">` ("Steps (23)") that shows or hides its step list, collapsed by default.
 - Keyboard: native Tab order through links and buttons only; no custom arrow keys. The outline uses the same tokens and glyphs as the map. Phase 13 ships it as the default viewer; from phase 16 it is one toggle away (`?view=outline`, or `#view=outline` in a file).
