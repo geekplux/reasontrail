@@ -3,7 +3,7 @@ STATE: IN-PROGRESS
 # Status
 
 - Current phase: 9 (`phase-9-worker-limits`): built before the pivot, kept as shared Worker infra; verifying. Plan rewritten for the reasoning-map pivot (27 phases).
-- Plan: `docs/PLAN.md` (13 phases; final = Cloudflare deploy prep, stops for Sean's approval)
+- Plan: `docs/PLAN.md` (27 phases after the 2026-10-20 reasoning-map pivot; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
 
