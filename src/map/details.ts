@@ -98,8 +98,8 @@ export function lineDiff(before: string, after: string, max = 200): DiffLine[] {
     if (i < n && j < m && a[i] === b[j]) {
       out.push({ op: ' ', text: a[i++] as string });
       j++;
-    } else if (j < m && (i >= n || (dp[i]?.[j + 1] ?? 0) >= (dp[i + 1]?.[j] ?? 0))) out.push({ op: '+', text: b[j++] as string });
-    else out.push({ op: '-', text: a[i++] as string });
+    } else if (i < n && (j >= m || (dp[i + 1]?.[j] ?? 0) >= (dp[i]?.[j + 1] ?? 0))) out.push({ op: '-', text: a[i++] as string });
+    else out.push({ op: '+', text: b[j++] as string });
   }
   return out;
 }
@@ -184,8 +184,15 @@ export function targetOf(g: SessionGraph, L: GlanceLayout, item: string): Target
   const b = L.blazes.find((x) => x.id === item);
   if (!b) return undefined;
   const ids = new Set(b.trouble.flatMap((t) => t.stepIds));
+  // A failed result is shown with its call (the command), so the call joins the list.
+  const callOf = new Map(g.steps.filter((s) => s.kind === 'tool-call' && s.tool?.callId).map((s) => [s.tool?.callId, s.id]));
+  const withCalls = new Set([...ids].flatMap((id) => {
+    const s = g.steps.find((x) => x.id === id);
+    const call = s?.kind === 'tool-result' ? callOf.get(s.tool?.callId) : undefined;
+    return call ? [call, id] : [id];
+  }));
   const seq = new Map(g.steps.map((s) => [s.id, s.seq]));
-  const steps = [...ids].sort((x, y) => (seq.get(x) ?? 0) - (seq.get(y) ?? 0));
+  const steps = [...withCalls].sort((x, y) => (seq.get(x) ?? 0) - (seq.get(y) ?? 0));
   const t = b.trouble[0] as Trouble;
   const lane = laneOf(g, g.steps.find((s) => s.id === steps[0])?.laneId);
   const episode = g.episodes.find((e) => e.id === b.episodeId);

@@ -30,9 +30,9 @@ describe('details (M3)', () => {
     const after = 'keep\n<b>new</b>';
     expect(lineDiff(before, after)).toEqual([
       { op: ' ', text: 'keep' },
-      { op: '+', text: '<b>new</b>' },
       { op: '-', text: '<img src=x onerror=alert(1)>' },
       { op: '-', text: '</script>' },
+      { op: '+', text: '<b>new</b>' },
     ]);
     expect(lineDiff('', 'a')).toEqual([{ op: '+', text: 'a' }]);
     expect(lineDiff('a\nb', 'c', 1)).toEqual([{ op: '-', text: 'a' }, { op: '-', text: 'b' }, { op: '+', text: 'c' }]);

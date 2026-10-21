@@ -190,7 +190,7 @@ function OpenLane({ open, lepProps }: { open: NonNullable<ViewProps['open']>; le
         {eps.map((r) => <KindMark key={r.episode.id} kind={r.episode.kind} x={x(r)} y={LANE_Y} size={14} />)}
       </svg>
       {eps.map((r) => (
-        <div key={r.episode.id} className="map-item ep lep" style={{ left: x(r) - 12, top: LANE_Y - 12, width: Math.max(56, r.len), height: 72 }} {...lepProps(r)}>
+        <div key={r.episode.id} className={r === open.L.answer ? 'map-item ep lep ep-answer' : 'map-item ep lep'} style={r === open.L.answer ? { left: x(r) - 52, top: LANE_Y - 12, width: 70, height: 72 } : { left: x(r) - 12, top: LANE_Y - 12, width: Math.max(56, r.len), height: 72 }} {...lepProps(r)}>
           <span className="ep-text" style={{ width: Math.max(48, r.len - 14) }}><EpisodeText r={r} width={Math.max(48, r.len - 14)} /></span>
         </div>
       ))}
