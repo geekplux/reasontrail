@@ -11,27 +11,24 @@ export interface OpenAiCompatibleConfig {
 
 /** POSTs the shared chat body with `model`; 503 `unavailable` when the base URL, key or model is missing. */
 export function openAiCompatibleUpstream({ baseUrl, apiKey, model }: OpenAiCompatibleConfig, timeoutMs?: number): Upstream {
-  return {
-    model,
-    async nextTokens(prefix) {
-      if (!baseUrl || !apiKey || !model) throw notConfigured();
-      const url = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
-      const body = await callUpstream(
-        'OpenAI-compatible',
-        async (signal) => {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-            body: JSON.stringify({ model, ...chatBody(prefix) }),
-            signal,
-          });
-          if (res.status >= 500) throw new RetryableError(`HTTP ${res.status}`);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return (await res.json()) as unknown;
-        },
-        timeoutMs,
-      );
-      return tokensFromCompletion(body);
-    },
+  const complete = async (body: Record<string, unknown>, ms = timeoutMs) => {
+    if (!baseUrl || !apiKey || !model) throw notConfigured();
+    const url = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+    return callUpstream(
+      'OpenAI-compatible',
+      async (signal) => {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+          body: JSON.stringify({ model, ...body }),
+          signal,
+        });
+        if (res.status >= 500) throw new RetryableError(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return (await res.json()) as unknown;
+      },
+      ms,
+    );
   };
+  return { model, complete, nextTokens: async (prefix) => tokensFromCompletion(await complete(chatBody(prefix))) };
 }

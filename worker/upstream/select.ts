@@ -11,6 +11,6 @@ export function selectUpstream(env: Env): Upstream {
     case 'openai-compatible':
       return openAiCompatibleUpstream({ baseUrl: env.OPENAI_BASE_URL, apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL });
     default:
-      return { model: env.MODEL_ID, nextTokens: () => Promise.reject(notConfigured()) };
+      return { model: env.MODEL_ID, nextTokens: () => Promise.reject(notConfigured()), complete: () => Promise.reject(notConfigured()) };
   }
 }

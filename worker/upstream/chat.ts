@@ -13,6 +13,8 @@ export interface Upstream {
   readonly model: string | undefined;
   /** The normalized top-K_FETCH next tokens; rejects only with `ProviderError`. */
   nextTokens(prefix: string): Promise<TokenChoice[]>;
+  /** One raw chat completion for an OpenAI-style `body` (no `model`); rejects only with `ProviderError`. */
+  complete(body: Record<string, unknown>, timeoutMs?: number): Promise<unknown>;
 }
 
 export const notConfigured = () => new ProviderError('unavailable', 'Live mode is not configured on this server.');

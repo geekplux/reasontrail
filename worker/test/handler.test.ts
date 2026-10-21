@@ -47,7 +47,7 @@ describe('POST /api/next-tokens', () => {
     const env = fakeEnv();
     const { body } = await call(post({ prefix: 'café' }), env);
     expect((body.tokens as unknown[]).length).toBe(5);
-    const [key] = env.TG_CACHE.store.keys();
+    const key = [...env.TG_CACHE.store.keys()].find((k) => k.startsWith('nt:'));
     expect(key).toMatch(/^nt:v1:@cf\/zai-org\/glm-4\.7-flash:[0-9a-f]{64}$/);
     expect(key).toBe(await cacheKey(MODEL, 'café'));
   });
@@ -58,7 +58,7 @@ describe('POST /api/next-tokens', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { res } = await call(post({ prefix: 'Hello' }), env);
     expect(res.status).toBe(200);
-    expect(warn).toHaveBeenCalledWith('next-tokens: cache write failed', expect.any(Error));
+    expect(warn).toHaveBeenCalledWith('cache: write failed', expect.any(Error));
     warn.mockRestore();
   });
 

@@ -4,6 +4,7 @@ import { ProviderError, type ProviderErrorCode } from '../shared/llm/types';
 const STATUS: Record<ProviderErrorCode, number> = {
   invalid_input: 400,
   prefix_too_long: 413,
+  input_too_large: 413,
   rate_limited: 429,
   budget_exhausted: 503,
   unavailable: 503,

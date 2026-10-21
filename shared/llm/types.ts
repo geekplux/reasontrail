@@ -17,6 +17,8 @@ export type ProviderErrorCode =
   | 'invalid_input'
   /** The prefix exceeds the length limit. */
   | 'prefix_too_long'
+  /** A request body over its size limit (`/api/structure`). */
+  | 'input_too_large'
   /** Too many requests; see `ProviderError.retryAfterSec`. */
   | 'rate_limited'
   /** The daily upstream budget is spent. */

@@ -1,6 +1,7 @@
 // Daily upstream budget (docs/llm-provider.md §6): a soft cap, since KV counters are not atomic. Cache hits never count.
 import { ProviderError } from '../shared/llm/types';
-import type { Ctx, KvBinding } from './env';
+import type { Ctx, Env, KvBinding } from './env';
+import { enforceLimit } from './limits';
 
 export const DEFAULT_DAILY_CAP = 1000;
 export const BUDGET_TTL_SEC = 2 * 24 * 60 * 60;
@@ -29,4 +30,13 @@ export async function checkBudget(kv: KvBinding | undefined, cap: number, ctx: C
   if (used >= cap) throw new ProviderError('budget_exhausted', "Today's live budget is used up. Recorded gardens still work; try again tomorrow.");
   return () =>
     ctx.waitUntil(kv.put(key, String(used + 1), { expirationTtl: BUDGET_TTL_SEC }).catch((err: unknown) => console.warn('next-tokens: budget write failed', err)));
+}
+
+/** A cache miss: RL_MISS for `ip`, then the daily budget, then `call`; one unit is spent only if the call succeeds. */
+export async function paidCall<T>(env: Env, ctx: Ctx, ip: string, call: () => Promise<T>): Promise<T> {
+  await enforceLimit(env.RL_MISS, ip);
+  const spend = await checkBudget(env.TG_CACHE, dailyCap(env.DAILY_UPSTREAM_CAP), ctx);
+  const result = await call();
+  spend();
+  return result;
 }
