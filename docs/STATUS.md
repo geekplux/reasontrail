@@ -2,7 +2,7 @@ STATE: IN-PROGRESS
 
 # Status
 
-- Current phase: 9 (`phase-9-worker-limits`): built before the pivot, kept as shared Worker infra; verifying. Plan rewritten for the reasoning-map pivot (27 phases).
+- Current phase: 9 verified PASS; PR submitted
 - Plan: `docs/PLAN.md` (27 phases after the 2026-10-20 reasoning-map pivot; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
@@ -17,7 +17,7 @@ STATE: IN-PROGRESS
 | 6 | `phase-6-recorded-samples` | [#7](https://github.com/geekplux/token-garden/pull/7) | PASS, PR open | 1 |
 | 7 | `phase-7-temperature-sampling` | [#8](https://github.com/geekplux/token-garden/pull/8) | PASS, PR open | 1 |
 | 8 | `phase-8-worker-core` | [#9](https://github.com/geekplux/token-garden/pull/9) | PASS, PR open | 1 |
-| 9 | `phase-9-worker-limits` | - | built; verifying | 0 |
+| 9 | `phase-9-worker-limits` | - | PASS, PR open | 1 |
 | 10 | `phase-10-design` | - | pending | 0 |
 | 11 | `phase-11-session-model` | - | pending | 0 |
 | 12 | `phase-12-structure-redact` | - | pending | 0 |
@@ -45,4 +45,4 @@ STATE: IN-PROGRESS
 - Codex adapter is built from the public format only: Codex is not installed on this box, so it is not verified against a real session (open item).
 - npm publish of the CLI waits for Sean's approval, like deploy (D36).
 
-Last updated: 2026-10-21 01:18 UTC (pivot: plan rewritten, lead-designer added)
+Last updated: 2026-10-21 01:33 UTC (phase 9 verified)
