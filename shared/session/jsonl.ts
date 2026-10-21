@@ -1,4 +1,5 @@
 // Tolerant JSONL reader: never throws, counts what it cannot read.
+import { SKIPPED_LINES_MAX, type SessionStats } from './types';
 
 /** One parsed line. */
 export interface JsonlRecord {
@@ -52,4 +53,11 @@ export function firstLines(text: string, n = 5): string[] {
     start = end + 1;
   }
   return out;
+}
+
+/** Add one file's unreadable lines to adapter stats (shared by the adapters). */
+export function countSkipped(stats: Omit<SessionStats, 'steps' | 'durationMs'>, file: string, r: JsonlResult): void {
+  stats.skippedLines += r.malformed + r.partial;
+  stats.partialLines += r.partial;
+  for (const line of r.skipped) if (stats.skippedLineNumbers.length < SKIPPED_LINES_MAX) stats.skippedLineNumbers.push({ file, line });
 }

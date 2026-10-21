@@ -24,6 +24,31 @@ const CATEGORY: Record<string, ToolCategory> = {
   SendMessage: 'agent',
   TodoWrite: 'plan',
   ExitPlanMode: 'plan',
+  // Grok Build
+  read_file: 'read',
+  list_dir: 'search',
+  grep: 'search',
+  search_tool: 'search',
+  search_replace: 'edit',
+  write: 'write',
+  run_terminal_command: 'run',
+  monitor: 'run',
+  get_command_or_subagent_output: 'run',
+  kill_command_or_subagent: 'run',
+  web_fetch: 'web',
+  web_search: 'web',
+  todo_write: 'plan',
+  spawn_subagent: 'agent',
+  task: 'agent',
+  // Codex
+  shell: 'run',
+  shell_command: 'run',
+  local_shell: 'run',
+  exec_command: 'run',
+  write_stdin: 'run',
+  apply_patch: 'edit',
+  update_plan: 'plan',
+  view_image: 'read',
 };
 
 /** Category for a tool name; unknown tools (including MCP tools) are `other`. */

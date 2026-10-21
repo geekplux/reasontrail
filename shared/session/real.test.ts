@@ -13,6 +13,17 @@ const budgetMs = (bytes: number) => 1500 * Math.max(1, bytes / 10_000_000);
 
 function filesFor(path: string): SourceFile[] {
   const files = [{ path, text: readFileSync(path, 'utf8') }];
+  if (path.endsWith('/updates.jsonl')) {
+    // Grok Build: summary.json, subagents/<id>/meta.json and the child's log (inside subagents/ or next to the parent).
+    const dir = path.slice(0, -'/updates.jsonl'.length);
+    const add = (p: string) => existsSync(p) && files.push({ path: p, text: readFileSync(p, 'utf8') });
+    add(`${dir}/summary.json`);
+    for (const id of existsSync(`${dir}/subagents`) ? readdirSync(`${dir}/subagents`).sort() : []) {
+      add(`${dir}/subagents/${id}/meta.json`);
+      if (!add(`${dir}/subagents/${id}/updates.jsonl`)) add(`${dir}/../${id}/updates.jsonl`);
+    }
+    return files;
+  }
   const sub = `${path.replace(/\.jsonl$/, '')}/subagents`;
   if (!path.includes('/subagents/') && existsSync(sub)) {
     for (const f of readdirSync(sub).sort()) files.push({ path: `${sub}/${f}`, text: readFileSync(`${sub}/${f}`, 'utf8') });

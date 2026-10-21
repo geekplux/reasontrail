@@ -1,0 +1,13 @@
+{
+  "info": {
+    "id": "019a2c10-6a00-7b00-8000-000000000002",
+    "cwd": "/work/notes-app"
+  },
+  "generated_title": "Find where notes are rendered",
+  "current_model_id": "grok-build-fixture",
+  "created_at": "2026-10-15T10:00:21Z",
+  "updated_at": "2026-10-15T10:00:40Z",
+  "last_active_at": "2026-10-15T10:00:40Z",
+  "parent_session_id": "019a2c10-5e00-7a00-8000-000000000001",
+  "session_kind": "subagent"
+}

@@ -1,5 +1,7 @@
 // Adapter interface, registry and the one-call entry point: files in, SessionGraph out.
 import { claudeCodeAdapter } from './adapters/claudeCode';
+import { codexAdapter } from './adapters/codex';
+import { grokBuildAdapter } from './adapters/grokBuild';
 import { buildGraph } from './build/graph';
 import { firstLines } from './jsonl';
 import type { NormalizedSession, SessionGraph, SessionInput, SourceKind } from './types';
@@ -14,8 +16,8 @@ export interface SessionAdapter {
   parse(input: SessionInput): NormalizedSession;
 }
 
-/** All adapters, in sniffing order. Codex, Grok Build and chat join in later phases. */
-export const adapters: readonly SessionAdapter[] = [claudeCodeAdapter];
+/** All adapters, in sniffing order (their record shapes do not overlap). Chat transcripts join in a later phase. */
+export const adapters: readonly SessionAdapter[] = [claudeCodeAdapter, grokBuildAdapter, codexAdapter];
 
 /** The adapter whose `sniff` accepts these lines, if any. */
 export function sniff(lines: string[]): SessionAdapter | undefined {

@@ -1,0 +1,6 @@
+{
+  "subagent_id": "019a2c10-6a00-7b00-8000-000000000002",
+  "parent_session_id": "019a2c10-5e00-7a00-8000-000000000001",
+  "subagent_type": "explore",
+  "description": "Find where notes are rendered"
+}
