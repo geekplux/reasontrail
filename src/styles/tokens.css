@@ -45,6 +45,8 @@
   --tg-space-5: 24px;
   --tg-space-6: 32px;
   --tg-space-7: 48px;
+  --tg-space-8: 40px; /* DESIGN §18.3: between bands; outer margins at >= 1280 */
+  --tg-space-9: 64px; /* hero room */
   --tg-radius: 2px;
   --tg-hairline: 1px solid var(--tg-rule);
   --tg-measure: 72ch;

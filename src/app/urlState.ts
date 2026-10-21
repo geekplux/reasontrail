@@ -39,21 +39,26 @@ export function writeUrlState(search: string, s: UrlState): string {
   return out ? `?${out}` : '';
 }
 
-/** Which page the website shows (PLAN phase 16): the garden lens when any garden param is set (`?sample=` links keep
- * working), else a session map: `?session=<sample id>` (the default sample when absent) and `?view=outline`. */
-export function readSiteState(search: string): { garden: boolean; session: string | null; view: 'map' | 'outline' } {
+/** The website's pages (PLAN phases 16, 19): the showcase with a sample's map or outline, the drop zone, install. */
+export type SiteView = 'map' | 'outline' | 'open' | 'install';
+const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'install'];
+
+/** Which page the website shows: the garden lens when any garden param is set (`?sample=` links keep working), else
+ * `?view=open|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`. */
+export function readSiteState(search: string): { garden: boolean; session: string | null; view: SiteView } {
   const q = new URLSearchParams(search);
+  const view = q.get('view') as SiteView;
   return {
     garden: ['sample', 'path', 't', 'seed'].some((p) => q.has(p)),
     session: q.get('session') || null,
-    view: q.get('view') === 'outline' ? 'outline' : 'map',
+    view: SITE_VIEWS.includes(view) ? view : 'map',
   };
 }
 
-/** `search` with the map view written (`view=outline`, or dropped for the default map), other params kept. */
-export function writeView(search: string, view: 'map' | 'outline'): string {
+/** `search` with the view written (`view=…`, or dropped for the default map), other params kept. */
+export function writeView(search: string, view: SiteView): string {
   const q = new URLSearchParams(search);
-  if (view === 'outline') q.set('view', 'outline');
+  if (view !== 'map') q.set('view', view);
   else q.delete('view');
   const out = q.toString();
   return out ? `?${out}` : '';

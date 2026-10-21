@@ -36,5 +36,9 @@ describe('site state (phase 16)', () => {
     expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, session: 'planner-pivot', view: 'outline' });
     expect(writeView('?session=x', 'outline')).toBe('?session=x&view=outline');
     expect(writeView('?view=outline', 'map')).toBe('');
+    expect(readSiteState('?view=open').view).toBe('open');
+    expect(readSiteState('?view=install&session=x')).toEqual({ garden: false, session: 'x', view: 'install' });
+    expect(readSiteState('?view=nope').view).toBe('map');
+    expect(writeView('?session=x&view=outline', 'open')).toBe('?session=x&view=open');
   });
 });
