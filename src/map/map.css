@@ -1,0 +1,112 @@
+/* The map glance (DESIGN §7, §8, §9). Colours only via tokens.css; --tg-lane is a stroke, never text. */
+
+/* Map / Outline: a segmented control with an ink border; the selected segment is ink-filled (§7). */
+.view-switch { display: inline-flex; border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); }
+.view-switch button { min-width: 84px; min-height: 30px; padding: 0 var(--tg-space-4); border: 0; background: var(--tg-surface); color: var(--tg-ink); font: 500 13px var(--tg-font-ui); cursor: pointer; }
+.view-switch button[aria-pressed='true'] { background: var(--tg-ink); color: var(--tg-paper); font-weight: 600; }
+
+/* Trailhead: task in columns 1–8, At a glance in 9–12 under an ink rule. */
+.trailhead { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--tg-space-5); align-items: start; }
+.map .region.glance { margin-top: var(--tg-space-1); padding-top: var(--tg-space-2); }
+.map .task-card { padding-bottom: var(--tg-space-4); }
+.map .glance-rows li { font-size: 13.5px; }
+
+/* Route band */
+.map .route-band { padding: var(--tg-space-4) 0 0; border-top: var(--tg-hairline); }
+.route-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-5); }
+.route-head .section-label { margin: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-4); margin: 0; padding: 0; list-style: none; font-size: 11.5px; color: var(--tg-ink-muted); }
+.legend li { display: inline-flex; align-items: center; gap: 5px; }
+.legend .glyph { width: 12px; height: 12px; }
+.legend .blaze-icon { width: 14px; height: 14px; }
+.route-app { position: relative; }
+.route-scroll { overflow-x: auto; overflow-y: hidden; padding-top: var(--tg-space-2); }
+.route-canvas { position: relative; }
+.route-svg { position: absolute; inset: 0 auto auto 0; overflow: visible; }
+.route-line { fill: none; stroke: var(--tg-ink); stroke-width: 4; stroke-linecap: round; }
+.lane-line { fill: none; stroke: var(--tg-lane); stroke-width: 2; stroke-linejoin: round; }
+.slash, .connector { fill: none; stroke: var(--tg-ink); stroke-width: 1.5; }
+.connector { stroke-width: 1; }
+.glyph .g-halo { fill: var(--tg-paper); }
+
+.map-item { position: absolute; top: 0; cursor: pointer; border-radius: var(--tg-radius); }
+.ep-text { position: absolute; left: 18px; bottom: 26px; display: flex; flex-direction: column; }
+.ep-title { hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; font: 600 13px / 16px var(--tg-font-ui); }
+.ep-count { overflow: hidden; font-size: 11.5px; line-height: 16px; white-space: nowrap; text-overflow: ellipsis; color: var(--tg-ink-muted); }
+.ep-answer .ep-text { left: auto; right: 4px; align-items: flex-end; text-align: right; }
+.map-item[aria-current='true'] .ep-title, .map-item[aria-current='true'] .lane-name { color: var(--tg-paper); background: var(--tg-ink); }
+.lane-item { display: flex; flex-direction: column; height: 58px; padding: 22px 4px 0 6px; white-space: nowrap; overflow: hidden; }
+.lane-name, .lane-facts { overflow: hidden; font-size: 11.5px; line-height: 17px; text-overflow: ellipsis; }
+.lane-facts { display: block; }
+.lane-facts .glyph { margin-right: 2px; vertical-align: -2px; }
+.lane-facts .glyph { width: 12px; height: 12px; }
+.blaze { display: grid; place-items: center; width: 24px; height: 24px; }
+.blaze-icon { overflow: visible; }
+.glyph .g-badge { fill: var(--tg-ink); }
+.glyph .g-badge-n, .glyph .g-plus { fill: var(--tg-paper); font: 600 10.5px var(--tg-font-mono); text-anchor: middle; }
+.glyph-plate.is-resolved .g-plus { fill: var(--tg-trouble); }
+.idle-label { position: absolute; width: 44px; font-size: 11.5px; line-height: 14px; text-align: center; color: var(--tg-ink-muted); pointer-events: none; }
+.fold-chip { z-index: 1; padding: 2px 6px; font-size: 11.5px; line-height: 18px; white-space: nowrap; background: var(--tg-surface); border: 1px solid var(--tg-ink); }
+
+/* Bottom band: where it got stuck (x 32–540) and the destination card (x 560–1248), joined to the terminus. */
+.bottom-band { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--tg-space-5); align-items: start; }
+.map .stuck { margin-top: var(--tg-space-5); padding-top: var(--tg-space-4); border-top: var(--tg-hairline); }
+.stuck-rows { display: grid; gap: var(--tg-space-3); margin: 0; padding: 0; list-style: none; }
+.stuck-rows li { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: start; padding-top: 6px; }
+.stuck-rows .blaze-icon { margin: 0 0 0 4px; }
+.stuck-text { display: block; font-size: 13.5px; overflow-wrap: anywhere; }
+.stuck-where { display: block; font-size: 11.5px; overflow-wrap: anywhere; }
+.stuck-none { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: var(--tg-space-2); align-items: baseline; margin: 0; font-size: 13.5px; }
+.map .footnote { font-size: 12.8px; }
+.map .outcome { padding: var(--tg-space-4) var(--tg-space-5); background: var(--tg-surface); border: 1px solid var(--tg-rule); border-radius: var(--tg-radius); }
+.map .outcome-cols { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.map .outcome-cols > div + div { padding-left: var(--tg-space-5); border-left: var(--tg-hairline); }
+.outcome-cols .files-head { margin: 0; text-align: right; padding-right: 56px; font-size: 11.5px; }
+.files li { display: grid; grid-template-columns: minmax(0, 1fr) auto 52px; gap: var(--tg-space-2); align-items: center; border-bottom: 0; }
+.files .path { font-size: 12.5px; }
+.files .bar { height: 10px; background: var(--tg-ink); }
+.verification { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: var(--tg-space-2); align-items: start; font-size: 13.5px; }
+.verification .glyph { margin-top: 0.25em; }
+.dest-bar { display: none; }
+
+@media (max-width: 1023px) {
+  .trailhead, .bottom-band { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+
+/* Mobile 390×844 (§9.2): the vertical route, rows of at least 44 px, and the sticky destination bar. */
+@media (max-width: 767px) {
+  .legend { display: none; }
+  .task-meta .meta-extra { display: none; }
+  .task-meta .meta-extra + span::before { content: none; }
+  .vroute { padding-top: var(--tg-space-2); }
+  .vrow { position: relative; display: flex; align-items: center; min-height: 44px; }
+  .vrow::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 4px; background: var(--tg-ink); }
+  .vrow.is-end::before { bottom: 50%; }
+  .vroute > .vrow:first-child::before { top: 50%; }
+  .vrow .map-item { position: relative; }
+  .vitem { display: flex; flex: 1; align-items: center; gap: var(--tg-space-3); min-width: 0; min-height: 44px; padding-left: 4px; }
+  .vitem.ep .glyph { width: 16px; height: 16px; border-radius: 50%; background: var(--tg-paper); box-shadow: 0 0 0 2px var(--tg-paper); }
+  .vitem .ep-title { flex: 1; font-size: 14px; line-height: 18px; }
+  .vitem .ep-count { font-size: 12px; }
+  .vsub { padding-left: 12px; }
+  .siding { flex: none; overflow: visible; }
+  .siding path { fill: none; stroke: var(--tg-lane); stroke-width: 2; }
+  .vsub .vitem { gap: var(--tg-space-2); font-size: 12px; overflow: hidden; white-space: nowrap; }
+  .vsub .vitem .mono { overflow: hidden; text-overflow: ellipsis; }
+  .vrow .blaze { width: 44px; height: 44px; }
+  .vbreak { display: flex; align-items: center; gap: var(--tg-space-3); min-height: 44px; font-size: 12px; color: var(--tg-ink-muted); }
+  .vslash { position: relative; flex: none; width: 24px; height: 18px; }
+  .vslash::before, .vslash::after { content: ''; position: absolute; top: 0; left: 8px; width: 1.5px; height: 18px; background: var(--tg-ink); transform: skewX(-30deg); }
+  .vslash::after { left: 15px; }
+  .dest-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 20px minmax(0, 1fr) 16px; gap: var(--tg-space-3); align-items: center; min-height: 56px; margin: var(--tg-space-4) -16px 0; padding: var(--tg-space-2) 16px; color: var(--tg-ink); text-decoration: none; background: var(--tg-surface); border-top: 1px solid var(--tg-ink); }
+  .dest-bar .glyph { width: 20px; height: 20px; }
+  .dest-bar-text { display: grid; font-size: 14px; }
+  .dest-bar .section-label { margin: 0; }
+  .chevron { width: 10px; height: 10px; border-right: 2px solid var(--tg-ink); border-bottom: 2px solid var(--tg-ink); transform: rotate(45deg); }
+  .map .outcome-cols > div + div { padding-left: 0; border-left: 0; }
+  .view-switch button { min-height: 42px; min-width: 64px; padding: 0 var(--tg-space-3); }
+}
+
+/* Website page frame for the map (the viewer has its own, viewer.css). */
+.site-map { width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-4) var(--tg-space-6) var(--tg-space-7); }
+@media (max-width: 767px) { .site-map { padding: var(--tg-space-3) var(--tg-space-4) 0; } }

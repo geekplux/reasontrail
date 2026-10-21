@@ -41,7 +41,7 @@ async function grow(page, keys) {
 
 export async function run({ page, context, baseURL, shot, log, fail }) {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await page.goto(`${baseURL}/?sample=lighthouse`, { waitUntil: 'load' });
   await ready(page);
 
   // F2 by mouse: six options, the default chosen; choosing one opens it with the default expansion and its own URL.
@@ -91,11 +91,11 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   }
 
   // O2: after load, offline: switch gardens, grow a branch, and go Back to a share link, all with no network.
-  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await page.goto(`${baseURL}/?sample=lighthouse`, { waitUntil: 'load' });
   await ready(page);
   const entered = keyAt(S.lighthouse, [1]);
   await page.locator(hit(entered)).click();
-  if (!(await search(page, '?path=1'))) fail(`O2: url after selecting ${entered} is ${page.url()}`);
+  if (!(await search(page, '?sample=lighthouse&path=1'))) fail(`O2: url after selecting ${entered} is ${page.url()}`);
   // Chrome re-asks for the favicon on each history step; a real browser answers that from its cache, so do the same.
   const favicon = readFileSync(new URL('../../../public/favicon.svg', import.meta.url));
   await context.route('**/favicon.svg', (route) => route.fulfill({ body: favicon, contentType: 'image/svg+xml' }));

@@ -36,6 +36,12 @@ export function times(steps: readonly Step[]): { wall: number; active: number } 
   return { wall: (t[t.length - 1] as number) - (t[0] as number), active };
 }
 
+/** `s` shortened in the middle with "…" to at most `max` characters (DESIGN §8.10). */
+export const middle = (s: string, max: number) => (s.length > max ? `${s.slice(0, Math.ceil((max - 1) / 2))}…${s.slice(s.length - Math.floor((max - 1) / 2))}` : s);
+
+/** A provenance file name: the basename, shortened in the middle to 28 characters. */
+export const fileLabel = (path: string) => middle(path.split('/').pop() ?? path, 28);
+
 export function isUnstoredThinking(s: Step): boolean {
   return s.kind === 'thinking' && (s.textStored === false || !s.text?.trim());
 }

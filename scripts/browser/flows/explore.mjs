@@ -46,7 +46,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
 
   // F1: default expansion (D11).
   await page.setViewportSize({ width: 1280, height: 800 });
-  await open(page, `${baseURL}/`);
+  await open(page, `${baseURL}/?sample=lighthouse`);
   if ((await state(' looked')) !== 'expanded' || (await page.locator('g[data-depth="2"]').count()) !== 5) fail('default: " looked" is not open with 5 children');
   for (const p of await axeProblems(page, 'explore default')) fail(p);
   await shot('explore-default');
@@ -109,7 +109,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await page.locator(hit(' entered the')).click();
   await page.waitForTimeout(250);
   const url = page.url();
-  if (!url.endsWith('/?path=1.0')) fail(`F14: URL is ${url}`);
+  if (!url.endsWith('/?sample=lighthouse&path=1.0')) fail(`F14: URL is ${url}`);
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL });
   await page.getByRole('button', { name: 'Copy link' }).click();
   await page.locator('.share-status', { hasText: 'Link copied' }).waitFor({ timeout: 2_000 });
@@ -140,14 +140,14 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await shot('explore-shared-link');
 
   // A broken link restores the longest valid prefix (here: nothing) with a notice.
-  await open(page, `${baseURL}/?path=9.9`);
+  await open(page, `${baseURL}/?sample=lighthouse&path=9.9`);
   const notice = await page.locator('.garden-figure > .inline-note').textContent();
   if (notice !== "iPart of this link isn't in the recording." || (await state(' looked')) !== 'expanded') fail(`broken link: notice ${notice}`);
   await shot('explore-broken-link');
 
   // Mobile: grow " entered"; its children come into the sideways scroll view.
   await page.setViewportSize({ width: 390, height: 844 });
-  await open(page, `${baseURL}/`);
+  await open(page, `${baseURL}/?sample=lighthouse`);
   await page.locator(hit(' entered')).click();
   if (!(await inView(page, ENTERED.slice(0, 1), '.garden-scroll'))) fail('mobile: new children not scrolled into view');
   for (const p of await axeProblems(page, 'explore mobile')) fail(p);

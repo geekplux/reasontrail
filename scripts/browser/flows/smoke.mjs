@@ -3,7 +3,7 @@ import { axeProblems } from '../axe.mjs';
 
 export async function run({ page, baseURL, shot, log, fail }) {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await page.goto(`${baseURL}/?sample=lighthouse`, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="garden"][data-ready="true"]', { timeout: 10_000 });
 
   const prompt = 'The old lighthouse keeper opened the door and';

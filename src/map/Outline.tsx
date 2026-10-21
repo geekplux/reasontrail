@@ -1,49 +1,16 @@
 // The outline view (DESIGN §10.2, DM16): the map's four regions as plain document structure. No ARIA widget roles,
 // no custom keys: headings, ordered lists and one disclosure button per episode.
-import { useId, useLayoutEffect, useRef, useState } from 'react';
+import { useId, useState } from 'react';
 import type { Episode, SessionGraph } from '../../shared/session/types';
-import { InfoGlyph, KindGlyph, NeutralPlateGlyph, PlateGlyph, StatusGlyph, UnstoredGlyph } from './Glyph';
-import { HonestyLabel } from './HonestyLabel';
-import { REQUEST_MAX, STATUS_WORD, TROUBLE_LABEL, episodeLinks, glance, laneEpisodes, parseNotes, skippedWhere, stepLines, taskCard } from './outline';
+import './outline.css';
+import { KindGlyph, PlateGlyph, StatusGlyph, UnstoredGlyph } from './Glyph';
+import { troubleNumbers } from './layout';
+import { OutcomeCard } from './OutcomeCard';
+import { STATUS_WORD, TROUBLE_LABEL, episodeLinks, laneEpisodes, stepLines } from './outline';
+import { GlanceRows, TaskCard } from './TaskCard';
+import { useMapReady } from './MapView';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-
-/** The first request in serif: at most 280 chars and 2 lines until "more" (M1a, DM5). */
-function Request({ text }: { text: string }) {
-  const [more, setMore] = useState(false);
-  const [clamped, setClamped] = useState(false);
-  const ref = useRef<HTMLParagraphElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el || more) return;
-    let live = true;
-    // Half a line of tolerance: serif ascenders and sub-pixel line boxes must not count as a third line.
-    const check = () => {
-      if (live) setClamped(el.scrollHeight - el.clientHeight > parseFloat(getComputedStyle(el).lineHeight) / 2);
-    };
-    check();
-    void document.fonts?.ready.then(check);
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(check);
-    observer?.observe(el);
-    return () => {
-      live = false;
-      observer?.disconnect();
-    };
-  }, [more]);
-  const long = text.length > REQUEST_MAX;
-  return (
-    <div className="task-request">
-      <p ref={ref} className={more ? 'task-title' : 'task-title is-clamped'}>
-        {long && !more ? `${text.slice(0, REQUEST_MAX - 1)}…` : text}
-      </p>
-      {(long || clamped || more) && (
-        <button type="button" className="link-button" aria-expanded={more} onClick={() => setMore(!more)}>
-          {more ? 'less' : 'more'}
-        </button>
-      )}
-    </div>
-  );
-}
 
 function EpisodeList({ g, laneId }: { g: SessionGraph; laneId: string }) {
   return (
@@ -59,6 +26,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
   const stepsId = useId();
   const titleId = useId();
   const { trouble, lanes } = episodeLinks(g, e);
+  const numbers = troubleNumbers(g);
   return (
     <li className="episode" data-episode-id={e.id} data-episode-kind={e.kind} data-lane={e.laneId}>
       <p className="episode-head">
@@ -69,7 +37,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
       </p>
       {trouble.length > 0 && (
         <ul className="chips">
-          {trouble.map(({ t, n }) => (
+          {trouble.map(({ t }) => ({ t, n: numbers.get(t.id) ?? 0 })).map(({ t, n }) => (
             <li key={t.id} className="chip" data-trouble-kind={t.kind} data-count={t.count} data-resolved={t.resolved} data-n={n}>
               <PlateGlyph kind={t.kind} resolved={t.resolved} />
               <span className="chip-n mono">{n}</span>
@@ -119,89 +87,12 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
   );
 }
 
-function Destination({ g }: { g: SessionGraph }) {
-  const { files, revertedFiles, lastVerification: v, answerStepId } = g.outcome;
-  const top = [...files].sort((a, b) => b.edits - a.edits).slice(0, 5);
-  const answer = g.steps.find((s) => s.id === answerStepId);
-  return (
-    <section className="region outcome" data-region="outcome" aria-labelledby="h-outcome">
-      <h2 id="h-outcome" className="section-label">
-        <KindGlyph kind="answer" /> Destination <span>· what changed</span>
-      </h2>
-      <div className="outcome-cols">
-        <div>
-          <p className="strong">{plural(files.length, 'file')} changed</p>
-          {top.length > 0 && (
-            <ol className="files">
-              {top.map((f) => (
-                <li key={f.path}>
-                  <span className="mono path">{f.path}</span>
-                  {f.created && <span className="mono muted"> new</span>}
-                  <span className="mono edits">{plural(f.edits, 'edit')}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-          {files.length > top.length && <p className="muted">+{files.length - top.length} more files</p>}
-          {revertedFiles ? <p className="muted">({plural(revertedFiles, 'reverted file')} not counted)</p> : null}
-        </div>
-        <div>
-          <h3 className="sub-label">Last verification</h3>
-          {v ? (
-            <p data-status={v.ok ? 'ok' : 'error'}>
-              <StatusGlyph status={v.ok ? 'ok' : 'error'} /> <code className="mono">{v.command}</code> {v.ok ? 'passed' : 'failed'}
-            </p>
-          ) : (
-            <p><StatusGlyph status="unknown" /> No test, build, lint or typecheck run found.</p>
-          )}
-          <h3 className="sub-label">Final answer</h3>
-          {answer?.text ? (
-            <>
-              <p className="agent-words excerpt">{answer.text}</p>
-              <p className="mono muted provenance">The agent&apos;s own words · {answer.raw.file}:{answer.raw.line}</p>
-            </>
-          ) : (
-            <p className="muted">No final answer was recorded.</p>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function Outline({ graph: g }: { graph: SessionGraph }) {
-  const card = taskCard(g);
-  const rows = glance(g);
-  const where = skippedWhere(g);
-  const open = g.trouble.find((t) => !t.resolved);
+export function Outline({ graph: g, sample = false }: { graph: SessionGraph; sample?: boolean }) {
+  useMapReady();
   return (
     <div className="outline" data-testid="map" data-view="outline" data-ready="true">
-      <section className="region task-card" data-region="task" aria-labelledby="h-task">
-        <h2 id="h-task" className="section-label">Task <span>· {card.label}</span></h2>
-        <Request text={card.request} />
-        <p className="mono muted task-meta">{card.meta.join(' · ')}</p>
-        {parseNotes(g).map((n) => (
-          <p key={n} className="note"><InfoGlyph /><span>{n}</span></p>
-        ))}
-        {where.length > 0 && (
-          <details className="skipped-where">
-            <summary>Show where</summary>
-            <p className="mono">{where.join(', ')}</p>
-          </details>
-        )}
-        <HonestyLabel />
-      </section>
-      <section className="region glance" data-region="glance" aria-labelledby="h-glance">
-        <h2 id="h-glance" className="section-label">At a glance</h2>
-        <ul className="glance-rows">
-          {rows.map((r) => (
-            <li key={r.key} data-glance={r.key} data-status={r.status}>
-              {r.key === 'trouble' && g.trouble.length > 0 ? (open ? <PlateGlyph kind={open.kind} resolved={false} /> : <NeutralPlateGlyph />) : <StatusGlyph status={r.status} />}{' '}
-              <span><strong>{r.lead}</strong>{r.rest}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <TaskCard g={g} sample={sample} />
+      <GlanceRows g={g} />
       <section className="region route" data-region="route" aria-labelledby="h-route">
         <h2 id="h-route" className="section-label">Route</h2>
         {g.steps.length === 0 ? (
@@ -215,7 +106,7 @@ export function Outline({ graph: g }: { graph: SessionGraph }) {
         )}
         <p className="mono muted footnote">Detected patterns are found by rules, not by AI.</p>
       </section>
-      <Destination g={g} />
+      <OutcomeCard g={g} />
     </div>
   );
 }

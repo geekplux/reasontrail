@@ -51,7 +51,7 @@ export function App() {
   const choose = (id: string) => {
     const sample = samples.find((s) => s.id === id) ?? defaultSample;
     // A new history entry, so Back reopens the garden (and fork) the reader came from, offline too.
-    const next = writeUrlState(window.location.search, { sample: sample.id === defaultSample.id ? null : sample.id, path: [], t: view.t, seed: null });
+    const next = writeUrlState(window.location.search, { sample: sample.id, path: [], t: view.t, seed: null });
     history.pushState(null, '', `${window.location.pathname}${next}${window.location.hash}`);
     setView((v) => ({ ...v, sample, ranks: [], unknown: false, valid: true, provider: new RecordedProvider(sample), seed: null, n: v.n + 1, walk: 0 }));
   };
@@ -160,7 +160,7 @@ function Garden({ view, announce }: { view: View; announce(text: string): void }
   useEffect(() => {
     if (!opened) return;
     const path = selectedKey ? pathTo(garden, selectedKey).map((b) => b.rank) : [];
-    const next = writeUrlState(window.location.search, { sample: sample.id === defaultSample.id ? null : sample.id, path, t, seed });
+    const next = writeUrlState(window.location.search, { sample: sample.id, path, t, seed });
     if (next === window.location.search) return;
     const timer = setTimeout(() => history.replaceState(history.state, '', `${window.location.pathname}${next}${window.location.hash}`), 100);
     return () => clearTimeout(timer);

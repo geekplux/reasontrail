@@ -38,3 +38,23 @@ export function writeUrlState(search: string, s: UrlState): string {
   const out = q.toString();
   return out ? `?${out}` : '';
 }
+
+/** Which page the website shows (PLAN phase 16): the garden lens when any garden param is set (`?sample=` links keep
+ * working), else a session map: `?session=<sample id>` (the default sample when absent) and `?view=outline`. */
+export function readSiteState(search: string): { garden: boolean; session: string | null; view: 'map' | 'outline' } {
+  const q = new URLSearchParams(search);
+  return {
+    garden: ['sample', 'path', 't', 'seed'].some((p) => q.has(p)),
+    session: q.get('session') || null,
+    view: q.get('view') === 'outline' ? 'outline' : 'map',
+  };
+}
+
+/** `search` with the map view written (`view=outline`, or dropped for the default map), other params kept. */
+export function writeView(search: string, view: 'map' | 'outline'): string {
+  const q = new URLSearchParams(search);
+  if (view === 'outline') q.set('view', 'outline');
+  else q.delete('view');
+  const out = q.toString();
+  return out ? `?${out}` : '';
+}

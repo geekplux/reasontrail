@@ -24,6 +24,16 @@ export function KindGlyph({ kind }: { kind: Episode['kind'] }) {
   return <Svg className="glyph-kind">{KIND[kind]}</Svg>;
 }
 
+/** A kind glyph inside the route SVG, centred on (x, y), on a paper disc so the line never shows through. */
+export function KindMark({ kind, x, y, size = 16 }: { kind: Episode['kind']; x: number; y: number; size?: number }) {
+  return (
+    <g className="glyph mark" transform={`translate(${x - size / 2} ${y - size / 2}) scale(${size / 16})`}>
+      <circle cx="8" cy="8" r="7.5" className="g-halo" />
+      {KIND[kind]}
+    </g>
+  );
+}
+
 /** Thinking with no stored text: a dotted, muted outline square (DESIGN §8.7). */
 export function UnstoredGlyph() {
   return <Svg className="glyph-unstored"><rect x="3" y="3" width="10" height="10" className="g-line g-dotted" /></Svg>;
@@ -59,6 +69,24 @@ export function PlateGlyph({ kind, resolved }: { kind: Trouble['kind']; resolved
       <rect x="1" y="1" width="14" height="14" rx="2" className="g-plate" />
       <path d={PLATE[kind]} className="g-plate-mark" />
     </Svg>
+  );
+}
+
+/** A blaze (DESIGN §8.5): a 20 px plate with its kind glyph, or "+n", and an ink number badge at its top-right corner.
+ * Drawn centred in a 24 px box; the badge overflows it. */
+export function BlazeIcon({ kind, resolved, badge, plus }: { kind: Trouble['kind']; resolved: boolean; badge: string; plus?: number }) {
+  const bw = badge.length > 1 ? 6 + badge.length * 6.4 : 16;
+  return (
+    <svg className={`glyph blaze-icon glyph-plate ${resolved ? 'is-resolved' : 'is-open'}`} viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+      <rect x="2" y="2" width="20" height="20" rx="2" className="g-plate" />
+      {plus ? <text x="12" y="16" className="g-plus">+{plus}</text> : <path d={PLATE[kind]} className="g-plate-mark" transform="translate(2 2) scale(1.25)" />}
+      {badge && (
+        <>
+          <rect x={22 - bw / 2} y="-6" width={bw} height="16" rx="8" className="g-badge" />
+          <text x="22" y="5.8" className="g-badge-n">{badge}</text>
+        </>
+      )}
+    </svg>
   );
 }
 

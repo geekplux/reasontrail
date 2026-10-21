@@ -19,7 +19,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
 
   // Desktop, light: fonts, favicon, wordmark, landmarks, above the fold.
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await page.goto(`${baseURL}/?sample=lighthouse`, { waitUntil: 'load' });
   await ready(page);
   await page.waitForTimeout(200); // let the second font response finish
   const fontBytes = fonts.reduce((sum, f) => sum + f.bytes, 0);
@@ -131,7 +131,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   const hiDpi = await context.browser().newContext({ viewport: { width: 640, height: 200 }, deviceScaleFactor: 3 });
   try {
     const hiPage = await hiDpi.newPage();
-    await hiPage.goto(`${baseURL}/`, { waitUntil: 'load' });
+    await hiPage.goto(`${baseURL}/?sample=lighthouse`, { waitUntil: 'load' });
     await ready(hiPage);
     await shot('wordmark@3x', hiPage.locator('header .brand'));
   } finally {

@@ -8,7 +8,7 @@ const PROMPT = 'The old lighthouse keeper opened the door and';
 
 async function open(page, baseURL, width, height) {
   await page.setViewportSize({ width, height });
-  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await page.goto(`${baseURL}/?sample=lighthouse`, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="garden"][data-ready="true"]', { timeout: 10_000 });
   await page.evaluate(() => document.fonts.ready);
 }

@@ -22,15 +22,15 @@ const c = (theme: Theme, name: string) => {
 const CONTRAST: Record<Theme, Record<string, number>> = {
   light: {
     surface: 1.09, ink: 14.1, 'ink-muted': 6.5, rule: 1.35, 'branch-lo': 4.1, 'branch-mid': 6.3,
-    'branch-hi': 9.7, accent: 4.5, focus: 5.6, error: 6.5, ok: 4.95, trouble: 6.51, wash: 1.13,
+    'branch-hi': 9.7, accent: 4.5, focus: 5.6, error: 6.5, ok: 4.95, trouble: 6.51, wash: 1.13, lane: 4.08, 'lane-band': 1.07,
   },
   dark: {
     surface: 1.09, ink: 15.3, 'ink-muted': 8.4, rule: 1.46, 'branch-lo': 6.5, 'branch-mid': 10.4,
-    'branch-hi': 14.4, accent: 8.5, focus: 8.4, error: 8.2, ok: 5.58, trouble: 4.87, wash: 1.25,
+    'branch-hi': 14.4, accent: 8.5, focus: 8.4, error: 8.2, ok: 5.58, trouble: 4.87, wash: 1.25, lane: 6.54, 'lane-band': 1.05,
   },
 };
 const TEXT = ['ink', 'ink-muted', 'accent', 'error'];
-const MARKS = ['branch-lo', 'branch-mid', 'branch-hi', 'focus', 'ok', 'trouble'];
+const MARKS = ['branch-lo', 'branch-mid', 'branch-hi', 'focus', 'ok', 'trouble', 'lane'];
 
 // PLAN §3.2 CVD table: the rows that must stay >= 20 under every vision type.
 const DISTINCT: [Theme, string, string][] = [
@@ -46,6 +46,11 @@ const DISTINCT: [Theme, string, string][] = [
   ['dark', 'ok', 'ink'],
   ['light', 'trouble', 'ink'],
   ['dark', 'trouble', 'ink'],
+  // DESIGN §6.3: side trails against the route and the two hues (ok / lane light tritan is 16: cued by shape, not listed)
+  ['light', 'trouble', 'lane'],
+  ['dark', 'trouble', 'lane'],
+  ['light', 'lane', 'ink'],
+  ['dark', 'lane', 'ink'],
 ];
 
 // DESIGN §6.2: text on the wash background and glyph interiors (paper) on the ok and trouble plates.
@@ -60,6 +65,17 @@ const ON: [Theme, string, string, number][] = [
   ['light', 'surface', 'trouble', 7.1],
   ['dark', 'paper', 'ok', 5.58],
   ['dark', 'paper', 'trouble', 4.87],
+  // The expanded-lane band: its 3 px stroke (mark) and the text and glyphs on it (§6.2)
+  ['light', 'lane', 'lane-band', 3.8],
+  ['dark', 'lane', 'lane-band', 6.23],
+  ['light', 'ink', 'lane-band', 13.08],
+  ['light', 'ink-muted', 'lane-band', 6.08],
+  ['light', 'ok', 'lane-band', 4.61],
+  ['light', 'trouble', 'lane-band', 6.06],
+  ['dark', 'ink', 'lane-band', 14.62],
+  ['dark', 'ink-muted', 'lane-band', 8.01],
+  ['dark', 'ok', 'lane-band', 5.32],
+  ['dark', 'trouble', 'lane-band', 4.64],
 ];
 const VISION: (Cvd | undefined)[] = [undefined, 'protanopia', 'deuteranopia', 'tritanopia'];
 
@@ -115,5 +131,13 @@ describe('static assets match tokens.css', () => {
   it.each(Object.keys(themes) as Theme[])('index.html theme-color for %s is --tg-paper', (theme) => {
     const meta = new RegExp(`name="theme-color"\\s+content="(#[0-9a-f]{3,6})"\\s+media="\\(prefers-color-scheme: ${theme}\\)"`, 'i');
     expect(lower(meta.exec(indexHtml)?.[1] ?? 'missing')).toBe(lower(c(theme, 'paper')));
+  });
+});
+
+describe('the lane colour is never text (DESIGN §6.2, DM3)', () => {
+  const sources = import.meta.glob(['../**/*.css', '../**/*.tsx'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+  it.each(Object.keys(sources))('%s', (file) => {
+    expect(sources[file]).not.toMatch(/(^|[^-])color:\s*var\(--tg-lane\)/);
+    expect(sources[file]).not.toMatch(/fill:\s*var\(--tg-lane\)/);
   });
 });

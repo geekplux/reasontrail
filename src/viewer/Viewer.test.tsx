@@ -14,10 +14,50 @@ const fixture = (name: 'basic' | 'trouble') => {
   return JSON.stringify({ graph, meta: { version: '0.1.0' } });
 };
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  window.history.replaceState(null, '', '/');
+});
+const outline = () => window.history.replaceState(null, '', '/#view=outline');
 
 describe('local viewer', () => {
+  it('opens the map by default: four glance regions, one application widget, and the outline one toggle away', () => {
+    const { container } = render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
+    expect([...container.querySelectorAll('[data-region]')].map((r) => r.getAttribute('data-region'))).toEqual(['task', 'glance', 'route', 'trouble', 'outcome']);
+    expect(container.querySelector('[data-testid="map"]')?.getAttribute('data-view')).toBe('map');
+    const app = screen.getByRole('application');
+    expect(app.getAttribute('aria-roledescription')).toBe('reasoning map');
+    expect(document.getElementById(app.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/The Outline view lists the same content as text\.$/);
+    expect(app.querySelectorAll('[tabindex="0"]')).toHaveLength(1);
+    expect(container.querySelector('[data-region="task"] [data-honesty]')?.textContent).toContain(HONESTY_TEXT);
+    fireEvent.click(screen.getByRole('button', { name: 'Outline' }));
+    expect(window.location.hash).toBe('#view=outline');
+    expect(container.querySelector('[data-testid="map"]')?.getAttribute('data-view')).toBe('outline');
+    expect(screen.getByRole('button', { name: 'Outline' }).getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('moves along the route with arrow keys, jumps to patterns with ] and announces wrap-around', () => {
+    render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
+    const app = screen.getByRole('application');
+    const first = app.querySelector<HTMLElement>('[tabindex="0"]');
+    first?.focus();
+    expect(first?.getAttribute('aria-label')).toMatch(/^Episode 1 of \d+, /);
+    fireEvent.keyDown(first as HTMLElement, { key: 'ArrowRight' });
+    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^Episode 2 of /);
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowLeft' });
+    expect(document.activeElement).toBe(first);
+    fireEvent.keyDown(first as HTMLElement, { key: 'ArrowLeft' });
+    expect(document.activeElement).toBe(first); // a dead end does nothing
+    const n = app.querySelectorAll('[data-trouble-kind]').length;
+    for (let i = 0; i <= n; i++) fireEvent.keyDown(document.activeElement as HTMLElement, { key: ']' });
+    expect(document.activeElement?.getAttribute('data-n')).toBe('1');
+    expect(screen.getByRole('status').textContent?.trim()).toBe(`Pattern 1 of ${n}, wrapped`);
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
+    expect(document.activeElement?.getAttribute('aria-current')).toBe('true');
+  });
+
   it('renders the four regions as plain document structure with the honesty label in the task card', () => {
+    outline();
     const { container } = render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent?.split(' ·')[0]?.trim())).toEqual(['Task', 'At a glance', 'Route', 'Destination']);
     expect([...container.querySelectorAll('[data-region]')].map((r) => r.getAttribute('data-region'))).toEqual(['task', 'glance', 'route', 'outcome']);
@@ -30,6 +70,7 @@ describe('local viewer', () => {
   });
 
   it('shows an episode\'s steps behind a disclosure button', () => {
+    outline();
     const { container } = render(<Viewer loaded={loadGraph(fixture('basic'))} />);
     const button = screen.getAllByRole('button', { name: /^Steps \(\d+\)$/ })[0] as HTMLElement;
     expect(button.getAttribute('aria-expanded')).toBe('false');

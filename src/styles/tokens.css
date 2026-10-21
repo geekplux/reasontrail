@@ -21,6 +21,9 @@
   --tg-ok: #1a6fa0;
   --tg-trouble: #a3292b;
   --tg-wash: #f3e3cf;
+  /* Side trails (subagent lanes): strokes only, never text; the band behind an expanded lane is decorative */
+  --tg-lane: #5f7d6c;
+  --tg-lane-band: #efebdf;
 
   /* Type: IBM Plex Mono 500 for tokens and numbers, Instrument Serif Italic for names, system UI for the rest */
   --tg-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
@@ -51,6 +54,12 @@
   --tg-dur-grow: 180ms;
   --tg-dur-fade: 120ms;
   --tg-dur-reshape: 120ms;
+  /* Reasoning map motion (DESIGN §11) */
+  --tg-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --tg-dur-route: 320ms;
+  --tg-dur-lane: 200ms;
+  --tg-dur-panel: 160ms;
+  --tg-dur-lens: 240ms;
 }
 
 /* Dark theme, "night garden" */
@@ -70,6 +79,8 @@
     --tg-ok: #4a95cf;
     --tg-trouble: #e5534b;
     --tg-wash: #33281a;
+    --tg-lane: #7fa48f;
+    --tg-lane-band: #151d18;
   }
 }
 
@@ -78,5 +89,9 @@
     --tg-dur-grow: 0ms;
     --tg-dur-fade: 0ms;
     --tg-dur-reshape: 0ms;
+    --tg-dur-route: 0ms;
+    --tg-dur-lane: 0ms;
+    --tg-dur-panel: 0ms;
+    --tg-dur-lens: 0ms;
   }
 }

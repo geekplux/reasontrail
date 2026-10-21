@@ -63,7 +63,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   const requests = [];
   context.on('request', (r) => !r.url().endsWith('/favicon.svg') && requests.push(r.url())); // the browser's own icon fetch
   const lighthouse = loadSample('lighthouse').nodes;
-  await open(page, `${baseURL}/`);
+  await open(page, `${baseURL}/?sample=lighthouse`);
   requests.length = 0;
 
   // F7 + §10.5.3/4: the keyboard alone sets T (Home/End/arrows, preset); every width and label follows; tips never move.

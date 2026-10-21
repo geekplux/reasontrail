@@ -1,5 +1,5 @@
 // CLI flow (phase 13): runs the built CLI with --no-open against fixture sessions in a sandboxed HOME under .tmp/,
-// opens the written file:// page, and checks the outline's glance regions (M1 a, b, d), the honesty label (M5),
+// opens the written file:// page, and checks the map's glance regions (M1, phase 16), the honesty label (M5),
 // that transcript markup stays text (AC3), --share redaction, and zero requests (C3). Fixture data only.
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
@@ -44,29 +44,29 @@ export async function run({ page, root, shot, log, fail }) {
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
   const regions = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-region]')].map((r) => [r.getAttribute('data-region'), r.textContent])));
   log(`regions: ${Object.keys(regions).join(', ')}`);
-  if (Object.keys(regions).join() !== 'task,glance,route,outcome') fail(`regions: ${Object.keys(regions)}`);
+  if (Object.keys(regions).join() !== 'task,glance,route,trouble,outcome') fail(`regions: ${Object.keys(regions)}`);
   if (!regions.task?.includes(HONESTY) || !regions.task.includes('How to read this map')) fail('honesty label missing from the task card');
   if (!/\d+ tool calls?/.test(regions.task ?? '')) fail('task card has no tool-call count');
   if ((await page.locator('[data-region="route"] [data-episode-id]').count()) < 2) fail('route lists fewer than 2 episodes');
   if ((await page.locator('[data-trouble-kind]').count()) < 1) fail('no trouble chip on the route');
   if (!/files? changed/.test(regions.outcome ?? '') || !/Last verification/i.test(regions.outcome ?? '')) fail('destination lacks files or verification');
-  if (await page.locator('[role="tree"], [role="treeitem"], [role="grid"]').count()) fail('outline uses ARIA widget roles');
+  if (await page.locator('[role="tree"], [role="treeitem"], [role="grid"]').count()) fail('the page uses tree or grid roles');
   const title = await page.evaluate(() => getComputedStyle(document.querySelector('.task-title')).fontFamily);
   if (!title.startsWith('"Instrument Serif"') || !(await page.evaluate(() => document.fonts.check('italic 400 16px "Instrument Serif"')))) fail(`task title font: ${title}`);
   for (const p of await axeProblems(page, 'desktop', STRUCTURE_RULES)) fail(p);
-  await shot('cli-outline-desktop');
+  await shot('cli-map-desktop');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   if (overflow > 0) fail(`mobile: page overflows horizontally by ${overflow}px`);
   if (!(await page.locator('[data-honesty]').isVisible())) fail('mobile: honesty label not visible');
   for (const p of await axeProblems(page, 'mobile', STRUCTURE_RULES)) fail(p);
-  await shot('cli-outline-mobile');
+  await shot('cli-map-mobile');
 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.emulateMedia({ colorScheme: 'dark' });
   for (const p of await axeProblems(page, 'dark', STRUCTURE_RULES)) fail(p);
-  await shot('cli-outline-dark');
+  await shot('cli-map-dark');
   await page.emulateMedia({ colorScheme: 'light' });
 
   // 2. --share on a session holding markup, a token, an email and a home path (written at runtime, never committed).
@@ -83,7 +83,8 @@ export async function run({ page, root, shot, log, fail }) {
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
   const text = await page.locator('[data-region="task"]').textContent();
   if (!text?.includes(XSS)) fail('the </script> payload is not shown as text');
-  if ((await page.locator('script').count()) !== 2) fail('the page has extra script elements');
+  // data, the packed app, its loader and the inflated app: anything more was injected
+  if ((await page.locator('script').count()) !== 4) fail(`the page has ${await page.locator('script').count()} script elements, not 4`);
   if (!(await page.getByText(/^Shared copy · redacted \(\d+ items replaced\)$/).isVisible())) fail('shared ribbon missing');
   for (const p of await axeProblems(page, 'share', STRUCTURE_RULES)) fail(p);
   await shot('cli-share-redacted');

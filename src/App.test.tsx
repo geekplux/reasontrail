@@ -95,7 +95,7 @@ describe('App', () => {
     expect(branch(container, ' entered the')).not.toBeNull();
     expect(screen.getByText('Reading:')).not.toBeNull();
     await settle();
-    expect(window.location.search).toBe('?path=1');
+    expect(window.location.search).toBe('?sample=lighthouse&path=1'); // garden links always name the garden (phase 16)
     await act(async () => void fireEvent.click(branch(container, ' entered')));
     expect(branch(container, ' entered').getAttribute('data-state')).toBe('expandable');
     await act(async () => void fireEvent.click(branch(container, ' turned')));
@@ -183,7 +183,7 @@ describe('App', () => {
     expect(window.location.search).toBe('?sample=tiny');
     await act(async () => void fireEvent.click(radios[0]!));
     await settle();
-    expect(window.location.search).toBe('');
+    expect(window.location.search).toBe('?sample=lighthouse');
     expect(branch(container, ' entered').getAttribute('data-state')).toBe('expandable');
 
     window.history.pushState(null, '', '/?sample=tiny&path=0.1');

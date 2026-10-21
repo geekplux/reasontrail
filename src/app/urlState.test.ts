@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readUrlState, writeUrlState } from './urlState';
+import { readSiteState, readUrlState, writeUrlState, writeView } from './urlState';
 
 describe('urlState', () => {
   it.each([
@@ -25,5 +25,16 @@ describe('urlState', () => {
     expect(writeUrlState(search, state)).toBe(out);
     const { valid: _, ...back } = readUrlState(out);
     expect(back).toEqual({ ...state, sample: state.sample });
+  });
+});
+
+describe('site state (phase 16)', () => {
+  it('opens the map by default, the garden for garden links, and reads the session and view', () => {
+    expect(readSiteState('')).toEqual({ garden: false, session: null, view: 'map' });
+    expect(readSiteState('?sample=robot&path=1')).toMatchObject({ garden: true });
+    expect(readSiteState('?sample=')).toMatchObject({ garden: true });
+    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, session: 'planner-pivot', view: 'outline' });
+    expect(writeView('?session=x', 'outline')).toBe('?session=x&view=outline');
+    expect(writeView('?view=outline', 'map')).toBe('');
   });
 });
