@@ -1,0 +1,21 @@
+// token-garden: one Worker serves the SPA (static assets from ./dist) and /api/* (docs/PLAN.md §5.3).
+// Deployment is the final phase and needs Sean's approval; locally only `pnpm run check:deploy` (a dry run) is used.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "token-garden",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-04-26",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "ai": { "binding": "AI" },
+  // No id (PLAN D10): wrangler provisions the namespace on the first real deploy; see docs/DEPLOY.md (phase 13).
+  "kv_namespaces": [{ "binding": "TG_CACHE" }],
+  "vars": {
+    "MODEL_ID": "@cf/zai-org/glm-4.7-flash",
+    "UPSTREAM": "workers-ai"
+  }
+}

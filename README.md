@@ -17,6 +17,9 @@ pnpm test            # Vitest, single run
 pnpm build           # production build into dist/
 pnpm check:size      # size budgets on dist/ and the runtime dependency allowlist
 pnpm check:browser   # build, preview, headless Chrome flows + axe, screenshots in .tmp/screenshots/
+pnpm run check:deploy  # Worker dry run (bundle + bindings into .wrangler/dry-run/); deploys nothing
+pnpm dev:worker      # wrangler dev for /api/next-tokens; needs valid Cloudflare auth (Workers AI runs remotely)
+node scripts/smoke-workers-ai.mjs  # one real Workers AI logprobs call; prints SKIPPED without a valid token
 ```
 
 `pnpm check:browser` uses the system Chrome (`/usr/bin/google-chrome`, override with `CHROME_PATH`) and port 4317 (override with `TG_PORT`). Options: `--flows a,b|all`, `--out <dir>`, `--no-build`, `--fail-after-launch` (tests that cleanup also runs on failure). It always closes the browser and stops the preview server, and prints a `cleanup:` line.

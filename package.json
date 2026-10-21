@@ -14,10 +14,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "oxlint --deny-warnings",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.worker.json",
     "test": "vitest run",
     "check:size": "node scripts/check-size.mjs",
     "check:browser": "node scripts/check-browser.mjs",
+    "check:deploy": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "dev:worker": "wrangler dev",
     "samples:record": "(test -d tools/record-samples/node_modules || pnpm --dir tools/record-samples install --ignore-workspace --ignore-scripts --frozen-lockfile) && node tools/record-samples/record.mjs"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "react-dom": "^19"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/d3-hierarchy": "^3.1.7",
@@ -41,6 +44,7 @@
     "playwright-core": "^1.64",
     "typescript": "^7",
     "vite": "^8",
-    "vitest": "~4.1"
+    "vitest": "~4.1",
+    "wrangler": "~4.86.0"
   }
 }
