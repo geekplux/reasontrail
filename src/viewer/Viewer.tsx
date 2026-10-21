@@ -35,7 +35,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
       <main className="site-main viewer-main">
         <h1 className="visually-hidden">Reasoning map</h1>
         {loaded.ok ? (
-          view === 'map' ? <MapView graph={loaded.payload.graph} /> : <Outline graph={loaded.payload.graph} />
+          view === 'map' ? <MapView graph={loaded.payload.graph} link="hash" /> : <Outline graph={loaded.payload.graph} />
         ) : (
           <ViewerError reason={loaded.reason} />
         )}

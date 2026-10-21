@@ -3,14 +3,14 @@
 // Geometry is always solid; the draw-in sets a dash pattern only while its animation runs.
 import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { KindMark, KindGlyph } from './Glyph';
-import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, move, navItems } from './keyboard';
+import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, lepId, move, navItems } from './keyboard';
 import { G, idleAtEnd, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
 import { LaneLabel, LanePath } from './LaneView';
 import { BlazeMark, blazeData } from './TroubleMarker';
 
 const KEYS = {
-  horizontal: 'Use Left and Right arrows to move along the route or a side trail, Down to go into the side trail of a delegate episode or the next track, Up to go back. Home and End go to the first and last item. Right bracket and left bracket jump to the next and previous detected pattern. Enter selects; on a bundle it expands it, and Escape collapses it again.',
-  vertical: 'Use Up and Down arrows to move along the route, Right to go into the side trail of a delegate episode, Left to go back to the route. Home and End go to the first and last item. Right bracket and left bracket jump to the next and previous detected pattern. Enter selects; on a bundle it expands it, and Escape collapses it again.',
+  horizontal: 'Use Left and Right arrows to move along the route or a side trail, Down to go into the side trail of a delegate episode or the next track, Up to go back. Home and End go to the first and last item. Right bracket and left bracket jump to the next and previous detected pattern. Enter opens the details of an episode or pattern; on a side trail or bundle it expands it, and Escape closes the details, then collapses it again.',
+  vertical: 'Use Up and Down arrows to move along the route, Right to go into the side trail of a delegate episode, Left to go back to the route. Home and End go to the first and last item. Right bracket and left bracket jump to the next and previous detected pattern. Enter opens the details of an episode or pattern; on a side trail or bundle it expands it, and Escape closes the details, then collapses it again.',
 };
 
 interface Props {
@@ -22,16 +22,23 @@ interface Props {
   onExpand(id: string, open: boolean): void;
   onUnfold(): void;
   announce(text: string): void;
+  /** The selected item (its details are open), shown inverted with aria-current. */
+  current: string | undefined;
+  onSelect(id: string): void;
+  /** The side trail expanded in place, and its layout. */
+  open?: { lane: string; L: GlanceLayout; name: string } | undefined;
+  onToggleLane(id: string, open: boolean): void;
+  panelOpen: boolean;
+  onClose(): void;
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, onUnfold, announce }: Props) {
+export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, onUnfold, announce, current, onSelect, open, onToggleLane, panelOpen, onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const keysId = useId();
-  const items = useMemo(() => navItems(L), [L]);
+  const items = useMemo(() => navItems(L, open), [L, open]);
   const [focus, setFocus] = useState<string>();
-  const [current, setCurrent] = useState<string>();
   const pending = useRef<string | null>(null);
   const tab = items.some((i) => i.id === focus) ? focus : items.some((i) => i.id === current) ? current : items[0]?.id;
   const total = L.episodes.length + (L.answer ? 1 : 0) + (L.fold?.episodes.length ?? 0);
@@ -67,7 +74,10 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
       onUnfold();
       later(epId(L.episodes[G.keepFirst] as RouteEpisode));
       announce(`Route unfolded, ${plural(total, 'episode')}`);
-    } else setCurrent(id);
+    } else if (id.startsWith('lane:')) {
+      onToggleLane(id, open?.lane !== id);
+      later(id);
+    } else onSelect(id);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -84,12 +94,16 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
       e.preventDefault();
       activate(from);
     } else if (e.key === 'Escape') {
-      const open = [...expanded][0];
-      if (open) {
-        onExpand(open, false);
-        later(open);
+      const bundle = [...expanded][0];
+      if (panelOpen) onClose();
+      else if (open) {
+        onToggleLane(open.lane, false);
+        later(open.lane);
+      } else if (bundle) {
+        onExpand(bundle, false);
+        later(bundle);
         announce('Lane collapsed');
-      } else setCurrent(undefined);
+      }
     } else if (/^Arrow|^Home$|^End$/.test(e.key)) {
       e.preventDefault();
       go(move(items, from, e.key, vertical));
@@ -118,9 +132,11 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
     return {
       ...item(l.id, laneName(l, opts)),
       'data-lane': ids, 'data-lane-status': l.status,
-      ...(bundle ? { 'aria-expanded': false, 'data-expanded': 'false' } : {}),
+      ...(bundle ? { 'aria-expanded': false, 'data-expanded': 'false' } : { 'aria-expanded': open?.lane === l.id, 'data-expanded': String(open?.lane === l.id) }),
     };
   };
+  const lepTotal = open ? open.L.episodes.length + (open.L.answer ? 1 : 0) : 0;
+  const lepProps = (r: RouteEpisode) => ({ ...item(lepId(r), `In the ${open?.name ?? ''} side trail. ${episodeName(open?.L ?? L, r, lepTotal)}`), 'data-episode-id': r.episode.id, 'data-episode-kind': r.episode.kind, 'data-lane': r.episode.laneId });
   const blazeProps = (b: Blaze) => ({ ...item(b.id, blazeName(L, b)), ...blazeData(b) });
   const foldProps = () => ({ ...item('fold', `${plural(L.fold?.episodes.length ?? 0, 'more episode')}, ${plural(L.fold?.steps ?? 0, 'step')}, ${plural(L.fold?.trouble ?? 0, 'detected pattern')}. Folded.`), 'aria-expanded': unfolded });
 
@@ -128,9 +144,9 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
 
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is the map widget (DESIGN §10.3); its items are buttons
-    <div ref={ref} className={vertical ? 'route-app is-vertical' : 'route-app'} role="application" aria-roledescription="reasoning map" aria-label={`Reasoning map: ${title}`} aria-describedby={keysId} onKeyDown={onKeyDown}>
+    <div ref={ref} className={`route-app${vertical ? ' is-vertical' : ''}${open ? ' has-open-lane' : ''}`} role="application" aria-roledescription="reasoning map" aria-label={`Reasoning map: ${title}`} aria-describedby={keysId} onKeyDown={onKeyDown}>
       <p id={keysId} className="visually-hidden">{vertical ? KEYS.vertical : KEYS.horizontal} The Outline view lists the same content as text.</p>
-      {vertical ? <Vertical L={L} all={all} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} /> : <Horizontal L={L} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} />}
+      {vertical ? <Vertical L={L} all={all} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} open={open} lepProps={lepProps} /> : <Horizontal L={L} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} open={open} lepProps={lepProps} />}
     </div>
   );
 }
@@ -138,7 +154,7 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
 type P<T> = (x: T) => Record<string, unknown>;
 /** How a lane label is drawn: the same options give its visible text and its accessible name. */
 interface LabelOpts { availPx?: number; duration?: boolean }
-interface ViewProps { L: GlanceLayout; epProps: P<RouteEpisode>; laneProps: (l: LaneItem, opts: LabelOpts) => Record<string, unknown>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
+interface ViewProps { L: GlanceLayout; open?: { lane: string; L: GlanceLayout; name: string } | undefined; lepProps: P<RouteEpisode>; epProps: P<RouteEpisode>; laneProps: (l: LaneItem, opts: LabelOpts) => Record<string, unknown>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
 
 function EpisodeText({ r, width }: { r: RouteEpisode; width?: number }) {
   const full = countText(r);
@@ -158,7 +174,31 @@ function idleStyle(L: GlanceLayout, b: IdleBreak) {
   return idleAtEnd(b, L.routeEnd) ? { right: L.width - (L.routeEnd - 6), top, textAlign: 'right' as const } : { left: x + G.breakW / 2, top, transform: 'translateX(-50%)' };
 }
 
-function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps) {
+const inner = (L: GlanceLayout) => [...L.episodes, ...(L.answer ? [L.answer] : [])];
+const LANE_Y = 30;
+
+/** An expanded side trail (DESIGN §8.3 [17]): its own route, 3 px lane colour on the lane band, 14 px glyphs, labels below. */
+function OpenLane({ open, lepProps }: { open: NonNullable<ViewProps['open']>; lepProps: P<RouteEpisode> }) {
+  const x = (r: RouteEpisode) => (r === open.L.answer ? open.L.routeEnd : r.x);
+  const eps = inner(open.L);
+  return (
+    <div className="lane-route" style={{ width: open.L.width }} data-lane-route={open.lane}>
+      <p className="mono lane-route-head" aria-hidden="true">{open.name} · {eps.length === 1 ? '1 episode' : `${eps.length} episodes`} · expanded</p>
+      <svg className="route-svg" width={open.L.width} height={96} aria-hidden="true" focusable="false">
+        <rect className="lane-band" x={0} y={LANE_Y - 12} width={open.L.width} height={24} />
+        {eps[0] && <path className="lane-route-line" d={`M${x(eps[0])} ${LANE_Y} H${x(eps[eps.length - 1] as RouteEpisode)}`} />}
+        {eps.map((r) => <KindMark key={r.episode.id} kind={r.episode.kind} x={x(r)} y={LANE_Y} size={14} />)}
+      </svg>
+      {eps.map((r) => (
+        <div key={r.episode.id} className="map-item ep lep" style={{ left: x(r) - 12, top: LANE_Y - 12, width: Math.max(56, r.len), height: 72 }} {...lepProps(r)}>
+          <span className="ep-text" style={{ width: Math.max(48, r.len - 14) }}><EpisodeText r={r} width={Math.max(48, r.len - 14)} /></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Horizontal({ L, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps) {
   const Y = G.routeY;
   // The terminus (◉, 20 px) always ends the route with 44 px of room; it is labelled only when the last episode is an answer.
   const answerRoom = 44;
@@ -209,11 +249,12 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps)
           </div>
         ))}
       </div>
+      {open && <OpenLane open={open} lepProps={lepProps} />}
     </div>
   );
 }
 
-function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewProps & { all: RouteEpisode[] }) {
+function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps & { all: RouteEpisode[] }) {
   const rows: ReactNode[] = [];
   // Blazes sit in their own right-hand column, as wide as the busiest row, so the counts line up beside it.
   const per = new Map<string, number>();
@@ -253,6 +294,19 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
           {blazes((b) => b.laneItem === l.id)}
         </div>,
       );
+      if (open?.lane === l.id) {
+        for (const e of inner(open.L)) {
+          rows.push(
+            <div key={`lep-${e.episode.id}`} className="vrow vsub vlep">
+              <div className="map-item vitem ep" {...lepProps(e)}>
+                <KindGlyph kind={e.episode.kind} />
+                <span className="ep-title">{e.episode.title}</span>{' '}
+                <span className="ep-count mono" title={countText(e)}>{countText(e, 9 * G.monoPx)}</span>
+              </div>
+            </div>,
+          );
+        }
+      }
     }
   });
   return <div className="vroute">{rows}</div>;

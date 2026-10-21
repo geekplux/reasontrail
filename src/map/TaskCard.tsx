@@ -1,9 +1,10 @@
 // The trailhead (DESIGN §8.9): the task card with the honesty label, and the three At a glance rows. Shared by the map
 // and the outline.
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { InfoGlyph, KindGlyph, NeutralPlateGlyph, StatusGlyph } from './Glyph';
 import { HonestyLabel } from './HonestyLabel';
+import { selectOnClick, useSelector } from './SelectContext';
 import { REQUEST_MAX, glance, parseNotes, skippedWhere, taskCard } from './outline';
 
 /** The first request in serif: at most 280 chars and 2 lines until "more" (M1a, DM5). */
@@ -68,6 +69,17 @@ export function TaskCard({ g, sample = false }: { g: SessionGraph; sample?: bool
 /** Verified? Trouble? Files? Each row is a glyph, a bold lead and the rest (DESIGN §8.9, DM7). */
 export function GlanceRows({ g }: { g: SessionGraph }) {
   const open = g.trouble.find((t) => !t.resolved);
+  const sel = useSelector();
+  // Each row is a link that selects its target in the map (DESIGN §10.3); plain text in the outline.
+  const v = g.outcome.lastVerification;
+  const t = open ?? g.trouble[0];
+  const link = (key: string, text: ReactNode) => {
+    if (!sel) return text;
+    if (key === 'verify' && v) return <a href={sel.href(v.stepId)} onClick={selectOnClick(() => sel.selectStep(v.stepId))}>{text}</a>;
+    if (key === 'trouble' && t) return <a href={sel.href(t.stepIds[0])} onClick={selectOnClick(() => sel.select(`trouble:${t.id}`))}>{text}</a>;
+    if (key === 'files' && g.outcome.files.length > 0) return <a href="#destination" onClick={selectOnClick(() => sel.select('files'))}>{text}</a>;
+    return text;
+  };
   return (
     <section className="region glance" data-region="glance" aria-labelledby="h-glance">
       <h2 id="h-glance" className="section-label">At a glance</h2>
@@ -75,7 +87,7 @@ export function GlanceRows({ g }: { g: SessionGraph }) {
         {glance(g).map((r) => (
           <li key={r.key} data-glance={r.key} data-status={r.status}>
             {r.key === 'trouble' && g.trouble.length > 0 ? <NeutralPlateGlyph open={open !== undefined} /> : r.key === 'files' ? <KindGlyph kind="change" /> : <StatusGlyph status={r.status} />}{' '}
-            <span><strong>{r.lead}</strong>{r.rest}</span>
+            <span>{link(r.key, <><strong>{r.lead}</strong>{r.rest}</>)}</span>
           </li>
         ))}
       </ul>

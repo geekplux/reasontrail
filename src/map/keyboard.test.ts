@@ -4,7 +4,7 @@ import implementerChecks from '../sessions/samples/implementer-checks.graph.json
 import plannerPivot from '../sessions/samples/planner-pivot.graph.json';
 import verifyFailFix from '../sessions/samples/verify-fail-fix.graph.json';
 import { blazeName, countText, episodeName, jumpPattern, laneLines, laneName, move, navItems } from './keyboard';
-import { glanceLayout, type LaneItem, type RouteEpisode } from './layout';
+import { glanceLayout, laneLayout, type LaneItem, type RouteEpisode } from './layout';
 
 const g = verifyFailFix as unknown as SessionGraph;
 const L = glanceLayout(g, 1216);
@@ -25,6 +25,23 @@ describe('map keyboard model (DESIGN §10.3)', () => {
     expect(move(items, lane as string, 'ArrowLeft', true)).toBe(e0);
     expect(move(items, e0 as string, 'Home', false)).toBeUndefined();
     expect(move(items, e0 as string, 'End', false)).toBe(`ep:${L.episodes.at(-1)?.episode.id}`);
+  });
+
+  it('walks an expanded lane: ↓ into its episodes, ← → along them, Home/End, ↑ back to the lane', () => {
+    const lane = L.lanes[0] as LaneItem;
+    const sub = laneLayout(g, lane.lanes[0]?.id ?? '', 1216);
+    if (!sub) throw new Error('no lane layout');
+    const open = navItems(L, { lane: lane.id, L: sub });
+    const eps = [...sub.episodes, ...(sub.answer ? [sub.answer] : [])].map((r) => `lep:${r.episode.id}`);
+    expect(eps.length).toBeGreaterThan(1);
+    expect(move(open, lane.id, 'ArrowDown', false)).toBe(eps[0]);
+    expect(move(open, eps[0] as string, 'ArrowRight', false)).toBe(eps[1]);
+    expect(move(open, eps[1] as string, 'End', false)).toBe(eps.at(-1));
+    expect(move(open, eps[1] as string, 'ArrowUp', false)).toBe(lane.id);
+    // Vertical: the lane's episodes follow the lane in the list.
+    expect(move(open, lane.id, 'ArrowDown', true)).toBe(eps[0]);
+    expect(move(open, lane.id, 'ArrowRight', true)).toBe(eps[0]);
+    expect(move(open, eps[0] as string, 'ArrowLeft', true)).toBe(lane.id);
   });
 
   it('jumps through patterns in badge order and says when it wraps', () => {

@@ -431,3 +431,10 @@ export function troubleNumbers(g: SessionGraph): Map<string, number> {
   if (!n) numbered.set(g, (n = glanceLayout(g, 1216).numbers));
   return n;
 }
+
+/** A side trail expanded in place (DESIGN §8.3 [17]): the lane laid out as its own route, every episode drawn. */
+export function laneLayout(g: SessionGraph, laneId: string, width: number): GlanceLayout | undefined {
+  const lane = g.lanes.find((l) => l.id === laneId);
+  if (!lane) return undefined;
+  return glanceLayout({ ...g, lanes: [lane, ...g.lanes.filter((l) => l.id !== laneId)], trouble: [] }, width, { unfold: true });
+}

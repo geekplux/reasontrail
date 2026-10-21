@@ -4,6 +4,7 @@ import type { SessionGraph, Trouble } from '../../shared/session/types';
 import { BlazeIcon, StatusGlyph } from './Glyph';
 import type { Blaze, GlanceLayout } from './layout';
 import { TROUBLE_LABEL, fileLabel } from './outline';
+import { selectOnClick, useSelector } from './SelectContext';
 
 /** Bold kind phrase + the rest of the summary: "Error streak:" "2 failed runs". */
 export function troubleText(t: Trouble): [string, string] {
@@ -26,6 +27,7 @@ export const blazeData = (b: Blaze) => ({
 });
 
 export function StuckList({ g, L }: { g: SessionGraph; L: GlanceLayout }) {
+  const sel = useSelector();
   const laneName = (id: string) => {
     const l = g.lanes.find((x) => x.id === id);
     return !l || l.id === g.lanes[0]?.id ? 'main' : l.agentType ?? l.name;
@@ -48,7 +50,7 @@ export function StuckList({ g, L }: { g: SessionGraph; L: GlanceLayout }) {
               <li key={t.id} data-trouble-kind={t.kind} data-count={t.count} data-resolved={String(t.resolved)} data-n={n}>
                 <BlazeIcon kind={t.kind} resolved={t.resolved} badge={String(n)} />
                 <span>
-                  <span className="stuck-text"><strong>{lead}</strong> {rest}<span className="visually-hidden">. Detected pattern {n}, {t.resolved ? 'resolved' : 'unresolved'}.</span></span>
+                  <span className="stuck-text">{sel ? <a href={sel.href(t.stepIds[0])} onClick={selectOnClick(() => sel.select(`trouble:${t.id}`))}><strong>{lead}</strong> {rest}</a> : <><strong>{lead}</strong> {rest}</>}<span className="visually-hidden">. Detected pattern {n}, {t.resolved ? 'resolved' : 'unresolved'}.</span></span>
                   <span className="mono muted stuck-where">{[laneName(step?.laneId ?? ''), ep.length > 40 ? `${ep.slice(0, 39)}…` : ep, `${fileLabel(t.raw.file)}:${t.raw.line}`].filter(Boolean).join(' · ')}</span>
                 </span>
               </li>

@@ -52,8 +52,16 @@ describe('local viewer', () => {
     for (let i = 0; i <= n; i++) fireEvent.keyDown(document.activeElement as HTMLElement, { key: ']' });
     expect(document.activeElement?.getAttribute('data-n')).toBe('1');
     expect(screen.getByRole('status').textContent?.trim()).toBe(`Pattern 1 of ${n}, wrapped`);
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' });
-    expect(document.activeElement?.getAttribute('aria-current')).toBe('true');
+    const blaze = document.activeElement as HTMLElement;
+    fireEvent.keyDown(blaze, { key: 'Enter' });
+    expect(blaze.getAttribute('aria-current')).toBe('true');
+    // Enter opens the details: focus on the panel title, the step in the hash; Esc returns focus to the blaze.
+    expect(document.activeElement?.classList.contains('panel-title')).toBe(true);
+    expect(window.location.hash).toMatch(/^#step=s\d+$/);
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
+    expect(screen.queryByTestId('detail-panel')).toBeNull();
+    expect(document.activeElement).toBe(blaze);
+    expect(window.location.hash).toBe('');
   });
 
   it('renders the four regions as plain document structure with the honesty label in the task card', () => {

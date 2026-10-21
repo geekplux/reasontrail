@@ -11,22 +11,32 @@ export interface NavItem {
   x: number;
   /** Lanes and their blazes: the spawning episode. */
   parent?: string;
-  /** Delegate episodes: their first lane item. */
+  /** Delegate episodes: their first lane item; an expanded lane: its first episode. */
   child?: string;
+  /** Sort key in the vertical layout, where the lanes and an expanded lane's episodes read as one list. */
+  vx?: number;
 }
+
+/** The line of an expanded lane's episodes (below the three lane tracks). */
+export const OPEN_LANE_LINE = 3;
+/** Nav id of an episode inside an expanded lane. */
+export const lepId = (r: RouteEpisode) => `lep:${r.episode.id}`;
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 export const epId = (r: RouteEpisode) => `ep:${r.episode.id}`;
 
-/** Every focusable map item in route order. */
-export function navItems(L: GlanceLayout): NavItem[] {
+/** Every focusable map item in route order; `open` adds the episodes of an expanded lane under its lane item. */
+export function navItems(L: GlanceLayout, open?: { lane: string; L: GlanceLayout }): NavItem[] {
   const eps = [...L.episodes, ...(L.answer ? [L.answer] : [])];
   const items: NavItem[] = eps.map((r) => {
     const lane = L.lanes.find((l) => l.episodeId === r.episode.id);
     return { id: epId(r), line: -1, x: r === L.answer ? L.routeEnd : r.x, ...(lane ? { child: lane.id } : {}) };
   });
   if (L.fold) items.push({ id: 'fold', line: -1, x: L.fold.x + 1 });
-  for (const l of L.lanes) items.push({ id: l.id, line: l.track, x: l.x1, parent: `ep:${l.episodeId}` });
+  const inner = open ? [...open.L.episodes, ...(open.L.answer ? [open.L.answer] : [])] : [];
+  for (const l of L.lanes) items.push({ id: l.id, line: l.track, x: l.x1, parent: `ep:${l.episodeId}`, ...(open?.lane === l.id && inner[0] ? { child: lepId(inner[0]) } : {}) });
+  const at = L.lanes.find((l) => l.id === open?.lane)?.x1 ?? 0;
+  if (open) inner.forEach((r, i) => items.push({ id: lepId(r), line: OPEN_LANE_LINE, x: r === open.L.answer ? open.L.routeEnd : r.x, parent: open.lane, vx: at + (i + 1) / 1000 }));
   for (const b of L.blazes) items.push({ id: b.id, line: b.track, x: b.x, ...(b.track >= 0 ? { parent: `ep:${b.episodeId}` } : {}) });
   return items.sort((a, b) => a.line - b.line || a.x - b.x);
 }
@@ -38,6 +48,7 @@ export function move(items: NavItem[], from: string, key: string, vertical: bool
   // The vertical layout reads the lanes as one list under the route.
   const lineOf = (i: NavItem) => (vertical ? Math.min(i.line, 0) : i.line);
   const line = items.filter((i) => lineOf(i) === lineOf(cur));
+  if (vertical) line.sort((a, b) => (a.vx ?? a.x) - (b.vx ?? b.x) || a.line - b.line);
   const at = line.indexOf(cur);
   const nearest = (l: number) => items.filter((i) => i.line === l).sort((a, b) => Math.abs(a.x - cur.x) - Math.abs(b.x - cur.x))[0]?.id;
   const [prev, next, into, out] = vertical ? ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'] : ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'];
@@ -45,8 +56,8 @@ export function move(items: NavItem[], from: string, key: string, vertical: bool
   if (key === next) return line[at + 1]?.id;
   if (key === 'Home') return at > 0 ? line[0]?.id : undefined;
   if (key === 'End') return at < line.length - 1 ? line[line.length - 1]?.id : undefined;
-  if (key === into) return cur.line < 0 ? cur.child : vertical ? undefined : nearest(cur.line + 1);
-  if (key === out) return cur.line < 0 ? undefined : vertical || cur.line === 0 ? cur.parent : nearest(cur.line - 1);
+  if (key === into) return cur.child ?? (cur.line < 0 || vertical || cur.line + 1 >= OPEN_LANE_LINE ? undefined : nearest(cur.line + 1));
+  if (key === out) return cur.line < 0 ? undefined : vertical || cur.line === 0 || cur.line === OPEN_LANE_LINE ? cur.parent : nearest(cur.line - 1);
   return undefined;
 }
 

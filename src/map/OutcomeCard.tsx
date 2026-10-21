@@ -3,6 +3,7 @@
 import type { SessionGraph } from '../../shared/session/types';
 import { KindGlyph, StatusGlyph } from './Glyph';
 import { duration, fileLabel } from './outline';
+import { selectOnClick, useSelector } from './SelectContext';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -20,6 +21,7 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
   const top = files.slice(0, 5);
   const max = Math.max(1, ...top.map((f) => f.edits));
   const answer = g.steps.find((s) => s.id === answerStepId);
+  const sel = useSelector();
   return (
     <section className="region outcome" id="destination" data-region="outcome" aria-labelledby="h-outcome">
       <h2 id="h-outcome" className="section-label">
@@ -42,7 +44,11 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
               </ol>
             </>
           )}
-          {files.length > top.length && <p className="muted more-files">+{plural(files.length - top.length, 'more file', 'more files')}</p>}
+          {files.length > top.length && (
+            <p className="muted more-files">
+              {sel ? <a href="#destination" onClick={selectOnClick(() => sel.select('files'))}>+{plural(files.length - top.length, 'more file', 'more files')}</a> : `+${plural(files.length - top.length, 'more file', 'more files')}`}
+            </p>
+          )}
           {revertedFiles ? <p className="muted">({plural(revertedFiles, 'reverted file')} not counted)</p> : null}
         </div>
         <div>
@@ -59,7 +65,7 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
           {answer?.text ? (
             <>
               <p className="agent-words excerpt">{answer.text}</p>
-              <p className="mono muted provenance">The agent&apos;s own words · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}</p>
+              <p className="mono muted provenance">The agent&apos;s own words · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}{sel && <> · <a href={sel.href(answer.id)} onClick={selectOnClick(() => sel.selectStep(answer.id, true))}>Show raw<span className="visually-hidden"> and details of the final answer</span></a></>}</p>
             </>
           ) : (
             <p className="muted">No final answer was recorded.</p>
