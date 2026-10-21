@@ -1,15 +1,23 @@
 # token-garden: plan
 
-Written by `planner`, 2026-10-19, and revised the same day for the "North star: a star-worthy open-source project" section of `CLAUDE.md`. Binding inputs: `CLAUDE.md`, `docs/llm-provider.md`, `docs/DECISIONS.md`. The logprob provider design in `docs/llm-provider.md` is settled and this plan does not re-argue it.
+Written by `planner` on 2026-10-19 and revised on 2026-10-20 for the **repositioning**. Binding inputs: `CLAUDE.md` (including "Repositioning 2026-10-20" and its addendum), `/workspace/gx-projects/logs/token-garden.change-request.md` (including the addendum at its end), `docs/llm-provider.md` and `docs/DECISIONS.md`.
+
+**What changed on 2026-10-20.** token-garden is now a **reasoning map of AI sessions**. You run one skill in a Claude Code, Codex or Grok Build session, and a local page opens. It shows what the task was, the route the agent took, where it got stuck or backtracked, and what it finally changed or answered. Chat transcripts come later. The next-token garden built in phases 1–9 stays as a **zoom-in lens** ("zoom into this sentence"). Its encoding, keyboard and accessibility work is reused, not deleted.
+
+- Phases 1–8 are open PRs and stay exactly as written (§6).
+- Phase 9 describes what its branch already contains, now justified as shared infrastructure.
+- Phases 10–27 are new.
+- Superseded items are kept only where open PRs refer to them, and are marked **[superseded]**: the live prompt box (old phase 10, criteria F9–F12), the garden as the first view, and "no CLI or agent skill".
+- The working name stays `token-garden` in code. A rename will be its own small step later.
 
 Contents:
 
 1. Users first
 2. Product goal and the first 30 seconds
-3. Design direction
-4. Product acceptance criteria
-5. Architecture
-6. Phases (13 PRs; the last one is Cloudflare deployment prep)
+3. Design direction (superseded by `docs/DESIGN.md` from phase 10)
+4. Product acceptance criteria (4.1 reasoning map, 4.2 lens criteria retained from phases 1–9)
+5. Architecture (5.1–5.7 lens and Worker as built; 5.8–5.15 reasoning map)
+6. Phases (27 PRs; the last one is Cloudflare deployment prep)
 7. Out of scope (and what was cut)
 8. Risks
 
@@ -19,48 +27,72 @@ Contents:
 
 ### 1.1 Who it is for
 
-| User | What they already know | The moment they reach for token-garden | What they leave with |
+| User | The moment they reach for it | What they need within seconds | What they leave with |
 |---|---|---|---|
-| **Curious developer** who calls LLM APIs | "temperature" and "top-p" are knobs in their code; they have heard "the model predicts the next token" | They tweak `temperature` in their app, the output changes, and they want to *see* why. Or a model "hallucinates" and they wonder how a confident sentence can come out of a coin toss | A felt sense of what a distribution over next tokens looks like, how temperature reshapes it, and why two runs differ |
-| **Student** in an ML/NLP or "AI literacy" course | Autoregressive decoding as a formula on a slide | During the lecture or homework on sampling, greedy decoding and entropy | A picture to go with the formula: thickness = probability, temperature evens out branches, greedy always follows the thickest branch |
-| **Educator or speaker** explaining LLMs to a class, a team or a meetup | They need to explain it to people who do not | Preparing a slide or a live demo. Conference Wi-Fi is unreliable, they cannot put an API key on a projector, and they want to link the audience to *exactly this fork* | A demo that works offline, needs no account or key, is keyboard-driven on stage, and has a link to a specific branch and temperature |
+| **Developer who just ran a long coding-agent session** (Claude Code, Codex, Grok Build) | Right after a 20–90 minute session: "What did it actually do? Did it test anything? Why did it touch that file?" | The task, the main route, where it got stuck or went back, what it changed | Enough confidence to review or commit, or a precise pointer to the step that needs checking |
+| **Reviewer of an agent-written PR** | Before reading the diff | What the agent tried and dropped, which commands verified the change, which steps led to each edited file | A faster, better-targeted review |
+| **Teammate, lead or educator** explaining how an agent solved something | In a PR comment, a chat thread or a talk | A single shareable, redacted HTML file that opens anywhere without an install | A map that does the explaining |
+| **Curious visitor** on the website or a launch post | Five seconds after landing | A real map of the agents that built this app, with no key and no install | The one-line skill install |
 
-The user is not a researcher who needs logit lenses, attention maps or a writing tool (see the comparison in `docs/LAUNCH.md`, phase 12).
+Not the user: teams who need production agent observability, tracing, cost analytics or evaluation dashboards, and researchers studying model internals.
 
 ### 1.2 The fastest path to the first "wow"
 
-- **Zero install, no account, no key, no download.** Opening the URL is the whole setup. The first view is a recorded garden bundled with the app, so it renders with no network call and also works offline once loaded.
-- **First wow at first paint, with zero clicks:** "The old lighthouse keeper opened the door and" with five branches of visibly different thickness, the thickest already grown one level further. Target: garden visible **≤ 1.5 s** after navigation on the headless check (P2).
-- **Second wow in one drag, ≤ 10 s:** the temperature slider is in the first view. Dragging it to 1.8 visibly evens out the branches; dragging it to 0 collapses everything onto the thickest path. No network.
-- **Third wow in one click:** "Sample a path" spells out a sentence a sampler would produce, with a seed, so it is reproducible on a projector.
-- **Your own text is opt-in**, one prompt box, one model call per click. Nothing about the first minute depends on it.
-- **Paste a URL:** a shared link (`?sample=lighthouse&path=0.2&t=1.5`) reopens exactly that fork and temperature, offline-capable, with no model calls.
-
-There is no CLI or agent skill in this product. The only command-line tool is the contributor-facing sample recorder, which has a one-command entry point (`pnpm samples:record --prompt "..." --id my-garden`, phase 6).
+- **Skill (primary).** The user is in a local session and types `/reasoning-map`. The skill runs `npx <pkg> --current`. The CLI finds this session, parses it on the machine, writes a self-contained HTML file and opens it. Target: the map is on screen **≤ 5 s** after the command for a 10 MB session. There is no config, account or key, and nothing is uploaded. The agent's reply contains the file path.
+- **Shell.** `npx <pkg>` maps the latest session for the current directory. `npx <pkg> path/to/session.jsonl` maps a specific file. `--share` writes a redacted copy you can send to someone.
+- **Website (showcase).** The page opens straight onto a real, redacted map of the session that built a phase of this app. Target: **≤ 2 s**, no key. Dragging your own `.jsonl` onto it is a secondary path, parsed entirely in the browser.
+- **First wow, with zero clicks:** the glance view. A task card; the main route as one line of named episodes; "stuck here" markers that use shape plus text (for example "test failed 3×, then passed"); and an outcome card with the changed files and the final answer.
+- **Second wow, one click:** any step opens its raw tool call or text, with provenance (`<file>:<line>`).
+- **Opt-in extras:** AI labels (sub-question, hypothesis, evidence, dead end, decision, answer) and "zoom into this sentence", which opens the next-token garden.
 
 ### 1.3 How the plan stays user-first
 
-Every phase below has a **User value** line answering "what does the user get, and how does it save them time or effort". Features that could not answer it were cut or moved to good-first-issue candidates (§7).
+Every phase has a **User value** line that answers: what does the user get, and how does it save them time or effort? Features that could not answer it were cut or moved to good-first-issue candidates (§7).
 
 ---
 
 ## 2. Product goal
 
-token-garden makes a language model's next-token choice visible. You give it a piece of text and it grows a garden of branches to the right of it. Each fork is one next-token choice. Each branch is as thick as that token's probability and carries an exact percentage on hover or focus. Clicking a branch (or pressing Enter on it) grows the next fork from that point. A temperature slider reshapes every branch in place, and "Sample a path" walks the garden the way a sampler would. Together they show at a glance what sampling, temperature and uncertainty mean. The default experience is a set of recorded gardens bundled with the app, so it is instant, free, offline-capable and needs no key. Live growth from your own text is optional and lean: one cached model call per click.
+token-garden turns an AI session into a **reasoning map** you can understand at a glance. A coding-agent transcript is long and linear: hundreds of messages, tool calls and results. token-garden parses it deterministically on your machine into a typed step graph of turns, tool calls, file touches, errors, retries, edits and subagents. It draws that graph as a map:
 
-### 2.1 The first 30 seconds
+- what the task was;
+- the main route the agent took, as a handful of episodes;
+- where it got stuck, retried or backtracked;
+- what it finally changed or answered.
 
-1. **0 s:** The page opens straight into a recorded garden, "The old lighthouse keeper opened the door and", shown on a specimen label card, followed by five branches. Their thickness differs visibly (" looked" is thick, " stood" is thin), and the most likely branch is already grown one more level. There is nothing to click first, no spinner and no network call.
-2. **3 s:** The user hovers or focuses a thin branch and sees "` stood` · 2.7% · path 2.7%". The path readout under the garden shows the full sentence so far.
-3. **8 s:** The user clicks " looked". It grows its next fork from recorded data (" out", " around", ...) with a short eased growth, which is instant under reduced motion. Clicking a branch that is not in the recording shows a calm note at that branch: "Not in this recording. Grow it live?"
-4. **15 s:** The user drags temperature from 1.0 to 1.8. Thin branches fatten, the garden "evens out", and the percentages update, all without any network call. They press "Sample a path" and a highlighted path is drawn, with the sentence spelled out.
-5. **25 s:** The user presses "Copy link" to share this exact view, picks another sample ("In the middle of the night, the cat"), or switches to "Your prompt", types a sentence and presses Grow. Grow is the first and only model call so far.
+Every node keeps its provenance, so the raw text or tool call behind it is one click away. Written reasoning is labelled honestly as the model's own account, not a record of how it computed. The primary entry point is a skill backed by one small local CLI, with zero config, no account, no key and nothing uploaded. The hosted website is the showcase: real redacted sample maps, install instructions, and drag-and-drop viewing. An optional, budgeted AI pass through the Cloudflare Worker can label steps and link final claims to the steps that support them. The product is fully useful without it. The next-token garden becomes a lens: from any sentence, zoom in to see what a model might have said instead.
 
-URL entry points: `?sample=<id>[&path=<ranks>][&t=<T>][&seed=<n>]` reopens a recorded view (phases 4, 6, 7) and `?prompt=<text>` pre-fills the live prompt box (phase 10). Opening a URL never makes a model call by itself.
+### 2.1 The first 30 seconds (skill, the primary path)
+
+1. **0 s:** The user has just finished a Claude Code session that fixed a failing build. They type `/reasoning-map`.
+2. **~1 s:** The skill runs the kit command, `npx <pkg> --current`. The CLI reads `CLAUDE_CODE_SESSION_ID`, finds `~/.claude/projects/<encoded-cwd>/<id>.jsonl` and its `subagents/`, and parses them locally.
+3. **~3 s:** The browser opens `file:///tmp/token-garden/claude-code-<id>.html`, and the agent replies with the path.
+   - Glance view: a task card ("Fix the failing CI build", 41 min, 212 steps, 2 subagents).
+   - Seven episodes along the route: Read the error → Explore config → Try pinning the version → **stuck: tests failed 3×** → Revert the pin → Patch the import → Verify.
+   - The outcome card lists `vite.config.ts` and `src/main.ts`, 4 edits, the last `pnpm test` passing, and an excerpt of the final answer.
+   - Under the title: "Written reasoning is the agent's own account, not a record of how the model computed."
+4. **10 s:** The user clicks the "stuck" marker. The detail panel shows the three failing `pnpm test` calls, their stderr excerpts, `…jsonl:418`, and "Show raw".
+5. **25 s:** They run `npx <pkg> --current --share` (or press "Save shareable copy"), which writes a redacted `reasoning-map-<id>.html` and shows a redaction summary. They attach it to the PR.
+
+### 2.2 The first 30 seconds (website, the showcase)
+
+1. **0 s:** The page opens on "Watch the agents that built this app": the map of the implementer session that built a phase of token-garden, rendered from committed JSON with no network call beyond static assets.
+2. **5 s:** The visitor clicks a trouble marker and reads the raw command and result.
+3. **15 s:** They switch to another sample: a verifier round that failed and was fixed, or a planner's research session.
+4. **25 s:** "Map your own session" shows the one-line skill install and `npx <pkg>`. "Or drop a .jsonl here" parses a file in the browser, and nothing is uploaded.
+
+URL entry points:
+
+- `?session=<id>[&step=<stepId>]` opens a sample map (phase 16).
+- `?view=open` opens the drop zone (phase 19).
+- Garden links (`?sample=…&path=…&t=…&seed=…`) keep working and open the lens (phase 22).
+- A local HTML file uses `#step=<stepId>`.
 
 ---
 
 ## 3. Design direction
+
+> **Superseded from phase 10 by `docs/DESIGN.md`** (owned by `lead-designer`) for the reasoning map and for any identity change. This section remains the spec for the lens (garden) and the baseline identity tokens, type and logo until DESIGN.md records a reasoned change.
 
 The identity is **"specimen plate"**: the garden is drawn like a plate from a botanical field notebook. Warm paper, moss-ink branches whose thickness is the data, token labels set like typewritten specimen tags, and an italic serif for titles in the way Latin species names are set. Each garden carries a **specimen label** card (prompt, "recorded with", k, date) so the provenance of every distribution is always visible. This metaphor is specific to token-garden: the product literally grows and collects specimens of model behaviour. It is not a SaaS template: no gradients, no glass, no card grids, no stock illustrations, no decorative 3D.
 
@@ -169,9 +201,108 @@ The two bold pairs are close under one CVD type. That is acceptable only because
 
 ## 4. Product acceptance criteria
 
+Numbered for reference from phases and PRs. "Headless check" means the Playwright flows run by `pnpm check:browser` with system Chrome, either against `vite preview` or against a `file://` HTML file written by the CLI. §4.1 holds the reasoning-map criteria, from phase 10 on. §4.2 keeps the criteria phases 1–9 were built against; the lens still meets them.
+
+### 4.1 Reasoning map criteria (from phase 10)
+
+#### Map (M)
+- **M1 Glance.** For every committed sample, and for any parsed session, the top-level view shows four regions without any interaction:
+  - **(a) task card:** the first user request (≤ 280 chars, "more" for the rest), source, agent, model, duration, and counts of steps and subagents;
+  - **(b) main route:** the ordered episodes (≤ 12 shown; the rest fold into a labelled "+n more" group);
+  - **(c) trouble markers** on the route: each detected pattern (§5.11) with a shape, a count and a text label;
+  - **(d) outcome card:** changed files with edit counts, the last verification command and its result, and an excerpt of the final answer.
+- **M2 Glance answers are checkable.** Each sample has an `expect` block in its graph JSON (task first words, top changed files, number of trouble markers, final status). The headless flow reads the rendered text and asserts it matches. The lead-designer also runs a 5-second review of the screenshots against the four questions in DESIGN.md.
+- **M3 Details on demand.** Selecting an episode, step or marker (click, Enter) opens a detail panel. It shows the kind, timestamp, lane (main or subagent name), tool and input summary, result status, and a text preview. It also shows provenance (`<file>:<line>`, plus the record uuid where there is one). "Show raw" reveals the verbatim record in one action; it is redacted in samples and shared files.
+- **M4 Subagents** are lanes linked to the call that spawned them. They are collapsed by default, show their description and final status, and can be expanded in place.
+- **M5 Honesty.** A persistent one-line label in the task card reads: "Written reasoning is the agent's own account, not a record of how the model computed." It links to "How to read this map". The detail panel repeats it for assistant text and thinking steps. Deterministic patterns say "detected pattern". AI labels say "suggested by <model>" (X3).
+- **M6 Unstored thinking.** Thinking blocks with no stored text (current Claude Code transcripts on this box keep only a signature) appear as "thinking (text not stored)". No text is ever invented for them.
+- **M7 Determinism, no AI by default.** The same input gives byte-identical graph JSON (unit test). The default path makes no model calls.
+- **M8 Errors are calm.**
+  - Malformed lines are skipped and counted ("3 lines could not be read").
+  - Unknown record types are ignored.
+  - A partial last line, from a session that is still being written, is skipped.
+  - An unsupported file names the supported formats.
+  - An empty session gets a designed empty state.
+- **M9 Links.** `?session=<id>&step=<stepId>` on the website, and `#step=<stepId>` in a local file, reopen the selection. Back and Forward behave as expected.
+
+#### CLI and skills (C)
+- **C1** Run with no arguments in a project directory, `npx <pkg>`:
+  - finds the latest session for that directory across Claude Code, Codex and Grok Build;
+  - parses it locally and writes a self-contained HTML file;
+  - opens it, or prints the path when there is no opener or `--no-open` is given;
+  - exits 0 and leaves no process of its own running.
+- **C2** Flags:
+  - `--current` (the calling agent's session, §5.12), `--latest`, an explicit path or session id;
+  - `--list` (the 10 most recent, with source, title, start time and size), `--source claude-code|codex|grok-build`;
+  - `--out <file>`, `--share` (redacted, §5.13), `--json` (graph JSON to stdout);
+  - `--no-open`, `--help` and `--version`.
+  - Exit codes are documented: 0 ok, 2 no session found, 3 unreadable or unsupported file.
+- **C3** The HTML file works from `file://` with zero network requests and no external resources. It is ≤ 300 KB plus the session data, and ≤ 1 MB for the largest committed sample.
+- **C4** The CLI has zero runtime dependencies (Node built-ins only) and needs Node ≥ 20.19. It finishes in ≤ 3 s for a 10 MB session on this box, median of 3.
+- **C5** Nothing is uploaded. The CLI makes no network request unless the user passes `--ai` (X5).
+- **C6** `skills/reasoning-map/` meets the wheresryan22/anatomy bar: `SKILL.md` + `kit/` + `references/` + `audit/` + `evals/`.
+  - `pnpm skill:audit` and `pnpm skill:evals` pass.
+  - One command (`npx <pkg> install-skill`) installs it for Claude Code (`~/.claude/skills/`, which Grok Build also scans), Grok Build (`~/.grok/skills/` when `~/.claude` is absent) and Codex.
+  - The installer never overwrites a changed skill without `--force`, and supports `--dry-run`.
+- **C7** Invoking the skill in a session returns the map's file path in the agent's reply and opens the page. Evals cover this with fixture sessions, a sandboxed `HOME` and `--no-open`.
+
+#### Privacy and intake (V)
+- **V1** On the website, drag-and-drop or file-pick parses the file in a Web Worker in the browser. A request listener asserts zero network requests during and after parsing.
+- **V2** The drop zone says "Parsed in your browser. Nothing is uploaded." The local viewer says "This file was generated on your machine."
+- **V3** AI structuring is opt-in for each session, through a dialog that lists exactly what is sent (redacted step summaries, how many, to which endpoint) and what is cached.
+- **V4** Sharing (`--share`, "Save shareable copy") always applies redaction and first shows a summary of what was replaced (n secrets, n emails, n paths). The local private view shows unredacted text, with a toggle to preview the redacted version.
+- **V5** Files up to 50 MB are accepted. Larger files get a clear message that suggests the CLI.
+
+#### Redaction (R)
+- **R1** `redact()` replaces each of the following with a typed placeholder (`[secret:github-token]`, `[email]`, `~/…`):
+  - known secret formats: `sk-…`, `sk-ant-…`, `ghp_`/`gho_`/`ghs_`/`github_pat_`, `xox[abprs]-`, `AKIA…`, `AIza…`, JWTs, PEM private-key blocks;
+  - `Authorization: Bearer|Basic …`;
+  - `NAME=value` and `"name": "value"` pairs whose name matches `/(key|token|secret|passw|auth|cookie|session)/i`;
+  - credentials and token-like query parameters in URLs;
+  - emails;
+  - home paths (`/home/<u>`, `/Users/<u>`, `C:\Users\<u>`, which become `~`);
+  - high-entropy strings of 32 or more characters.
+- **R2** A synthetic test corpus with no real secrets has ≥ 40 cases, including false-positive guards: git SHAs (7–40 hex), UUIDs, package integrity hashes in lockfile excerpts, and ordinary long words.
+- **R3** `pnpm audit:samples` scans every committed sample and fixture and fails on any R1 match. It also fails on any term in an optional, gitignored local denylist (`.redact-denylist`).
+- **R4** Samples and shared files drop records that are not conversation: API request blobs, attachments, system prompts, cost and usage state, and environment dumps.
+
+#### AI structuring (X), optional
+- **X1** `POST /api/structure` takes ≤ 200 redacted step summaries (≤ 300 chars each) per batch. It returns labels from the fixed set {sub-question, hypothesis, evidence, dead end, decision, answer} and claim→step links. The output is schema-validated. A link to an unknown step id, or an invalid label, is dropped rather than shown.
+- **X2** Cached in KV by a SHA-256 of the batch. It reuses `RL_ALL`/`RL_MISS` and the daily budget from phase 9. Each session is capped at 5 batches.
+- **X3** Labels are an overlay that can be switched off. They never change the deterministic graph, and every one says which model suggested it.
+- **X4** The user needs no key. The default is Workers AI; the OpenAI-compatible upstream is optional for self-hosters.
+- **X5** The CLI's `--ai` sends the same redacted batches to a configurable endpoint (`--api <url>`) and prints what it sends first. Verification uses fakes only.
+
+#### Lens (Z)
+- **Z1** On assistant-text steps, "Zoom into this sentence" opens the garden for that sentence. Recorded lens data for the samples works offline. For anything else, live growth is an explicit opt-in through `/api/next-tokens`.
+- **Z2** The lens clearly says it shows what an open model would predict for that text, not what the session's model computed.
+- **Z3** Back returns to the same map selection. The garden keeps F1–F8, F14 and A1–A6.
+
+#### Chat transcripts (T), later
+- **T1** Pasting text with role markers (`User:`/`Assistant:`, `You said:`/`ChatGPT said:`, Markdown headings, and similar) produces a map.
+- **T2** ChatGPT `conversations.json` and Claude export files open a picker of conversations and then a map. Reasoning or thinking text is included when present.
+- **T3** Share links are best effort. When one fails, the message says: "We couldn't read that link. Paste the conversation text instead." The paste box gets focus.
+- **T4** Parsing is client-side. Share-link fetching, if it is built at all, goes only through the Worker with a host allowlist.
+
+#### General (G)
+- **G1 Accessibility.** The map meets A1–A6 in spirit:
+  - Tab reaches the map. Arrow keys move along the route and into lanes, Enter opens details, Esc closes them, and Home/End work.
+  - An **outline view** (ordered list of episodes and steps) is an equivalent text alternative.
+  - Accessible names include kind, status and time.
+  - Trouble and status always pair a shape with text, never colour alone.
+  - Reduced motion is respected. axe finds 0 serious or critical issues. CVD screenshots are reviewed.
+- **G2 Performance.** Website `tg:map-ready` ≤ 2000 ms on `vite preview` (median of 3). The initial JS is ≤ 170 KB gzip, including the default sample; other samples load lazily. A 10 MB `.jsonl` parses in the browser in ≤ 3 s. Glance layout for 5,000 steps takes ≤ 300 ms.
+- **G3 No key.** Everything except X and live lens growth works with no credentials. After the first load, the website works offline for the samples.
+- **G4 Typed public API.** `shared/session/types.ts` exports `SessionGraph` and its parts, with TSDoc. `shared/session/adapterContract.ts` is the executable spec for new adapters. `docs/EXTENDING.md` gains "Add a session adapter".
+- **S1'** The README pitch becomes the reasoning map. The hero is a map, and the quick start is the skill one-liner plus `npx <pkg>`. S5' examples are sample maps. S6' launch drafts are about the reasoning map. S1–S7 otherwise stand.
+
+### 4.2 Lens (garden) criteria, retained from phases 1–9
+
+Phases 1–9 were built and verified against these. **F9–F12 [superseded]:** the live prompt box was dropped. Live growth survives only inside the lens (Z1, phase 22), using the same limits and messages. P1 and P2 are superseded for the website first view by G2 from phase 16; the lens keeps P3 and P4. S1, S5 and S6 are restated as S1'.
+
 Numbered for reference from phases and PRs. "Headless check" means the Playwright flows run by `pnpm check:browser` against `vite preview` with system Chrome.
 
-### Functional (F)
+#### Functional (F)
 
 - **F1** The first view (no query string) renders a recorded sample garden with no user action. It shows the prompt, the root's top-k branches (k = 5), and the most probable child already expanded one level.
 - **F2** A sample picker offers 6 recorded gardens, each with a title and prompt. Choosing one replaces the garden and updates the URL (`history.replaceState`). Loading `?sample=<id>` opens that garden; an unknown id falls back to the default garden with a short notice.
@@ -191,7 +322,7 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **F13** Worker `POST /api/next-tokens` implements the contract in `docs/llm-provider.md` §5–6: input limits; error envelope and status codes; KV cache per prefix (`cached: true` on hit); rate limits (20 misses/60 s, 120 total/60 s per IP); daily upstream cap (`DAILY_UPSTREAM_CAP`, default 1000); 10 s upstream timeout with at most one retry on 5xx.
 - **F14** Share links: for recorded gardens the URL always reflects the current view (`sample`, `path` as dot-separated rank indices from the root, `t`, `seed`; defaults omitted) via `replaceState`. "Copy link" copies it (with a select-the-text fallback when the Clipboard API is unavailable) and announces "Link copied". Opening such a link restores the expansion along the path, the selection, temperature and sampled path with zero network requests. A path that is not fully recorded restores the longest valid prefix with a notice. Live gardens share only `?prompt=` (pre-fill, never auto-grow).
 
-### Accessibility (A)
+#### Accessibility (A)
 
 - **A1** Everything is keyboard-operable. The garden is a single tab stop with roving focus: arrow keys move between branches per the WAI-ARIA tree pattern; Enter or Space expands or collapses; Home and End jump to the first and last visible branch. Every branch is reachable regardless of probability, including the thinnest. All controls are reachable in logical order, each with a visible focus indicator of at least 3:1 contrast.
 - **A2** Screen readers get tree semantics. The garden is `role="tree"` with an accessible name; each branch is a `role="treeitem"` with an accessible name of the form `"<token>", 44.7 percent, path 12.0 percent`, plus `aria-level`, `aria-setsize`, `aria-posinset`, `aria-expanded` when expandable, and "not recorded" in the description when relevant. A polite live region announces expansions, errors, copied links and sampled paths.
@@ -200,25 +331,25 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **A5** With `prefers-reduced-motion: reduce`, all growth and reshape transitions are disabled (computed `transition-duration` is `0s`). Nothing flashes.
 - **A6** An automated axe-core pass of every flow reports 0 `serious` or `critical` violations.
 
-### Performance (P), measured in the headless check on `vite preview`, median of 3 runs
+#### Performance (P), measured in the headless check on `vite preview`, median of 3 runs
 
 - **P1** Budgets checked by `pnpm check:size` on `dist/` (gzip for JS/CSS, raw for fonts): initial JS ≤ **130 KB** gzip (samples included); CSS ≤ **15 KB** gzip; fonts requested by the first view ≤ **45 KB** in at most 2 files.
 - **P2** Navigation start to the `tg:garden-ready` mark ≤ 1500 ms ("seconds to first wow").
 - **P3** Expanding a recorded branch puts its children in the DOM within 200 ms of the click.
 - **P4** One temperature step re-renders the largest fully expanded sample (about 200 branches) in ≤ 100 ms.
 
-### Offline sample (O)
+#### Offline sample (O)
 
 - **O1** In sample mode the app makes no requests other than same-origin static assets (self-hosted fonts are same-origin; no third-party fonts, CDNs, analytics or `/api/*`). Asserted by a request listener in the headless check.
 - **O2** After the first load, `context.setOffline(true)` still lets the user switch samples, expand recorded branches, change temperature, sample a path and open a share link, with no errors.
 
-### No-key operation (N)
+#### No-key operation (N)
 
 - **N1** With no Cloudflare credentials, no `.dev.vars` and no API keys, `pnpm install --frozen-lockfile && pnpm build && pnpm check:browser` passes and the full sample experience works.
 - **N2** `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm check:size`, `pnpm check:docs` and `pnpm run check:deploy` all pass with no valid credentials. Worker tests use fakes for `AI`, KV and rate-limit bindings. Nothing in verification requires live Workers AI (the box's `CLOUDFLARE_API_TOKEN` is a placeholder).
 - **N3** When live mode is unavailable, the prompt box stays visible with a note (F11). No secrets are ever committed: `.dev.vars` is gitignored and `.dev.vars.example` holds empty values.
 
-### Quality signals (Q)
+#### Quality signals (Q)
 
 - **Q1 Typed public APIs.** `shared/llm/types.ts` exports `TokenChoice`, `ProviderErrorCode`, `ProviderError` and `LogprobProvider` with TSDoc on every member; `src/samples/types.ts` exports `SampleGarden`. All tsconfigs use `strict`, `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`. oxlint denies `typescript/no-explicit-any`. A reusable provider contract test suite (`src/llm/providerContract.ts`) is the executable spec for anyone adding a provider.
 - **Q2 Small dependency footprint.** Runtime `dependencies` are exactly: `react`, `react-dom`, `d3-hierarchy`, `@fontsource/ibm-plex-mono`, `@fontsource/instrument-serif`. The Worker has **no** runtime dependencies. `pnpm check:size` fails if `package.json` `dependencies` differs from this allowlist (a new runtime dependency needs a DECISIONS.md entry and an allowlist edit in the same PR). Dev dependencies are listed in §5.6.
@@ -227,7 +358,7 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **Q5 Docs for extending.** `docs/EXTENDING.md` (adding a provider or Worker upstream, recording and adding samples, theming) and `tools/record-samples/README.md`.
 - **Q6 Accessible.** A1–A6.
 
-### Open-source packaging (S)
+#### Open-source packaging (S)
 
 - **S1** `README.md` sells in 10 seconds: above the fold (first ~25 lines rendered) it has the logo, the one-line pitch, a hero image or GIF from the real app, a "Live demo: coming soon" placeholder, and a 3-line quick start. Below: how it works, accessibility, a roadmap, contributing and licence.
 - **S2** `LICENSE` (MIT), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), `SECURITY.md`, `CHANGELOG.md` (Keep a Changelog, updated by every phase), issue templates in `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md`. Nothing under `.github/workflows/`.
@@ -237,7 +368,7 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **S6** `docs/LAUNCH.md`: Show HN draft, X post draft, 3 demo scenarios, an honest comparison with alternatives, and an explicit statement that nothing has been posted anywhere.
 - **S7** `pnpm check:docs` verifies that every relative link and image in `README.md`, `CONTRIBUTING.md`, `docs/*.md` and `examples/README.md` resolves to a committed file.
 
-### Design (D)
+#### Design (D)
 
 - **DS1** All colours come from `src/styles/tokens.css`; `tokens.test.ts` asserts the §3.2 contrasts and ΔE rows. oxlint/grep: no hex colours in `src/**/*.tsx`.
 - **DS2** The two self-hosted fonts load from the same origin; the logo, favicon and wordmark match §3.5.
@@ -246,6 +377,8 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 ---
 
 ## 5. Architecture
+
+§5.1–5.7 describe the lens (garden) and the Worker as built in phases 1–9; they are kept because phases 1–9 reference them. Items about the live prompt box are **[superseded]** (D35). §5.8–5.15 describe the reasoning map from phase 10.
 
 ### 5.1 Modules
 
@@ -388,6 +521,171 @@ The box has **Node 20.19.2** and **pnpm 9.15.9**. Several current majors need No
 | D20 | Live demo link | Placeholder `https://token-garden.example` (reserved TLD) everywhere a demo URL is needed; `docs/DEPLOY.md` lists the files to update after Sean deploys | Guess a workers.dev URL (would be wrong or misleading) |
 | D21 | Code of conduct contact | Contributor Covenant 2.1 with the contact "the maintainers, via a private report to @geekplux on GitHub" (no email address invented) | A new email address (none exists) |
 
+### 5.8 Reasoning map: modules (from phase 11)
+
+```
+shared/session/                  DOM-free TypeScript; used by the app, the CLI, the Worker and tests
+  types.ts                       SessionGraph, Step, Edge, Lane, Episode, Trouble, Outcome, LabelOverlay (TSDoc)
+  jsonl.ts                       tolerant line reader: counts malformed lines, skips a partial last line
+  adapter.ts                     SessionAdapter interface, registry, sniff(firstLines) -> adapter id
+  adapterContract.ts             reusable contract suite every adapter must pass
+  adapters/claudeCode.ts         phase 11
+  adapters/codex.ts, grokBuild.ts   phase 18
+  adapters/chat.ts, chatExports.ts  phase 23
+  build/steps.ts                 normalized events -> steps + edges (+ provenance)
+  build/tools.ts                 tool name -> category (read|search|edit|write|run|web|agent|plan|other), file touches, exit status
+  build/episodes.ts              deterministic segmentation into episodes (§5.11)
+  build/trouble.ts               retry / error streak / revert / rewind / interrupt / churn (§5.11)
+  build/outcome.ts               changed files, last verification, final answer
+  build/graph.ts                 buildGraph(events, opts) -> SessionGraph (the one entry point)
+  redact.ts                      §5.13
+src/map/                         renderer (phases 13, 17, 18)
+  Outline.tsx                    text-first view (the first local viewer and the permanent text alternative)
+  layout.ts, keyboard.ts         pure, unit-tested
+  MapView.tsx, TaskCard.tsx, RouteView.tsx, LaneView.tsx, TroubleMarker.tsx, OutcomeCard.tsx
+  DetailPanel.tsx, RawRecord.tsx, HonestyLabel.tsx, HowToReadMap.tsx
+  loadGraph.ts                   embedded <script type="application/json"> | bundled sample | parsed file
+src/viewer/main.tsx + viewer.html   second Vite entry: the local viewer (no site chrome)
+src/site/                        website-only: Showcase.tsx, Gallery.tsx, Install.tsx (phase 19)
+src/intake/                      DropZone.tsx, parse.worker.ts (Web Worker using shared/session), messages.ts
+src/sessions/samples/<id>.graph.json   redacted, trimmed real samples (generated, committed)
+src/lens/                        LensLink.tsx, sentences.ts, lens samples index (phase 22)
+fixtures/sessions/               small synthetic raw transcripts per source (adapter tests, skill evals)
+cli/                             own package.json; zero runtime dependencies
+  src/main.ts, args.ts, locate/{claudeCode,codex,grokBuild}.ts, html.ts, open.ts, installSkill.ts
+  dist/cli.mjs, dist/viewer.html  build output (not committed)
+skills/reasoning-map/            anatomy bar: SKILL.md, kit/, references/, audit/, evals/, codex/
+tools/session-samples.json       which local sessions become samples (ids, trim ranges, titles)
+scripts/inline-viewer.mjs        dist-viewer/ -> one self-contained viewer.html
+scripts/audit-samples.mjs        R3
+worker/structure/                handler.ts, prompt.ts, schema.ts (phase 20)
+```
+
+### 5.9 Data flow
+
+1. **CLI (primary).**
+   1. `locate` picks a session (§5.12), and `jsonl.ts` streams it in lines.
+   2. `sniff` picks the adapter, which emits normalized events.
+   3. `buildGraph` adds steps, edges, lanes, episodes, trouble and outcome.
+   4. `--share` runs `redact` over every string field.
+   5. `html.ts` injects the graph into the `viewer.html` template as `<script type="application/json" id="tg-session">`, escaping `<`, U+2028 and U+2029.
+   6. It writes the file and opens it. No server is started.
+2. **Website.** A sample's `graph.json` is bundled (the default) or lazy-imported (the others). A dropped file goes to `parse.worker.ts`, which runs the same `shared/session` code, and the result is drawn by the same `MapView`.
+3. **AI (opt-in).** The client builds redacted summaries, sends them in batches to `POST /api/structure`, and merges the response as a `LabelOverlay` keyed by step id.
+4. **Lens.** `LensLink` passes the selected sentence (prefix ≤ 1000 chars) to the garden. It uses recorded lens data when present, and otherwise the opt-in `workerProvider` against `/api/next-tokens`.
+
+### 5.10 Step-graph model (recommendation; final in phase 11, D22)
+
+```ts
+interface SessionGraph {
+  schemaVersion: 1;
+  source: { kind: 'claude-code' | 'codex' | 'grok-build' | 'chat'; sessionId: string; file?: string;
+            agent?: string; model?: string; cwd?: string; startedAt?: string; endedAt?: string };
+  title: string;                  // first user request, trimmed
+  lanes: Lane[];                  // 'main' + one per subagent {id, name, agentType, spawnedBy: stepId, status}
+  steps: Step[];                  // in time order
+  edges: Edge[];                  // next | result-of | spawned | retry-of | reverts | forks (+ supports, from AI overlay only)
+  episodes: Episode[];            // {id, title, kind: explore|change|verify|delegate|answer|discuss, stepIds, laneId}
+  trouble: Trouble[];             // {id, kind, stepIds, count, resolved: boolean, summary}
+  outcome: Outcome;               // {files: {path, edits, created}[], lastVerification?: {stepId, command, ok}, answerStepId?}
+  stats: { steps: number; skippedLines: number; unknownRecords: number; durationMs?: number };
+  expect?: { task: string; files: string[]; trouble: number; final: 'ok'|'error'|'unknown' };  // samples only (M2)
+}
+interface Step {
+  id: string; seq: number; t?: string; laneId: string;
+  kind: 'user' | 'assistant' | 'thinking' | 'tool-call' | 'tool-result' | 'system' | 'compaction';
+  text?: string;                  // preview ≤ 2000 chars
+  textStored?: false;             // thinking with signature only (M6)
+  tool?: { name: string; category: ToolCategory; summary: string; files: string[]; callId?: string };
+  status?: 'ok' | 'error' | 'interrupted';
+  raw: { file: string; line: number; uuid?: string; excerpt?: string };   // provenance, mandatory
+}
+```
+
+Rules:
+- Provenance is mandatory on every step.
+- AI labels never live in the graph. They are a separate `LabelOverlay { model, createdAt, labels: {stepId, label, confidence}[], links: {claimStepId, supportStepIds[]}[] }`.
+- The schema is versioned; bump `schemaVersion` on any breaking change.
+
+### 5.11 Deterministic structuring (no AI)
+
+**Episodes.** A new episode starts at:
+- every real user message (not a tool result);
+- every subagent spawn (a `delegate` episode in the main lane, with its own lane);
+- a change of dominant tool category after ≥ 3 steps (for example read/search → edit/write → run);
+- the final assistant text after the last tool call (`answer`).
+
+The title is deterministic: the user request's first line, or "<Verb> <main file or command>" (for example "Edit src/garden/state.ts", "Run pnpm test ×3"). An episode holds at most 40 steps; longer stretches split by file.
+
+**Trouble patterns.** Each is labelled "detected pattern" and lists its evidence steps:
+
+| Kind | Rule |
+|---|---|
+| `error-streak` | ≥ 2 consecutive failed tool results (`is_error`, non-zero exit, or `status: failed`). `resolved` if a later run of the same command succeeds |
+| `retry` | The same tool, with normalized input, called again after a failure within 10 steps |
+| `revert` | An edit whose new text restores a previous edit's old text on the same file, or a `git checkout/restore/revert/reset` of a touched file |
+| `rewind` | A Claude Code `parentUuid` with more than one child (an edited or rewound prompt). The abandoned branch is shown as a dead-end side path |
+| `interrupt` | A user interruption (`[Request interrupted by user]`, Codex/Grok cancel events) or a user message correcting the course right after an error |
+| `churn` | ≥ 4 edits to the same file within one episode |
+
+**Outcome.**
+- Files: edits and writes, minus files whose net change was reverted.
+- Last verification: the last `run` step whose command matches test, build, lint or typecheck patterns, and its result.
+- Answer: the last assistant text in the main lane.
+
+### 5.12 Locating sessions
+
+| Source | Store (verified on this box unless noted) | `--current` | Latest for cwd |
+|---|---|---|---|
+| Claude Code | `~/.claude/projects/<cwd with every non-alphanumeric char replaced by "-">/<sessionId>.jsonl`, plus `<sessionId>/subagents/agent-*.jsonl`, each with a `.meta.json` holding `agentType`, `description` and the spawning `toolUseId`. Large tool outputs are in `<sessionId>/tool-results/*.txt` | `CLAUDE_CODE_SESSION_ID` (present in the agent's Bash environment on this box) | the newest `*.jsonl` by mtime in the encoded-cwd directory |
+| Grok Build | `${GROK_HOME:-~/.grok}/sessions/<url-encoded cwd>/<sessionId>/`, with `updates.jsonl` as the authoritative log, `summary.json` (title, model, `created_at`, `last_active_at`) and `subagents/`. Documented in Grok's local README "Session Persistence" and seen on this box | `GROK_SESSION_ID` (documented for hook processes; phase 18 checks whether tool processes get it too) | the highest `summary.json.last_active_at` in the encoded-cwd directory. IDs are UUIDv7 and sort by time |
+| Codex CLI | `${CODEX_HOME:-~/.codex}/sessions/YYYY/MM/DD/rollout-<timestamp>-<uuid>.jsonl` (public format; **no Codex install or session on this box**) | no documented env var; uses "latest for cwd" | the newest rollout whose first `session_meta` record has `cwd` equal to the current directory |
+
+The session file may still be growing while the CLI reads it, so the reader stops at the last complete line. `--list` shows candidates from all three stores.
+
+### 5.13 Redaction policy (D24)
+
+- **Where it applies:**
+  - **On:** committed samples, `--share` files, "Save shareable copy", and everything sent to `/api/structure`.
+  - **Off:** the local private view (it is the user's own machine and session), which has a "Preview redacted" toggle.
+- **Rules:** R1 patterns, R4 record drops, and long tool outputs truncated to 2,000 chars in previews and 4 KB in raw excerpts.
+- **Samples:** after automatic redaction, the main agent reads every sample's task, episode titles and outcome before committing it. `pnpm audit:samples` runs in CI. The optional local `.redact-denylist` (gitignored) lets Sean add names that must never appear, without the names being written anywhere in the repo.
+
+### 5.14 Cloudflare pieces, AI and caching added for the map
+
+- **Worker.** One more route, `POST /api/structure` (phase 20), in the same Worker and `run_worker_first: ["/api/*"]`. It reuses `TG_CACHE` (key `st:v1:<model>:<sha256(batch)>`, 30-day TTL), `RL_ALL`/`RL_MISS`, the daily budget (one batch counts as one upstream call), the 10 s timeout with one retry on 5xx, and the upstream selector from phase 9.
+- **Model.** `llm-integration` picks a Workers AI instruct model that supports JSON-schema output (`response_format`) in phase 20, from the docs, and records it in DECISIONS.md. The OpenAI-compatible upstream works too.
+- **Where AI is used, and only there:**
+  1. the optional labelling pass (X);
+  2. optional live growth in the lens;
+  3. offline, dev-time recording of lens samples with the existing recorder.
+
+  Parsing, episodes, trouble, outcome, redaction, layout and the CLI are deterministic code.
+- **Caching.** Samples are bundled or lazy chunks with long-cache headers. The client caches label overlays per session hash in memory. KV caches structure batches and next-token prefixes. The CLI does not cache, since parsing is fast and deterministic.
+- **Not used:** D1, R2, Durable Objects and any server-side session storage.
+
+### 5.15 Open decisions for the reasoning map (recommendations; the main agent records them in `docs/DECISIONS.md`)
+
+| # | Decision | Recommendation | Alternatives |
+|---|---|---|---|
+| D22 | Step-graph schema | §5.10: flat `steps` + typed `edges`, with lanes, episodes, trouble and outcome derived deterministically. Provenance is mandatory. AI labels are a separate overlay. `schemaVersion: 1` | A nested tree per turn (cannot express rewinds or retries); storing raw records in the graph (size, privacy) |
+| D23 | Dead-end and backtrack detection | The deterministic rules in §5.11, each labelled "detected pattern" with evidence steps and unit tests per rule. "Dead end" as a semantic claim is left to the optional AI overlay | AI-only detection (violates "deterministic first"); no trouble markers (fails the glance goal) |
+| D24 | Redaction policy | §5.13: on for samples, sharing and AI; off for the private local view, with a preview toggle; regex + entropy + record drops; CI audit; local untracked denylist | Always redact (hurts the private debugging use); never redact locally *and* when sharing (unsafe) |
+| D25 | npm package name | Placeholder. `cli/package.json` is `"name": "token-garden"`, `"private": true` until Sean approves publishing. Bins are `token-garden` and `reasoning-map`. Docs write `npx <pkg>` through one constant, `PKG_NAME`, in `cli/src/meta.ts` and `docs/_pkg.md`. Before publishing, the skill kit falls back to `TOKEN_GARDEN_CLI` or `node <repo>/cli/dist/cli.mjs` | Pick and reserve a name now (the rename is pending); a scoped name (decide together with the rename) |
+| D26 | CLI default output | **A self-contained static HTML file**, opened with the system opener. No server, so no process is left behind on a RAM-tight machine. It is also shareable as is and works from `file://`. A `--serve` mode is a good-first-issue (watch mode) | A local HTTP server (lingering process, port conflicts, nothing to share) |
+| D27 | How the skill finds the *current* session | Environment first (`CLAUDE_CODE_SESSION_ID`, `GROK_SESSION_ID`), then "latest for cwd" per §5.12, and always print which file was used. Claude Code's SKILL.md can also pass `${CLAUDE_SESSION_ID}` if the substitution is supported; phase 14 checks this and keeps the env var as the primary path | Ask the user (breaks zero config); always "latest" (wrong when two sessions run in one directory) |
+| D28 | Sample selection | Three Claude Code sessions from **this project**: (1) an implementer phase with failing tests that were fixed; (2) a verifier round that returned FAIL and a fix round; (3) a planner research session with subagents. Plus one Grok Build sample, only if a session on the box is neutral and non-finance after redaction (otherwise a synthetic Grok fixture), and one synthetic Codex sample. Each is trimmed to ≤ 400 steps and ≤ 250 KB of graph JSON. The main agent reads each before commit | Synthetic samples only (loses "watch the agents that built this app"); full untrimmed sessions (size, privacy) |
+| D29 | Where the honesty label lives | In the task card (always visible, one line + "How to read"); repeated in the detail panel for assistant and thinking steps; "detected pattern" and "suggested by <model>" on derived markers; a sentence on the website showcase and in the README | A one-time dismissible banner (forgotten after one view); footer only (never read) |
+| D30 | Grok Build status | **Supported in phase 18** from the documented local format: ACP `session/update` records with `sessionUpdate` ∈ {`user_message_chunk`, `agent_message_chunk`, `agent_thought_chunk`, `tool_call`, `tool_call_update`, `plan`, `turn_completed`, …}, `rawInput`/`rawOutput`, and `status` `completed`/`failed`. Grok scans `~/.claude/skills/`, so one skill install serves Claude Code and Grok. Open item, not a blocker: the format has no published stability guarantee, and `GROK_SESSION_ID` in tool processes is unverified | Pluggable interface only, no adapter (the format is known, so this would waste it) |
+| D31 | Codex status | Build the adapter from the public rollout format (`session_meta`, `turn_context`, `response_item` of type message / reasoning / function_call / function_call_output / custom_tool_call, and `event_msg`) with a hand-written fixture. STATUS.md says "Codex: not verified against a real session (no Codex on this box)" until one is available | Skip Codex (it is in the brief) |
+| D32 | Viewer packaging | A second Vite entry (`viewer.html`) built to `dist-viewer/`, then `scripts/inline-viewer.mjs` inlines the one JS chunk, the CSS and the two woff2 fonts (base64) into a single template. No new dependency | `vite-plugin-singlefile` (a dependency); a viewer without fonts (identity lost) |
+| D33 | Running TypeScript for the CLI and tools on Node 20 | Build with Vite/Rolldown in SSR mode (`vite build --ssr cli/src/main.ts`, `vite.cli.config.ts`) to `cli/dist/cli.mjs`. Tools call the built CLI, so there is no TS loader dependency | `tsx` (a dependency); Node 22 type stripping (not on this box) |
+| D34 | Website routing | Query parameters on the existing `urlState` (`?session=`, `?view=open|install|lens`), with garden links (`?sample=`) still opening the lens. No router dependency | `react-router` (a dependency for 4 views); hash routing |
+| D35 | The old live prompt box (old phase 10) | Dropped. Its provider half (`workerProvider` + `cachedProvider`, client caps and messages) is built inside the lens phase 22 and runs only on explicit opt-in | Build it as planned (no user for it in the new product) |
+| D36 | npm publish | Treated like deploy: the final phase verifies `pnpm --dir cli pack` and documents `npm publish`. Publishing waits for Sean's approval | Publish early (irreversible name and version) |
+| D37 | Where the CLI writes by default | `<os.tmpdir()>/token-garden/<source>-<sessionId>.html`: private, outside the repo, overwritten on re-run. `--share` writes `./reasoning-map-<shortId>.html` in the current directory | Always the current directory (litters repos with unredacted transcripts) |
+
+
 ---
 
 ## 6. Phases
@@ -435,7 +733,32 @@ The box has **Node 20.19.2** and **pnpm 9.15.9**. Several current majors need No
 
   Every UI phase's flow screenshots both 1280×800 and 390×844 viewports. The CVD and axe helpers are used from the phase that introduces them onward.
 
----
+### 6.0a Conventions from phase 10 on (they add to or override 6.0)
+
+- **Sign-off order for every UI phase:**
+  1. `implementer`;
+  2. `lead-designer`, who must return `DESIGN: APPROVED`, together with `a11y-reviewer` (axe, keyboard, screen reader, CVD, reduced motion);
+  3. `verifier`, who may only PASS after both sign-offs, recorded in the PR body.
+
+  `dataviz-designer` contributes to DESIGN.md's map encoding in phase 10 and reviews phases 17 and 21. `llm-integration` owns phases 20 and 21 (Worker/AI parts) and the lens provider half of phase 22. For mixed phases, the owners run sequentially on the branch.
+- **Size, honestly:** the target is ≤ ~450 changed lines, excluding lockfiles, fixtures, sample JSON, images and verbatim standard texts (D17). Past phases came in at ~2× their estimates, so the estimates below include that history. Each phase names a **split seam**. If the diff passes ~550 lines, the main agent splits at that seam, renumbers the later phases and records it in DECISIONS.md.
+- **Map test hooks:**
+  - `[data-testid="map"]` gets `data-ready="true"`, and `performance.mark('tg:map-ready')` fires.
+  - Steps and episodes carry `data-step-id` / `data-episode-id`, `data-kind`, `data-status` and `data-lane`.
+  - Trouble markers carry `data-trouble-kind` and `data-count`.
+  - The four glance regions carry `data-region="task|route|trouble|outcome"`.
+- **New harness capabilities:**
+  - `check:browser` gains `--file <path>`, which opens a `file://` URL in the one browser, and the request listener fails on *any* request for `file://` pages.
+  - CLI flows run the built CLI with `--no-open` and `HOME`/`GROK_HOME`/`CODEX_HOME` pointed at a temporary sandbox under `.tmp/`, never the real home directories.
+- **Extra common verifier steps:**
+  - `pnpm build:cli` and `pnpm test:cli` (from 13);
+  - `pnpm audit:samples` (from 12);
+  - `pnpm skill:audit && pnpm skill:evals` (from 14);
+  - `pnpm check:docs` (from 25);
+  - no real session file, `.redact-denylist` or home path is committed (`git grep -nE "/home/[a-z]|/Users/[A-Za-z]"` clean outside the redaction tests' synthetic corpus).
+- **Screenshots** go under `docs/screenshots/phase-<n>/`, at 1280×800 and 390×844, light and dark, plus CVD variants wherever a phase adds colour.
+
+<!-- Phases 1-8: unchanged (open PRs). -->
 
 ### Phase 1: Toolchain and the built-in sample path
 - **Branch:** `phase-1-toolchain`
@@ -622,149 +945,437 @@ The box has **Node 20.19.2** and **pnpm 9.15.9**. Several current majors need No
 - **Risks:** Workers AI logprob behaviour unverified (smoke script, OpenAI-compatible fallback in phase 9); wrangler may try to authenticate during the dry run because of the placeholder token (blank `CLOUDFLARE_API_TOKEN` inside the script and record it); wrangler + workerd ~100 MB on disk.
 - **Size:** ~400 lines (~200 source, ~200 tests).
 
-### Phase 9: Worker limits, budget, OpenAI-compatible upstream and extending docs
-- **Branch:** `phase-9-worker-limits`
+### Phase 9: Worker limits, budget, OpenAI-compatible upstream and extending docs (built; shared infrastructure)
+- **Branch:** `phase-9-worker-limits` (already built on this branch: `85923a7`, `7bd93c2`)
 - **Owner:** `llm-integration`
-- **Goal:** protect the upstream with per-IP rate limits and a daily cap, make the upstream swappable, and document how to extend token-garden.
-- **User value:** the public demo stays up and free for everyone; self-hosters can point their own deployment at any OpenAI-compatible server that returns `top_logprobs` (for example vLLM), following `docs/EXTENDING.md`.
-- **Scope:**
-  - `worker/limits.ts`: `RL_ALL` on every request, `RL_MISS` only before an upstream call; keyed by `CF-Connecting-IP`; 429 with `Retry-After: 60`.
-  - `worker/budget.ts`: KV `budget:<UTC date>` read before the upstream call; increment via `waitUntil` after success; TTL 2 days; 503 `budget_exhausted` at the cap; cache hits never count.
-  - `worker/upstream/openaiCompatible.ts` (`fetch(${OPENAI_BASE_URL}/chat/completions)`, bearer `OPENAI_API_KEY`, `OPENAI_MODEL`, same parser, 503 `unavailable` when key or base URL is missing) and `worker/upstream/select.ts` (by `UPSTREAM`).
-  - Upstream timeout `AbortSignal.timeout(10_000)` and one retry on 5xx.
-  - `wrangler.jsonc`: `ratelimits` (`RL_MISS`: `namespace_id: "1001"`, `{limit: 20, period: 60}`; `RL_ALL`: `"1002"`, `{limit: 120, period: 60}`), `vars.DAILY_UPSTREAM_CAP: "1000"`. `.dev.vars.example` with empty `OPENAI_API_KEY=`.
-  - Tests for all of the above with fakes and a mocked `fetch`.
-  - `docs/EXTENDING.md` (~100 lines): the `LogprobProvider` interface and the contract suite; adding a Worker upstream (the OpenAI-compatible adapter as the worked example; how to check a host returns `top_logprobs` with the smoke script pattern); recording your own garden (`pnpm samples:record ...`) and adding it to `src/samples/index.ts`; theming via `tokens.css` (and re-running `tokens.test.ts`).
-- **Acceptance criteria:**
+- **Goal:** protect any upstream model call with per-IP rate limits, a daily budget, a timeout and a single retry, and make the upstream swappable. This was planned for the old live prompt box. It is kept because the same Worker serves the two AI uses that remain: the optional AI structuring pass (`/api/structure`, phase 20) and opt-in live growth in the zoom-in lens (`/api/next-tokens`, phase 22).
+- **User value:** the showcase's optional AI features stay up and free for everyone without a user key. Self-hosters can point their deployment at any OpenAI-compatible server, following `docs/EXTENDING.md`.
+- **Scope (as built):**
+  - `worker/limits.ts`: `RL_ALL` on every request (checked before the method check, so it also counts 405s), and `RL_MISS` only before an upstream call. Keyed by `CF-Connecting-IP`; 429 with `Retry-After: 60`; a limiter failure fails open and is logged.
+  - `worker/budget.ts`: KV `budget:<UTC date>`, read before the upstream call and incremented via `waitUntil` after success. TTL 2 days; 503 `budget_exhausted` at the cap; cache hits never count; the cap is soft.
+  - `worker/upstream/openaiCompatible.ts`, `worker/upstream/chat.ts` (shared chat-request shaping) and `worker/upstream/select.ts` (by `UPSTREAM`). The OpenAI-compatible body omits `chat_template_kwargs`.
+  - Upstream `AbortSignal.timeout(10_000)` and one retry, only on an HTTP 5xx from an HTTP upstream.
+  - `wrangler.jsonc`: `ratelimits` `RL_MISS` (20/60 s) and `RL_ALL` (120/60 s), plus `vars.DAILY_UPSTREAM_CAP: "1000"`. `.dev.vars.example` has an empty `OPENAI_API_KEY=`.
+  - Tests with fakes and a mocked `fetch`.
+  - `docs/EXTENDING.md`: the provider interface and contract suite, adding a Worker upstream, recording a garden, theming. Phase 18 adds "Add a session adapter".
+- **Acceptance criteria:** (unchanged)
   1. The 21st miss within one window from the same IP returns 429 with `Retry-After`; hits are only limited by `RL_ALL`.
   2. At `DAILY_UPSTREAM_CAP` the response is 503 `budget_exhausted`; hits still return 200.
   3. A timeout gives `upstream_error`; a 5xx is retried once; a 4xx is not retried.
   4. `UPSTREAM=openai-compatible` without a key returns 503 `unavailable`; with a mocked fetch it parses into the same response.
   5. `check:deploy` lists both ratelimit bindings; no secret values in any committed file.
-  6. Every code path, command and file named in `docs/EXTENDING.md` exists (verifier follows it literally, minus the actual recording run).
-- **Verifier checks:** the common steps + `check:deploy`; regression `check:browser --flows all --out docs/screenshots/phase-9`; read-through of `docs/EXTENDING.md`.
-- **Risks:** KV counters are not atomic, so the cap is soft (accepted); free-tier KV ~1,000 writes/day fits a cap of 1000 (noted in DEPLOY.md).
-- **Size:** ~330 lines of code and tests, plus ~100 lines of docs.
+  6. Every code path, command and file named in `docs/EXTENDING.md` exists.
+- **Verifier checks:** the common steps + `check:deploy`; regression `check:browser --flows all --out docs/screenshots/phase-9`; read-through of `docs/EXTENDING.md`. The PR description adds a paragraph explaining why this phase survived the repositioning.
+- **Risks:** KV counters are not atomic, so the cap is soft (accepted). The free tier allows ~1,000 KV writes a day, which fits a cap of 1000.
+- **Size:** about 477 insertions and 52 deletions against phase 8, docs included.
 
-### Phase 10: Live mode in the UI
-- **Branch:** `phase-10-live-mode`
-- **Goal:** type a prompt and grow it lazily through the Worker, with caching, caps and calm empty, loading, error and unavailable states. Sample mode stays untouched and offline.
-- **User value:** the user's own sentence becomes a garden, one cheap call per click, with honest labels about which model answered and what is sent where.
+### Phase 10: Design audit and `docs/DESIGN.md` (docs phase)
+- **Branch:** `phase-10-design`
+- **Owners:** `lead-designer` (writes it), `dataviz-designer` (map encoding section review), `a11y-reviewer` (reviews the accessibility sections). There is no implementer.
+- **Goal:** a buildable design spec for the reasoning map, so that every later UI phase has one reference and checkable design acceptance criteria.
+- **User value:** the map answers its four questions in seconds and has a distinctive identity people want to share. It is designed once, not improvised phase by phase.
 - **Scope:**
-  - **`llm-integration`:** `src/llm/workerProvider.ts` (`fetch('/api/next-tokens')`; maps status and error envelope to `ProviderError`; passes the `AbortSignal`; maps 404, network failure or `navigator.onLine === false` to `unavailable`); `src/llm/cachedProvider.ts`; the contract suite run against both (mocked fetch), plus in-flight dedupe and k slicing tests.
-  - **`implementer`:**
-    - `src/live/LivePrompt.tsx`: textarea 1–280 chars with counter, Grow, privacy note, model label on the specimen label.
-    - `src/components/states/EmptyState.tsx` (live empty state with 3 example chips that only fill the box) and `src/components/states/GrowingStub.tsx` (loading, §3.4/§3.6).
-    - `src/live/useLiveGarden.ts`: same node-map shape and reducer as samples, plus per-node `loading` and `error`, abort on collapse or new prompt.
-    - `src/live/limits.ts` (k = 5, depth 12, 150 calls per session), `src/live/messages.ts` (code → calm text, F11).
-    - Mode switch in `App` (Samples | Your prompt); `prompt` in `urlState` (pre-fill only, D12); from a not-recorded sample branch, "Grow it live" pre-fills the prompt with that text.
-    - `scripts/browser/flows/live.mjs` using `page.route('**/api/next-tokens')` with a deterministic fake keyed by prefix and scenarios: success, cache (repeat), 429 with `Retry-After`, 503 `unavailable`, network abort, depth limit.
+  - `docs/DESIGN.md`:
+    - concept and the "understand it at a glance" brief (the four questions);
+    - references studied, as principles only;
+    - type, keeping Plex Mono and Instrument Serif unless a reasoned change is recorded;
+    - colour: extends `tokens.css` with lane, status and trouble tokens. Each pair lists WCAG contrast and protan/deutan/tritan ΔE, and the tokens pass the dataviz skill's validator. Colour is never alone: every hue is paired with a shape, line style or label;
+    - spacing and grid; motion with a reduced-motion fallback;
+    - the **map's visual grammar**: node kinds, episodes, lanes and subagents, edges, the trouble glyphs (retry loop, revert arrow, rewind fork, error streak, interrupt, churn), the outcome card, provenance and "Show raw", and where the honesty label sits (D29);
+    - glance layouts at 1280×800 and 390×844;
+    - the detail panel and the outline view;
+    - empty, loading (parsing progress), error, partial-parse, unsupported-file and huge-file states;
+    - local viewer vs website chrome; the showcase home; the drop zone; the lens transition;
+    - logo and wordmark (kept, with a note for the pending rename);
+    - numbered design acceptance criteria `DM1…DMn` that the lead-designer uses at each sign-off.
+  - Audit of the current UI: `pnpm check:browser --flows all --out docs/screenshots/phase-10`, an annotated list of what to keep or change, and an "audit" section in DESIGN.md.
+  - Wireframes: hand-written SVGs, `docs/design/glance.svg`, `docs/design/glance-mobile.svg` and `docs/design/detail.svg`, drawn with counts from a real session on this box (redacted, with no text that could identify anything private).
+  - A note at the top of PLAN.md §3, already present: DESIGN.md supersedes §3 from phase 10.
 - **Acceptance criteria:**
-  1. F9: Grow makes 1 request; expanding 3 branches makes 3 more; collapsing and re-expanding them makes 0; the request log equals the number of unique prefixes.
-  2. F10: a branch at depth 12 shows "depth limit" and cannot request; after 150 calls a calm message appears (unit level with an injected cap).
-  3. F11: each error scenario shows its message inline at the right branch; the rest of the garden stays usable; switching to Samples still works.
-  4. With no Worker at all (plain `vite preview`, no route mock), Grow shows the `unavailable` note; no console errors other than the one expected failed request, which the flow allow-lists.
-  5. O1 still holds in sample mode: 0 `/api/*` requests until the user presses Grow; `?prompt=hello` pre-fills without any request.
-  6. Keyboard alone can type, Grow and navigate live branches; loading is announced. The a11y-reviewer and dataviz-designer (empty, loading and error states vs §3.6) pass it.
-- **Verifier checks:** the common steps; flow `live` with every scenario and request counting. All live behaviour is verified against the route mock; nothing requires live Workers AI.
-  - **Screenshots:** `live-empty.png`, `live-grown.png`, `live-loading.png`, `live-rate-limited.png`, `live-unavailable.png`, `live-depth-limit.png`, `live-dark.png`, `live-mobile.png`.
-- **Risks:** chat-style continuation differs from the recorded base model (clear F12 labels); size overrun (D14).
-- **Size:** ~420 lines; split per D14 above ~450.
+  1. DESIGN.md has every section listed above, and each `DM` criterion can be checked from a screenshot or the DOM.
+  2. Every new colour token has its contrast and ΔE rows. Text is ≥ 4.5:1 and marks ≥ 3:1 in both themes. Any CVD pair under ΔE 20 is justified by a non-colour cue.
+  3. The glance wireframe visibly answers the four questions, and the lead-designer's 5-second protocol is written down.
+  4. `a11y-reviewer` approves the keyboard model, outline view, focus order and reduced-motion rules. `dataviz-designer` approves the encoding.
+  5. No finance content, no copying of Sean's study sites, no decorative 3D, no employer mention.
+- **Verifier checks:** headings present (`grep`); every referenced file exists; the audit screenshots are committed; no application code in the diff (`git diff --stat` shows only `docs/`).
+  - **Screenshots:** `audit-*.png` (current garden UI, desktop, mobile, dark) and the wireframe SVGs rendered to PNG in the one browser.
+- **Risks:** a spec too large to build. The lead-designer marks each item with the phase that builds it (13, 17, 18, 19, 22, 24).
+- **Size:** ~450 lines of docs plus SVGs; 0 code.
 
-### Phase 11: README and community files
-- **Branch:** `phase-11-readme-community`
-- **Goal:** the repository sells the project in 10 seconds and makes contributing easy.
-- **User value:** a visitor understands what token-garden is, sees it, and knows how to try it within 10 seconds of landing on the repo; a would-be contributor knows exactly where to start.
+### Phase 11: Session model and Claude Code adapter
+- **Branch:** `phase-11-session-model`
+- **Owners:** `implementer`.
+- **Goal:** a typed, deterministic step-graph model and a Claude Code adapter that turns a real transcript into steps, edges and lanes, with no AI.
+- **User value:** the foundation of everything. A session you never have to reread is turned into structured data on your machine, and nothing leaves it.
 - **Scope:**
-  - `scripts/browser/flows/hero.mjs` (excluded from `all`): lighthouse garden at T = 1 with a sampled path, 1280×720, light theme → `docs/brand/hero.png`.
-  - `README.md` rewrite, in this order: logo mark + name; one-line pitch ("Watch a language model's next-token choices grow as a garden: thickness is probability, temperature reshapes it, no API key needed."); hero image; "Live demo: coming soon" (D20 placeholder); quick start (`git clone`, `pnpm install`, `pnpm dev`); "How it works" (recorded gardens, live mode through a Worker, one call per click, caching; a small diagram in a fenced block); accessibility; "Extend it" (link to `docs/EXTENDING.md`); roadmap (in-browser model, side-by-side temperatures, export, more languages); contributing; MIT licence. Keep it ≤ ~150 lines.
-  - `CONTRIBUTING.md` (setup on Node 20.19/pnpm 9; the scripts and what each checks; the RAM-friendly rules: one browser, `check:browser` cleans up; how to record a sample; PR expectations: tests, CHANGELOG line, screenshots for UI; link to good first issues).
-  - `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1 verbatim, contact per D21), `SECURITY.md` (GitHub private vulnerability reporting; scope: the Worker and its limits).
-  - `.github/ISSUE_TEMPLATE/bug_report.yml`, `feature_request.yml` (asks "what do you get, and what time or effort does it save?"), `new_garden.yml` (propose a sample prompt; non-finance, everyday), `config.yml`; `.github/pull_request_template.md`.
-  - `docs/GOOD-FIRST-ISSUES.md` (≥ 8 candidates from §7's cut list, each with files and a "done when").
-  - `CHANGELOG.md` tidy-up; `scripts/check-docs.mjs` + `check:docs` (S7); add `check:size` and `check:docs` to `ci/github-workflow.yml`.
+  - `shared/session/{types.ts, jsonl.ts, adapter.ts, adapterContract.ts}`.
+  - `shared/session/adapters/claudeCode.ts`:
+    - Records to use: `user` (string content = a user turn; `tool_result` parts with `is_error`), and `assistant` (`text`, `thinking` with empty text → `textStored: false`, `tool_use`). Uses `uuid`, `parentUuid`, `isSidechain`, `timestamp`, `cwd`, `gitBranch` and `toolUseResult` (stdout/stderr/interrupted).
+    - Records to ignore and count: `api-request*`, `attachment`, `atis-latch`, `cost-state`, `mode`, `queue-operation`, `custom-title`/`agent-name` (used for the title only), `pr-link`, `last-prompt`.
+    - Subagents: `subagents/agent-*.jsonl` + `.meta.json` become lanes linked by `toolUseId`. Large outputs referenced in `tool-results/` are noted as such and not inlined.
+  - `shared/session/build/{steps.ts, tools.ts, graph.ts}`: tool categories and file touches for `Read`, `Edit`, `Write`, `Bash`, `Grep`, `Glob`, `Agent`, web tools and unknown tools.
+  - Synthetic fixtures `fixtures/sessions/claude-code/*.jsonl` (hand-written, ≤ 60 lines each). They cover a user prompt, text, empty thinking, a tool call and its result, an error, an interrupt, a rewind fork, a subagent with meta, unknown record types, a malformed line and a partial last line.
+  - The tsconfigs include `shared/session`.
+  - Real-session smoke test `shared/session/real.test.ts`, skipped unless `TG_REAL_SESSIONS` lists paths. It parses them and logs counts and timings; it never prints content.
 - **Acceptance criteria:**
-  1. S1: the rendered README's first screen contains logo, pitch, hero image, demo placeholder and quick start (verified on the rendered HTML, below).
-  2. S2 and S3 files exist; `CODE_OF_CONDUCT.md` diffs clean against Contributor Covenant 2.1 apart from the contact line; nothing under `.github/workflows/`.
-  3. `pnpm check:docs` passes; the quick start works verbatim from a fresh clone in `/tmp` (`pnpm install --frozen-lockfile && pnpm build`; `pnpm dev` started, fetched with curl, killed).
-  4. Every image has meaningful alt text; no employer mention; no finance content.
-- **Verifier checks:** the common steps + `check:docs`; render the README with `gh api -X POST /markdown -f mode=gfm -f context=geekplux/token-garden -F text=@README.md`, wrap it in a page whose `<base>` points at the repo root, open it in the one headless browser.
-  - **Screenshots:** `readme-above-fold.png` (1280×800), `readme-full.png`, `readme-mobile.png`, plus the generated `docs/brand/hero.png`.
-- **Risks:** README drifting into marketing fluff (keep claims checkable); template churn (keep templates short).
-- **Size:** ~380 lines (README ~150, CONTRIBUTING ~80, templates ~60, good first issues ~45, scripts ~45); CODE_OF_CONDUCT excluded (D17).
+  1. The adapter contract suite passes: deterministic output, time order, every step has provenance, unknown records are counted, malformed and partial lines are counted, and nothing throws on any fixture.
+  2. Fixture assertions cover lanes and spawn edges, `thinking` with `textStored: false`, error and interrupted statuses, rewind `forks` edges, and file touches for Edit/Write/Read.
+  3. Byte-identical JSON on two runs (M7).
+  4. On this box, `TG_REAL_SESSIONS=<3 real paths incl. the 9 MB subagent file> pnpm vitest run shared/session/real.test.ts` passes. The 9 MB file parses in ≤ 1.5 s, and the verifier reports the counts only.
+  5. `shared/session` has no DOM types and no Node-only imports (it must run in a Web Worker and in Node).
+- **Verifier checks:** the common steps; the real-session run above; the sandbox greps (no real transcript content in fixtures). No UI change, so the `check:browser --flows all` regression only.
+- **Risks:**
+  - The undocumented Claude Code format drifts: tolerant reader, ignore-unknown, contract tests.
+  - Fixtures accidentally copied from real sessions: synthetic only, reviewed by the verifier.
+- **Size:** ~480 (types 120, adapter 160, build 90, tests 110). **Split seam:** `build/tools.ts` file-touch extraction moves to phase 12.
 
-### Phase 12: Examples gallery, social preview and launch kit
-- **Branch:** `phase-12-gallery-launch`
-- **Goal:** everything needed to share token-garden: a gallery of the recorded gardens, a hero GIF, a social preview image, and a launch kit with honest positioning.
-- **User value:** visitors can jump straight to the most interesting forks; educators get ready-made scenarios; the project looks right wherever it is linked.
+### Phase 12: Deterministic structuring and redaction
+- **Branch:** `phase-12-structure-redact`
+- **Owners:** `implementer`.
+- **Goal:** episodes, trouble patterns and outcome (§5.11), plus the redaction module and sample audit (§5.13).
+- **User value:** the step list becomes "what happened": a handful of named episodes, where it got stuck and what changed. Anything shared or committed is safe to share.
 - **Scope:**
-  - `scripts/browser/flows/gallery.mjs` (excluded from `all`): for each sample, open its most striking fork (chosen by the dataviz-designer from the real data, e.g. highest-entropy node) → `examples/img/<id>.png` (960×600).
-  - `examples/README.md`: one section per garden (thumbnail, prompt, "what to notice" in 1–2 lines written from the real data, share link as `https://token-garden.example/?sample=<id>&path=...` (D20) and as a local `http://localhost:5173/?...` link); "Record your own garden" (one command, then how to add it); "Share yours" (the `new_garden` issue template). README links to it.
-  - `scripts/brand/hero-gif.mjs` (D18) + `brand:hero-gif` script → `docs/brand/hero.gif` (≤ 8 s, ≤ 3 MB, 960 px wide); README uses the GIF with the PNG as fallback link. Runs alone; kills ffmpeg and the browser; temp frames under `.tmp/` deleted.
-  - `docs/brand/social-preview.html` (1280×640: logo, wordmark, pitch, hero screenshot inlined as a data URL) and `scripts/browser/flows/brand.mjs` → `docs/brand/social-preview.png` (< 1 MB). `index.html` gets `og:image`/`twitter:card` pointing at the placeholder demo origin (updated after deploy).
+  - `shared/session/build/{episodes.ts, trouble.ts, outcome.ts}`, wired into `graph.ts`.
+  - `shared/session/redact.ts` (R1, R4) with `redactGraph(graph) -> {graph, summary}`.
+  - `shared/session/redact.test.ts`: the synthetic corpus (≥ 40 cases, R2). Synthetic secrets are built at runtime from fragments, so no literal secret-shaped string sits in the repo where it could trip scanners.
+  - `scripts/audit-samples.mjs` + `pnpm audit:samples`. It scans `src/sessions/samples/`, `fixtures/` and `skills/**/evals/`, and reads `.redact-denylist` if present (gitignored).
+  - Fixtures extended for each trouble rule.
+- **Acceptance criteria:**
+  1. Each trouble rule has a positive and a negative fixture test. `resolved` is computed correctly for error streaks.
+  2. The episode rules give ≤ 12 top-level episodes for every fixture and for each real session in `TG_REAL_SESSIONS` (count only).
+  3. Outcome: reverted files are excluded; the last verification and answer step are correct on fixtures.
+  4. R1–R4 hold; `pnpm audit:samples` fails on a planted temporary file, checked by the verifier on a scratch copy and not committed.
+  5. M7 still holds.
+- **Verifier checks:** the common steps; the real-session counts (episodes, trouble by kind) for the 3 sessions, with no content printed.
+- **Risks:**
+  - Heuristics mislabel: they are labelled "detected pattern" with evidence and provenance, and thresholds live in one constants file.
+  - Redaction false positives hide useful text: the guards in R2, and the local view is unredacted.
+- **Size:** ~450. **Split seam:** redaction becomes its own phase.
+
+### Phase 13: CLI and local viewer (outline first)
+- **Branch:** `phase-13-cli-viewer`
+- **Owners:** `implementer`; `lead-designer` + `a11y-reviewer` sign off the outline view.
+- **Goal:** `npx <pkg>` turns the latest or current Claude Code session into a self-contained HTML file and opens it. The page shows the designed, text-first outline map (task card, numbered episodes with trouble glyphs, outcome, honesty label). This is the first working end-to-end path.
+- **User value:** one command, a few seconds, and the user can see what their agent did. It works offline, makes no server or upload, and the file can be shared (`--share` redacts).
+- **Scope:**
+  - `cli/package.json` (D25, `private: true`, bins, `engines`, zero deps).
+  - `vite.cli.config.ts` (SSR build → `cli/dist/cli.mjs`, D33).
+  - `cli/src/{main.ts, args.ts, meta.ts, locate/claudeCode.ts, locate/index.ts, html.ts, open.ts}`, implementing C1–C5 for Claude Code. `--list`, `--current`, `--latest`, `--share`, `--json`, `--out` and `--no-open` all work. Exit codes as in C2.
+  - Viewer: `viewer.html`, `src/viewer/main.tsx`, `src/map/{loadGraph.ts, Outline.tsx, HonestyLabel.tsx}`, `vite.viewer.config.ts`, `scripts/inline-viewer.mjs` (D32).
+  - Root scripts `build:viewer`, `build:cli` (viewer first, then the CLI; copies `viewer.html` into `cli/dist/`) and `test:cli`.
+  - `cli/test/*.test.ts`: argument parsing, location in a sandbox `HOME` with fixture sessions, HTML escaping (a `</script>` inside a transcript), and redaction under `--share`.
+  - Harness: `--file` mode; flow `scripts/browser/flows/cli.mjs` runs the CLI on a fixture with `--no-open`, opens the file and asserts the glance text regions (M1 a, b, d as text) and zero requests.
+- **Acceptance criteria:**
+  1. C1, C2 (Claude Code), C3, C4 and C5. The CLI dist has no `node_modules` requirement (`node cli/dist/cli.mjs --version` works from a clean copy of `cli/dist`).
+  2. On this box, `node cli/dist/cli.mjs --latest --no-open` from the project directory writes the HTML for the newest token-garden session, and the verifier opens it and screenshots it. The verifier keeps the file in `.tmp/` and does **not** commit it (it is unredacted), so for this run the screenshots must also not be committed. Committed screenshots come from fixtures or `--share` output only.
+  3. A transcript containing `</script><script>alert(1)</script>` renders as text.
+  4. The outline view meets G1 (outline part) and M5; `lead-designer`: `DESIGN: APPROVED`; `a11y-reviewer` passes.
+- **Verifier checks:** the common steps; `pnpm build:cli`; CLI unit tests; flow `cli`; `ps` shows no opener or browser left; output size check.
+  - **Screenshots:** `cli-outline-desktop.png`, `cli-outline-mobile.png`, `cli-outline-dark.png`, `cli-share-redacted.png` (fixture-based).
+- **Risks:**
+  - `file://` restrictions (module scripts and fonts): use an inline classic script and inline data-URL fonts.
+  - The opener misbehaves in headless or SSH sessions: no opener without `DISPLAY`/`WAYLAND_DISPLAY` on Linux, and the path is printed.
+  - The session file is being written during the run: the reader ignores the partial line.
+- **Size:** ~550 (CLI 230, viewer + outline 170, inliner 50, tests 100). **Split seam:** 13a CLI + `--json` / 13b viewer + HTML.
+
+### Phase 14: The `reasoning-map` skill (Claude Code; Grok reads the same directory)
+- **Branch:** `phase-14-skill`
+- **Owners:** `implementer`; `lead-designer` reviews the skill's user-facing text.
+- **Goal:** `/reasoning-map` in Claude Code opens the current session's map and replies with its path. It is packaged to the wheresryan22/anatomy bar and installed with one command.
+- **User value:** the primary entry point. The user never leaves their session or learns a command line.
+- **Prep:** read the anatomy repository read-only in `/tmp` (then delete the clone) and follow its structure exactly. Record any deviation in DECISIONS.md.
+- **Scope:**
+  - `skills/reasoning-map/SKILL.md`: frontmatter `name: reasoning-map` and a `description` that says when to use it ("show how this session reasoned / map this session"). Steps: run the kit; report the path; offer `--share`. Privacy statement. Honesty statement.
+  - `skills/reasoning-map/kit/run.mjs`: resolves the CLI (`npx --yes <pkg>@<version>` once published; until then `TOKEN_GARDEN_CLI` or the repo's `cli/dist/cli.mjs`). It passes `--current` and prints exactly one line, `MAP: <path>`, for the agent to relay.
+  - `references/`: `formats.md` (the three stores, §5.12), `privacy.md` (what is read and written, nothing uploaded, `--share`), `troubleshooting.md` (no session found, wrong session, no browser).
+  - `audit/audit.mjs` (`pnpm skill:audit`): frontmatter fields and length limits; every referenced file exists; the kit makes no network calls (static check plus a sandbox run); no absolute home paths; no secrets.
+  - `evals/cases.json` + `evals/run-evals.mjs` (`pnpm skill:evals`): ≥ 8 cases, each running the kit in a sandbox `HOME` with fixture sessions and `--no-open`. Covered: current via env, latest fallback, two sessions in one directory, no session, a malformed file, `--share`, a path with spaces, and a subagent session. Trigger-phrase cases are listed for manual model-in-the-loop runs (no key on this box), and the README of evals says so.
+  - `cli/src/installSkill.ts`: `npx <pkg> install-skill [--target claude|grok|codex|all] [--dry-run] [--force]`. Claude → `~/.claude/skills/reasoning-map/`. Grok → nothing extra when `~/.claude/skills` exists, because Grok scans it; otherwise `~/.grok/skills/`. Codex → phase 18.
+  - Check whether Claude Code substitutes `${CLAUDE_SESSION_ID}` in SKILL.md, and record the result (D27).
+- **Acceptance criteria:**
+  1. C6 (Claude and Grok targets) and C7. `skill:audit` and `skill:evals` pass.
+  2. `install-skill --dry-run` in a sandbox `HOME` lists the exact files. A real install into the sandbox, then a second install, reports "unchanged". A modified installed file blocks a reinstall without `--force`.
+  3. Every evaluation runs with no network and leaves no process.
+  4. The real `~/.claude/skills` on this box is untouched (the verifier compares listings before and after).
+- **Verifier checks:** the common steps; audit; evals; sandbox install; one manual end-to-end run on this box. In a throwaway shell with `CLAUDE_CODE_SESSION_ID` set to a real token-garden session id, `node skills/reasoning-map/kit/run.mjs --no-open` prints `MAP:`, and the HTML stays in `.tmp/`, not committed.
+  - **Screenshots:** `skill-map-fixture.png` (the file from an eval case).
+- **Risks:**
+  - The skill formats differ or change: the audit pins the frontmatter rules; references are dated.
+  - The skill triggers when it should not: a narrow description, with negative eval cases listed.
+- **Size:** ~420 (SKILL + references ~150 docs, kit 60, audit 80, evals 90, installer 80).
+
+### Phase 15: Real redacted samples ("watch the agents that built this app")
+- **Branch:** `phase-15-samples`
+- **Owners:** `implementer`; the main agent reviews every sample's content before commit.
+- **Goal:** 3–5 committed, redacted, trimmed sample graphs from real sessions on this box (D28), generated reproducibly with the CLI.
+- **User value:** the website and README show real agent work right away, without a key or a session of your own.
+- **Scope:**
+  - `tools/session-samples.json`: id, title, source, session id, step range and why it is interesting. These are local ids only; nothing private.
+  - `pnpm samples:sessions`: runs `cli.mjs <file> --share --json --trim <from>:<to>` for each entry → `src/sessions/samples/<id>.graph.json`, then adds the `expect` block (M2).
+  - `src/sessions/samples/index.ts` (default + lazy).
+  - The samples' `expect` blocks are reviewed by hand.
+- **Acceptance criteria:**
+  1. Each sample is ≤ 250 KB, has ≤ 400 steps, has at least 1 trouble marker (at least one sample has a subagent lane), and passes `audit:samples` and schema validation.
+  2. The main agent has read each sample's task, episode titles, raw excerpts and outcome: no secrets, emails, home paths, employer, finance or private content. Recorded in the PR body.
+  3. Running `samples:sessions` again on this box gives byte-identical files.
+- **Verifier checks:** the common steps; `audit:samples`; grep the samples for `@`, `/home/` and token prefixes; open each via the CLI `--json` round-trip.
+  - **Screenshots:** `sample-<id>-outline.png` for each.
+- **Risks:** private content slips through (automatic redaction + denylist + human read + small trims). The sessions mostly contain this project's own work, which is the intended demo.
+- **Size:** ~200 lines plus sample JSON (excluded).
+
+### Phase 16: Reasoning map v1, the glance view
+- **Branch:** `phase-16-map-glance`
+- **Owners:** `implementer`; `dataviz-designer` (encoding review), `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** draw the map from DESIGN.md: task card, route of episodes with subagent lanes, trouble markers, outcome card and honesty label. It becomes the default view of both the local viewer and the website. The outline stays one toggle away.
+- **User value:** the "wow". In about five seconds, without clicking, you see what the task was, how the agent went about it, where it struggled, and what it changed.
+- **Scope:**
+  - `src/map/layout.ts` (+ test): pure layout of episodes along the route and lanes below or above. The mono width estimate means no text measurement. Deterministic, and ≤ 300 ms for 5,000 steps (G2).
+  - `src/map/{MapView.tsx, TaskCard.tsx, RouteView.tsx, LaneView.tsx, TroubleMarker.tsx, OutcomeCard.tsx, MapLegend.tsx}`. SVG for the route, HTML for the cards.
+  - Tokens added to `tokens.css` per DESIGN.md, with `tokens.test.ts` rows.
+  - `urlState`: `?session=` and `?view=outline`. The website's first view becomes the default sample map. `?sample=` (garden links) still opens the garden until phase 22 adds the lens frame.
+  - The viewer uses `MapView`. The flow `map.mjs` asserts M1 and M2 against each sample's `expect` block, takes the 5-second-review screenshots, CVD and dark.
+- **Acceptance criteria:**
+  1. M1, M2, M4 (collapsed lanes visible), M5 and M6 for every sample and for the CLI fixtures.
+  2. G1: Tab reaches the map; arrows move between episodes and markers; the outline toggle works; axe is clean.
+  3. G2: `tg:map-ready` ≤ 2000 ms on the website, and the layout benchmark meets its limit.
+  4. `DESIGN: APPROVED`; `dataviz-designer` lists no open deviations; `a11y-reviewer` passes.
+- **Verifier checks:** the common steps; flows `map`, `cli` and `garden` (regression).
+  - **Screenshots:** `map-<sample>-desktop.png` for each sample, `map-mobile.png`, `map-dark.png`, `map-cvd-{protanopia,deuteranopia,tritanopia}.png`, `map-local-file.png`.
+- **Risks:** long sessions crowd the route (episode folding, "+n more"); labels collide (fixed slots, truncation rules from DESIGN.md).
+- **Size:** ~560 (layout 150 + tests 80, components 250, flow 80). **Split seam:** 17a layout + route / 17b cards + legend.
+
+### Phase 17: Details on demand and provenance
+- **Branch:** `phase-17-map-details`
+- **Owners:** `implementer`; `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** any episode, step or marker opens a detail panel with the raw record one action away, full keyboard navigation and deep links.
+- **User value:** trust. Every claim on the map can be checked against what the agent actually wrote or ran.
+- **Scope:**
+  - `src/map/{DetailPanel.tsx, RawRecord.tsx, StepList.tsx, keyboard.ts (+ test)}`. Episode → step list → step detail.
+  - Tool input and output views for Bash (command, exit status, stdout/stderr excerpts), Edit (a small inline diff from old/new strings), Read/Grep (path and pattern) and Agent (link into the lane).
+  - Provenance line and "Show raw"; the honesty label for assistant and thinking steps; "thinking (text not stored)".
+  - `?step=` / `#step=` (M9); a live region; Esc returns focus to the map.
+  - Mobile: the panel becomes a bottom sheet.
+  - Flow `details.mjs`, keyboard-only.
+- **Acceptance criteria:**
+  1. M3, M9, and G1 (full keyboard model: arrows, Enter, Esc, Home/End; focus is never lost).
+  2. An edit diff renders the old and new text as text, never as HTML. Raw records in samples are redacted.
+  3. axe is clean with the panel open; reduced motion holds.
+  4. `DESIGN: APPROVED`; `a11y-reviewer` passes.
+- **Verifier checks:** the common steps; flows `details` and `map`.
+  - **Screenshots:** `details-bash-error.png`, `details-edit-diff.png`, `details-thinking-not-stored.png`, `details-subagent.png`, `details-mobile-sheet.png`, `details-dark.png`.
+- **Risks:** large outputs (truncate with "show more", capped at 4 KB in samples); diff noise (a line diff only, no dependency).
+- **Size:** ~480. **Split seam:** tool-specific views become their own phase.
+
+### Phase 18: Codex and Grok Build adapters
+- **Branch:** `phase-18-codex-grok`
+- **Owners:** `implementer`.
+- **Goal:** the same CLI and skill work in Codex and Grok Build sessions, through adapters that normalize to the same step graph.
+- **User value:** whichever of the three agents you use, `/reasoning-map` (or `npx <pkg>`) gives the same kind of map.
+- **Scope:**
+  - `shared/session/adapters/grokBuild.ts`: reads `updates.jsonl` session updates (D30). Chunks merge into messages; `tool_call` + `tool_call_update` become a call and its result with status. `agent_thought_chunk` becomes thinking with text. `plan` becomes a plan step. `summary.json` gives the title and model. `subagents/` become lanes.
+  - `shared/session/adapters/codex.ts` (D31).
+  - Synthetic fixtures for both, written from the formats. The Grok fixture's structure (not content) mirrors the box's files.
+  - `cli/src/locate/{grokBuild.ts, codex.ts}` per §5.12, with `GROK_HOME` and `CODEX_HOME` respected. `--source` and `--list` cover all three. `--current` reads `GROK_SESSION_ID`, and the phase records whether Grok tool processes actually receive it.
+  - Codex skill target in `installSkill.ts` (`~/.codex/skills/reasoning-map/`, Agent Skills format). If current Codex docs show skills are unsupported, fall back to a custom prompt `~/.codex/prompts/reasoning-map.md`, record which, and add `skills/reasoning-map/codex/`.
+  - Evals: +4 cases (Grok current, Grok latest, Codex latest, mixed stores).
+  - `docs/EXTENDING.md`: "Add a session adapter", using the contract suite and a worked Grok example.
+- **Acceptance criteria:**
+  1. Both adapters pass the contract suite. Real Grok sessions on this box (`TG_REAL_SESSIONS`) parse with zero skipped lines (counts only).
+  2. C1, C2 and C6 for all three sources in the sandbox. `--list` shows sources side by side.
+  3. STATUS.md records: Codex not verified against a real session; Grok `--current` env status. Neither is a blocker.
+- **Verifier checks:** the common steps; evals; real Grok parse counts; the EXTENDING.md walkthrough is followed literally.
+  - **Screenshots:** `grok-fixture-outline.png`, `codex-fixture-outline.png`.
+- **Risks:** the Codex format is not verifiable here (fixture from the public schema, flagged). Grok's format may change (tolerant reader, version noted in references).
+- **Size:** ~480 (Grok 140, Codex 140, locate 80, installer and evals 60, tests 60). **Split seam:** Codex into its own phase.
+
+### Phase 19: Website showcase, drag-and-drop and privacy
+- **Branch:** `phase-19-site-showcase`
+- **Owners:** `implementer`; `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** the hosted site as a showcase: "Watch the agents that built this app" with the sample gallery, install instructions (skill + `npx`), how to read a map, and drag-and-drop or file-pick viewing parsed in the browser.
+- **User value:** a visitor understands the product in seconds, sees real agent work, and can map their own session with no install and no upload.
+- **Scope:**
+  - `src/site/{Showcase.tsx, Gallery.tsx, Install.tsx}`.
+  - `src/intake/{DropZone.tsx, parse.worker.ts, messages.ts}`: a Vite `?worker` import, progress, cancel, the 50 MB limit, plus unsupported, partial and empty states.
+  - `src/map/HowToReadMap.tsx`.
+  - `?view=open|install`; the site header and navigation per DESIGN.md.
+  - Flow `site.mjs`: gallery navigation; drop a fixture `.jsonl` via `setInputFiles` and a synthetic drop; assert zero requests (V1); error states.
+- **Acceptance criteria:**
+  1. V1, V2 and V5; M8 states shown as designed; G2 (initial JS and lazy samples; `check:size` updated).
+  2. The install section's commands match the CLI's `--help` and the skill installer exactly (the flow compares them).
+  3. Offline after the first load: the gallery and drag-and-drop still work (O2 spirit).
+  4. `DESIGN: APPROVED`; `a11y-reviewer` passes (the drop zone is keyboard-operable through the file picker).
+- **Verifier checks:** the common steps; flows `site`, `map` and `details`.
+  - **Screenshots:** `site-home-desktop.png`, `site-home-mobile.png`, `site-gallery.png`, `site-drop-parsing.png`, `site-drop-error.png`, `site-install.png`, `site-dark.png`.
+- **Risks:** Web Worker bundling under Rolldown (Vite `?worker` is supported; fall back to the main thread for files under 1 MB); memory on huge files (a streaming line reader over `file.stream()`).
+- **Size:** ~480. **Split seam:** intake becomes its own phase.
+
+### Phase 20: AI structuring endpoint in the Worker (optional pass)
+- **Branch:** `phase-20-ai-structure-worker`
+- **Owners:** `llm-integration`.
+- **Goal:** `POST /api/structure` labels redacted step summaries and links claims to the steps that support them. It is batched, cached and budgeted, reusing the phase 8/9 infrastructure.
+- **User value:** for those who opt in, a semantic layer over the deterministic map (hypotheses, evidence, dead ends, decisions), with no user key and at low cost.
+- **Scope:**
+  - `worker/structure/{handler.ts, prompt.ts, schema.ts}`: a hand-written validator (no dependency), with input limits per X1.
+  - Routing in `worker/handler.ts`; KV key `st:v1:…`; `RL_ALL`/`RL_MISS`/budget reuse.
+  - A JSON-schema `response_format` for the chosen Workers AI model (recorded in DECISIONS.md, from the docs); `UPSTREAM=openai-compatible` also supported.
+  - `shared/session/structure.ts`: request and response types, `buildBatches(graph)` from redacted summaries, and `mergeOverlay`.
+  - Tests with fakes: a valid response; invalid JSON; unknown step ids dropped; a cache hit; 429; budget; timeout; oversize input; a `<think>`-prefixed reply rejected.
+  - `worker/test/fixtures/structure-response.json`.
+- **Acceptance criteria:**
+  1. X1, X2 and X4 (unit level). No user key; nothing requires a live Workers AI call.
+  2. `check:deploy` still passes and lists the same bindings.
+  3. Batches never include unredacted text (a test runs `buildBatches` over the redaction corpus).
+- **Verifier checks:** the common steps + `check:deploy`; worker tests; `check:browser --flows all` regression.
+- **Risks:** the label quality of a small model (fixed label set, low temperature, schema validation, shown as suggestions); the request size limits of Workers AI models (batches ≤ 200 × 300 chars).
+- **Size:** ~430 (source 200, tests 230).
+
+### Phase 21: AI labels in the map (opt-in)
+- **Branch:** `phase-21-ai-labels-ui`
+- **Owners:** `llm-integration` (client batching, `--ai`), `implementer` (UI); `dataviz-designer`, `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** an explicit opt-in that sends redacted batches and draws the returned labels and claim→support links as a removable overlay.
+- **User value:** "why did it end up with this answer?" in one view: each final claim links to the steps that support it, labelled honestly as a model's suggestion.
+- **Scope:**
+  - `src/ai/{useStructure.ts, ConsentDialog.tsx, LabelBadge.tsx, SupportLinks.tsx}`: the consent dialog lists counts, the endpoint and the caching (V3). Overlay toggle; calm errors reuse the F11 messages.
+  - CLI `--ai [--api <url>]` (X5): prints the summary of what will be sent, asks for confirmation unless `--yes`, and embeds the overlay in the HTML.
+  - Flow `ai.mjs` with `page.route('**/api/structure')` fakes.
+- **Acceptance criteria:**
+  1. Zero `/api/*` requests until consent. Exactly ⌈n/200⌉ ≤ 5 requests after it. Toggling the overlay off restores the deterministic view exactly (DOM snapshot compare).
+  2. X3 wording on every label; claims link to existing steps only.
+  3. The website without a Worker (`vite preview`) shows "AI labels aren't available here; the map still works."
+  4. Sign-offs pass.
+- **Verifier checks:** the common steps; flows `ai`, `map` and `details`; CLI `--ai` against a local fake server started and killed by the test.
+  - **Screenshots:** `ai-consent.png`, `ai-labels.png`, `ai-support-links.png`, `ai-unavailable.png`, `ai-cvd-deuteranopia.png`.
+- **Risks:** overclaiming (honesty wording, overlay off by default); clutter (labels only at episode level by default).
+- **Size:** ~420.
+
+### Phase 22: Zoom-in lens ("zoom into this sentence")
+- **Branch:** `phase-22-zoom-lens`
+- **Owners:** `implementer` (wiring), `llm-integration` (recorded lens samples, live provider half from the old phase 10: `workerProvider` + `cachedProvider` + client caps); `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** from any assistant-text step, pick a sentence and open the existing garden on it. Recorded lens data covers the samples offline; anything else can grow live through `/api/next-tokens` after an explicit opt-in.
+- **User value:** "how sure was a model about this sentence?" One click takes you from the reasoning level to the token level, reusing the garden's encoding and keyboard work.
+- **Scope:**
+  - `src/lens/{LensLink.tsx, sentences.ts (+ test), LensFrame.tsx, lensSamples.ts}`. The garden is embedded with a header that says it shows an open model's predictions for that text, not the session model's computation (Z2). Back restores the map selection (Z3). `?sample=` links open the lens frame.
+  - Lens samples: 2 sentences per website sample, recorded with the existing recorder (`--prompt … --id …`), committed as garden JSON (≤ 15 KB each).
+  - `src/llm/{workerProvider.ts, cachedProvider.ts}` + contract suite; caps (k = 5, depth 12, 150 calls) and messages.
+  - Flow `lens.mjs`.
+- **Acceptance criteria:**
+  1. Z1–Z3; garden F1–F8, F14 and A1–A6 regressions pass.
+  2. Zero network requests for recorded lens sentences. Live growth calls only after opt-in, and repeat prefixes are free (old F9 rules).
+  3. Sign-offs pass.
+- **Verifier checks:** the common steps; flows `lens`, `garden`, `explore`, `keyboard` and `temperature` (regression). The recorder runs alone, then its `node_modules` and cache are deleted.
+  - **Screenshots:** `lens-entry.png`, `lens-recorded.png`, `lens-live-optin.png`, `lens-back-to-map.png`, `lens-mobile.png`.
+- **Risks:** prefixes longer than the Worker's 1000-char limit (use the last 1000 chars at a sentence boundary); the recorder's RAM (run alone, ~700 MB).
+- **Size:** ~480. **Split seam:** the live provider half becomes its own phase.
+
+### Phase 23: Chat transcript import
+- **Branch:** `phase-23-chat-import`
+- **Owners:** `implementer`; `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** a map from pasted chat text and from official ChatGPT and Claude exports, with share links handled on a best-effort basis.
+- **User value:** the reasoning map works for ordinary chats too, without any setup.
+- **Scope:**
+  - `shared/session/adapters/{chat.ts, chatExports.ts}`. Chat episodes come from user turns. Reasoning or thinking text is included when present. "Trouble" here means a regenerated answer or a user correction.
+  - A paste box and the export picker in `src/intake/`.
+  - Share links: **paste-text fallback only** in this phase, with the T3 message. A Worker fetch with an allowlist is a good-first-issue unless it fits the size budget.
+  - Synthetic fixtures for each format.
+- **Acceptance criteria:** T1–T4; the contract suite for both adapters; V1 holds; sign-offs pass.
+- **Verifier checks:** the common steps; flow `chat.mjs`.
+  - **Screenshots:** `chat-paste.png`, `chat-export-picker.png`, `chat-map.png`, `chat-link-fallback.png`.
+- **Risks:** export formats change (tolerant readers, versioned notes in references); chats have little structure (episodes per turn, honest about it).
+- **Size:** ~450.
+
+### Phase 24: Shareable static HTML and map cards
+- **Branch:** `phase-24-share-cards`
+- **Owners:** `implementer`; `lead-designer` + `a11y-reviewer` sign off.
+- **Goal:** sharing is polished and safe. "Save shareable copy" on the website and in the local viewer shows a redaction preview and writes a redacted self-contained HTML file. A PNG or SVG "map card" of the glance view can be dropped into a PR or a post.
+- **User value:** one click to a safe artefact a teammate can open anywhere.
+- **Scope:**
+  - `src/share/{ShareDialog.tsx, exportHtml.ts, exportCard.ts}`. The website fetches its own `/viewer.html` template and injects the redacted graph, then downloads it as a Blob. The local viewer re-serializes its embedded graph. The card is rendered from SVG to a canvas to PNG.
+  - Per-sample OG meta for the website.
+- **Acceptance criteria:** V4; the downloaded HTML passes `audit:samples` rules and opens offline with zero requests; the card is 1200×630 and readable; sign-offs pass.
+- **Verifier checks:** the common steps; flow `share.mjs` (download intercept, then open the file).
+  - **Screenshots:** `share-dialog.png`, `share-redaction-summary.png`, `share-card.png`, `share-opened-file.png`.
+- **Size:** ~380.
+
+### Phase 25: README and community files
+- **Branch:** `phase-25-readme-community`
+- **Goal and scope:** as old phase 11, but for the reasoning map.
+  - Pitch: "See how your AI agent reasoned: one command turns a Claude Code, Codex or Grok Build session into a map you understand at a glance. Local, no key, nothing uploaded."
+  - Hero: a map screenshot from `scripts/browser/flows/hero.mjs`.
+  - Quick start: the skill install + `npx <pkg>` (with the D25 placeholder note), "How it works" (adapters → step graph → map; optional AI; the lens), privacy and honesty, "Extend it" (adapters, the Worker), and a roadmap.
+  - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (D21), `SECURITY.md` (scope: the CLI's file handling, redaction, the Worker).
+  - Issue templates: bug report, feature request, a `new_adapter.yml` (replacing `new_garden.yml`) and a session-sample proposal. A PR template.
+  - `docs/GOOD-FIRST-ISSUES.md` (≥ 8, from §7).
+  - `scripts/check-docs.mjs` + `check:docs`; CI updated in `ci/github-workflow.yml`.
+- **User value:** the repo sells the product in 10 seconds and makes contributing easy.
+- **Acceptance criteria and verifier checks:** old phase 11's ACs 1–4 with the new pitch. The quick start works verbatim from a fresh clone in `/tmp`, using the local CLI path until the package is published. The README rendering check is unchanged.
+  - **Screenshots:** `readme-above-fold.png`, `readme-full.png`, `readme-mobile.png`.
+- **Size:** ~400 (CODE_OF_CONDUCT excluded).
+
+### Phase 26: Examples gallery, social preview, hero GIF and launch kit
+- **Branch:** `phase-26-gallery-launch`
+- **Goal and scope:** as old phase 12, for maps.
+  - `examples/README.md`: each sample map with a screenshot, "what to notice" and links (`https://token-garden.example/?session=<id>&step=…`, D20), plus "Map your own session" (one command).
+  - Hero GIF: the skill flow, then the map, then a click on a trouble marker, recorded in the one browser + system ffmpeg (D18).
+  - `docs/brand/social-preview.png`.
   - `docs/LAUNCH.md`:
-    - a bold first line: "Nothing in this file has been posted anywhere. Posting is Sean's decision."
-    - Show HN draft (title ≤ 80 chars, body ≤ 250 words, first comment explaining how it works and the recorded vs live models);
-    - X post draft (≤ 280 chars) plus a 3-post thread, each with the image to attach;
-    - 3 demo scenarios with exact links and talk track: (1) "Why 'named'?" the robot garden, a confident fork vs a flat one; (2) "Greedy vs sampling" with T = 0 → 1.5 and a fixed seed for a classroom; (3) "Your own sentence" in live mode, showing one call per click and the cache;
-    - comparison with alternatives (researched; keep it fair and dated): **logitloom** (vgel; explores token trajectory trees on base and instruct models; bring-your-own API key, eager depth/width expansion, a power tool), **Transformer Explainer** (Polo Club, Georgia Tech; runs GPT-2 small in the browser, explains the architecture, shows one step's next-token distribution with a temperature slider; MIT), **loom** (socketteer; a desktop "multiverse" writing interface for human-AI collaboration; needs an API key or a local model), **LLM Visualization** (bbycroft; a 3D walkthrough of a GPT's internals, not sampling). Where token-garden differs: zero setup with recorded offline gardens, thickness-as-probability over several steps, client-side temperature and seeded sampling, share links, keyboard and screen-reader support. Where others are better: model internals (Transformer Explainer, LLM Visualization), long-form writing (loom), arbitrary models and big trees (logitloom);
-    - pre-launch checklist (demo deployed and links updated per DEPLOY.md, social preview uploaded in GitHub settings, repo description and topics set, CHANGELOG 0.1.0).
-- **Acceptance criteria:**
-  1. S4: `docs/brand/social-preview.png` is 1280×640 and < 1 MB; S5: all 6 gardens are in the gallery with existing images and links whose `path` values open a recorded fork (checked by the flow); `check:docs` passes.
-  2. `docs/brand/hero.gif` exists, ≤ 3 MB, or the script's documented skip message is in the PR with the PNG kept.
-  3. S6: LAUNCH.md has all listed parts, the "nothing posted" statement, no finance content, no employer mention, and every factual claim about alternatives matches their public README or site as of the PR date (links included).
-  4. The dataviz-designer approves the gallery picks, hero and social preview against §3.
-- **Verifier checks:** the common steps + `check:docs`; run `gallery` and `brand` flows; open each gallery link in the headless browser and assert `data-ready` and the selected `data-key`; `ps` shows no ffmpeg or Chrome left; check image dimensions and sizes with `file`/`stat`.
-  - **Screenshots:** `gallery-readme.png` (examples/README rendered as in phase 11), `social-preview-check.png`, `hero-gif-frame-first.png`, `hero-gif-frame-last.png`.
-- **Risks:** large binaries in git (size caps above); marketing claims that age (date the comparison, link sources); the GIF needing ffmpeg (D18 fallback).
-- **Size:** ~360 lines (gallery ~70 + flow ~40, social template ~50 + flow ~25, GIF script ~50, LAUNCH ~130); images excluded.
+    - the "nothing posted" first line;
+    - Show HN and X drafts;
+    - 3 demo scenarios: "What did my agent do for 40 minutes?", "Review an agent-written PR", "Watch the agents that built this app";
+    - a dated, linked comparison with alternatives, researched at the time: transcript viewers and exporters for Claude Code/Codex, agent tracing and observability tools, and the token-level tools from the old comparison for the lens. Strengths are named fairly;
+    - a pre-launch checklist that includes npm publish approval (D36).
+- **User value:** the project is ready to share, and every link and image points at real maps.
+- **Acceptance criteria and verifier checks:** old phase 12's ACs 1–4, adapted for maps.
+  - **Screenshots:** `gallery-readme.png`, `social-preview-check.png`, `hero-gif-frame-first.png`, `hero-gif-frame-last.png`.
+- **Size:** ~380 (images excluded).
 
-### Phase 13: Cloudflare deployment preparation (stops for Sean's approval)
-- **Branch:** `phase-13-deploy-prep`
-- **Goal:** everything needed to deploy is ready and dry-run-verified, and the exact deploy command is documented. **Nothing is deployed.**
-- **User value:** Sean can put the live demo online with one reviewed command, and self-hosters get a tested runbook to deploy their own copy.
+### Phase 27: Cloudflare deployment and publish preparation (stops for Sean's approval)
+- **Branch:** `phase-27-deploy-prep`
+- **Goal:** everything needed to deploy the showcase site and Worker, and to publish the CLI, is ready and dry-run-verified. **Nothing is deployed or published.**
+- **User value:** Sean can put the site online and publish `npx <pkg>` with reviewed commands. Self-hosters get a runbook.
 - **Scope:**
-  - Finalize `wrangler.jsonc`: `observability: {enabled: true}`, `workers_dev: true`, a comment pointing to `docs/DEPLOY.md`, every binding from phases 8–9.
-  - `public/_headers`: CSP `default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, long-cache `/assets/*`.
-  - `docs/DEPLOY.md`, the runbook:
-    1. prerequisites: a valid `CLOUDFLARE_API_TOKEN` with Workers Scripts edit, Workers KV edit and Workers AI permissions, and `CLOUDFLARE_ACCOUNT_ID`;
-    2. `pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy`;
-    3. `node scripts/smoke-workers-ai.mjs` must show `top_logprobs` length 8; if not, set `UPSTREAM=openai-compatible`;
-    4. KV: auto-provisioned on first deploy, or `pnpm exec wrangler kv namespace create token-garden-cache` and paste the id;
-    5. fallback upstream only: `pnpm exec wrangler secret put OPENAI_API_KEY`;
-    6. **the exact deploy command, `pnpm exec wrangler deploy`, run only by Sean or after his explicit approval**;
-    7. post-deploy checks: `curl -s -X POST https://<worker>.workers.dev/api/next-tokens -H 'content-type: application/json' -d '{"prefix":"Once upon a time","k":5}'`, open the site and check the console for CSP errors, repeat the call to see `cached: true`;
-    8. after deploy: replace `https://token-garden.example` in README, examples, LAUNCH and `index.html` (D20), upload the social preview in GitHub settings;
-    9. rollback: `pnpm exec wrangler rollback`;
-    10. cost and limit notes (free-tier KV writes, daily cap).
-  - `check:deploy` step in `ci/github-workflow.yml`; README "Deploy your own" section linking DEPLOY.md; CHANGELOG `[0.1.0]` section prepared (undated until release).
+  - As old phase 13: `wrangler.jsonc` finalized (all bindings, including the structure route), `public/_headers` (CSP `connect-src 'self'`, long-cache assets), `docs/DEPLOY.md` (prerequisites, `pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy`, the smoke script, KV, the optional secret, **the exact deploy command `pnpm exec wrangler deploy`, run only by Sean or after his approval**, post-deploy checks for `/api/next-tokens` and `/api/structure`, URL replacement for D20, rollback, cost notes).
+  - Plus `docs/PUBLISH.md`:
+    - `pnpm build:cli && pnpm --dir cli pack` verified, and the tarball contents listed;
+    - the name decision (D25);
+    - remove `private: true`;
+    - `npm publish --access public`, run only after Sean's approval;
+    - update the skill kit's version pin.
+  - `check:deploy` and the pack check in `ci/github-workflow.yml`.
 - **Acceptance criteria:**
-  1. `pnpm build && pnpm run check:deploy` passes without a valid token and lists `AI`, `TG_CACHE`, `RL_MISS`, `RL_ALL`, `ASSETS` and the vars; `.wrangler/dry-run/` contains the bundle and is not committed.
-  2. `dist/_headers` exists after the build; the headless check against `vite preview` is unaffected.
-  3. The PR description contains the exact deploy command and "awaiting Sean's approval to deploy"; STATUS.md shows `STATE: DONE` with that note.
-  4. No deploy happened: no `wrangler deploy` without `--dry-run` in shell history or logs; no Worker URL exists.
-- **Verifier checks:** the common steps + `check:deploy` + `check:docs`; full regression `check:browser --flows all --out docs/screenshots/phase-13`.
-  - **Screenshots:** `final-desktop.png`, `final-mobile.png`, `final-dark.png`, `final-live-unavailable.png`.
-- **Risks:** Workers AI logprobs unverified until Sean supplies a valid token (smoke step before deploy, fallback upstream); CSP blocking an inline style React emits (preview does not apply `_headers`, so the runbook adds a post-deploy console check).
-- **Size:** ~180 lines of code and config, plus ~130 lines of docs.
+  1. `pnpm build && pnpm run check:deploy` (= `wrangler deploy --dry-run --outdir .wrangler/dry-run`) passes without a valid token and lists `AI`, `TG_CACHE`, `RL_MISS`, `RL_ALL`, `ASSETS` and the vars.
+  2. `pnpm --dir cli pack` produces a tarball with only `dist/` and `package.json`/README/LICENSE, and no session data.
+  3. The PR has the exact deploy and publish commands and "awaiting Sean's approval to deploy". STATUS.md reads `STATE: DONE` with that note.
+  4. No deploy and no publish happened.
+- **Verifier checks:** the common steps + `check:deploy` + pack + `check:docs`; full regression `check:browser --flows all --out docs/screenshots/phase-27`.
+  - **Screenshots:** `final-site-desktop.png`, `final-site-mobile.png`, `final-map-dark.png`, `final-local-file.png`, `final-lens.png`.
+- **Size:** ~200 lines of code and config, plus ~180 lines of docs.
 
 ### Phase summary
 
-| n | Branch | Goal | Est. lines |
-|---|---|---|---|
-| 1 | `phase-1-toolchain` | Toolchain, self-cleaning headless check, tiny bundled sample rendered, MIT licence, CHANGELOG | ~400 |
-| 2 | `phase-2-identity` | Specimen-plate identity: colour tokens (tested), self-hosted fonts, logo/wordmark/favicon, app shell, size budget, CVD harness | ~340 |
-| 3 | `phase-3-garden-encoding` | Viz spec + thickness, labels, legend, remainder, readout | ~380 (+150 docs) |
-| 4 | `phase-4-explore-share` | Provider interface, recorded expand/collapse, not-recorded state, motion, share links | ~390 |
-| 5 | `phase-5-keyboard-a11y` | Keyboard tree navigation, ARIA tree, Table view, live region | ~360 |
-| 6 | `phase-6-recorded-samples` | Recorder (one-command) + 6 real gardens + picker + `?sample=` | ~400 (+JSON) |
-| 7 | `phase-7-temperature-sampling` | Client-side temperature, seeded path sampling, entropy, How to read | ~390 |
-| 8 | `phase-8-worker-core` | `/api/next-tokens`, Workers AI adapter, KV cache, errors, `check:deploy` | ~400 |
-| 9 | `phase-9-worker-limits` | Rate limits, daily cap, timeout/retry, OpenAI-compatible upstream, EXTENDING.md | ~330 (+100 docs) |
-| 10 | `phase-10-live-mode` | Prompt box, lazy cached live growth, caps, empty/loading/error states | ~420 |
-| 11 | `phase-11-readme-community` | README that sells in 10 s, CONTRIBUTING, CoC, SECURITY, templates, good first issues, check:docs | ~380 |
-| 12 | `phase-12-gallery-launch` | examples/ gallery, hero GIF, social preview, docs/LAUNCH.md | ~360 (+images) |
-| 13 | `phase-13-deploy-prep` | wrangler config, headers, runbook, dry run; stops for Sean's approval | ~180 (+130 docs) |
+| n | Branch | Goal | Owners | Est. lines |
+|---|---|---|---|---|
+| 1–8 | (unchanged, open PRs) | Toolchain, identity, garden encoding, explore/share, keyboard, samples, temperature, Worker core | as before | as before |
+| 9 | `phase-9-worker-limits` | Built: rate limits, daily budget, timeout/retry, OpenAI-compatible upstream, EXTENDING.md; shared infrastructure for AI structuring and the lens | llm-integration | ~480 + 50 del (actual) |
+| 10 | `phase-10-design` | lead-designer audit + `docs/DESIGN.md` + wireframes (docs only) | lead-designer, dataviz-designer, a11y-reviewer | ~450 docs |
+| 11 | `phase-11-session-model` | Step-graph types, tolerant reader, adapter contract, Claude Code adapter (subagents, rewinds) | implementer | ~480 |
+| 12 | `phase-12-structure-redact` | Episodes, trouble patterns, outcome; redaction + sample audit | implementer | ~450 |
+| 13 | `phase-13-cli-viewer` | `npx <pkg>`: locate → parse → self-contained HTML → open; outline viewer | implementer, lead-designer, a11y-reviewer | ~550 (split seam named) |
+| 14 | `phase-14-skill` | `/reasoning-map` skill to the anatomy bar, one-command install (Claude; Grok shares the directory) | implementer, lead-designer | ~420 |
+| 15 | `phase-15-samples` | 3–5 redacted real sample maps from this box, reproducible | implementer, main agent review | ~200 + JSON |
+| 16 | `phase-16-map-glance` | Map v1: task card, route + lanes, trouble markers, outcome, honesty label | implementer, dataviz-designer, lead-designer, a11y-reviewer | ~560 (split seam named) |
+| 17 | `phase-17-map-details` | Detail panel, raw + provenance, tool views, keyboard, deep links | implementer, lead-designer, a11y-reviewer | ~480 |
+| 18 | `phase-18-codex-grok` | Grok Build + Codex adapters, locators, Codex skill target, EXTENDING "add an adapter" | implementer | ~480 |
+| 19 | `phase-19-site-showcase` | Showcase home, gallery, install, drag-and-drop in a Web Worker, privacy | implementer, lead-designer, a11y-reviewer | ~480 |
+| 20 | `phase-20-ai-structure-worker` | `/api/structure`: batched, cached, budgeted labelling + claim links | llm-integration | ~430 |
+| 21 | `phase-21-ai-labels-ui` | Opt-in consent, label overlay, support links, CLI `--ai` | llm-integration, implementer, dataviz-designer, lead-designer, a11y-reviewer | ~420 |
+| 22 | `phase-22-zoom-lens` | "Zoom into this sentence" → garden; recorded lens data; opt-in live growth | implementer, llm-integration, lead-designer, a11y-reviewer | ~480 |
+| 23 | `phase-23-chat-import` | Paste text, ChatGPT/Claude exports, share-link fallback | implementer, lead-designer, a11y-reviewer | ~450 |
+| 24 | `phase-24-share-cards` | Redaction-previewed shareable HTML, PNG map cards, OG meta | implementer, lead-designer, a11y-reviewer | ~380 |
+| 25 | `phase-25-readme-community` | README that sells in 10 s, community files, templates, good first issues, check:docs | implementer, lead-designer, a11y-reviewer | ~400 |
+| 26 | `phase-26-gallery-launch` | examples/ gallery of maps, hero GIF, social preview, LAUNCH.md | implementer, lead-designer, dataviz-designer | ~380 + images |
+| 27 | `phase-27-deploy-prep` | wrangler config, headers, DEPLOY.md + PUBLISH.md, dry run + pack; stops for Sean's approval | implementer, llm-integration | ~200 + 180 docs |
+
+The old phases 10–13 (live mode, README, gallery/launch, deploy prep) are **[superseded]** by phases 22 (live provider half), 25, 26 and 27.
 
 ---
 
@@ -772,26 +1383,29 @@ The box has **Node 20.19.2** and **pnpm 9.15.9**. Several current majors need No
 
 Not built, with the reason:
 
-- Actually deploying, custom domains and DNS: they wait for Sean.
-- Accounts, server-side storage of prompts or gardens, server-stored shares, analytics and telemetry: they add cost and privacy risk; URL share links cover sharing.
-- The in-browser model provider (transformers.js/WebGPU): ~134 MB download and ~0.6 GB RAM per user break "first step costs almost nothing". A roadmap item only.
-- Side-by-side model comparison, streaming generation, chat history, prompt templates: not needed to understand sampling.
-- Pan/zoom canvas, minimap, internationalisation of the UI: the default gardens fit the viewport; the table view covers dense trees.
-- D1, R2, Durable Objects, and a strict atomic budget counter (the soft KV cap is accepted).
-- A user-facing CLI or agent skill: none is planned. If one is ever added it must meet the wheresryan22/anatomy bar (SKILL.md + kit + references + audit scripts + evals) and have a one-command try-it.
-- Anything finance-related, any decorative 3D.
+- **Deploying, publishing to npm, custom domains and DNS:** they wait for Sean (phase 27 stops for approval).
+- **Uploading or storing sessions on a server, accounts, server-side parsing, analytics and telemetry:** privacy and cost. Everything parses locally or in the browser.
+- **Following a running session live** (`--watch` / `--serve`), IDE extensions, editing or replaying sessions: these are good-first-issue or roadmap items (D26).
+- **Token, cost or usage analytics and production agent observability:** a different product. Cost fields are dropped from samples (R4).
+- **Comparing several sessions side by side, and team dashboards:** not needed for the four glance questions.
+- **The old live prompt box [superseded]:** live growth exists only inside the lens (D35).
+- **The in-browser model provider:** its download and RAM cost still break "first step costs almost nothing".
+- **Share-link scraping of chat services beyond a best-effort fallback:** it is fragile and may conflict with the services' terms. Paste and official exports cover it.
+- D1, R2, Durable Objects, and a strict atomic budget counter.
+- Anything finance-related, and any decorative 3D.
 
-Cut by "value, then convenience" and listed as good-first-issue candidates (phase 11, `docs/GOOD-FIRST-ISSUES.md`):
+Good-first-issue candidates (phase 25, `docs/GOOD-FIRST-ISSUES.md`):
 
-1. Type-ahead in the garden tree (WAI-ARIA optional; arrows already reach everything).
-2. A manual light/dark toggle (the OS preference is already respected).
-3. Export the current garden as SVG/PNG.
-4. "Compare temperatures" split view (two gardens at different T).
-5. A seventh recorded garden in another language (via the `new_garden` template and the recorder).
-6. Keyboard shortcut overlay (`?`) listing the tree keys.
-7. Show raw logprob next to the percentage in the Table view.
-8. Remember the last opened sample in `localStorage`.
-9. A recipe in EXTENDING.md for a specific self-hosted OpenAI-compatible server, verified with its own logprobs.
+1. A Cursor or Aider session adapter (the contract suite + EXTENDING.md).
+2. `--watch`: re-render while a session grows.
+3. Export the outline as Markdown for PR descriptions.
+4. A manual light/dark toggle.
+5. A keyboard shortcut overlay (`?`) for the map and the garden.
+6. Type-ahead in the garden tree.
+7. Remember the last opened sample in `localStorage`.
+8. A share-link fetcher through the Worker for one chat service, with an allowlist and tests.
+9. An extra trouble rule (for example "long idle wait"), with fixtures.
+10. A recipe in EXTENDING.md for a self-hosted OpenAI-compatible server for `/api/structure`.
 
 ---
 
@@ -799,20 +1413,18 @@ Cut by "value, then convenience" and listed as good-first-issue candidates (phas
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Workers AI `top_logprobs` unverified (the box token is a placeholder) | Live mode may not work as designed | Live mode is isolated behind `LogprobProvider`; all verification uses fakes and route mocks; the smoke script and runbook step come before deploy; the OpenAI-compatible fallback is built (a key becomes a blocker); samples never depend on it |
-| Node 20 on the box vs tool majors needing Node 22 | Install or engine failures | Pins in §5.6 (D1); CI uses Node 20.19 too |
-| RAM: Chrome (~300 MB), recorder (~600 MB), wrangler/workerd, ffmpeg, other agents | OOM, flaky checks | One browser at a time; the recorder and the GIF script never run alongside a browser check; Vitest `maxWorkers: 2`; harness cleanup even on failure (phase 1 AC3); `ps` check in every verify; recorder `node_modules` and model cache deleted after use |
-| Dense or deep trees become unreadable | Poor first impression | Default expansion D11, fixed `nodeSize`, horizontal scroll container, truncation rules in the spec, Table view |
-| Identity drifts into a generic template or decoration | The project looks like everything else | §3 is concrete (tokens, fonts, mark, states); `tokens.test.ts`; designer review in phases 2, 3, 4, 7, 10, 12 |
-| Fonts add weight or layout shift | Slower first view | Two latin subsets ≤ 45 KB, `font-display: swap`, monospace width estimate so layout never depends on the loaded font, P1 budget in `check:size` |
-| SVG ARIA support varies across screen readers | A2 weaker in practice | The Table view is a complete alternative; fallback noted in phase 5 |
-| Temperature over top-k is an approximation | Users are misled | "approximate (top-k only)" note, remainder shown (D8), How to read panel |
-| Recorded (base SmolLM2) and live (chat GLM) distributions differ in character | Confusion | Model on every specimen label (F12); re-record via `--provider worker` later |
-| Tokenizer artefacts (byte pieces, special tokens, leading spaces) | Garbled labels | Decode, filter and normalize in the recorder and `shared/llm/normalize.ts`; visible-whitespace rendering |
-| Share links break when a recording changes | Old links open a different fork | Rank-index paths restore the longest valid prefix with a notice; recordings change rarely and the schema is versioned |
-| Packaging claims or comparisons age or overstate | Credibility loss at launch | Claims are checkable; comparison is dated and linked; nothing is posted by agents |
-| Binary assets bloat the repo | Slow clones | Caps: hero GIF ≤ 3 MB, social preview < 1 MB, gallery PNGs 960×600 |
-| Phase size creep | Reviews longer than 20 min | Per-phase estimates, the D14 split rule, D17 counting rule, a main-agent `git diff --stat` check before submit |
-| Timing thresholds (P2–P4) flake on a loaded shared machine | False FAILs | Median of 3, generous thresholds, one re-run before reporting FAIL |
-| Upstream abuse or cost | Spend or quota exhaustion | Lazy calls only, client cache, KV cache, per-IP rate limits, daily cap, input limits |
-| `wrangler deploy --dry-run` touches auth because of the placeholder token | `check:deploy` fails on the box | Detected early (phase 8); blank the token for the dry run only, and record it |
+| Session formats are undocumented and change (Claude Code especially; Grok Build has no stability promise) | Adapters break silently | Tolerant reader, unknown types ignored and counted, contract suite, synthetic fixtures for each format, real-session smoke tests on this box (counts only), and a clear "format not recognized; try `--source`" message |
+| Codex cannot be verified on this box | The Codex adapter may be wrong | Built from the public rollout format, flagged in STATUS.md and the README as unverified until a real session is tested (D31) |
+| Private data leaks through samples or shared files | Serious trust damage | Redaction R1–R4, the CI audit, a local untracked denylist, trimmed samples, the main agent reads every sample, and `--share` shows a summary first |
+| Thinking text is not stored (signature only on this box) | The "how it thought" story is thinner than expected | Honest "text not stored" nodes (M6). The map relies on assistant text, tool calls and outcomes, which carry most of the route. Grok Build does store thought chunks |
+| Heuristic trouble markers mislabel | Misleading glance | Labelled "detected pattern" with evidence steps and provenance; rule tests; tunable constants; the AI overlay is separate and optional |
+| Written reasoning is mistaken for ground truth | Users over-trust the map | Honesty label (D29), the lens states its model differs (Z2), AI labels say "suggested by" |
+| Large sessions (tens of MB, thousands of steps) | Slow or unreadable | Streaming reader, episode aggregation and folding, Web Worker parsing, layout benchmark (G2), the outline view |
+| `file://` limits (module scripts, fonts, fetch) | The local viewer fails to open | Inline classic script and data-URL fonts (D32). `--ai` runs in the CLI before writing, not from `file://` |
+| The opener fails in SSH, headless or container setups | "Nothing happened" | Always print `MAP: <path>`; no opener without a display; the skill relays the path |
+| The skill format or anatomy bar evolves; the skill triggers wrongly | Poor first run | Audit script, evals including negative trigger cases, narrow description, references dated |
+| npm name unavailable or the rename lands mid-stack | Docs churn | `PKG_NAME` single source (D25); rename as its own small step |
+| Phase size creep (history: ~2× estimates) | Reviews take longer than 20 min | Honest estimates, a named split seam per phase, the D14/D17 rules, `git diff --stat` before submit |
+| RAM: Chrome, the recorder (phase 22), ffmpeg (phase 26), other agents | OOM, flaky checks | One browser at a time; heavy tools run alone; harness cleanup; `ps` check in every verify; CLI tests use small fixtures |
+| Workers AI JSON-schema support or label quality unverified (placeholder token) | AI overlay weak | Optional by design; schema validation; fakes in tests; smoke step before deploy; OpenAI-compatible fallback |
+| Lens (garden) risks from phases 1–9 (top-k temperature approximation, SVG ARIA support, tokenizer artefacts, timing flakes, soft KV cap) | As before | Mitigations unchanged (see §4.2 criteria and DECISIONS.md) |
