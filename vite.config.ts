@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.{js,mjs,ts}'],
+    include: ['src/**/*.test.{ts,tsx}', 'shared/**/*.test.ts', 'worker/**/*.test.ts', 'scripts/**/*.test.{js,mjs,ts}'],
     maxWorkers: 2,
     css: { include: [/tokens\.css/] }, // tokens.test.ts reads the real file via ?raw
   },
