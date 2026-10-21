@@ -38,7 +38,7 @@ export function runCase(c, { keep = false } = {}) {
     TMPDIR: tmp,
     REASONTRAIL_CLI: CLI,
     NODE_OPTIONS: `--import=${pathToFileURL(join(HERE, 'no-network.mjs')).href}`,
-    ...c.env,
+    ...(c.current ? { CLAUDE_CODE_SESSION_ID: c.current } : {}),
   };
   const res = spawnSync(process.execPath, [join(SKILL, 'kit/run.mjs'), '--no-open', ...(c.args ?? [])], { cwd, env, encoding: 'utf8', timeout: 30_000 });
   const problems = [];
@@ -48,7 +48,7 @@ export function runCase(c, { keep = false } = {}) {
   if (res.status !== e.exit) problems.push(`exit ${res.status}, expected ${e.exit}`);
   if (res.stderr.includes('NETWORK BLOCKED')) problems.push('attempted a network request');
   for (const s of e.stderr ?? []) if (!res.stderr.includes(s)) problems.push(`stderr lacks "${s}"`);
-  if (e.session && !res.stderr.includes(`${e.session}.jsonl (`)) problems.push(`did not map session ${e.session}`);
+  if (e.mapped && !res.stderr.includes(`${e.mapped}.jsonl (`)) problems.push(`did not map session ${e.mapped}`);
   if (e.exit !== 0) {
     if (lines.length) problems.push(`stdout should be empty, got: ${lines.join(' | ')}`);
   } else if (lines.length !== 1 || !/^MAP: \S/.test(lines[0])) {
