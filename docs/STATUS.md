@@ -2,7 +2,7 @@ STATE: IN-PROGRESS
 
 # Status (Reasontrail, formerly token-garden)
 
-- Current phase: 20 (`phase-20-ai-structure-worker`): optional AI structuring endpoint
+- Current phase: 20 verified PASS; PR submitted
 - Plan: `docs/PLAN.md` (28 phases after the 2026-10-20 pivot and the 2026-10-21 polish phase; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
@@ -28,7 +28,7 @@ STATE: IN-PROGRESS
 | 17 | `phase-17-map-details` | [#18](https://github.com/geekplux/reasontrail/pull/18) | PASS, PR open | 2 |
 | 18 | `phase-18-codex-grok` | [#19](https://github.com/geekplux/reasontrail/pull/19) | PASS, PR open | 1 |
 | 19 | `phase-19-site-showcase` | [#20](https://github.com/geekplux/reasontrail/pull/20) | PASS, PR open | 1 |
-| 20 | `phase-20-ai-structure-worker` | - | in progress | 0 |
+| 20 | `phase-20-ai-structure-worker` | - | PASS, PR open | 1 |
 | 21 | `phase-21-ai-labels-ui` | - | pending | 0 |
 | 22 | `phase-22-zoom-lens` | - | pending | 0 |
 | 23 | `phase-23-chat-import` | - | pending | 0 |
@@ -47,4 +47,4 @@ STATE: IN-PROGRESS
 - Codex: adapter built from the public source and a synthetic fixture; Codex is not installed on this box, so it is not verified against a real session (open item). Skill installs to `~/.agents/skills/reasontrail/`; `--current` uses `CODEX_THREAD_ID`.
 - Polish backlog for phase 25: `--list` mixes two time formats; Grok fixture delegate episode shows 2 steps in Outline vs 8 on the Map; Map/Outline toggle looks clipped at 390 px.
 
-Last updated: 2026-10-21 21:47 UTC (phase 19 PR opened, phase 20 started)
+Last updated: 2026-10-21 22:20 UTC (phase 20 verified)
