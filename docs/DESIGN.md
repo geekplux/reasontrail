@@ -206,10 +206,10 @@ Rules:
 | Job | Token(s) | Paired non-colour cue |
 |---|---|---|
 | Main route and all text | `--tg-ink`, `--tg-ink-muted` (existing) | 4 px width; the position (top) |
-| Side trails (subagents) | `--tg-lane` | 2 px width, below the route, 45° joins, a mono agent name |
+| Side trails (subagents) | `--tg-lane` (strokes only, never text) | 2 px width, below the route, 45° joins, a mono agent name in ink |
 | Verified / ok | `--tg-ok` (lake) | ✓ inside a circle + the word ("passed", "done", "approved") |
 | Trouble and error | `--tg-trouble` (blaze); `--tg-error` stays the **text** colour for error notes | A square plate with a kind glyph (§8.5), a number badge, a text label, ✕ inside a circle for error status |
-| Interrupted | `--tg-ink-muted` (no hue) | A pause glyph in a square + "interrupted" |
+| Interrupted | `--tg-ink-muted` (no hue) | ‖ inside a muted circle outline + "interrupted" (circles are status; squares are trouble) |
 | Evidence highlight | `--tg-wash` (background) | Selected item inverted; the selected step gets a 4 px ink bar |
 | Lane band, expanded lane background | `--tg-lane-band` | Decorative only |
 | Focus | `--tg-focus` (existing) | 2 px ring with a 2 px paper gap |
@@ -226,9 +226,13 @@ There is deliberately **no categorical hue per agent type**. Sessions on this bo
 | `--tg-trouble` | `#a3292b` | 6.51 | 7.10 | `#e5534b` | 4.87 | 4.46 | blaze plates, error glyph fill (mark) |
 | `--tg-wash` | `#f3e3cf` | 1.13 | — | `#33281a` | 1.25 | — | evidence row background (decorative; text on it: ink 12.39 / 12.23, muted 5.76 / 6.70) |
 | `--tg-lane-band` | `#efebdf` | 1.07 | — | `#151d18` | 1.05 | — | expanded-lane band (decorative; ink 13.08 / 14.62, muted 6.08 / 8.01, ok 4.61 / 5.32, trouble 6.06 / 4.64 on it) |
+| `--tg-lane` on `--tg-lane-band` | `#5f7d6c` | 3.80 | — | `#7fa48f` | 6.23 | — | the expanded lane's 3 px stroke (mark ≥ 3:1) |
+| `--tg-error` on `--tg-wash` (existing token) | `#a3292b` | 5.74 | — | `#ff8f87` | 6.53 | — | edit-diff old lines (text ≥ 4.5:1), §10.1 |
 
 Notes:
 
+- `--tg-lane` is **never text**. Lane names and lane counts are `--tg-ink` / `--tg-ink-muted`.
+- In the two added rows the "on paper" column holds the contrast on the named background.
 - `--tg-lane` uses the same values as `--tg-branch-lo` on purpose: side trails are the garden's branch colour. It is a separate token so the two can diverge later.
 - The glyph interiors use paper (`--tg-surface` light, `--tg-paper` dark).
   - Paper on `--tg-ok`: 5.40 light / 5.58 dark.
@@ -238,7 +242,7 @@ Notes:
 
 ### 6.3 CVD rows
 
-These use CIE76 ΔE with Machado et al. 2009 at severity 1.0, the same method as `src/styles/colorMath.ts`. Columns are normal / protan / deutan / tritan. A pair below 20 needs a written non-colour cue.
+These use CIE76 ΔE (CIELAB) with Machado et al. 2009 at severity 1.0, the same method as `src/styles/colorMath.ts`. Columns are normal / protan / deutan / tritan. A pair below 20 needs a written non-colour cue.
 
 | Pair | Theme | normal | protan | deutan | tritan | Below 20? Cue |
 |---|---|---|---|---|---|---|
@@ -261,6 +265,8 @@ These use CIE76 ΔE with Machado et al. 2009 at severity 1.0, the same method as
 | trouble / focus | both | ≥ 69 in every column | | | | — |
 
 ### 6.4 Validator (dataviz skill, `validate_palette.js`, `--pairs all`)
+
+Scales differ: §6.3 is CIE76 ΔE (threshold 20); the validator reports OKLab ΔE × 100 (CVD floor 6, target 8; normal-vision floor 15). The numbers are not comparable across the two sections.
 
 The two semantic hues are treated as a categorical set, because any two marks can sit side by side:
 
@@ -314,13 +320,14 @@ Wireframes:
 ### 8.1 Route and time [16]
 
 - **The main lane is the route:** one horizontal line, 4 px, `--tg-ink`, round caps, running left to right at y = route band top + 106.
-- **Episodes are route segments.** Segment length is `clamp(56, 36 + 19.5·√steps, 240)` px, where steps include a collapsed lane's steps. If the total is wider than the band, all segments scale down together to a minimum of 56 px. Past 12 episodes, the rest fold (§8.11).
-- Episode boundaries are 2 px `--tg-paper` ticks that cut the route (10 px high).
-- **Idle gaps** over 10 minutes between consecutive steps become a 44 px break: a dotted route (`2 6` dash), two 1.5 px slashes and "≈<n> h idle" (or "min") in mono `--tg-ink-muted` below the route. Gaps under 10 minutes are not drawn.
+- **Episodes are route segments.** Segment length is `len = clamp(56, 36 + k·√steps, 240)` px with `k = min(19.5, 204 / √maxVisibleSteps)`, where steps include a collapsed lane's steps and `maxVisibleSteps` is the largest step count among the drawn episodes (so the biggest episode lands at ≤ 240 px). If the total is still wider than the band, all segments then scale down together to a minimum of 56 px. Segments at the 56 px floor are not to scale; the printed count is always exact. Past 12 episodes, the rest fold (§8.11).
+- **Position inside a segment.** Any step-anchored mark (lane leave and rejoin, blazes, rewind spurs) sits at `x(step) = segStart + segLen · (indexInEpisode / steps)`. A lane that crosses an episode boundary uses the segment of the step it is anchored to, so its leave and rejoin can fall in different segments.
+- **Boundaries.** There is no separate tick: each episode's kind glyph sits centred on its segment start (§8.2) and marks the boundary.
+- **Idle gaps** over 10 minutes are drawn only at episode boundaries, as a 44 px break: the route stops, two 1.5 px ink slashes stand in the gap (no dotted line), and "≈<n> h idle" (or "min") is set in mono `--tg-ink-muted` below the route. At most the 3 longest boundary gaps are drawn; other boundary gaps, and any gap inside an episode, add "· <n> min idle" (or "h") to the count label of the following (or containing) episode. Gaps under 10 minutes are not drawn.
 - There is no time axis. Durations are written as text: the meta row, lane labels and detail timestamps relative to the session start ("26.3 min").
 - **The terminus** is the answer glyph (§8.2) at the route's end. A 1 px ink connector drops from it to the destination card [16 desktop only].
 
-### 8.2 Episode kinds (glyph = kind; always ink; 16 px on the route, 14 px in lists)
+### 8.2 Episode kinds (glyph = kind; always ink; sizes below)
 
 | Kind | Glyph | Meaning |
 |---|---|---|
@@ -329,8 +336,10 @@ Wireframes:
 | `change` | ■ filled square | Edit or write files |
 | `verify` | ◇ hollow diamond, 2 px | Test, build, lint, typecheck, or a git/gh run that checks or ships |
 | `delegate` | ● filled circle with a paper centre dot | A subagent spawn. A side trail leaves here |
-| `answer` | ◉ ring with a centre dot (the logo's destination) | The final assistant text |
+| `answer` | ◉ ring with a centre dot (the logo's destination) | The final assistant text. ◉ is used only for the terminus and the destination header, never elsewhere |
 | `plan` [18] | ☰ three 2 px bars | Codex or Grok plan updates (checklists) |
+
+**Sizes and placement.** Kind glyphs are drawn in a 16 px box (ink extent about 12 px) centred on the segment start, on the route line, with a 24×24 px hit box (44×44 on mobile). The answer terminus is a 20 px box centred on the route's end. In lists and on an expanded lane the box is 14 px.
 
 The label sits **above** the route, starting at the segment start + 6 px:
 
@@ -341,10 +350,11 @@ Everything **below** the route belongs to side trails.
 
 ### 8.3 Side trails: subagent lanes [16]
 
-- **Shape.** A lane leaves the spawning waypoint at 45°, runs parallel 34 px below the route in `--tg-lane` at 2 px, and rejoins at 45° at the step where the result returned. This is metro-map octilinear geometry, never curves.
+- **Shape.** A lane leaves at `x(spawn step)` at 45°, runs parallel 34 px below the route in `--tg-lane` at 2 px, and rejoins at 45° at `x(result step)` (§8.1). This is metro-map octilinear geometry, never curves.
+- **Minimum width and bundling.** Each lane's drawn span (leave to rejoin, or leave to its end bar) is at least 96 px, so its label fits. If the lanes that leave inside one segment cannot each get 96 px on their track, they are drawn as **one bundled lane**: label line 1 "<n> subagents", line 2 the worst status glyph among them (error > interrupted > unknown > ok) and "<calls> calls · <k> failed". Enter or a click expands the bundle into its lanes. Mobile does the same, with one sub-row per bundle (§9.2).
 - **Collapsed by default (M4).** A collapsed lane is labelled under its line:
-  - line 1: the agent type in mono 11.5 ink (for example `implementer`), truncated with "…" to the segment width minus 12 px;
-  - line 2: a status glyph and "<n> calls · <duration if ≥ 5 min> · <status word>".
+  - line 1: the agent type in mono 11.5 `--tg-ink` (for example `implementer`), truncated with "…" to the lane span minus 12 px;
+  - line 2: a status glyph and "<n> calls · <duration if ≥ 5 min> · <status word>" in `--tg-ink-muted`.
 - **Status words:**
   - "done" or the verdict when one is detected ("PASS", "approved", "changes requested");
   - "failed";
@@ -355,7 +365,7 @@ Everything **below** the route belongs to side trails.
 - **Expanded in place [17].** Enter on a lane, or a click, expands it:
   - The lane becomes its own route: 3 px `--tg-lane` on a `--tg-lane-band` band.
   - It shows its own episodes, with the same glyphs at 14 px and labels below the lane line.
-  - The other main-route episodes dim to 45 % opacity. Esc collapses the lane.
+  - The other main-route episodes dim: their strokes and glyphs switch to `--tg-ink-muted` (6.53 / 8.40 on paper, so still ≥ 3:1) and their labels to `--tg-ink-muted`. No opacity is used, because 45 % ink on paper is only 2.67:1. Esc collapses the lane.
 - **Nesting.** Nested subagents (a subagent's own subagents) show as a count in the lane label ("+2 nested"). They expand one level at a time.
 
 ### 8.4 Edges
@@ -365,7 +375,7 @@ Everything **below** the route belongs to side trails.
 | `next` | The route or lane line itself (implicit) |
 | `spawned` / `result-of` | The 45° leave and rejoin connectors |
 | `retry-of`, `reverts` | Inside a trouble blaze, listed as evidence in detail (no extra lines on the glance) |
-| `forks` (rewind) | A dashed (`4 4`) `--tg-ink-muted` 2 px spur above the route from the fork point, ending in a bar ⊣: the abandoned branch. Its length is proportional to the abandoned steps (√, minimum 24 px) |
+| `forks` (rewind) | A solid 1.5 px `--tg-ink-muted` spur from the fork point at `x(step)`, rising at 45° to 10 px above the route and running parallel, ending in a 10 px perpendicular bar ⊣: the abandoned branch. Its length is proportional to the abandoned steps (√, minimum 24 px) |
 | `supports` [21] | Only when an answer claim is selected: dashed 1 px `--tg-ink-muted` curves from the claim to the supporting waypoints. Never on the glance |
 
 ### 8.5 Trouble blazes [16]
@@ -373,23 +383,24 @@ Everything **below** the route belongs to side trails.
 - **The plate.** Each detected pattern (§5.11 of PLAN) gets a 20×20 plate with radius 2, placed on the lane or route line at its first evidence step.
   - **Unresolved:** filled `--tg-trouble` with a paper glyph.
   - **Resolved:** paper fill, a 2 px `--tg-trouble` border and a `--tg-trouble` glyph.
-  - Every plate has a 15 px ink number badge at its top-right corner. Numbers count 1…n in route order.
+  - Every plate has a 16 px ink number badge at its top-right corner, with a paper numeral in mono 600 at 10.5 px (the one exception to the 11.5 px floor: it is an index repeated in the list and in the accessible name). Numbers count 1…n in route order.
+  - The plate is centred on the line at `x(step)` of its first evidence step (§8.1), with a 24×24 hit box (mobile: §9.2).
 
 | Kind | Glyph (in the 20 px plate) | Default label (glance list) |
 |---|---|---|
 | `error-streak` | Two small ✕, offset diagonally | "Error streak: <n> failed <runs\|checks>" (+ ", then passed" if resolved) |
 | `retry` | ↻ a circular arrow | "Retried <tool> ×<n>" |
 | `revert` | ↶ a U-turn arrow | "Revert: <what>" (for example "git reset of 1 staged file") |
-| `rewind` | A fork with a bar (⊣) | "Rewound: <n> steps abandoned" (plus the dashed spur, §8.4) |
+| `rewind` | A fork with a bar (⊣) | "Rewound: <n> steps abandoned" (plus the solid rewind spur, §8.4) |
 | `interrupt` | ‖ two bars | "Interrupted after <n> calls" (+ "; resumed <gap> later") |
 | `churn` | A zigzag (three peaks) | "Churn: <file> edited <n>× in one episode" |
 
-- **Collisions.** Plates on the same lane closer than 24 px stack upward in 4 px steps. More than 3 in one segment become a single plate showing "+n".
+- **Collisions.** Plates on the same line closer than 24 px shift along the line, keeping route order, to a 24 px pitch. More than 3 plates in one segment become one "+n" plate with a range badge ("4–9"); it is filled if any of them is unresolved, and Enter or a click lists them in the detail panel.
 - **"Where it got stuck" list** (desktop x 32–540; mobile below the route): one row per pattern.
   - The number badge, the plate, then a **bold kind phrase** followed by a plain summary (UI 13.5).
   - A mono 11.5 muted location line: `<lane> · <episode> · <file>:<line>`.
   - The footer reads: "Detected patterns are found by rules, not by AI." and links to "What counts as trouble?" (a section of How to read).
-  - When there are no patterns, the list says: "No trouble detected. No failed runs, retries, reverts or interruptions." with a hollow ◇ glyph.
+  - When there are no patterns, the list says: "No trouble detected. No failed runs, retries, reverts or interruptions." with the ok status glyph (§8.6) and the status word "none" in its accessible name.
 
 ### 8.6 Status glyphs (step and lane level)
 
@@ -397,12 +408,15 @@ Everything **below** the route belongs to side trails.
 |---|---|---|
 | ok | `--tg-ok` circle with a paper ✓ | "passed", "done", "exit 0", "approved", "PASS" |
 | error | `--tg-trouble` circle with a paper ✕ | "failed", "exit <n>", "changes requested", "FAIL" |
-| interrupted | Muted square outline with ‖ | "interrupted" |
+| interrupted | Muted circle outline with ‖ (status glyphs are circles; squares are trouble plates) | "interrupted" |
 | unknown | Hollow muted circle | "no result recorded" |
 
 A status glyph never appears without its word next to it, or in the accessible name when the space is a 16 px cell in a dense list.
 
 ### 8.7 Who is speaking: line styles [13 outline, 17 detail, 21 overlay]
+
+These styles apply only to text rules, cards, tags and glyph outlines. Route and lane geometry is always solid: idle breaks, folds and rewind spurs are drawn with gaps, chips and bars (§8.1, §8.4, §8.11), never with dotted or dashed lines. The only dashed lines on the map are the AI `supports` curves in detail [21].
+
 
 | Source | Style | Words |
 |---|---|---|
@@ -418,7 +432,7 @@ The card uses `--tg-surface` with a hairline border. Its header is the answer gl
 
 - **Left column: files.**
   - "<n> files changed" (UI 13/600).
-  - The top 5 files by edits: the path in mono 12.5, the edit count right-aligned in a mono column, and an ink bar 10 px high with length = 12 px × edits (maximum 48 px, the same scale across the card).
+  - The top 5 files by edits: the path in mono 12.5, the edit count right-aligned in a mono column, and an ink bar 10 px high with length `max(4, 48 · edits / maxEditsShown)` px (the same scale across the card). The printed count is exact.
   - Then a link to "+<n> more files", which opens the full list in the detail panel.
   - Created files get a "new" suffix in muted mono. Files whose net change was reverted are excluded (PLAN §5.11), and the number excluded is written as "(1 reverted file not counted)".
 - **Right column: proof and answer.**
@@ -430,7 +444,7 @@ The card uses `--tg-surface` with a hairline border. Its header is the answer gl
 - **Label:** "TASK · <SOURCE> · <MODEL> [· SAMPLE]", mono uppercase muted. SOURCE is one of CLAUDE CODE, CODEX, GROK BUILD or CHAT.
 - **Title:** the first user request in serif. The 280-character rule from M1 applies, with "more" when longer.
 - **Meta row (mono 12.8 muted):** "<wall> wall · <active> active · <n> tool calls · <n> subagents · <n> thinking (text not stored)". The wall time is shown only when it differs from active time by more than 10 min; active time = the sum of gaps under 10 min. Zero counts are omitted.
-- **Honesty label** (M5, D29), always visible, never dismissible: an ⓘ glyph, then "Written reasoning is the agent's own account, not a record of how the model computed." followed by the link "How to read this map".
+- **Honesty label** (M5, D29), always visible, never dismissible: an ⓘ glyph, then "Written reasoning is the agent's own account, not a record of how the model computed." followed by the link "How to read this map" (the same link text on desktop and mobile).
 - **At a glance** (desktop: right column under a 1 px ink top rule; mobile: under the task). Three rows, each a glyph, a **bold lead** and the rest:
   1. "Verified: <command> passed" / "Not verified: <command> failed" / "No verification run found"
   2. "<n> trouble spots, <k> resolved" / "No trouble detected"
@@ -447,7 +461,7 @@ The card uses `--tg-surface` with a hairline border. Its header is the answer gl
 ### 8.11 Labels, truncation and folding
 
 - Episode titles: maximum 2 lines; lane names: 1 line; both get an ellipsis and keep their full text in the accessible name.
-- **More than 12 episodes on a lane (M1b).** The middle of the route folds into one segment drawn as a dotted route with "··· <n> more episodes · <steps> steps". Its blazes still show as one "+n" plate. Enter or a click unfolds it, and the route then scrolls horizontally inside the band with sticky lane labels. The first 3 and the last 8 episodes always stay visible.
+- **More than 12 episodes on a lane (M1b).** The middle of the route folds into one solid 56 px segment carrying a bordered chip (`--tg-surface`, 1 px ink border, radius 2) that reads "··· <n> episodes · <steps> steps". Its blazes still show as one "+n" plate with a range badge (§8.5). Enter or a click unfolds it, and the route then scrolls horizontally inside the band with sticky lane labels. The first 3 and the last 8 episodes always stay visible.
 - **5,000-step sessions.** The glance only ever lays out episodes, never steps (G2). Steps appear only in the detail step list, which is windowed (40 rows rendered).
 
 ---
@@ -475,9 +489,9 @@ See `wireframe-glance-mobile.png`.
 - **Then, in order:** the task (serif 25, 2 lines), the meta row (active time, calls, subagents only), the honesty label (2 lines), and the At a glance rows.
 - **The route turns vertical:**
   - The rail runs at x = 28, 4 px ink, top to bottom.
-  - Each episode is a row of at least 40 px: the glyph on the rail, the title (UI 14/600) at x = 48, and the count right-aligned at x = 374.
-  - A side trail is a short 45° siding off the rail at x = 44, with one sub-row per lane: status glyph, "<agent> · <n> calls" in mono, and its blazes right-aligned with their numbers.
-  - An idle break is a dotted rail with "≈<n> h idle".
+  - Each episode is a row of at least 44 px: the glyph on the rail, the title (UI 14/600) at x = 48, and the count right-aligned at x = 374. Rows have one height, so mobile drops the length channel; the printed counts carry effort instead.
+  - A side trail is a short 45° siding off the rail at x = 44, with one sub-row (≥ 44 px) per lane or per bundle (§8.3): status glyph, "<agent> · <n> calls" in mono, and its blazes right-aligned with their numbers. Each blaze's hit target is ≥ 44 px wide and the full sub-row height; with a single blaze the whole sub-row is the target.
+  - An idle break is a 44 px gap in the rail with two 1.5 px slashes and "≈<n> h idle".
 - **Sticky destination bar** at the bottom (56 px, surface, 1 px ink top rule): the answer glyph, "DESTINATION", "<n> files · <verified|not verified> · <final status>", and a chevron. A tap scrolls to the full destination card, which comes after the stuck list at the end of the page.
 - The first viewport answers Q1, Q3 and Q4 (At a glance plus the sticky bar) and starts Q2. There is no horizontal scroll.
 
@@ -490,7 +504,8 @@ See `wireframe-glance-mobile.png`.
 ### 10.1 Detail panel [17]
 
 - **Layout.** A 440 px panel on the right at ≥ 1024, with surface fill and a 1 px ink left rule. The map reflows into the remaining width, and the trailhead compacts to the serif title at 22 px plus the honesty line.
-- **Mobile.** The panel becomes a bottom sheet: 60 vh by default, dragged up to 90 vh, with a 4×32 px muted grabber and a close button. The map stays scrollable above it.
+- **Semantics.** The panel is a non-modal `<aside aria-labelledby="<title id>">`, not a dialog: the map stays operable. On open, focus moves to the panel title (`tabindex="-1"`); Esc or Close returns it to the invoking item (§10.3).
+- **Mobile.** The panel becomes a non-modal bottom sheet: 60 vh by default, 90 vh expanded, with a 4×32 px muted grabber, an "Expand" / "Collapse" button (the single-pointer alternative to dragging, WCAG 2.5.7) and a close button. The map stays scrollable above it, and the page sets `scroll-padding-bottom` to the sheet height while it is open (64 px for the sticky destination bar otherwise), so a focused item is never hidden behind it (WCAG 2.4.11).
 - **Contents, top to bottom:**
   1. A breadcrumb (mono 11.5): `<lane> › <episode> › <item>`, plus a close button (36×28).
   2. A kind line: the glyph or plate, then "Detected pattern · <kind> · <resolved>", or "<Kind> step", or "Episode".
@@ -498,13 +513,13 @@ See `wireframe-glance-mobile.png`.
   4. For assistant or thinking items: the honesty label again, with the dotted rule (M5).
   5. **Selected step**, under the label "SELECTED STEP · <n> OF <N>": the status glyph, "<Category> · <status word> · exit <n>" and a relative time. Then by tool:
      - **Bash:** the command in a mono box, then "OUTPUT · EXCERPT" (stderr first, up to 12 lines).
-     - **Edit:** a mini diff with old lines in `--tg-trouble` text on a wash background and new lines on paper. Each line is prefixed with "−" or "+", so colour is never alone. It is rendered as text.
+     - **Edit:** a mini diff with old lines in `--tg-error` text on `--tg-wash` (5.74 light / 6.53 dark, §6.2) and new lines in ink on paper. Each line is prefixed with "−" or "+", so colour is never alone. It is rendered as text. `--tg-trouble` is never text.
      - **Read/Grep:** the path and the pattern.
      - **Agent:** the description and "Open lane".
   6. **Provenance** (§8.10) with "Show raw" and "Copy link to step".
   7. Navigation: "← Previous evidence" and "Next evidence →" (or previous/next step).
   8. A rule note: "Found by the rule '<rule in words>'. A rule, not AI."
-  9. Key hints: "← → steps · [ ] patterns · Esc closes".
+  9. Key hints: "← → steps · [ ] patterns · Esc closes" (mobile layout: "↑ ↓ steps · [ ] patterns · Esc closes").
   10. **"Zoom into this sentence" [22]** appears only on assistant-text steps.
 - **The step strip, for a selected episode or pattern.** Under the map is a list with one row per step, 27 px each:
   - the glyph, the command or summary in mono, a status word, and the time plus `jsonl:<line>` right-aligned;
@@ -514,36 +529,52 @@ See `wireframe-glance-mobile.png`.
 ### 10.2 Outline view [13, the first viewer; permanent text alternative]
 
 - The same four regions as text, in the same order: the task card (§8.9), At a glance, "Route" and "Where it got stuck" merged into one list, and the destination.
+- **Plain document structure, no ARIA widget roles.** Each region is a `<section>` with an `<h2>` ("Task", "At a glance", "Route", "Destination").
 - The route is an `<ol>` of episodes. Each `<li>` has the glyph (`aria-hidden`), the title, the counts, trouble chips (plate glyph + number + short label) and the lane.
-- Delegate episodes contain a nested `<ol>` for the lane. Steps are in a `<details>` per episode, collapsed by default.
-- The outline uses `role="tree"` semantics (§10.3) and the same tokens and glyphs as the map. Phase 13 ships it as the default viewer; from phase 16 it is one toggle away (`?view=outline`, or `#view=outline` in a file).
+- Delegate episodes contain a nested `<ol>` for their lanes. Each episode has a disclosure `<button aria-expanded="false">` ("Steps (23)") that shows or hides its step list, collapsed by default.
+- Keyboard: native Tab order through links and buttons only; no custom arrow keys. The outline uses the same tokens and glyphs as the map. Phase 13 ships it as the default viewer; from phase 16 it is one toggle away (`?view=outline`, or `#view=outline` in a file).
 
 ### 10.3 Keyboard model [16, 17] (for a11y-reviewer approval)
 
 **Tab order:**
 
 1. header controls;
-2. task "more" and "How to read";
+2. task "more" and "How to read this map";
 3. At a glance rows (each is a link that selects its target);
 4. **the map** (one tab stop with a roving tabindex; it lands on the last selected item, otherwise the first episode);
 5. the "Where it got stuck" rows;
 6. destination links ("+n more files", "Show raw");
-7. the detail panel when open (it receives focus on open);
+7. the detail panel when open (focus moves to its title on open, §10.1);
 8. the footer.
 
-**In the map** (a composite widget, `role="group"` with `aria-roledescription="reasoning map"`; items are `role="button"`):
+**In the map.** The map container is the single tab stop: `role="application"` scoped to that container only, with `aria-roledescription="reasoning map"`, `aria-label="Reasoning map: <task title>"`, and `aria-describedby` pointing to the key help (§10.4), which ends with "The Outline view lists the same content as text." Focus moves by a roving tabindex. Items are `role="button"`; lane and fold items also carry `aria-expanded`; the selected item carries `aria-current="true"`.
+
+Horizontal layout (≥ 768 px):
 
 | Key | Action |
 |---|---|
 | ← / → | Previous / next item along the current lane: episodes, plus blazes in their position |
-| ↓ | Into the side trail leaving at the focused delegate episode, or the next track down |
-| ↑ | Back to the parent lane, at the spawning episode |
+| ↓ | On a delegate episode: to its lane item (lanes are collapsed by default, so focus lands on the lane, not inside it). On a lane: to the next parallel track down |
+| ↑ | Back up one level: from a lower track to the track above, from a lane to its spawning episode |
 | Home / End | First / last item on the lane |
-| Enter / Space | Open the detail panel (on a lane: expand or collapse it; on a fold: unfold it) |
+| Enter / Space | Open the detail panel (on a lane or bundle: expand or collapse it; on a fold: unfold it) |
 | Esc | Close the panel, then collapse the expanded lane; focus returns to the item that opened it |
-| `]` / `[` | Next / previous trouble pattern anywhere in the map (also announced) |
+| `]` / `[` | Next / previous trouble pattern anywhere in the map; past the last it wraps to the first and announces "Pattern 1 of 3, wrapped" |
 
-**In the outline:** WAI-ARIA tree. ↑/↓ move between visible items, → expands or enters, ← collapses or goes to the parent, Home/End work, and Enter opens detail.
+Vertical layout (< 768 px, and whenever the vertical route is in use, for example at 400 % zoom):
+
+| Key | Action |
+|---|---|
+| ↑ / ↓ | Previous / next item along the route |
+| → | Into the side trail of the focused delegate episode (its lane item), or the next track |
+| ← | Back to the parent lane, at the spawning episode |
+| Home / End / Enter / Space / Esc / `]` / `[` | Unchanged |
+
+- **Dead ends.** An arrow with nowhere to go does nothing and announces nothing.
+- **Key help follows the layout.** The `aria-describedby` text and the panel's key hints switch with the layout.
+- **Key scope.** `[` `]` and the arrow keys act only while focus is in the map, or on the detail panel's container or its navigation buttons. They are never page-wide handlers, and never act inside text inputs, selectable text or `<pre>` (Show raw). Handlers match on `event.key`, not `event.code`, so non-US layouts work.
+
+**In the outline:** native Tab order through links and disclosure buttons; no custom arrow keys (§10.2).
 
 **Focus visibility:** a 2 px `--tg-focus` ring with a 2 px paper gap (offset) on every stop, including SVG items (drawn as a rect around the hit area). Focus is never lost: closing or collapsing always returns focus to the invoking item.
 
@@ -553,9 +584,10 @@ See `wireframe-glance-mobile.png`.
   - Episode: "Episode 5 of 10, delegate: Phase 4 UI, second run. implementer, 62 tool calls, 36 minutes, done. 2 detected patterns."
   - Blaze: "Detected pattern 2 of 3: error streak, resolved. 4 failed checks, then passed. In implementer, Phase 4 UI, second run."
   - Lane: "Subagent lane, implementer, interrupted after 14 calls. Collapsed."
+  - Bundle: "3 subagents, 41 calls, 1 failed. Collapsed."
   - Idle break: "11 hours idle."
-- The map's `aria-describedby` points to a visually hidden paragraph listing the keys from §10.3.
-- A polite live region announces "Details: <title>" on open, "Lane expanded, 6 episodes" on expand, and "Pattern 2 of 3" on `]`/`[`.
+- The map's `aria-describedby` points to a visually hidden paragraph listing the keys for the current layout (§10.3), ending with "The Outline view lists the same content as text."
+- A polite live region announces "Details: <title>" on open, "Lane expanded, 6 episodes" on expand, "Pattern 2 of 3" on `]`/`[`, and "Pattern 1 of 3, wrapped" when it wraps.
 - Glyphs and plates are `aria-hidden`; their meaning is always in the name.
 
 ---
@@ -565,7 +597,7 @@ See `wireframe-glance-mobile.png`.
 | Moment | Spec | Reduced motion |
 |---|---|---|
 | Route draw-in (first render only, not on re-render) | The route and lanes stroke-dash from left to right in 320 ms, `--tg-ease-grow`; waypoints and labels fade in over 120 ms, staggered so the whole sequence ends by 400 ms | No animation: drawn at once |
-| Lane expand / collapse | Height and position over 200 ms, `--tg-ease-out`; other episodes dim over 120 ms | Instant |
+| Lane expand / collapse | Height and position over 200 ms, `--tg-ease-out`; other episodes change to their dimmed colours (§8.3) over 120 ms | Instant |
 | Detail panel / bottom sheet | Slides 16 px and fades in over 160 ms | Instant |
 | Selection, hover, focus | No animation (instant) | — |
 | `]`/`[` pattern jump | Scrolls into view with `behavior: smooth`, ≤ 240 ms | `auto` |
@@ -573,27 +605,31 @@ See `wireframe-glance-mobile.png`.
 | Parsing progress | A determinate bar fill, no shimmer | — |
 
 - No loops, no parallax, no auto-play.
+- Never wait on `transitionend` or `animationend` to move focus, update state or announce: with zeroed durations those events may not fire. Do the work synchronously, and let the transition only decorate it.
 - New tokens: `--tg-dur-route: 320ms`, `--tg-dur-lane: 200ms`, `--tg-dur-panel: 160ms`, `--tg-dur-lens: 240ms`, `--tg-ease-out: cubic-bezier(0.2, 0, 0, 1)`. All durations are zeroed under `prefers-reduced-motion: reduce` in tokens.css.
 
 ---
 
 ## 12. States (exact copy) [13 viewer; 19 website]
 
-| State | Visual | Copy |
-|---|---|---|
-| Parsing (website, files over 2 MB) | A determinate 4 px ink bar on a rule track, and a static dotted route skeleton in `--tg-rule` with 6 hollow waypoints | "Reading session… <n> of <N> lines" + "Cancel" button |
-| Partial parse (M8) | An ⓘ inline note under the task meta row, muted | "<n> lines could not be read and were skipped." + "Show where" (opens a list of line numbers) |
-| Still being written | ⓘ note | "This session is still being written; the last line was incomplete and was skipped. Run the command again to update." |
-| Empty session | The trailhead dot alone on a 120 px route stub, centred | "This session has no steps yet." / viewer: "Run /reasontrail again after the agent has done some work." / website: "This file has no steps we can map." |
-| Unsupported file | A `!` glyph in a `--tg-trouble` circle, text in ink | "This doesn't look like a Claude Code, Codex or Grok Build session (.jsonl)." + [23] "For a chat, paste the conversation text instead." (focuses the paste box) |
-| File over 50 MB (V5) | `!` | "This file is <n> MB. The browser can map files up to 50 MB; the command line has no limit:" + `npx reasontrail path/to/session.jsonl` in a mono box with "Copy" |
-| No subagents | The lane space collapses; the route band shrinks to 140 px | — |
-| No verification / no files | See §8.8 and §8.9 | "No test, build, lint or typecheck run found." / "answer only" |
-| Map render error | `!` | "The map couldn't be drawn. The outline has everything:" + "Open outline" |
-| Unknown `?session=` or `?step=` | ⓘ note at the top | "That map isn't here, so here is a sample." / "That step isn't in this map; showing the whole map." |
-| No JavaScript | `<noscript>` on paper | "Reasontrail needs JavaScript to draw the map. The session data is in this file; see the README." |
-| AI labels loading [21] | Dashed placeholder tags | "Asking <model> for labels… <k> of <n> batches" + "Cancel" |
-| AI labels failed or over budget [21] | ⓘ | "AI labels aren't available right now. The map is complete without them." |
+| State | Visual | Copy | Announced |
+|---|---|---|---|
+| Parsing (website, files over 2 MB) | A determinate 4 px ink bar on a rule track, and a static route skeleton in `--tg-rule` with 6 hollow waypoints (solid, §8.7) | "Reading session… <n> of <N> lines" + "Cancel" button | The bar is `role="progressbar"` with `aria-valuenow`, `aria-valuemax` and `aria-valuetext="<n> of <N> lines"`. A polite live region says "Reading session" at the start, then at about every 25 %, then "Map ready: <n> episodes, <k> detected patterns". Cancel announces "Reading cancelled" and moves focus to the drop zone |
+| Partial parse (M8) | An ⓘ inline note under the task meta row, muted | "<n> lines could not be read and were skipped." + "Show where" (opens a list of line numbers) | On-load note: static text, not announced |
+| Still being written | ⓘ note | "This session is still being written; the last line was incomplete and was skipped. Run the command again to update." | Static text |
+| Empty session | The trailhead dot alone on a 120 px route stub, centred | "This session has no steps yet." / viewer: "Run /reasontrail again after the agent has done some work." / website: "This file has no steps we can map." | Static text |
+| Unsupported file | A `!` glyph in a `--tg-trouble` circle, text in ink | "This doesn't look like a Claude Code, Codex or Grok Build session (.jsonl)." + [23] "For a chat, paste the conversation text instead." (focuses the paste box) | After a drop or paste (a user action): `role="alert"` |
+| File over 50 MB (V5) | `!` | "This file is <n> MB. The browser can map files up to 50 MB; the command line has no limit:" + `npx reasontrail path/to/session.jsonl` in a mono box with "Copy" | `role="alert"` |
+| No subagents | The lane space collapses; the route band shrinks to 140 px | — | — |
+| No verification / no files | See §8.8 and §8.9 | "No test, build, lint or typecheck run found." / "answer only" | Static text |
+| Map render error | `!` | "The map couldn't be drawn. The outline has everything:" + "Open outline" | `role="alert"` when it follows a user action (toggle, drop); static on first load |
+| Unknown `?session=` or `?step=` | ⓘ note at the top | "That map isn't here, so here is a sample." / "That step isn't in this map; showing the whole map." | On-load note: static text |
+| No JavaScript | `<noscript>` on paper | "Reasontrail needs JavaScript to draw the map. The session data is in this file; see the README." | — |
+| AI labels loading [21] | Dashed placeholder tags | "Asking <model> for labels… <k> of <n> batches" + "Cancel" | Polite: "Asking <model> for labels" at the start, "AI labels added" at the end |
+| AI labels failed or over budget [21] | ⓘ | "AI labels aren't available right now. The map is complete without them." | Polite, once |
+
+- The ⓘ and `!` glyphs are `aria-hidden`; the text carries the meaning.
+- The polite live region and the alert container are present in the DOM, empty, from page load, so the first message is not lost.
 
 Errors are always calm and specific. There are no stack traces, no blank page, and no red full-screen banners.
 
@@ -699,7 +735,7 @@ Verified (pnpm check:browser passed) · 3 trouble spots, 1 resolved · 22 files 
 }
 ```
 
-`tokens.test.ts` gains the contrast rows from §6.2 and the ΔE rows from §6.3 with values ≥ 20, so the palette cannot silently regress.
+`tokens.test.ts` gains the contrast rows from §6.2 (including `--tg-lane` on `--tg-lane-band` and `--tg-error` on `--tg-wash` in both themes) and the ΔE rows from §6.3 with values ≥ 20, so the palette cannot silently regress.
 
 The `--tg-` prefix stays after the rename. It is internal, and renaming it would churn every phase 1–9 file for no user value. The main agent records this in DECISIONS.md.
 
@@ -727,23 +763,23 @@ Each criterion can be checked from a 1280×800 or 390×844 screenshot, light and
 
 - **DM1 [13]** The header wordmark is the trail mark (§4.1 geometry), then "reason" in Plex Mono 500 and "trail" in Instrument Serif Italic, baseline-aligned with no space. It has `aria-label="Reasontrail"`, and `<title>` contains "Reasontrail". No user-visible "token-garden" remains outside the lens credits.
 - **DM2 [13]** No hex colours in `src/map/**`, `src/viewer/**` or `src/site/**`. All colours are `var(--tg-*)` (grep).
-- **DM3 [13]** `tokens.test.ts` asserts every new token's contrast from §6.2 and every ΔE ≥ 20 row from §6.3, and passes. Text ≥ 4.5:1 and marks ≥ 3:1 on paper and surface in both themes.
+- **DM3 [13]** `tokens.test.ts` asserts every contrast row from §6.2 (including `--tg-error` on `--tg-wash`: 5.74 light / 6.53 dark, and `--tg-lane` on `--tg-lane-band`) and every ΔE ≥ 20 row from §6.3, and passes. `--tg-lane` is never used as a text colour (grep). Text ≥ 4.5:1 and marks ≥ 3:1 on paper and surface in both themes.
 - **DM4 [16]** A grayscale and a deutan-simulated screenshot of each sample's glance still answer Q3 and Q4 (§16). Every `[data-status]` glyph has a status word in visible text or in its accessible name, and every `[data-trouble-kind]` has a glyph and a text label.
 
 **Task card**
 
 - **DM5 [13]** The task card is the first content region. It has the "TASK · <SOURCE> · <MODEL>" label, a serif italic title (≥ 31 px desktop, ≥ 25 px mobile, ≤ 2 lines plus "more"), and a mono meta row with active time, tool calls, subagents and the thinking count. Wall time appears when idle time exceeds 10 min.
-- **DM6 [13]** The honesty label text matches M5 exactly. It is visible without interaction on both viewports, inside `[data-region="task"]`, and links to How to read. It is repeated in the detail panel for assistant and thinking steps (DOM).
+- **DM6 [13]** The honesty label text matches M5 exactly. It is visible without interaction on both viewports, inside `[data-region="task"]`, and ends with a link whose text is exactly "How to read this map" on both viewports. It is repeated in the detail panel for assistant and thinking steps (DOM).
 - **DM7 [16]** Three At a glance rows (`[data-glance]`), each a glyph, a bold lead and text. They are fully visible in the first viewport at 1280×800 and at 390×844.
 
 **Route**
 
-- **DM8 [16]** The main route is a single 4 px ink horizontal path. Episodes run left to right in sequence. Segment lengths follow `clamp(56, 36+19.5·√steps, 240)` before uniform scaling (unit test on `layout.ts`). Boundaries are paper ticks.
-- **DM9 [16]** Each episode shows its kind glyph from §8.2 on the line, and a title of ≤ 2 lines plus a mono count above the line. No two label bounding boxes intersect (flow assertion), and no label is under 11.5 px.
-- **DM10 [16]** Idle gaps over 10 min render as a dotted break with "≈<n> h idle" or "min" (`[data-idle-ms]`). There is no linear time axis anywhere on the glance.
-- **DM11 [16]** At most 12 episodes are drawn per lane. Any surplus is one fold segment with "··· <n> more episodes · <steps> steps", and its trouble count is kept.
-- **DM12 [16]** Subagents are 2 px `--tg-lane` side trails below the route with 45° leave and rejoin, collapsed by default. The label is the agent type in mono, plus a status glyph and "<n> calls · <status word>". Interrupted lanes end in a perpendicular bar and do not rejoin. Parallel lanes stack as sidings, at most 3 tracks.
-- **DM13 [16]** Each detected pattern is a 20 px blaze plate: filled when unresolved, outlined when resolved, with its kind glyph from §8.5 and an ink number badge. Badge numbers 1…n follow route order and match the rows of "Where it got stuck" one to one.
+- **DM8 [16]** The main route is a single 4 px ink horizontal path. Episodes run left to right in sequence. Segment lengths follow `clamp(56, 36 + k·√steps, 240)` with `k = min(19.5, 204/√maxVisibleSteps)` before uniform scaling, and step-anchored marks sit at `segStart + segLen · indexInEpisode / steps` (unit tests on `layout.ts`). Each kind glyph is centred on its segment start; there are no boundary ticks.
+- **DM9 [16]** Each episode shows its kind glyph from §8.2 on the line, and a title of ≤ 2 lines plus a mono count above the line. No two label bounding boxes intersect (flow assertion), and no label is under 11.5 px, except badge numerals (mono 600, 10.5 px in a 16 px badge, §8.5).
+- **DM10 [16]** Idle gaps over 10 min render only at episode boundaries, as a 44 px gap with two slashes and "≈<n> h idle" or "min" (`[data-idle-ms]`), at most 3 per map; other gaps appear as "· <n> min idle" in a count label. No route or lane path has a `stroke-dasharray`. There is no linear time axis anywhere on the glance.
+- **DM11 [16]** At most 12 episodes are drawn per lane. Any surplus is one solid fold segment with a bordered chip "··· <n> episodes · <steps> steps", and its trouble count is kept.
+- **DM12 [16]** Subagents are 2 px `--tg-lane` side trails below the route with 45° leave and rejoin, collapsed by default. The label is the agent type in mono, plus a status glyph and "<n> calls · <status word>". Lane names are ink, never `--tg-lane`. Interrupted lanes end in a perpendicular bar and do not rejoin. Parallel lanes stack as sidings, at most 3 tracks. Every drawn lane span is ≥ 96 px; lanes that cannot fit are one bundled lane ("<n> subagents", worst status, "<calls> calls · <k> failed") that expands on Enter or click.
+- **DM13 [16]** Each detected pattern is a 20 px blaze plate: filled when unresolved, outlined when resolved, with its kind glyph from §8.5 and a 16 px ink number badge. Plates on one line are ≥ 24 px apart; more than 3 in a segment are one "+n" plate with a range badge. Badge numbers 1…n follow route order and match the rows of "Where it got stuck" one to one.
 - **DM14 [16]** "Where it got stuck" has one row per pattern: badge, plate, bold kind phrase and summary, and a mono location line. The footer reads "Detected patterns are found by rules, not by AI." With no patterns, it shows the "No trouble detected…" copy.
 
 **Outcome**
@@ -751,43 +787,43 @@ Each criterion can be checked from a 1280×800 or 390×844 screenshot, light and
 - **DM15 [16]** The destination card has:
   - the answer glyph and "DESTINATION · WHAT CHANGED";
   - "<n> files changed";
-  - the top 5 files with right-aligned mono edit counts and ink bars on a shared scale (maximum 48 px), plus "+n more files";
+  - the top 5 files with right-aligned exact mono edit counts and ink bars of `max(4, 48 · edits / maxEditsShown)` px, plus "+n more files";
   - the last verification as glyph, command, status word and lane, or the "No test, build, lint or typecheck run found." copy;
   - a final answer excerpt of ≤ 3 lines with a dotted left rule and "The agent's own words · file:line".
 
   On desktop a 1 px connector joins the route terminus to the card.
-- **DM16 [13]** The outline view shows the four regions as text in the same order: an `<ol>` of episodes with glyph, title, counts and trouble chips, and nested lanes. It is reachable from the Map/Outline toggle and `?view=outline` / `#view=outline`, and it is the only view in phase 13.
+- **DM16 [13]** The outline view is plain document structure: an `<h2>` per region in the map's order, an `<ol>` of episodes with glyph (`aria-hidden`), title, counts and trouble chips, nested `<ol>` lanes, and one disclosure `<button aria-expanded>` per episode for its steps. It has no `role="tree"`, no ARIA widget roles and no custom arrow keys (DOM and Tab-only flow). It is reachable from the Map/Outline toggle and `?view=outline` / `#view=outline`, and it is the only view in phase 13.
 
 **Detail and provenance**
 
-- **DM17 [17]** The detail panel is 440 px on the right at ≥ 1024 px, and a bottom sheet (60–90 vh) below 768 px. It shows the breadcrumb, kind line, title (20/600), summary, selected step block (mono boxes for command and output), provenance (file:line, uuid, "Show raw", "Copy link to step"), and previous/next navigation.
-- **DM18 [17]** The selected item is inverted (ink fill, paper text). Evidence rows have the `--tg-wash` background, and the selected step row has a 4 px ink left bar. In expanded-lane mode the non-expanded main episodes are at 45 % opacity.
+- **DM17 [17]** The detail panel is a non-modal `<aside aria-labelledby>`, 440 px on the right at ≥ 1024 px, and a non-modal bottom sheet (60–90 vh) with an "Expand" / "Collapse" button below 768 px; on open, focus is on the panel title (`tabindex="-1"`), and a focused map item is never covered by the sheet or the sticky bar (`scroll-padding-bottom`). It shows the breadcrumb, kind line, title (20/600), summary, selected step block (mono boxes for command and output), provenance (file:line, uuid, "Show raw", "Copy link to step"), and previous/next navigation.
+- **DM18 [17]** The selected item is inverted (ink fill, paper text). Evidence rows have the `--tg-wash` background, and the selected step row has a 4 px ink left bar. In expanded-lane mode the non-expanded main episodes are dimmed by colour: strokes and glyphs `--tg-ink-muted` (≥ 3:1) and labels `--tg-ink-muted`. Once transitions settle, no map element has `opacity` below 1 (computed style). Edit-diff old lines use `--tg-error` text with a "−" prefix.
 - **DM19 [17]** "Show raw" renders a `<pre>` as text (no HTML injection: a `<b>` in a transcript appears literally), with `max-height: 50vh` and scrolling. Redaction placeholders have a dotted underline and the tooltip "Redacted".
 - **DM20 [13]** Thinking with no stored text reads "thinking (text not stored)" with a dotted outline glyph. Consecutive ones collapse to "×n", and no invented text appears.
 - **DM21 [17]** Line styles follow §8.7: the agent's own words have a dotted rule, recorded facts are solid, and patterns say "Detected pattern". [21] AI tags are dashed and say "suggested by <model>".
 
 **Keyboard, screen reader, targets**
 
-- **DM22 [16]** Tab order follows §10.3 and the map is one tab stop. ←/→/↑/↓/Home/End/Enter/Esc/`[`/`]` behave as in the table. Every focus stop shows the 2 px focus ring with a 2 px gap, and Esc returns focus to the invoking item (flow, keyboard only).
-- **DM23 [16]** Accessible names follow the §10.4 patterns (kind, title, lane, counts, status, pattern count). The map has `aria-describedby` key instructions, and a polite live region announces open, expand and pattern jumps.
-- **DM24 [16]** Hit areas for episodes, blazes, lanes and list rows are ≥ 24×24 px at 1280 and ≥ 44×44 px at 390 (DOM bounding boxes).
+- **DM22 [16]** Tab order follows §10.3 and the map is one tab stop (`role="application"` on the map container only, with `aria-roledescription`, `aria-label` and `aria-describedby`; lanes and folds have `aria-expanded`, the selected item `aria-current="true"`). Arrows, Home/End, Enter, Esc and `[`/`]` behave as in the table for the current layout (horizontal at 1280, vertical at 390); arrows at a dead end do nothing; `]` wraps with "Pattern 1 of 3, wrapped"; `[`/`]` and arrows do nothing while focus is outside the map and panel or inside `<pre>`. Every focus stop shows the 2 px focus ring with a 2 px gap, and Esc returns focus to the invoking item (flow, keyboard only).
+- **DM23 [16]** Accessible names follow the §10.4 patterns (kind, title, lane, counts, status, pattern count). The map has `aria-describedby` key instructions for the current layout, ending with "The Outline view lists the same content as text.", and a polite live region announces open, expand and pattern jumps.
+- **DM24 [16]** Hit areas for episodes, blazes, lanes and list rows are ≥ 24×24 px at 1280 and ≥ 44×44 px at 390 (DOM bounding boxes); on mobile each blaze target is ≥ 44 px wide and the full sub-row height.
 
 **Motion**
 
-- **DM25 [16]** Every transition is ≤ 320 ms and uses the motion tokens, with nothing looping. Under emulated `prefers-reduced-motion: reduce`, the computed `--tg-dur-*` values are 0ms and the first screenshot at 0 ms already shows the complete route.
+- **DM25 [16]** Every transition is ≤ 320 ms and uses the motion tokens, with nothing looping. Under emulated `prefers-reduced-motion: reduce`, the computed `--tg-dur-*` values are 0ms and the first screenshot at 0 ms already shows the complete route. No focus move, state change or announcement waits on `transitionend` (flow under reduced motion).
 
 **Mobile**
 
 - **DM26 [16]** At 390×844:
-  - the route is vertical (a rail at the left, episode rows ≥ 44 px);
+  - the route is vertical (a rail at the left, episode rows and lane sub-rows ≥ 44 px);
   - the first viewport shows the task title, the honesty label and the three glance rows;
   - a sticky destination bar is visible;
   - `document.documentElement.scrollWidth ≤ 390`.
 
 **States**
 
-- **DM27 [13]** The partial-parse, still-being-written, empty and unsupported states use the §12 glyph and exact copy (fixture-driven flow). There are never stack traces or blank pages.
-- **DM28 [19]** Website parsing shows a determinate bar with "Reading session… <n> of <N> lines" and Cancel. A file over 50 MB shows the §12 copy and the copyable `npx reasontrail …` line.
+- **DM27 [13]** The partial-parse, still-being-written, empty and unsupported states use the §12 glyph and exact copy (fixture-driven flow). On-load notes are static text with `aria-hidden` glyphs, never live regions. There are never stack traces or blank pages.
+- **DM28 [19]** Website parsing shows a determinate `role="progressbar"` (`aria-valuenow`, `aria-valuemax`, `aria-valuetext`) with "Reading session… <n> of <N> lines" and Cancel; the §12 "Announced" column holds (start, ~25 % steps, "Map ready: …", "Reading cancelled" with focus to the drop zone; user-action errors in `role="alert"`; live regions in the DOM from load). A file over 50 MB shows the §12 copy and the copyable `npx reasontrail …` line.
 
 **Chrome and surfaces**
 

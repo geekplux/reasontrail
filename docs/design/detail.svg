@@ -8,7 +8,6 @@
     .rule { stroke: #d9d3c3; stroke-width: 1 }
     .route { stroke: #1c2620; stroke-width: 4; fill: none; stroke-linecap: round }
     .side { stroke: #5f7d6c; stroke-width: 2; fill: none; stroke-linejoin: round }
-    .tick { stroke: #f6f3ea; stroke-width: 2 }
     .ann { fill: #1c2620 } .ann-t { fill: #fffdf7; font-size: 11px; font-weight: 600 }
     .ep { font-size: 13px; font-weight: 600; fill: #1c2620 }
     .cnt { font-size: 11.5px; fill: #4d5a52 }
@@ -22,11 +21,13 @@
     <symbol id="k-change" viewBox="-7 -7 14 14"><rect x="-4.5" y="-4.5" width="9" height="9" fill="#1c2620"/></symbol>
     <symbol id="k-verify" viewBox="-7 -7 14 14"><path d="M0 -6 L6 0 L0 6 L-6 0Z" fill="#f6f3ea" stroke="#1c2620" stroke-width="2"/></symbol>
     <symbol id="k-delegate" viewBox="-7 -7 14 14"><circle r="5" fill="#1c2620"/><circle r="1.8" fill="#f6f3ea"/></symbol>
+    <symbol id="k-user-dim" viewBox="-7 -7 14 14"><path d="M-4 -5.5 L5.5 0 L-4 5.5Z" fill="#4d5a52"/></symbol>
+    <symbol id="k-delegate-dim" viewBox="-7 -7 14 14"><circle r="5" fill="#4d5a52"/><circle r="1.8" fill="#f6f3ea"/></symbol>
     <symbol id="k-answer" viewBox="-8 -8 16 16"><circle r="6" fill="#f6f3ea" stroke="#1c2620" stroke-width="2"/><circle r="2.4" fill="#1c2620"/></symbol>
     <!-- Status glyphs (hue + shape; always with a word nearby) -->
     <symbol id="s-ok" viewBox="-8 -8 16 16"><circle r="7" fill="#1a6fa0"/><path d="M-3.5 0.2 L-1 2.8 L3.8 -2.6" stroke="#fffdf7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="s-err" viewBox="-8 -8 16 16"><circle r="7" fill="#a3292b"/><path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="#fffdf7" stroke-width="2" stroke-linecap="round"/></symbol>
-    <symbol id="s-int" viewBox="-8 -8 16 16"><rect x="-6.5" y="-6.5" width="13" height="13" rx="2" fill="#f6f3ea" stroke="#4d5a52" stroke-width="1.5"/><path d="M-2 -3.5 V3.5 M2 -3.5 V3.5" stroke="#4d5a52" stroke-width="2"/></symbol>
+    <symbol id="s-int" viewBox="-8 -8 16 16"><circle r="6.5" fill="#f6f3ea" stroke="#4d5a52" stroke-width="1.5"/><path d="M-2 -3 V3 M2 -3 V3" stroke="#4d5a52" stroke-width="2"/></symbol>
     <!-- Trouble blazes: 20×20 plate. Unresolved = filled blaze; resolved = outlined -->
     <symbol id="t-streak" viewBox="0 0 20 20"><rect x="1" y="1" width="18" height="18" rx="2" fill="#fffdf7" stroke="#a3292b" stroke-width="2"/><path d="M5 5 L9 9 M9 5 L5 9 M11 11 L15 15 M15 11 L11 15" stroke="#a3292b" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="t-revert" viewBox="0 0 20 20"><rect x="0" y="0" width="20" height="20" rx="2" fill="#a3292b"/><path d="M14.5 15 V8.5 A3.5 3.5 0 0 0 7.5 8.5 V12" stroke="#fffdf7" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M4.5 10 L7.5 13.5 L10.5 10" stroke="#fffdf7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -52,13 +53,14 @@
 
   <!-- compact trailhead (detail mode keeps the task visible) -->
   <text x="32" y="92" class="serif ink" font-size="22">Build phase 4: explore recorded gardens and share links</text>
-  <text x="32" y="114" font-size="12.8" class="muted">Written reasoning is the agent's own account, not a record of how the model computed. <tspan class="ink" text-decoration="underline">How to read</tspan></text>
+  <text x="32" y="114" font-size="12.8" class="muted">Written reasoning is the agent's own account, not a record of how the model computed. <tspan class="ink" text-decoration="underline">How to read this map</tspan></text>
 
   <!-- main route window (episodes 4–7), dimmed except the expanded one -->
   <text x="32" y="150" class="mono cap muted">ROUTE · EPISODE 5 OF 10 · LANE EXPANDED</text>
-  <g opacity="0.45">
-    <path class="route" d="M32 186 H160"/><use href="#k-user" x="96" y="178" width="16" height="16"/><text x="104" y="168" class="ep">Resume</text>
-    <path class="route" d="M640 186 H800"/><use href="#k-delegate" x="632" y="178" width="16" height="16"/><text x="646" y="168" class="ep">Design and a11y reviews</text>
+  <!-- dimmed by colour, not opacity: strokes, glyphs and labels in ink-muted (DESIGN §8.3) -->
+  <g>
+    <path class="route" d="M32 186 H160" style="stroke:#4d5a52"/><use href="#k-user-dim" x="96" y="178" width="16" height="16"/><text x="104" y="168" class="ep" style="fill:#4d5a52">Resume</text>
+    <path class="route" d="M640 186 H800" style="stroke:#4d5a52"/><use href="#k-delegate-dim" x="632" y="178" width="16" height="16"/><text x="646" y="168" class="ep" style="fill:#4d5a52">Design and a11y reviews</text>
   </g>
   <path class="route" d="M160 186 H640"/>
   <use href="#k-delegate" x="152" y="178" width="16" height="16"/>
@@ -69,7 +71,6 @@
   <path d="M194 252 H606" stroke="#5f7d6c" stroke-width="3" fill="none"/>
   <path class="side" d="M606 236 V220 L640 186"/>
   <text x="204" y="234" class="mono lane">implementer</text>
-  <g class="tick"><path d="M266 247 V257 M356 247 V257 M432 247 V257 M512 247 V257 M590 247 V257"/></g>
   <use href="#k-explore" x="188" y="245" width="14" height="14"/><text x="196" y="280" class="ep" font-size="12.5">Read plan</text><text x="196" y="296" class="mono cnt">18</text>
   <use href="#k-change" x="259" y="245" width="14" height="14"/><text x="268" y="280" class="ep" font-size="12.5">Write state,</text><text x="268" y="296" class="ep" font-size="12.5">App</text><text x="268" y="312" class="mono cnt">24</text>
   <!-- selected episode: inverted -->
@@ -79,11 +80,11 @@
   <use href="#k-verify" x="505" y="245" width="14" height="14"/><text x="516" y="280" class="ep" font-size="12.5">Verify,</text><text x="516" y="296" class="ep" font-size="12.5">stage</text><text x="516" y="312" class="mono cnt">12</text>
   <use href="#k-answer" x="582" y="244" width="16" height="16"/><text x="594" y="280" class="ep" font-size="12.5">Report</text>
   <!-- trouble on the expanded lane; #2 selected (focus ring with paper gap) -->
-  <rect x="373" y="213" width="30" height="30" rx="3" fill="none" stroke="#2f55d4" stroke-width="2"/>
-  <use href="#t-streak" x="378" y="218" width="20" height="20"/>
-  <use href="#badge" x="392" y="208" width="15" height="15"/><text x="399.5" y="219" text-anchor="middle" class="mono" font-size="10.5" fill="#fffdf7">2</text>
-  <use href="#t-revert" x="548" y="222" width="20" height="20"/>
-  <use href="#badge" x="562" y="214" width="15" height="15"/><text x="569.5" y="225" text-anchor="middle" class="mono" font-size="10.5" fill="#fffdf7">3</text>
+  <rect x="373" y="237" width="30" height="30" rx="3" fill="none" stroke="#2f55d4" stroke-width="2"/>
+  <use href="#t-streak" x="378" y="242" width="20" height="20"/>
+  <use href="#badge" x="390" y="230" width="16" height="16"/><text x="398" y="242" text-anchor="middle" class="mono" font-size="10.5" font-weight="600" fill="#fffdf7">2</text>
+  <use href="#t-revert" x="548" y="242" width="20" height="20"/>
+  <use href="#badge" x="560" y="234" width="16" height="16"/><text x="568" y="246" text-anchor="middle" class="mono" font-size="10.5" font-weight="600" fill="#fffdf7">3</text>
 
   <!-- step strip for the selected pattern: one tick per step, evidence washed -->
   <text x="32" y="356" class="mono cap muted">STEPS IN “RUN CHECKS ×5” · EVIDENCE HIGHLIGHTED</text>
