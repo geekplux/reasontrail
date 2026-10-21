@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RUNTIME_ALLOWLIST, checkBudgets, checkDependencies, checkWorkerImports, initialAssets } from './check-size.mjs';
+import { RUNTIME_ALLOWLIST, VIEWER_MAX, checkBudgets, checkCli, checkDependencies, checkWorkerImports, initialAssets } from './check-size.mjs';
 
 const allowed = Object.fromEntries(RUNTIME_ALLOWLIST.map((n) => [n, '*']));
 
@@ -31,5 +31,10 @@ describe('check-size', () => {
       'Worker runtime dependency in worker/b.ts: hono',
       'Worker runtime dependency in worker/b.ts: itty-router',
     ]);
+  });
+
+  it('keeps the CLI at zero runtime dependencies and the viewer template within 300 KB', () => {
+    expect(checkCli({ name: 'reasontrail' }, VIEWER_MAX)).toEqual([]);
+    expect(checkCli({ dependencies: { chalk: '*' } }, VIEWER_MAX + 1)).toEqual(['CLI runtime dependency (must be zero): chalk', 'viewer template 300.0 KB > 300 KB']);
   });
 });

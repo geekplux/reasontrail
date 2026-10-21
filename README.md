@@ -14,6 +14,16 @@ node cli/dist/cli.mjs --share     # a redacted copy in the current folder, safe 
 node cli/dist/cli.mjs --help      # every flag and the exit codes
 ```
 
+## How to read this map
+
+- **Task**: the first thing you asked, with the source, model, time and counts.
+- **At a glance**: whether the last test, build, lint or typecheck run passed, how many trouble spots were found, and how many files changed.
+- **Route**: the session cut into numbered episodes (▶ a request, ○ exploring, ■ changing files, ◇ verifying, ● handing work to a subagent, ◉ the answer). Subagents are indented under the episode that started them. Each episode's steps are behind its "Steps" button.
+- **Trouble** (square plates): error streaks, retries, reverts, rewinds, interruptions and churn. These are detected patterns found by fixed rules, not by AI.
+- **Destination**: the changed files, the last verification and the final answer.
+
+Written reasoning is the agent's own account, not a record of how the model computed. Thinking whose text was not stored is shown as "thinking (text not stored)"; nothing is invented for it.
+
 ## Develop
 
 Requires Node 20.19+ and pnpm 9.

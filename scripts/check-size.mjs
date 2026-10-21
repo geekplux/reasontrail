@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Size budgets (PLAN P1) and the runtime-dependency allowlist (PLAN Q2), checked on dist/ after `pnpm build`.
 // Usage: pnpm check:size [--dist <dir>] [--package <package.json>]
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
@@ -56,6 +56,16 @@ export function initialAssets(html) {
   };
 }
 
+/** The CLI (C3, C4): no runtime dependencies, and the viewer template (when built) at most 300 KB before session data. */
+export const VIEWER_MAX = 300 * 1024;
+export function checkCli(cliPkg, viewerBytes) {
+  const deps = Object.keys({ ...cliPkg.dependencies, ...cliPkg.optionalDependencies, ...cliPkg.peerDependencies });
+  return [
+    ...deps.map((d) => `CLI runtime dependency (must be zero): ${d}`),
+    ...(viewerBytes > VIEWER_MAX ? [`viewer template ${(viewerBytes / 1024).toFixed(1)} KB > ${VIEWER_MAX / 1024} KB`] : []),
+  ];
+}
+
 /** Compares measured sizes with BUDGETS; returns human-readable problems. */
 export function checkBudgets({ jsGzip, cssGzip, fontBytes, fontFiles }) {
   const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
@@ -86,7 +96,11 @@ function main(argv) {
   console.log(`initial JS ${kb(sizes.jsGzip)} gzip (${js.length} file(s)), CSS ${kb(sizes.cssGzip)} gzip, fonts ${kb(sizes.fontBytes)} in ${sizes.fontFiles} woff2 file(s)`);
   const workerFiles = workerSources(resolve('.'));
   console.log(`Worker: ${Object.keys(workerFiles).length} source file(s) checked for runtime dependencies`);
+  const viewer = resolve('cli/dist/viewer.html');
+  const viewerBytes = existsSync(viewer) ? statSync(viewer).size : 0;
+  console.log(`CLI: viewer template ${viewerBytes ? `${(viewerBytes / 1024).toFixed(1)} KB` : 'not built (pnpm build:cli)'}`);
   const problems = [
+    ...checkCli(JSON.parse(readFileSync(resolve('cli/package.json'), 'utf8')), viewerBytes),
     ...(js.length ? [] : ['no entry script found in index.html']),
     ...checkDependencies(pkg.dependencies),
     ...checkBudgets(sizes),
