@@ -42,6 +42,21 @@ function oneLine(s: string, max = 120): string {
   return first.length > max ? `${first.slice(0, max - 1)}…` : first;
 }
 
+/** FNV-1a, 32 bit, as 8 hex chars: a short, stable fingerprint (not a security hash). */
+export function fingerprint(text: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+function editHash(input: unknown): StepTool['editHash'] {
+  const edits = typeof input === 'object' && input !== null && Array.isArray((input as { edits?: unknown }).edits) ? ((input as { edits: unknown[] }).edits) : [input];
+  const before = edits.map((e) => str(e, 'old_string') ?? '');
+  const after = edits.map((e) => str(e, 'new_string') ?? '');
+  if (before.every((b) => b === '') && after.every((a) => a === '')) return undefined;
+  return { before: fingerprint(before.join('\u0000')), after: fingerprint(after.join('\u0000')) };
+}
+
 /** Describe a tool call: category, files it names, a short summary and (for shell tools) the verbatim command. */
 export function describeTool(name: string, input: unknown, callId?: string): StepTool {
   const category = toolCategory(name);
@@ -61,5 +76,7 @@ export function describeTool(name: string, input: unknown, callId?: string): Ste
   const tool: StepTool = { name, category, summary: oneLine(detail ? `${name} ${detail}` : name), files };
   if (callId) tool.callId = callId;
   if (command) tool.command = command.slice(0, TEXT_PREVIEW_MAX);
+  const hash = category === 'edit' ? editHash(input) : undefined;
+  if (hash) tool.editHash = hash;
   return tool;
 }
