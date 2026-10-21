@@ -90,4 +90,14 @@ export async function run({ page, root, shot, log, fail }) {
   if (!(await page.getByText(/^Shared copy · redacted \(\d+ items replaced\)$/).isVisible())) fail('shared ribbon missing');
   for (const p of await axeProblems(page, 'share', STRUCTURE_RULES)) fail(p);
   await shot('cli-share-redacted');
+
+  // 3. A browser without DecompressionStream gets a labelled, accessible error page instead of the map.
+  await page.addInitScript(() => { delete window.DecompressionStream; });
+  await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
+  const alert = page.locator('main.viewer-error [role="alert"]');
+  await alert.waitFor({ timeout: 10_000 });
+  if (!/cannot open the map.*session data is still in this file/.test((await alert.textContent()) ?? '')) fail(`no-DecompressionStream message: ${await alert.textContent()}`);
+  if ((await page.locator('h1').textContent()) !== 'Reasontrail') fail('no-DecompressionStream page has no h1');
+  for (const p of await axeProblems(page, 'no DecompressionStream', STRUCTURE_RULES)) fail(p);
+  await shot('cli-no-decompression');
 }

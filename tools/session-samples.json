@@ -28,7 +28,7 @@
       "project": "-workspace-gx-projects-token-garden",
       "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
       "steps": "4816:4981",
-      "why": "The main agent delegates three times in a row: the verifier returns FAIL with one gap in the redaction audit, an implementer closes it, and a re-verify passes. Three subagent lanes and churn markers where the verifier edits scratch files over and over while planting test secrets.",
+      "why": "The main agent delegates three times in a row: the verifier returns FAIL with one gap in the redaction audit, an implementer closes it, and a re-verify passes. Three subagent lanes; the first verifier's FAIL report is the trouble it shows (its scratch-file edits are not counted as churn).",
       "hide": {
         "s88": "a process list of the build machine",
         "s91": "a process list of the build machine"

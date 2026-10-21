@@ -8,7 +8,7 @@ export type GlyphStatus = 'ok' | 'error' | 'interrupted' | 'unknown';
 
 /** Geometry constants, px (DESIGN §8.1, §8.3, §8.5). */
 export const G = {
-  segMin: 56, segMax: 240, segBase: 36, kMax: 19.5, kNum: 204,
+  segMin: 56, segMax: 240, growMax: 480, segBase: 36, kMax: 19.5, kNum: 204,
   start: 24, end: 30, breakW: 44, pitch: 24, foldW: 56,
   laneSpan: 96, laneDrop: 34, trackGap: 64, tracks: 3,
   routeY: 76, laneLabelH: 54, monoPx: 6.9,
@@ -49,6 +49,8 @@ export interface LaneItem {
   parallel: number;
   /** Characters of mono label that fit before the next item on the track. */
   chars: number;
+  /** The lane ended on its own report, but its result never came back into the main session. */
+  noHandBack?: boolean;
 }
 
 export interface Blaze {
@@ -96,15 +98,33 @@ export function idleText(ms: number): string {
   return min >= 60 ? `≈${Math.round(min / 60)} h` : `${min} min`;
 }
 
-/** Lane status word (DESIGN §8.3): a verdict from the lane's final text, else done / failed / interrupted. */
-export function laneStatus(g: SessionGraph, lane: Lane, steps: Step[] = g.steps.filter((s) => s.laneId === lane.id)): { status: GlyphStatus; word: string } {
+const VERDICT = /\b(CHANGES REQUESTED|APPROVED|PASS|FAIL)\b/;
+
+/** The verdict of a report: the only one on its first line, or a `LABEL: VERDICT` line, else the only distinct verdict in the text. */
+export function verdictOf(text: string): string | undefined {
+  const lines = text.split('\n').map((l) => l.replace(/[*_`#>]/g, '').trim()).filter(Boolean);
+  const distinct = (t: string) => new Set([...t.matchAll(new RegExp(VERDICT, 'g'))].map((m) => m[1] as string));
+  const first = distinct(lines[0] ?? '');
+  if (first.size === 1) return [...first][0];
+  const labelled = lines.map((l) => /^[A-Za-z][\w -]{0,30}:\s*(CHANGES REQUESTED|APPROVED|PASS|FAIL)\b/.exec(l)?.[1]).find(Boolean);
+  if (labelled) return labelled;
+  const all = distinct(text);
+  return all.size === 1 ? [...all][0] : undefined;
+}
+
+/** Lane status word (DESIGN §8.3): a verdict from the lane's final text, else done / failed / interrupted. A lane whose
+ * hand-back is missing from the main session but which ended on its own report counts as done (`handBack: false`). */
+export function laneStatus(g: SessionGraph, lane: Lane, steps: Step[] = g.steps.filter((s) => s.laneId === lane.id)): { status: GlyphStatus; word: string; handBack: boolean } {
   const last = [...steps].reverse().find((s) => s.kind === 'assistant' && s.text);
-  const verdict = /\b(CHANGES REQUESTED|APPROVED|PASS|FAIL)\b/.exec(last?.text ?? '')?.[1];
-  if (lane.status === 'interrupted') return { status: 'interrupted', word: 'interrupted' };
-  if (lane.status === 'error') return { status: 'error', word: 'failed' };
-  if (verdict === 'FAIL' || verdict === 'CHANGES REQUESTED') return { status: 'error', word: verdict === 'FAIL' ? 'FAIL' : 'changes requested' };
-  if (lane.status === 'ok') return { status: 'ok', word: verdict === 'APPROVED' ? 'approved' : verdict ?? 'done' };
-  return { status: 'unknown', word: 'no result recorded' };
+  const verdict = verdictOf(last?.text ?? '');
+  if (lane.status === 'interrupted') return { status: 'interrupted', word: 'interrupted', handBack: true };
+  if (lane.status === 'error') return { status: 'error', word: 'failed', handBack: true };
+  // Undefined status: the lane ended on its report (its last step is that text) or was cut off mid-tool.
+  const reported = lane.status === undefined && !!last && steps[steps.length - 1] === last;
+  if (lane.status !== 'ok' && !reported) return { status: 'unknown', word: 'no result recorded', handBack: true };
+  const handBack = lane.status === 'ok';
+  if (verdict === 'FAIL' || verdict === 'CHANGES REQUESTED') return { status: 'error', word: verdict === 'FAIL' ? 'FAIL' : 'changes requested', handBack };
+  return { status: 'ok', word: verdict === 'APPROVED' ? 'approved' : verdict ?? 'done', handBack };
 }
 
 const RANK: Record<GlyphStatus, number> = { error: 3, interrupted: 2, unknown: 1, ok: 0 };
@@ -174,13 +194,17 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
   const drawn = new Set(gaps.filter((x) => x.ms > G.idleMs).sort((a, b) => b.ms - a.ms || a.i - b.i).slice(0, G.maxBreaks).map((x) => x.before));
   const noted = new Map(gaps.filter((x) => x.ms > G.idleMs && !drawn.has(x.before)).map((x) => [x.before, x.ms]));
 
-  // Segment lengths: clamp(56, 36 + k·√steps, 240), then a uniform scale-down to fit, floored at 56 (§8.1).
+  // Segment lengths: clamp(56, 36 + k·√steps, 240); a short route grows uniformly to fill the band (the longest
+  // segment at most 480 px), a long one shrinks uniformly to fit, floored at 56 (§8.1).
   const maxSteps = Math.max(1, ...shown.map((e) => infos.get(e.id)?.steps ?? 1));
   const k = Math.min(G.kMax, G.kNum / Math.sqrt(maxSteps));
-  const natural = shown.map((e) => clamp(G.segBase + k * Math.sqrt(infos.get(e.id)?.steps ?? 1), G.segMin, G.segMax));
+  const base = shown.map((e) => clamp(G.segBase + k * Math.sqrt(infos.get(e.id)?.steps ?? 1), G.segMin, G.segMax));
   const fixed = G.start + G.end + drawn.size * G.breakW + (folding ? G.foldW : 0);
-  // One uniform factor for every segment above the floor, found by flooring the ones it would push under 56.
   const avail = width - fixed;
+  const sum = base.reduce((a, l) => a + l, 0);
+  const grow = sum > 0 && sum < avail ? Math.max(1, Math.min(avail / sum, G.growMax / Math.max(...base))) : 1;
+  const natural = base.map((l) => l * grow);
+  // One uniform factor for every segment above the floor, found by flooring the ones it would push under 56.
   let floored = new Set<number>();
   let scale = 1;
   for (let pass = 0; pass <= natural.length; pass++) {
@@ -263,6 +287,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
       return {
         id: `lane:${l.id}`, lanes: [l], episodeId: r.episode.id, track: 0, x1, x2: Math.max(x1 + G.laneSpan, rejoins ? back : r.x + r.len - 6), rejoins,
         status: st.status, word: st.word, calls: calls(ls), failed: st.status === 'error' ? 1 : 0, ms: spanMs(ls), nested: nested.get(l.id) ?? 0, parallel: 0, chars: 0,
+        ...(st.handBack || result ? {} : { noHandBack: true }),
       };
     });
     // Sequential lanes in one segment that cannot each get 96 px become one bundle.
@@ -346,7 +371,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
   }
 
   const tracks = lanes.length > 0 ? Math.max(...lanes.map((l) => l.track)) + 1 : 0;
-  const height = G.routeY + (tracks > 0 ? G.laneDrop + (tracks - 1) * G.trackGap + G.laneLabelH : breaks.length > 0 ? 40 : 20);
+  const height = G.routeY + (tracks > 0 ? G.laneDrop + (tracks - 1) * G.trackGap + G.laneLabelH : breaks.length > 0 ? 52 : 20);
   const right = Math.max(width, routeEnd + G.end, ...lanes.map((l) => l.x2 + 8));
   return { width: right, height, routeEnd, pieces, episodes, ...(answer ? { answer } : {}), ...(fold ? { fold } : {}), lanes, blazes, breaks, tracks, numbers, order: placed.map((p) => p.t) };
 }

@@ -7,6 +7,8 @@ const axePath = require.resolve('axe-core/axe.min.js');
 /** Runs axe on the current page; returns a list of human-readable serious/critical violations, plus any violation of
  * the rule ids in `alsoFail`. */
 export async function axeProblems(page, label, alsoFail = []) {
+  // A map page is checked at rest: at least 400 ms after `tg:map-ready`, when its draw-in has ended.
+  await page.waitForFunction(() => { const m = performance.getEntriesByName('tg:map-ready')[0]; return !m || performance.now() - m.startTime >= 400; });
   await page.addScriptTag({ path: axePath });
   const violations = await page.evaluate(async () => (await window.axe.run(document)).violations);
   return violations

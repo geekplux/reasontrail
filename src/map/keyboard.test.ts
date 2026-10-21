@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionGraph } from '../../shared/session/types';
+import implementerChecks from '../sessions/samples/implementer-checks.graph.json';
+import plannerPivot from '../sessions/samples/planner-pivot.graph.json';
 import verifyFailFix from '../sessions/samples/verify-fail-fix.graph.json';
-import { blazeName, countText, episodeName, jumpPattern, laneName, move, navItems } from './keyboard';
-import { glanceLayout } from './layout';
+import { blazeName, countText, episodeName, jumpPattern, laneLines, laneName, move, navItems } from './keyboard';
+import { glanceLayout, type LaneItem, type RouteEpisode } from './layout';
 
 const g = verifyFailFix as unknown as SessionGraph;
 const L = glanceLayout(g, 1216);
@@ -26,18 +28,41 @@ describe('map keyboard model (DESIGN §10.3)', () => {
   });
 
   it('jumps through patterns in badge order and says when it wraps', () => {
-    const first = jumpPattern(L, undefined, 1);
-    expect(first?.say).toBe('Pattern 1 of 3');
-    const last = jumpPattern(L, first?.id, -1);
-    expect(last?.say).toBe('Pattern 3 of 3, wrapped');
-    expect(jumpPattern(L, last?.id, 1)?.say).toBe('Pattern 1 of 3, wrapped');
+    const two = { ...(implementerChecks as unknown as SessionGraph) };
+    const P = glanceLayout({ ...two, trouble: [...two.trouble, ...(plannerPivot as unknown as SessionGraph).trouble.map((t) => ({ ...t, id: 'tx', stepIds: [two.steps.at(-1)?.id ?? ''] }))] }, 1216);
+    expect(jumpPattern(L, undefined, 1)).toBeUndefined();
+    const first = jumpPattern(P, undefined, 1);
+    expect(first?.say).toBe('Pattern 1 of 2');
+    const last = jumpPattern(P, first?.id, -1);
+    expect(last?.say).toBe('Pattern 2 of 2, wrapped');
+    expect(jumpPattern(P, last?.id, 1)?.say).toBe('Pattern 1 of 2, wrapped');
   });
 
   it('names items with kind, title, counts, status and patterns, the drawn label included', () => {
     const r = L.episodes[0];
     if (!r) throw new Error('no episode');
-    expect(episodeName(L, r, 3)).toBe(`Episode 1 of 3, delegate: Delegate: Verify phase 12 ${countText(r)}, 33 min. subagent verifier, FAIL. 3 detected patterns.`);
+    expect(episodeName(L, r, 3)).toBe(`Episode 1 of 3, Delegate: Verify phase 12 ${countText(r)}, 33 min. subagent verifier, FAIL. No detected patterns.`);
     expect(laneName(L.lanes[0] as never)).toMatch(/^Subagent lane: verifier 35 calls · \d+ min · FAIL\. Verify phase 12\.$/);
-    expect(blazeName(L, L.blazes[0] as never)).toMatch(/^Detected pattern 1 of 3: churn, resolved\. Churn: .* In verifier, Delegate: Verify phase 12\.$/);
+    expect(laneName({ ...(L.lanes[0] as LaneItem), noHandBack: true })).toContain('FAIL, hand-back not recorded in the main session.');
+    const I = glanceLayout(implementerChecks as unknown as SessionGraph, 1216);
+    expect(blazeName(I, I.blazes[0] as never)).toMatch(/^Detected pattern 1 of 1: error streak, unresolved\. Error streak: .* In the main route, .+\.$/);
+  });
+});
+
+describe('labels never cut a count or a status word (DM9)', () => {
+  it('drops the idle note, then the unit, to fit the count line', () => {
+    const r = { ...(L.episodes[0] as RouteEpisode), steps: 23, idle: ' · 12 min idle' };
+    expect(countText(r)).toBe('23 steps · 12 min idle');
+    expect(countText(r, 100)).toBe('23 steps');
+    expect(countText(r, 30)).toBe('23');
+  });
+
+  it('drops the lane duration first, then "calls", and keeps the word whole', () => {
+    const l = { ...(L.lanes[0] as LaneItem), calls: 35, ms: 20 * 60_000, word: 'changes requested' };
+    expect(laneLines(l)).toMatchObject({ count: '35 calls · 20 min ·', word: 'changes requested' });
+    expect(laneLines(l, { availPx: 260 }).count).toBe('35 calls ·');
+    expect(laneLines(l, { availPx: 180 }).count).toBe('35 ·');
+    expect(laneLines(l, { availPx: 40 })).toMatchObject({ count: '35 ·', word: 'changes requested' });
+    expect(laneLines(l, { duration: false }).count).toBe('35 calls ·');
   });
 });

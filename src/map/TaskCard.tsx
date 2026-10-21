@@ -2,7 +2,7 @@
 // and the outline.
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
-import { InfoGlyph, KindGlyph, NeutralPlateGlyph, PlateGlyph, StatusGlyph } from './Glyph';
+import { InfoGlyph, KindGlyph, NeutralPlateGlyph, StatusGlyph } from './Glyph';
 import { HonestyLabel } from './HonestyLabel';
 import { REQUEST_MAX, glance, parseNotes, skippedWhere, taskCard } from './outline';
 
@@ -74,7 +74,7 @@ export function GlanceRows({ g }: { g: SessionGraph }) {
       <ul className="glance-rows">
         {glance(g).map((r) => (
           <li key={r.key} data-glance={r.key} data-status={r.status}>
-            {r.key === 'trouble' && g.trouble.length > 0 ? (open ? <PlateGlyph kind={open.kind} resolved={false} /> : <NeutralPlateGlyph />) : r.key === 'files' ? <KindGlyph kind="change" /> : <StatusGlyph status={r.status} />}{' '}
+            {r.key === 'trouble' && g.trouble.length > 0 ? <NeutralPlateGlyph open={open !== undefined} /> : r.key === 'files' ? <KindGlyph kind="change" /> : <StatusGlyph status={r.status} />}{' '}
             <span><strong>{r.lead}</strong>{r.rest}</span>
           </li>
         ))}

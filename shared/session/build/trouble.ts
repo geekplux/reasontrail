@@ -1,7 +1,7 @@
 // Trouble patterns (PLAN §5.11, D23): six rules, each a "detected pattern" with evidence steps. Thresholds: ./constants.
 import type { Edge, Episode, Step, Trouble } from '../types';
 import { CHURN_MIN_EDITS, ERROR_STREAK_MIN, RETRY_WINDOW } from './constants';
-import { type FileEvent, type Verification, relPath, resultsByCall } from './outcome';
+import { type FileEvent, type Verification, countedPaths, relPath, resultsByCall } from './outcome';
 import { commandKey } from './shell';
 
 type Draft = Omit<Trouble, 'id' | 'label' | 'raw'>;
@@ -122,10 +122,11 @@ export function findTrouble(steps: Step[], edges: Edge[], episodes: Episode[], h
 
   // churn: ≥ CHURN_MIN_EDITS changes to one file within one (fine-grained) episode.
   const parents = new Set(episodes.map((e) => e.parentId));
+  const counted = countedPaths(history, cwd);
   for (const ep of episodes.filter((e) => !parents.has(e.id))) {
     const ids = new Set(ep.stepIds);
     const perFile = new Map<string, Step[]>();
-    for (const h of history) if (h.type !== 'revert' && ids.has(h.step.id)) push(perFile, h.path, h.step);
+    for (const h of history) if (h.type !== 'revert' && ids.has(h.step.id) && counted.has(h.path)) push(perFile, h.path, h.step);
     for (const [path, edits] of perFile) {
       if (edits.length < CHURN_MIN_EDITS) continue;
       const last = edits[edits.length - 1] as Step;

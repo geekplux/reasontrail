@@ -81,23 +81,36 @@ export function relPath(cwd: string | undefined, p: string): string {
   return cwd && p.startsWith(`${cwd}/`) ? p.slice(cwd.length + 1) : p;
 }
 
-/** Files changed (minus net-reverted files and scratch or build output, see `isScratchOutput`), the last verification and the answer step. */
-export function buildOutcome(steps: Step[], history: FileEvent[], checks: Verification[], mainLane: string, cwd?: string): Outcome {
-  const files = new Map<string, { edits: number; live: number; created: boolean; reverted: boolean; fresh: boolean; last: FileEvent['type'] }>();
+/** The files a session's outcome and its trouble count: everything in the history except scratch or build output (see
+ * `isScratchOutput`) and files created or freshly written by the session and then deleted (scratch files). */
+export function countedPaths(history: FileEvent[], cwd?: string): Set<string> {
+  const seen = new Map<string, { fresh: boolean; created: boolean; last: FileEvent['type'] }>();
   for (const e of history) {
     if (isScratchOutput(relPath(cwd, e.path))) continue;
-    // `fresh`: first written by a non-Edit tool (Edit needs an existing file). Fresh files deleted last were scratch files.
-    const f = files.get(e.path) ?? { edits: 0, live: 0, created: false, reverted: false, fresh: e.type === 'write' && e.step.tool?.category !== 'edit', last: e.type };
+    // `fresh`: first written by a non-Edit tool (Edit needs an existing file).
+    const f = seen.get(e.path) ?? { fresh: e.type === 'write' && e.step.tool?.category !== 'edit', created: false, last: e.type };
+    if (e.created && !seen.has(e.path)) f.created = true;
+    f.last = e.type;
+    seen.set(e.path, f);
+  }
+  return new Set([...seen].filter(([, f]) => !((f.fresh || f.created) && f.last === 'delete')).map(([path]) => path));
+}
+
+/** Files changed (minus net-reverted files and the paths `countedPaths` drops), the last verification and the answer step. */
+export function buildOutcome(steps: Step[], history: FileEvent[], checks: Verification[], mainLane: string, cwd?: string): Outcome {
+  const counted = countedPaths(history, cwd);
+  const files = new Map<string, { edits: number; live: number; created: boolean; reverted: boolean }>();
+  for (const e of history) {
+    if (!counted.has(e.path)) continue;
+    const f = files.get(e.path) ?? { edits: 0, live: 0, created: false, reverted: false };
     if (e.type === 'revert') f.live = 0;
     else if (e.restores) f.live = Math.max(0, f.live - 1);
     else f.live++;
     if (e.type === 'revert' || e.restores) f.reverted = true;
     if (e.type !== 'revert') f.edits++;
     if (e.created && f.edits === 1) f.created = true;
-    f.last = e.type;
     files.set(e.path, f);
   }
-  for (const [path, f] of files) if ((f.fresh || f.created) && f.last === 'delete') files.delete(path);
   const netReverted = [...files].filter(([, f]) => f.reverted && f.live === 0).map(([path]) => path);
   const outcome: Outcome = {
     files: [...files]
@@ -108,9 +121,12 @@ export function buildOutcome(steps: Step[], history: FileEvent[], checks: Verifi
   if (netReverted.length > 0) outcome.revertedFiles = netReverted.length;
   const last = checks[checks.length - 1];
   if (last) outcome.lastVerification = { stepId: last.step.id, command: verifyCommand(last.step.tool?.command ?? '').slice(0, 200), ok: last.ok };
+  // The answer: the last main-lane assistant text, unless the main lane made a tool call after it (then none was recorded).
   for (let i = steps.length - 1; i >= 0; i--) {
     const s = steps[i] as Step;
-    if (s.laneId === mainLane && s.kind === 'assistant') {
+    if (s.laneId !== mainLane) continue;
+    if (s.kind === 'tool-call') break;
+    if (s.kind === 'assistant' && s.text) {
       outcome.answerStepId = s.id;
       break;
     }

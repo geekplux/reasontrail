@@ -26,7 +26,7 @@ html = html.replace(scripts[0][0], '').replace(styles[0][0], () => `<style>${css
 const packed = gzipSync(Buffer.from(js, 'utf8'), { level: 9 }).toString('base64');
 const loader = `(async()=>{const r=document.getElementById('root');try{const b=Uint8Array.from(atob(document.getElementById('reasontrail-app').textContent),(c)=>c.charCodeAt(0));` +
   `const t=await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text();const s=document.createElement('script');s.textContent=t;document.body.append(s)}` +
-  `catch{r.textContent='This browser cannot open the map: it needs a current Chrome, Edge, Firefox or Safari.'}})()`;
+  `catch{r.innerHTML='<main class="viewer-error"><h1>Reasontrail</h1><p role="alert">This browser cannot open the map: it needs a current Chrome, Edge, Firefox or Safari. The session data is still in this file.</p></main>'}})()`;
 html = html.replace('</body>', () => `<script id="reasontrail-data" type="application/json">__REASONTRAIL_DATA__</script>\n<script id="reasontrail-app" type="application/octet-stream">${packed}</script>\n<script>${loader}</script>\n</body>`);
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, html);

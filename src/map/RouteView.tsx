@@ -138,18 +138,27 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
 type P<T> = (x: T) => Record<string, unknown>;
 interface ViewProps { L: GlanceLayout; epProps: P<RouteEpisode>; laneProps: P<LaneItem>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
 
-function EpisodeText({ r }: { r: RouteEpisode }) {
+function EpisodeText({ r, width }: { r: RouteEpisode; width?: number }) {
+  const full = countText(r);
+  const shown = countText(r, width);
   return (
     <>
       <span className="ep-title">{r.episode.title}</span>{' '}
-      <span className="ep-count mono">{countText(r)}</span>
+      <span className="ep-count mono" title={shown === full ? undefined : full}>{shown}</span>
     </>
   );
 }
 
+/** The idle label under a break: centred in its gap, or right-aligned 6 px short of the terminus connector. */
+function idleStyle(L: GlanceLayout, x: number) {
+  const top = G.routeY + 14;
+  return x + G.breakW >= L.routeEnd ? { right: L.width - (L.routeEnd - 6), top, textAlign: 'right' as const } : { left: x + G.breakW / 2, top, transform: 'translateX(-50%)' };
+}
+
 function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps) {
   const Y = G.routeY;
-  const answerRoom = L.answer ? 44 : 0;
+  // The terminus (◉, 20 px) always ends the route with 44 px of room; it is labelled only when the last episode is an answer.
+  const answerRoom = 44;
   return (
     <div className="route-scroll">
       <div className="route-canvas" style={{ width: L.width, height: L.height }}>
@@ -162,15 +171,16 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps)
             </g>
           ))}
           {L.episodes.map((r) => <KindMark key={r.episode.id} kind={r.episode.kind} x={r.x} y={Y} />)}
-          {L.answer && <KindMark kind="answer" x={L.routeEnd} y={Y} size={20} />}
-          {L.answer && L.routeEnd > L.width * 0.45 && <path className="connector" d={`M${L.routeEnd} ${Y + 11} V${L.height}`} />}
+          <KindMark kind="answer" x={L.routeEnd} y={Y} size={20} />
+          {L.routeEnd > L.width * 0.45 && <path className="connector" d={`M${L.routeEnd} ${Y + 11} V${L.height}`} />}
         </svg>
-        {L.breaks.map((b) => <span key={b.before} className="idle-label mono" style={{ left: b.x, top: Y + 14 }} aria-hidden="true">{b.label.replace(' idle', '')}<br />idle</span>)}
+        {L.breaks.map((b) => <span key={b.before} className="idle-label mono" style={idleStyle(L, b.x)} aria-hidden="true">{b.label.replace(' idle', '')}<br />idle</span>)}
         {L.episodes.map((r, i) => {
           const last = i === L.episodes.length - 1;
+          const w = Math.max(32, r.len - 14 - (last ? answerRoom : 0));
           return (
             <div key={r.episode.id} className="map-item ep" style={{ left: r.x - 12, width: r.len, height: Y + 12 }} {...epProps(r)}>
-              <span className="ep-text" style={{ width: last && !L.answer ? Math.max(r.len - 14, Math.min(200, L.width - r.x - 30)) : Math.max(32, r.len - 14 - (last ? answerRoom : 0)) }}><EpisodeText r={r} /></span>
+              <span className="ep-text" style={{ width: w }}><EpisodeText r={r} width={w} /></span>
             </div>
           );
         })}
@@ -186,7 +196,7 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps)
         )}
         {L.lanes.map((l) => (
           <div key={l.id} className="map-item lane-item" style={{ left: l.x1 + 6, top: lineY(l.track) - 10, width: Math.max(88, l.chars * G.monoPx + 12) }} {...laneProps(l)}>
-            <LaneLabel l={l} />
+            <LaneLabel l={l} availPx={Math.max(88, l.chars * G.monoPx + 12) - 10} />
           </div>
         ))}
         {L.blazes.map((b) => (
@@ -201,9 +211,15 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps)
 
 function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewProps & { all: RouteEpisode[] }) {
   const rows: ReactNode[] = [];
-  const blazes = (pred: (b: Blaze) => boolean) => L.blazes.filter(pred).map((b) => (
-    <div key={b.id} className="map-item blaze" {...blazeProps(b)}><BlazeMark b={b} /></div>
-  ));
+  // Blazes sit in their own right-hand column, as wide as the busiest row, so the counts line up beside it.
+  const per = new Map<string, number>();
+  for (const b of L.blazes) per.set(b.laneItem ?? b.episodeId, (per.get(b.laneItem ?? b.episodeId) ?? 0) + 1);
+  const cols = Math.max(0, ...per.values());
+  const blazes = (pred: (b: Blaze) => boolean) => cols > 0 && (
+    <div className="vblazes" style={{ width: cols * 44 }}>
+      {L.blazes.filter(pred).map((b) => <div key={b.id} className="map-item blaze" {...blazeProps(b)}><BlazeMark b={b} /></div>)}
+    </div>
+  );
   all.forEach((r, i) => {
     if (L.fold && i === G.keepFirst) {
       rows.push(<div key="fold" className="vrow"><div className="map-item vitem fold-chip mono" {...foldProps()}>··· {L.fold.episodes.length} episodes · {L.fold.steps} steps</div></div>);
@@ -215,7 +231,7 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
         <div className="map-item vitem ep" {...epProps(r)}>
           <KindGlyph kind={r.episode.kind} />
           <span className="ep-title">{r.episode.title}</span>{' '}
-          <span className="ep-count mono">{countText(r)}</span>
+          <span className="ep-count mono" title={countText(r)}>{countText(r, 9 * G.monoPx)}</span>
         </div>
         {blazes((b) => b.track < 0 && b.episodeId === r.episode.id)}
       </div>,
@@ -225,7 +241,7 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
         <div key={l.id} className="vrow vsub">
           <svg className="siding" width="24" height="44" aria-hidden="true" focusable="false"><path d={l.rejoins ? 'M0 0 L14 14 V30 L0 44' : 'M0 0 L14 14 V30 M8 30 H20'} /></svg>
           <div className="map-item vitem vlane" {...laneProps(l)}>
-            <span><LaneLabel l={l} /></span>
+            <span><LaneLabel l={l} duration={false} /></span>
           </div>
           {blazes((b) => b.laneItem === l.id)}
         </div>,
@@ -235,14 +251,14 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
   return <div className="vroute">{rows}</div>;
 }
 
-/** Draw-in on first render (DESIGN §11): route and lanes stroke in over --tg-dur-route, items fade in, all done by
+/** Draw-in on the page's first map render only (DESIGN §11; a sample switch or Outline round trip does not replay it): route and lanes stroke in over --tg-dur-route, items fade in, all done by
  * 400 ms. Web Animations with no fill, so the dash pattern exists only while it runs; nothing waits for it to end. */
-function useDrawIn(ref: RefObject<HTMLDivElement | null>) {
-  const done = useRef(false);
+let drawn = false;
+function useDrawIn(ref: RefObject<HTMLDivElement | null>): void {
   useLayoutEffect(() => {
     const root = ref.current;
-    if (done.current || !root) return;
-    done.current = true;
+    if (drawn || !root) return;
+    drawn = true;
     const ms = parseFloat(getComputedStyle(root).getPropertyValue('--tg-dur-route')) || 0;
     if (ms <= 0 || typeof root.animate !== 'function') return;
     const ease = getComputedStyle(root).getPropertyValue('--tg-ease-grow').trim() || 'ease-out';

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Episode, Lane, SessionGraph, Step, StepStatus, Trouble } from '../../shared/session/types';
 import { sessionSamples } from '../sessions/samples';
-import { G, glanceLayout, lineY } from './layout';
+import { parseSession } from '../../shared/session/adapter';
+import { G, glanceLayout, laneStatus, lineY, verdictOf } from './layout';
 
 interface LaneSpec { ep: number; at: number; back?: number; steps: number; status?: StepStatus; agent?: string }
 interface Spec { eps: number[]; answer?: boolean; lanes?: LaneSpec[]; trouble?: { ep?: number; at?: number; lane?: number; resolved?: boolean }[]; gapMin?: Record<number, number> }
@@ -49,13 +50,32 @@ function graph(spec: Spec): SessionGraph {
 }
 
 describe('route segments (DM8)', () => {
-  it('sizes segments by clamp(56, 36 + k·√steps, 240) with k = min(19.5, 204/√maxSteps), in order, no scaling when they fit', () => {
+  it('sizes segments by clamp(56, 36 + k·√steps, 240) with k = min(19.5, 204/√maxSteps), in order, then grows them uniformly up to 480 px', () => {
     const L = glanceLayout(graph({ eps: [1, 9, 49, 400], answer: true }), 4000);
     const k = Math.min(19.5, 204 / Math.sqrt(400));
-    expect(L.episodes.map((e) => e.len)).toEqual([56, 36 + k * 3, 36 + k * 7, 240].map((v) => Math.max(56, v)));
-    expect(L.episodes.map((e) => e.x)).toEqual([24, 80, 80 + (36 + k * 3), 80 + 36 + k * 3 + 36 + k * 7]);
+    // The band has room for more than twice the natural lengths: the longest segment stops at 480 (×2).
+    const natural = [56, 36 + k * 3, 36 + k * 7, 240];
+    expect(L.episodes.map((e) => e.len)).toEqual(natural.map((v) => v * 2));
+    expect(L.episodes.map((e) => e.x)).toEqual([24, 24 + 112, 24 + 112 + natural[1]! * 2, 24 + 112 + (natural[1]! + natural[2]!) * 2]);
     expect(L.answer?.x).toBe(L.routeEnd);
     expect(L.routeEnd).toBe(L.episodes.reduce((x, e) => x + e.len, 24));
+  });
+
+  it('fills the band with a short route: lengths keep their ratios and end at the band edge', () => {
+    const L = glanceLayout(graph({ eps: [4, 16, 36, 36, 36] }), 1216);
+    const lens = L.episodes.map((e) => e.len);
+    expect(L.routeEnd).toBeCloseTo(1216 - 30);
+    expect(Math.max(...lens)).toBeLessThanOrEqual(480);
+    const k = Math.min(19.5, 204 / 6);
+    expect((lens[0] as number) / (lens[2] as number)).toBeCloseTo((36 + k * 2) / (36 + k * 6));
+  });
+
+  it('gives the CLI fixture session segments of at least 96 px', () => {
+    const files = import.meta.glob<string>('/fixtures/sessions/claude-code/subagent{.jsonl,/subagents/*}', { query: '?raw', import: 'default', eager: true });
+    const g = parseSession({ files: Object.entries(files).sort().map(([path, text]) => ({ path: path.slice(1), text })) });
+    if (!g) throw new Error('fixture did not parse');
+    const L = glanceLayout(g, 1216);
+    expect(Math.min(...L.episodes.map((e) => e.len))).toBeGreaterThanOrEqual(96);
   });
 
   it('scales all segments down together to fit the band, never under 56 px', () => {
@@ -103,11 +123,32 @@ describe('side trails (DM12)', () => {
     expect(par.lanes.map((l) => l.track)).toEqual([0, 1]);
     expect(par.tracks).toBe(2);
     const seq = { eps: [6, 6], lanes: [{ ep: 0, at: 0, back: 1, steps: 3 }, { ep: 0, at: 2, back: 3, steps: 3, status: 'error' as const }] };
-    const L = glanceLayout(graph(seq), 1216);
+    const L = glanceLayout(graph(seq), 300);
     expect(L.lanes).toHaveLength(1);
     expect(L.lanes[0]).toMatchObject({ id: 'bundle:e0', status: 'error', failed: 1, calls: 6 });
     expect(L.lanes[0]?.lanes).toHaveLength(2);
-    expect(glanceLayout(graph(seq), 1216, { unbundle: new Set(['bundle:e0']) }).lanes).toHaveLength(2);
+    expect(glanceLayout(graph(seq), 300, { unbundle: new Set(['bundle:e0']) }).lanes).toHaveLength(2);
+  });
+});
+
+describe('lane status (DESIGN §8.3)', () => {
+  const lane = (status?: StepStatus): Lane => ({ id: 'L', name: 'L', file: 'L.jsonl', ...(status ? { status } : {}) });
+  const st = (kind: Step['kind'], text?: string): Step => ({ id: `s${text ?? kind}`, seq: 0, laneId: 'L', kind, raw: { file: 'L.jsonl', line: 1 }, ...(text ? { text } : {}) });
+  const g = graph({ eps: [1] });
+
+  it('reads the verdict from the first line or a LABEL: VERDICT line, else only an unambiguous one', () => {
+    expect(verdictOf('**PASS** with notes.\nNo FAIL left.')).toBe('PASS');
+    expect(verdictOf('Checked lint and tests.\nVerdict: PASS\nNo FAIL remains.')).toBe('PASS');
+    expect(verdictOf('Earlier FAIL is gone; now PASS.')).toBeUndefined();
+    expect(verdictOf('All good, APPROVED.')).toBe('APPROVED');
+  });
+
+  it('takes a lane that ended on its own report as done when its hand-back is missing; a cut-off lane has no result', () => {
+    expect(laneStatus(g, lane(), [st('tool-call'), st('assistant', 'Verdict: PASS')])).toEqual({ status: 'ok', word: 'PASS', handBack: false });
+    expect(laneStatus(g, lane(), [st('tool-call'), st('assistant', 'APPROVED')])).toMatchObject({ status: 'ok', word: 'approved' });
+    expect(laneStatus(g, lane(), [st('assistant', 'Finished the change.')])).toMatchObject({ status: 'ok', word: 'done', handBack: false });
+    expect(laneStatus(g, lane(), [st('assistant', 'Now running tests.'), st('tool-call')])).toMatchObject({ status: 'unknown', word: 'no result recorded' });
+    expect(laneStatus(g, lane('ok'), [st('assistant', 'Done.')])).toMatchObject({ status: 'ok', word: 'done', handBack: true });
   });
 });
 

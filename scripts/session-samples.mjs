@@ -94,13 +94,25 @@ export function sessionFile(entry, home) {
   return entry.agent ? join(dir, entry.session, 'subagents', `agent-${entry.agent}.jsonl`) : join(dir, `${entry.session}.jsonl`);
 }
 
+/** A subagent lane whose report ends on FAIL or CHANGES REQUESTED: something going wrong a sample can show without a
+ * detected pattern (scratch-file churn no longer counts, phase 16). */
+export function failedLane(g) {
+  const mainLane = g.lanes?.[0]?.id;
+  return (g.lanes ?? []).some((l) => {
+    if (l.id === mainLane) return false;
+    const last = (g.steps ?? []).filter((s) => s.laneId === l.id && s.kind === 'assistant' && s.text).pop();
+    const lines = (last?.text ?? '').split('\n');
+    return /\b(FAIL|CHANGES REQUESTED)\b/.test(lines[0] ?? '') || lines.some((t) => /^\W*\w[\w -]{0,30}:\W*(FAIL|CHANGES REQUESTED)\b/.test(t));
+  });
+}
+
 /** Problems with one sample's JSON text against the phase 15 limits (empty when fine). */
 export function checkSample(text) {
   const g = JSON.parse(text);
   const problems = [];
   if (Buffer.byteLength(text) > LIMITS.bytes) problems.push(`${Math.round(Buffer.byteLength(text) / 1024)} KB > 250 KB`);
   if (g.steps.length > LIMITS.steps) problems.push(`${g.steps.length} steps > ${LIMITS.steps}`);
-  if (g.trouble.length < 1) problems.push('no trouble marker');
+  if (g.trouble.length < 1 && !failedLane(g)) problems.push('no trouble marker or failed verdict');
   return problems;
 }
 

@@ -43,6 +43,7 @@
 .glyph-plate.is-neutral .g-plate { fill: var(--tg-paper); stroke: var(--tg-ink); }
 .glyph-plate.is-neutral .g-plate-mark { stroke: var(--tg-ink); }
 .glyph-plate .g-plate-dot { fill: var(--tg-ink); }
+.glyph-plate.is-open .g-plate-dot { fill: var(--tg-paper); }
 
 /* At a glance */
 .glance-rows { display: grid; gap: var(--tg-space-2); margin: 0; padding: 0; list-style: none; }

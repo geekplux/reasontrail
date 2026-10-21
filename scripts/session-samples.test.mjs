@@ -35,6 +35,9 @@ describe('session-samples', () => {
     expect(sessionFile({ project: 'p', session: 'id' }, '/h')).toBe('/h/.claude/projects/p/id.jsonl');
     expect(sessionFile({ project: 'p', session: 'id', agent: 'a1' }, '/h')).toBe('/h/.claude/projects/p/id/subagents/agent-a1.jsonl');
     expect(checkSample(JSON.stringify({ steps: [], trouble: [{}] }))).toEqual([]);
-    expect(checkSample(JSON.stringify({ steps: Array(401).fill(0), trouble: [] }))).toEqual(['401 steps > 400', 'no trouble marker']);
+    expect(checkSample(JSON.stringify({ steps: Array(401).fill(0), trouble: [] }))).toEqual(['401 steps > 400', 'no trouble marker or failed verdict']);
+    const failed = { lanes: [{ id: 'main' }, { id: 'v' }], steps: [{ laneId: 'v', kind: 'assistant', text: 'Verdict: FAIL' }], trouble: [] };
+    expect(checkSample(JSON.stringify(failed))).toEqual([]);
+    expect(checkSample(JSON.stringify({ ...failed, steps: [{ laneId: 'v', kind: 'assistant', text: 'PASS' }] }))).toEqual(['no trouble marker or failed verdict']);
   });
 });

@@ -162,6 +162,49 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await open(page, `${baseURL}/?session=verify-fail-fix`);
   await checkGlance(page, SAMPLES[1].g, 'mobile lanes', fail, log);
   await shot('map-mobile-lanes', page.locator('[data-region="route"]'));
+  // Full-page 390×844 shots of every sample, and one in dark.
+  const full = { screenshot: (o) => page.screenshot({ ...o, fullPage: true }) };
+  for (const { id } of SAMPLES) {
+    await open(page, `${baseURL}/?session=${id}`);
+    await shot(`map-${id}-mobile`, full);
+  }
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await open(page, `${baseURL}/?session=${SAMPLES[1].id}`);
+  await shot(`map-${SAMPLES[1].id}-mobile-dark`, full);
+  await page.emulateMedia({ colorScheme: 'light' });
+
+  // 320×225 (a phone in landscape at 400% zoom): Tab and the arrows never land on an item the sticky bar covers.
+  await page.setViewportSize({ width: 320, height: 225 });
+  await open(page, `${baseURL}/?session=verify-fail-fix`);
+  const covered = [];
+  const hidden = () => page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return null;
+    const r = el.getBoundingClientRect();
+    const bar = document.querySelector('.dest-bar');
+    const b = bar && getComputedStyle(bar).position === 'sticky' ? bar.getBoundingClientRect() : null;
+    const off = r.bottom <= 0 || r.top >= innerHeight;
+    const under = b && r.top >= b.top - 0.5 && r.bottom <= b.bottom + 0.5 && el !== bar && !bar.contains(el);
+    return off || under ? el.getAttribute('data-nav') ?? el.textContent?.trim().slice(0, 30) : null;
+  });
+  for (let i = 0; i < 40; i++) {
+    await page.keyboard.press('Tab');
+    const h = await hidden();
+    if (h) covered.push(`Tab ${i + 1}: ${h}`);
+    if (await page.evaluate(() => !!document.activeElement?.closest('[role="application"]'))) break;
+  }
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press('ArrowDown');
+    const h = await hidden();
+    if (h) covered.push(`ArrowDown ${i + 1}: ${h}`);
+  }
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press('Tab');
+    const h = await hidden();
+    if (h) covered.push(`Tab after map ${i + 1}: ${h}`);
+  }
+  if (covered.length) fail(`320×225: focused items hidden: ${covered.join('; ')}`);
+  else log('320×225: every focused item visible');
 
   // Dark and CVD (desktop, default sample).
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -176,6 +219,10 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     await shot(`map-cvd-${type}`);
   }
   await applyCvd(page, null);
+  // Grayscale: every encoding must survive without colour.
+  await open(page, `${baseURL}/?session=verify-fail-fix`);
+  await page.addStyleTag({ content: 'html { filter: grayscale(1); }' });
+  await shot('map-verify-fail-fix-grayscale');
 
   // The CLI's file:// map of a fixture with a subagent lane (and one with trouble), in a sandboxed HOME.
   const cli = join(root, 'cli', 'dist', 'cli.mjs');
@@ -196,5 +243,11 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     await checkGlance(page, JSON.parse(json.stdout), `file ${name}`, fail, log);
     for (const p of await axeProblems(page, `file ${name}`, STRUCTURE_RULES)) fail(p);
     if (name === 'subagent.jsonl') await shot('map-local-file');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForSelector('[data-testid="map"][data-ready="true"]');
+    await page.waitForTimeout(450);
+    await shot(`map-${name.replace('.jsonl', '')}-mobile`, { screenshot: (o) => page.screenshot({ ...o, fullPage: true }) });
+    await page.setViewportSize({ width: 1280, height: 800 });
   }
 }

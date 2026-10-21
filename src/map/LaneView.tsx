@@ -23,16 +23,22 @@ export function LanePath({ l }: { l: LaneItem }) {
     <g className="lane-mark">
       <path className="lane-line draw" d={lanePath(l)} pathLength={1} />
       {l.status === 'interrupted' && <path className="lane-line" d={`M${l.x2} ${y - 8} V${y + 8}`} />}
+      {/* No recorded result and no rejoin: the trail ends in an 8 px hollow status circle. */}
+      {l.status === 'unknown' && !l.rejoins && <circle className="lane-end" cx={l.x2 + 4} cy={y} r={4} />}
     </g>
   );
 }
 
-export function LaneLabel({ l }: { l: LaneItem }) {
-  const [a, b] = laneLines(l);
+/** Agent type, then status glyph, "<n> calls · <duration> ·" (gives way first) and the whole status word. */
+export function LaneLabel({ l, availPx, duration = true }: { l: LaneItem; availPx?: number; duration?: boolean }) {
+  const { name, count, word } = laneLines(l, { ...(availPx !== undefined ? { availPx } : {}), duration });
+  const full = laneLines(l);
   return (
     <>
-      <span className="lane-name mono">{a}</span>{' '}
-      <span className="lane-facts mono muted"><StatusGlyph status={l.status} /> {b}</span>
+      <span className="lane-name mono">{name}</span>{' '}
+      <span className="lane-facts mono muted" title={`${full.count} ${full.word}`}>
+        <StatusGlyph status={l.status} /> <span className="lane-count">{count}</span> <span className="lane-word">{word}</span>
+      </span>
     </>
   );
 }

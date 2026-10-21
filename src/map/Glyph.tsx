@@ -90,10 +90,10 @@ export function BlazeIcon({ kind, resolved, badge, plus }: { kind: Trouble['kind
   );
 }
 
-/** A neutral "!" plate for a trouble count whose spots are all resolved: outlined in ink, no trouble colour. */
-export function NeutralPlateGlyph() {
+/** The "!" plate of the trouble count: filled in the trouble colour while any spot is unresolved, else outlined in ink. */
+export function NeutralPlateGlyph({ open = false }: { open?: boolean }) {
   return (
-    <Svg className="glyph-plate is-neutral">
+    <Svg className={`glyph-plate ${open ? 'is-open' : 'is-neutral'}`}>
       <rect x="1" y="1" width="14" height="14" rx="2" className="g-plate" />
       <path d="M8 4 V9" className="g-plate-mark" />
       <circle cx="8" cy="11.8" r="1" className="g-plate-dot" />

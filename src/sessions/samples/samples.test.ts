@@ -1,7 +1,8 @@
-// Phase 15 AC1: every committed session sample is valid, small, has trouble, carries an `expect` block (M2), and
+// Phase 15 AC1: every committed session sample is valid, small, shows trouble (a detected pattern or a failed subagent verdict), carries an `expect` block (M2), and
 // at least one has a subagent lane. Also checks the index against tools/session-samples.json.
 import { describe, expect, it } from 'vitest';
 import type { SessionGraph } from '../../../shared/session/types';
+import { laneStatus } from '../../map/layout';
 import { loadGraph } from '../../map/loadGraph';
 import { defaultSessionGraph, sessionSamples } from './index';
 import config from '../../../tools/session-samples.json';
@@ -24,7 +25,7 @@ describe('session samples', () => {
     expect(validateSessionGraph(g)).toEqual([]);
     expect(new TextEncoder().encode(text(name)).length).toBeLessThanOrEqual(250 * 1024);
     expect(g.steps.length).toBeLessThanOrEqual(400);
-    expect(g.trouble.length).toBeGreaterThanOrEqual(1);
+    expect(g.trouble.length > 0 || g.lanes.some((l) => laneStatus(g, l).status === 'error')).toBe(true);
     expect(g.expect).toBeDefined();
     expect(loadGraph(JSON.stringify({ graph: g, meta: { version: '0.0.0' } })).ok).toBe(true);
   });

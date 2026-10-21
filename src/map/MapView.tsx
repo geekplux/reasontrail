@@ -86,7 +86,7 @@ export function MapView({ graph: g, sample = false }: { graph: SessionGraph; sam
         <KindGlyph kind="answer" />
         <span className="dest-bar-text">
           <span className="section-label">Destination</span>
-          <span><strong>{g.outcome.files.length} files</strong> · {verify?.status === 'ok' ? 'verified' : 'not verified'}{files?.rest ? ` · ${files.rest.replace(/^, /, '')}` : ''}</span>
+          <span><strong>{g.outcome.files.length === 1 ? '1 file' : `${g.outcome.files.length} files`}</strong> · {verify?.status === 'ok' ? 'verified' : 'not verified'}{files?.rest ? ` · ${files.rest.replace(/^, /, '')}` : ''}</span>
         </span>
         <span className="chevron" aria-hidden="true" />
       </a>
