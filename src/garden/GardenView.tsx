@@ -23,6 +23,7 @@ function SampledLink({ d, w, i, dash }: { d: string; w: number; i: number; dash?
 /** A tip marker: the state's shape (spec §3). Also used by the legend. */
 export function Marker({ kind, x = 0, y = 0 }: { kind: MarkerKind; x?: number; y?: number }) {
   if (kind === 'ring') return <circle className="marker-ring" cx={x} cy={y} r={M.MARKER_R} />;
+  if (kind === 'diamond') return <rect className="marker-diamond" x={x - 5} y={y - 5} width={10} height={10} transform={`rotate(45 ${x} ${y})`} />;
   return (
     <>
       <circle className="marker-bud" cx={x} cy={y} r={M.MARKER_R} />
@@ -31,9 +32,25 @@ export function Marker({ kind, x = 0, y = 0 }: { kind: MarkerKind; x?: number; y
   );
 }
 
-/** Token text with whitespace glyphs in their own muted runs. */
+/** Token text with whitespace glyphs in their own muted runs. In HTML the glyphs are hidden from screen readers, which
+ *  hear a real space instead of "dot". */
 export function WsText({ text, Run }: { text: string; Run: 'tspan' | 'span' }) {
-  return wsRuns(text).map((r, i) => (r.ws ? <Run key={i} data-ws="">{r.text}</Run> : r.text));
+  return wsRuns(text).map((r, i) =>
+    !r.ws ? (
+      r.text
+    ) : Run === 'span' ? (
+      <span key={i}>
+        <span data-ws="" aria-hidden="true">
+          {r.text}
+        </span>
+        <span className="visually-hidden"> </span>
+      </span>
+    ) : (
+      <Run key={i} data-ws="">
+        {r.text}
+      </Run>
+    ),
+  );
 }
 
 interface GardenViewProps {
@@ -227,7 +244,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
               role="treeitem"
               id={`${uid}b${byKey.get(b.key)?.i}`}
               tabIndex={b.key === tabKey ? 0 : -1}
-              aria-label={spokenBranch(b)}
+              aria-label={`${spokenBranch(b)}${step === undefined ? '' : ', sampled'}`}
               aria-level={b.depth}
               aria-setsize={byKey.get(b.key)?.setSize}
               aria-posinset={b.rank + 1}
@@ -241,7 +258,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
                 if (b.key !== selectedKey) onSelect?.(b.key);
               }}
             >
-              {onPath.has(b.key) ? <path data-role="casing" d={link} strokeWidth={w + 4} /> : null}
+              {onPath.has(b.key) ? <path data-role="casing" d={link} style={{ strokeWidth: w + 4 }} /> : null}
               <path data-role="branch-stroke" d={link} style={{ strokeWidth: w }} strokeDasharray={b.state === 'not-recorded' ? dashArray('not-recorded', w, length) : undefined} />
               {step === undefined ? null : <SampledLink key={`l${walk}`} d={link} w={w} i={step} />}
               {marker === 'diamond' ? (

@@ -7,6 +7,7 @@ const KEYS: [MarkerKind, string, string][] = [
   ['bud', 'filled dot', STATE_TEXT.expandable],
   ['knot', 'dot in a ring', STATE_TEXT.expanded],
   ['ring', 'hollow ring, dashed branch', STATE_TEXT['not-recorded']],
+  ['diamond', 'diamond, outlined branch', 'on the sampled path'],
 ];
 
 type SampleKind = 'legend-sample' | 'legend-other' | 'legend-not-recorded';

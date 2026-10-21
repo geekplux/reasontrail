@@ -75,7 +75,7 @@ function audit() {
   const unrec = document.querySelector('.legend [data-marker="ring"] [data-role="legend-not-recorded"]');
   if (!unrec || getComputedStyle(unrec).strokeDasharray !== '4px, 3px') problems.push('legend "not recorded" key has no 4 3 dashed sample');
   const keys = [...document.querySelectorAll('.legend [data-marker]')].map((e) => `${e.dataset.marker}:${e.textContent}`).join();
-  if (keys !== 'bud:filled dot: can grow,knot:dot in a ring: grown,ring:hollow ring, dashed branch: not recorded') problems.push(`legend marker key is ${keys}`);
+  if (keys !== 'bud:filled dot: can grow,knot:dot in a ring: grown,ring:hollow ring, dashed branch: not recorded,diamond:diamond, outlined branch: on the sampled path') problems.push(`legend marker key is ${keys}`);
   return problems;
 }
 
@@ -92,7 +92,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   const readout = page.locator('[data-role="readout"]');
   const idle = await readout.textContent();
   log(`readout: ${idle}`);
-  if (!idle.startsWith(`Most likely: ${PROMPT}·looked`) || !/ path \d+\.\d%$/.test(idle)) fail(`default readout is ${idle}`);
+  if (!idle.startsWith(`Most likely: ${PROMPT}· looked`) || !/ path \d+\.\d%$/.test(idle)) fail(`default readout is ${idle}`);
 
   // Clicking the remainder stub changes nothing.
   const before = await page.locator('[data-testid="garden"]').innerHTML();

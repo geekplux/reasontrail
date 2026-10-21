@@ -66,7 +66,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   if (!same(kids, ENTERED)) fail(`expand: children ${JSON.stringify(kids)}`);
   if (!(await inView(page, ENTERED))) fail('expand: children not all in the viewport');
   const readout = await page.locator('[data-role="readout"]').textContent();
-  if (!readout.startsWith('Reading:') || !readout.includes('·entered')) fail(`F6: readout is ${readout}`);
+  if (!readout.startsWith('Reading:') || !readout.includes('· entered')) fail(`F6: readout is ${readout}`);
   await shot('explore-expanded');
 
   // Collapse with the page scrolled >= 200 px (the anchored expansion usually scrolled that far already).

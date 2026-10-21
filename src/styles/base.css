@@ -156,6 +156,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 /* Sampled path (spec §3, §10.3): ink underlay + accent stroke + diamond tips, so it reads without colour. */
 .garden path[data-role='sampled-underlay'] { stroke: var(--tg-ink); }
 .garden path[data-role='sampled-stroke'] { stroke: var(--tg-accent); }
+/* Dark: an ink (light) underlay is too close to the accent, so the outline is paper there (contrast vs accent). */
+@media (prefers-color-scheme: dark) { .garden path[data-role='sampled-underlay'] { stroke: var(--tg-paper); } }
 .marker-diamond { fill: var(--tg-accent); stroke: var(--tg-ink); stroke-width: 1; }
 .legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); }
 .legend [data-role='legend-not-recorded'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
@@ -184,7 +186,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
    one is already grown); everything else jumps. Nothing waits for transitionend. Reduced motion zeroes it all below. */
 .garden .branch { clip-path: inset(-40px); transition: clip-path var(--tg-dur-grow) var(--tg-ease-grow); }
 .garden .branch text { transition: opacity var(--tg-dur-fade) ease-out 60ms; }
-.garden [data-role='branch-stroke'], .garden [data-role='remainder-stroke'] { transition: stroke-width var(--tg-dur-reshape) ease-out; }
+.garden :is([data-role='branch-stroke'], [data-role='remainder-stroke'], [data-role='casing'], [data-role='sampled-underlay'], [data-role='sampled-stroke']) { transition: stroke-width var(--tg-dur-reshape) ease-out; }
 /* The sampled walk: CSS only, edge i drawn after i steps; diamonds and the "other" stub fade in at their edge's end. */
 .garden[data-walk] [data-walk] { animation: tg-fade var(--tg-dur-fade) linear calc(var(--i) * var(--tg-step)) backwards; }
 .garden[data-walk] [data-walk='draw'] { animation: tg-draw var(--tg-step) linear calc(var(--i) * var(--tg-step)) backwards; }
@@ -239,6 +241,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 @media (max-width: 47.99rem) {
   .site-header, .site-footer { padding-inline: var(--tg-space-4); }
   .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
+  /* The garden follows the controls directly, so the slider's effect is in view; the label has nothing focusable. */
+  .specimen { order: 1; }
   .controls { padding: var(--tg-space-3) var(--tg-space-4) 0; }
   .readout { position: sticky; bottom: 0; background: var(--tg-surface); border-top: var(--tg-hairline); }
   html { scroll-padding-bottom: var(--tg-readout-h, 0px); }

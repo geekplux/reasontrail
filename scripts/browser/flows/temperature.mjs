@@ -10,7 +10,9 @@ const width = (p) => 1.5 + 18.5 * Math.min(1, Math.max(0, p));
 function temper(ps, r, t) {
   if (t === 1) return [...ps, Math.max(0, r)];
   if (t === 0) return [...ps.map((_, i) => (i === 0 ? 1 : 0)), 0];
-  const logs = [...ps, Math.max(0, r)].map((p) => (p > 0 ? Math.log(p) / t : -Infinity));
+  const rest = Math.max(0, r);
+  const n = rest > 0 ? Math.max(1, Math.ceil(rest / Math.min(...ps.filter((p) => p > 0)) - 1e-9)) : 0; // hidden tokens
+  const logs = [...ps.map((p) => (p > 0 ? Math.log(p) / t : -Infinity)), n > 0 ? Math.log(n) + Math.log(rest / n) / t : -Infinity];
   const e = logs.map((l) => Math.exp(l - Math.max(...logs)));
   return e.map((x) => x / e.reduce((s, y) => s + y, 0));
 }
@@ -67,6 +69,8 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   // F7 + §10.5.3/4: the keyboard alone sets T (Home/End/arrows, preset); every width and label follows; tips never move.
   const settings = [[0.2, ['Home', 'ArrowRight', 'ArrowRight']], [1, null], [1.8, ['End', 'ArrowLeft', 'ArrowLeft']]];
   let tips = null;
+  const others = {}; // §10.5.3a: "other" label text per parent at each T
+  const otherLabels = () => page.$$eval('[data-role="remainder"]', (rs) => Object.fromEntries(rs.map((r) => [r.dataset.parent, r.querySelector('text').textContent])));
   for (const [t, keys] of settings) {
     if (keys) {
       await slider(page).focus();
@@ -82,11 +86,18 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     res.problems.forEach((p) => fail(`T ${t}: ${p}`));
     if (tips !== null && res.tips !== tips) fail(`T ${t}: tip positions moved`);
     tips = res.tips;
+    others[t] = await otherLabels();
     const described = await slider(page).evaluate((s) => [...(s.getAttribute('aria-describedby') ?? '').split(' ')].map((id) => document.getElementById(id)?.textContent).join());
     if (described.includes('approximate (top-k only)') !== (t !== 1)) fail(`T ${t}: approximation note in description is "${described}"`);
     log(`T ${t}: ${res.problems.length} problems; note "${described}"`);
     await shot(`temp-${t.toFixed(1)}`);
   }
+  const pct = (text) => Number(/other <?([\d.]+)%/.exec(text)?.[1] ?? NaN);
+  for (const [parent, text] of Object.entries(others[0.2])) {
+    if (pct(text) >= 100 || !(pct(text) <= pct(others[1][parent]))) fail(`§10.5.3a: "other" at ${JSON.stringify(parent)} reads "${text}" at T 0.2, "${others[1][parent]}" at T 1`);
+  }
+  if (!(pct(others[1.8]['']) > pct(others[1]['']))) fail(`root "other" at T 1.8 (${others[1.8]['']}) is not larger than at T 1 (${others[1]['']})`);
+  log(`root "other": T 0.2 ${others[0.2]['']}, T 1 ${others[1]['']}, T 1.8 ${others[1.8]['']}`);
   if (requests.length) fail(`F7: ${requests.length} requests while changing temperature: ${requests.join(', ')}`);
 
   // §10.5.5: focus the expanded " looked" (Tab into the tree): its label carries the entropy of its fork.

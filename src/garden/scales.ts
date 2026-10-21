@@ -67,7 +67,7 @@ export function wsRuns(text: string): { text: string; ws: boolean }[] {
   return runs;
 }
 
-export type MarkerKind = 'bud' | 'knot' | 'ring';
+export type MarkerKind = 'bud' | 'knot' | 'ring' | 'diamond';
 
 /** Tip marker per state (spec §3): shape, not colour, tells the states apart. */
 export const MARKER: Record<BranchState, MarkerKind> = { expandable: 'bud', expanded: 'knot', 'not-recorded': 'ring' };

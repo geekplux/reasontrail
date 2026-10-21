@@ -57,7 +57,8 @@ describe('App', () => {
     expect(remainder?.textContent).toBe('other 77.7%');
     expect(remainder?.getAttribute('pointer-events')).toBe('none');
     expect(remainder?.hasAttribute('tabindex')).toBe(false);
-    expect(screen.getByText('Most likely:').parentElement?.textContent).toBe('Most likely: The old lighthouse keeper opened the door and·looked·out path 2.7%');
+    expect(screen.getByText('Most likely:').parentElement?.textContent).toBe('Most likely: The old lighthouse keeper opened the door and· looked· out path 2.7%'); // glyph (aria-hidden) + a real space for screen readers
+    expect(document.querySelector('[data-role="readout"] [data-ws]')?.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('labels the selected branch without any pointer events, and the readout follows it', () => {
@@ -69,7 +70,7 @@ describe('App', () => {
     expect([...container.querySelectorAll('.on-path')].map((e) => e.getAttribute('data-key'))).toEqual([' looked down', ' looked']);
     cleanup();
     render(<PathReadout garden={garden} labelledKey=" looked down" />);
-    expect(screen.getByText('Reading:').parentElement?.textContent).toBe('Reading: The old lighthouse keeper opened the door and·looked·down path 0.3%');
+    expect(screen.getByText('Reading:').parentElement?.textContent).toBe('Reading: The old lighthouse keeper opened the door and· looked· down path 0.3%');
   });
 
   it('frames the garden with the shell: wordmark header, specimen label, footer', async () => {
