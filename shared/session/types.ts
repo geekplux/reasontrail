@@ -46,6 +46,8 @@ export interface StepTool {
   command?: string;
   /** Set on results whose full output was saved to a side file (e.g. `tool-results/x.txt`) and not inlined. */
   persistedOutput?: string;
+  /** Edit tools only: short hashes of the replaced and the new text, so reverts can be found without storing the text. */
+  editHash?: { before: string; after: string };
 }
 
 export type StepKind = 'user' | 'assistant' | 'thinking' | 'tool-call' | 'tool-result' | 'system' | 'compaction';
@@ -96,28 +98,39 @@ export interface Lane {
   file: string;
 }
 
-/** Deterministic segment of steps (phase 12). */
+/**
+ * Deterministic segment of steps (PLAN §5.11). A lane has at most `MAX_TOP_EPISODES` top-level episodes; when its
+ * fine-grained episodes are more, they are grouped and each keeps `parentId` pointing at its top-level group.
+ */
 export interface Episode {
   id: string;
   title: string;
   kind: 'explore' | 'change' | 'verify' | 'delegate' | 'answer' | 'discuss';
   stepIds: string[];
   laneId: string;
+  /** Set on fine-grained episodes folded into a top-level group. */
+  parentId?: string;
 }
 
-/** A detected pattern with its evidence steps (phase 12). */
+/** A pattern found by a rule (PLAN §5.11, D23), never by AI. `stepIds` are the evidence, in step order. */
 export interface Trouble {
   id: string;
   kind: 'error-streak' | 'retry' | 'revert' | 'rewind' | 'interrupt' | 'churn';
+  label: 'detected pattern';
   stepIds: string[];
   count: number;
+  /** Something later succeeded: the same command passed, work resumed, or a later verification passed. */
   resolved: boolean;
   summary: string;
+  /** Provenance of the first evidence step. */
+  raw: Provenance;
 }
 
-/** What the session produced (phase 12). */
+/** What the session produced (phase 12). Paths are relative to `source.cwd` when inside it. */
 export interface Outcome {
   files: { path: string; edits: number; created: boolean }[];
+  /** Files left out of `files` because their net change was reverted. */
+  revertedFiles?: number;
   lastVerification?: { stepId: string; command: string; ok: boolean };
   answerStepId?: string;
 }

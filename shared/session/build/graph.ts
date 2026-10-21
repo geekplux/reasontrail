@@ -1,6 +1,9 @@
 // buildGraph: the one entry point from a normalized session to a SessionGraph. No AI, no clock, no randomness.
 import { SCHEMA_VERSION, type Lane, type NormalizedSession, type SessionGraph } from '../types';
-import { buildSteps } from './steps';
+import { buildEpisodes } from './episodes';
+import { buildOutcome, fileHistory, verifications } from './outcome';
+import { buildSteps, sortEdges } from './steps';
+import { findTrouble } from './trouble';
 
 const TITLE_MAX = 120;
 
@@ -9,7 +12,7 @@ function firstLine(text: string): string {
   return line.length > TITLE_MAX ? `${line.slice(0, TITLE_MAX - 1)}…` : line;
 }
 
-/** Turn an adapter's normalized session into the step graph. Episodes, trouble and outcome are filled in phase 12. */
+/** Turn an adapter's normalized session into the step graph, with episodes, trouble patterns and outcome (§5.11). */
 export function buildGraph(session: NormalizedSession): SessionGraph {
   const { steps, edges, spawnStep } = buildSteps(session);
   const resultStatus = new Map<string, Lane['status']>();
@@ -34,6 +37,11 @@ export function buildGraph(session: NormalizedSession): SessionGraph {
   const endedAt = timed[timed.length - 1]?.t;
   if (startedAt) source.startedAt = startedAt;
   if (endedAt) source.endedAt = endedAt;
+  const cwd = source.cwd;
+  const episodes = buildEpisodes(steps, lanes, cwd);
+  const history = fileHistory(steps, cwd);
+  const checks = verifications(steps);
+  const found = findTrouble(steps, edges, episodes, history, checks, cwd);
   const firstUser = steps.find((s) => s.kind === 'user' && s.laneId === (lanes[0]?.id ?? 'main') && s.text);
 
   const graph: SessionGraph = {
@@ -42,10 +50,10 @@ export function buildGraph(session: NormalizedSession): SessionGraph {
     title: firstLine(session.title ?? '') || firstLine(firstUser?.text ?? '') || 'Untitled session',
     lanes,
     steps,
-    edges,
-    episodes: [],
-    trouble: [],
-    outcome: { files: [] },
+    edges: found.edges.length > 0 ? sortEdges([...edges, ...found.edges]) : edges,
+    episodes,
+    trouble: found.trouble,
+    outcome: buildOutcome(steps, history, checks, lanes[0]?.id ?? 'main', cwd),
     stats: { steps: steps.length, ...session.stats },
   };
   const duration = startedAt && endedAt ? Date.parse(endedAt) - Date.parse(startedAt) : Number.NaN;

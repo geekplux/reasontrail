@@ -110,6 +110,10 @@ export function buildSteps(session: NormalizedSession): StepsResult {
     if (firstInLane && call.seq < firstInLane.seq) edges.push({ from: call.id, to: firstInLane.id, kind: 'spawned' });
   }
 
-  edges.sort((a, b) => Number(a.to.slice(1)) - Number(b.to.slice(1)) || Number(a.from.slice(1)) - Number(b.from.slice(1)) || (a.kind < b.kind ? -1 : a.kind > b.kind ? 1 : 0));
-  return { steps, edges, spawnStep };
+  return { steps, edges: sortEdges(edges), spawnStep };
+}
+
+/** Sort edges by target, then source, then kind (stable output for M7). */
+export function sortEdges(edges: Edge[]): Edge[] {
+  return edges.sort((a, b) => Number(a.to.slice(1)) - Number(b.to.slice(1)) || Number(a.from.slice(1)) - Number(b.from.slice(1)) || (a.kind < b.kind ? -1 : a.kind > b.kind ? 1 : 0));
 }

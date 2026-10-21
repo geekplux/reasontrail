@@ -3,6 +3,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseSession } from './adapter';
+import { MAX_TOP_EPISODES } from './build/constants';
 import type { SourceFile } from './types';
 
 const PATHS = (process.env.TG_REAL_SESSIONS ?? '').split(/[:,]/).map((p) => p.trim()).filter(Boolean);
@@ -32,8 +33,15 @@ describe.skipIf(PATHS.length === 0)('real sessions (TG_REAL_SESSIONS)', () => {
     for (const e of g.edges) edges[e.kind] = (edges[e.kind] ?? 0) + 1;
     const kinds: Record<string, number> = {};
     for (const s of g.steps) kinds[s.kind] = (kinds[s.kind] ?? 0) + 1;
-    console.log(JSON.stringify({ files: files.length, mb: +(bytes / 1e6).toFixed(2), ms: Math.round(ms), lanes: g.lanes.length, kinds, edges, ...g.stats }));
+    // Structure counts only (phase 12): top-level episodes per lane, trouble by kind, files changed. Never content.
+    const top = g.episodes.filter((e) => !e.parentId);
+    const topPerLane = Math.max(0, ...g.lanes.map((l) => top.filter((e) => e.laneId === l.id).length));
+    const trouble: Record<string, number> = {};
+    for (const t of g.trouble) trouble[t.kind] = (trouble[t.kind] ?? 0) + 1;
+    const structure = { mainEpisodes: top.filter((e) => e.laneId === g.lanes[0]?.id).length, topPerLane, episodes: g.episodes.length, trouble, filesChanged: g.outcome.files.length, revertedFiles: g.outcome.revertedFiles ?? 0, verified: g.outcome.lastVerification?.ok ?? null };
+    console.log(JSON.stringify({ files: files.length, mb: +(bytes / 1e6).toFixed(2), ms: Math.round(ms), lanes: g.lanes.length, kinds, edges, ...g.stats, ...structure }));
     expect(g.steps.every((s) => s.raw.file && s.raw.line > 0)).toBe(true);
+    expect(topPerLane).toBeLessThanOrEqual(MAX_TOP_EPISODES);
     expect(ms).toBeLessThanOrEqual(budgetMs(bytes));
   });
 });
