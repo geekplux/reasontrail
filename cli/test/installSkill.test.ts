@@ -1,12 +1,16 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { installSkill, MANIFEST, planInstall, SKILL_FILES } from '../src/installSkill';
+
+const homes: string[] = [];
+afterAll(() => homes.forEach((h) => rmSync(h, { recursive: true, force: true })));
 
 function sandbox(env: Record<string, string> = {}) {
   const home = mkdtempSync(join(tmpdir(), 'reasontrail-install-'));
+  homes.push(home);
   const lines = { out: [] as string[], err: [] as string[] };
   const run = (...argv: string[]) => installSkill(argv, { home, env, cli: '/opt/reasontrail/cli.mjs', out: (l) => lines.out.push(l), err: (l) => lines.err.push(l) });
   return { home, lines, run, skill: join(home, '.claude', 'skills', 'reasontrail') };
