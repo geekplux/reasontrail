@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeSession } from './adapter';
 import { buildGraph } from './build/graph';
 import { RAW_REDACT_MARGIN, RAW_TEXT_MIN, attachRaw, clipRaw, clipRedacted, rawCap } from './raw';
-import { redactText } from './redact';
+import { findSecrets, redactText } from './redact';
 import { RAW_TEXT_MAX } from './types';
 
 const line = (o: object) => JSON.stringify(o);
@@ -104,6 +104,26 @@ describe('clipRedacted (redact after cutting)', () => {
     expect(redactText(text)).toBe(text);
     expect(clipRaw(text, at, 80)).toMatch(/^\{"data":"Zq8x/);
     expect(clipRedacted(text, at, 80, (t) => redactText(t))).toBe(`{"data":"[secret:high-entropy]…\n[cut ${(text.length - 80).toLocaleString('en-US')} characters; full record at x.jsonl:4]`);
+  });
+  it('never leaves a home prefix cut before its user name ("/Users/…")', () => {
+    for (const prefix of ['/Users/', '/home/', 'C:\\Users\\']) {
+      const head = `see ${prefix}`;
+      for (const tail of [' and more text', ` ${'w '.repeat(RAW_REDACT_MARGIN + 50)}`]) {
+        const out = clipRedacted(`${head}${tail}`, at, head.length, (t) => redactText(t));
+        expect(out.startsWith('see …\n[cut ')).toBe(true);
+        expect(findSecrets(out)).toEqual([]);
+      }
+    }
+  });
+  it('a cut at any point of a line full of sensitive text leaves no rule hit', () => {
+    const sample = `{"cwd":"/Users/alice/proj","home":"/home/bob/x","win":"C:\\Users\\carol\\y","mail":"dev@example.com","key":"${KEY}","url":"https://u:p4ss@host.dev/a","api_token":"Zq8xK2mW7pL4vN9cT3hB6yR1"} -home-dave-proj /Users/ /home/`;
+    for (const pad of [0, RAW_REDACT_MARGIN + 40]) {
+      const text = `${sample}${' z'.repeat(pad)}`;
+      for (let max = 1; max < sample.length; max++) {
+        const out = clipRedacted(text, at, max, (t) => redactText(t));
+        expect([max, findSecrets(out)]).toEqual([max, []]);
+      }
+    }
   });
   it('matches redact-then-clip for records within the window', () => {
     const text = `key ${KEY} ${'z '.repeat(200)}`;

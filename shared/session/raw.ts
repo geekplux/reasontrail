@@ -46,6 +46,8 @@ export function rawCap(records: readonly RawSize[], opts: { max?: number; min?: 
 
 const TOKEN = /[A-Za-z0-9+/=_.~%-]/;
 const PLACEHOLDER = /^\[(?:secret:[a-z-]+|email)\]/;
+/** A home-folder prefix cut before its user name ("/Users/", "C:\\Users\\"): dropped so no rule reads "…" as a name. */
+const HOME_PREFIX = /(?:\/home\/|\/Users\/|\b[A-Za-z]:\\Users\\)$/;
 
 /**
  * `line` redacted and cut to `max`, without redacting all of a long line: only the first `max` +
@@ -69,7 +71,7 @@ export function clipRedacted(line: string, at: Pick<Provenance, 'file' | 'line'>
     if (end === r.length) while (kept > 0 && TOKEN.test(r[kept - 1] ?? '')) kept--;
   }
   const left = r.length - kept + (windowed ? length - windowLen : 0);
-  return `${redact(r.slice(0, kept))}…\n${cutNote(left, at)}`;
+  return `${redact(r.slice(0, kept)).replace(HOME_PREFIX, '')}…\n${cutNote(left, at)}`;
 }
 
 /** An exact copy of `s` that does not keep a large parent string (a whole file) alive, as a slice of it would. */

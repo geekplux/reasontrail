@@ -62,7 +62,8 @@ const RULES: [string, RegExp, string | Replacer][] = [
   ['secret:value', /(?<![\w-])((?:--)?[A-Za-z_][\w.-]*)=("[^"\n]*"|'[^'\n]*'|[^\s"'&;,)<>]+)/g, (_m, name = '', value = '') => (isSecretName(name) && isSecretValue(value) ? `${name}=[secret:value]` : undefined)],
   ['secret:value', /("([\w.-]+)"\s*:\s*)"((?:[^"\\\n]|\\.)*)"/g, (_m, head = '', name = '', value = '') => (isSecretName(name) && isSecretValue(value) ? `${head}"[secret:value]"` : undefined)],
   ['email', /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}\b/g, (m) => (m.startsWith('git@') ? undefined : '[email]')],
-  ['home-path', /(?:\/home|\/Users)\/[^/\s"'`:;,)\]]+|\b[A-Za-z]:\\Users\\[^\\\s"']+/g, '~'],
+  // "…" is never a user name: a raw cut right after "/Users/" leaves "/Users/…".
+  ['home-path', /(?:\/home|\/Users)\/[^/\s"'`:;,)\]…]+|\b[A-Za-z]:\\Users\\[^\\\s"'…]+/g, '~'],
   // Claude Code project folders encode the cwd ("-home-<user>-proj"): keep the shape, drop the user name.
   ['home-path', /(?<![\w-])-(?:home|Users)-[A-Za-z0-9._]+(?=-)/g, '-~'],
   ['secret:high-entropy', /[A-Za-z0-9+_=-]{32,}/g, (m, ...rest) => {
