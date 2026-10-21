@@ -4,8 +4,9 @@ import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { parseSession } from '../../shared/session/adapter';
-import { redactGraph } from '../../shared/session/redact';
+import { normalizeSession } from '../../shared/session/adapter';
+import { buildGraph } from '../../shared/session/build/graph';
+import { redactGraph, redactSession } from '../../shared/session/redact';
 import type { ViewerPayload } from '../../src/map/loadGraph';
 import { parseArgs } from './args';
 import { renderHtml } from './html';
@@ -45,18 +46,20 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   const { ref, how } = found;
   ctx.err(`Session: ${ref.file} (${how})`);
 
-  let graph;
+  let session;
   try {
-    graph = parseSession(readSession(ref));
+    session = normalizeSession(readSession(ref));
   } catch (e) {
     return ctx.err(`${PKG_NAME}: could not read ${ref.file}: ${e instanceof Error ? e.message : String(e)}`), EXIT.unreadable;
   }
-  if (!graph) return ctx.err(`${PKG_NAME}: This doesn't look like a Claude Code, Codex or Grok Build session (.jsonl).`), EXIT.unreadable;
+  if (!session) return ctx.err(`${PKG_NAME}: This doesn't look like a Claude Code, Codex or Grok Build session (.jsonl).`), EXIT.unreadable;
 
-  const payload: ViewerPayload = { graph, meta: { version: VERSION } };
+  const payload: ViewerPayload = { graph: buildGraph(session), meta: { version: VERSION } };
   if (opts.share) {
-    const red = redactGraph(graph);
-    const r = red.summary.replaced;
+    // Redact before building (clipped titles never hold a cut-off secret), then the graph (drops, derived fields).
+    const r: Record<string, number> = {};
+    const red = redactGraph(buildGraph(redactSession(session, r)));
+    for (const [k, v] of Object.entries(red.summary.replaced)) r[k] = (r[k] ?? 0) + v;
     const n = (pred: (k: string) => boolean) => Object.entries(r).reduce((sum, [k, v]) => sum + (pred(k) ? v : 0), 0);
     const total = n(() => true);
     payload.graph = red.graph;

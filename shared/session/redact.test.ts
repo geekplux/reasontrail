@@ -2,8 +2,9 @@
 // nothing in this file looks like a credential to a scanner. Home paths are built the same way.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { parseSession } from './adapter';
-import { findSecrets, redactGraph, redactText } from './redact';
+import { normalizeSession, parseSession } from './adapter';
+import { buildGraph } from './build/graph';
+import { findSecrets, redactGraph, redactSession, redactText } from './redact';
 
 /** Deterministic pseudo-random string over an alphabet (LCG; not for security). */
 function rnd(n: number, seed: number, abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): string {
@@ -124,4 +125,19 @@ describe('redactGraph (R1, R4)', () => {
   });
 
   it('is deterministic', () => expect(JSON.stringify(redactGraph(planted))).toBe(JSON.stringify(redactGraph(planted))));
+});
+
+describe('redactSession (before the graph clips text)', () => {
+  it('never leaves a cut-off secret in a clipped title', () => {
+    const token = ['gh', 'p_', 'Q1w2E3r4T5y6U7i8O9p0A1s2D3f4G5h6J7k8'].join('');
+    const text = `Please look at this long request about the build. It uses ${token} today`;
+    const line = JSON.stringify({ type: 'user', sessionId: 's', uuid: 'u', parentUuid: null, message: { role: 'user', content: text } });
+    const session = normalizeSession({ files: [{ path: 's.jsonl', text: `${line}\n` }] });
+    if (!session) throw new Error('fixture not recognised');
+    const counts: Record<string, number> = {};
+    const json = JSON.stringify(redactGraph(buildGraph(redactSession(session, counts))).graph);
+    expect(json).not.toContain(token.slice(0, 8));
+    expect(counts).toEqual({ 'secret:github-token': 1 });
+    expect(JSON.stringify(redactGraph(buildGraph(session)).graph)).toContain(token.slice(0, 8)); // why this exists
+  });
 });

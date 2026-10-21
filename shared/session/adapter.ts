@@ -22,9 +22,15 @@ export function sniff(lines: string[]): SessionAdapter | undefined {
   return adapters.find((a) => a.sniff(lines));
 }
 
-/** Sniff the main `.jsonl`, parse and build the graph. Returns `undefined` when no adapter recognises the input. */
-export function parseSession(input: SessionInput): SessionGraph | undefined {
+/** Sniff the main `.jsonl` and run its adapter. Returns `undefined` when no adapter recognises the input. */
+export function normalizeSession(input: SessionInput): NormalizedSession | undefined {
   const main = input.files.find((f) => f.path.endsWith('.jsonl')) ?? input.files[0];
   const adapter = main ? sniff(firstLines(main.text)) : undefined;
-  return adapter ? buildGraph(adapter.parse(input)) : undefined;
+  return adapter?.parse(input);
+}
+
+/** Sniff the main `.jsonl`, parse and build the graph. Returns `undefined` when no adapter recognises the input. */
+export function parseSession(input: SessionInput): SessionGraph | undefined {
+  const session = normalizeSession(input);
+  return session ? buildGraph(session) : undefined;
 }

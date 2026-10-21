@@ -82,17 +82,16 @@ describe('run', () => {
     expect(JSON.parse(data).graph.steps[0].text).toBe(`Show ${XSS} as text`);
   });
 
-  // Counts are occurrences: the request text also appears in the title and the episode title.
   it('--share redacts secrets, emails and home paths and writes into the current folder', () => {
     const sb = sandbox();
     writeFileSync(join(sb.store, 'sess-xss.jsonl'), session(`Token ${TOKEN} from ana@example.org in /home/ana/notes`));
     expect(run(['--share', '--no-open'], sb.ctx())).toBe(EXIT.ok);
     expect(sb.lines.out).toEqual([join(sb.cwd, 'reasontrail-sess-xss.html')]);
-    expect(sb.lines.err).toContain('Redacted: 3 secrets, 3 emails, 3 paths; 0 non-conversation records dropped.');
+    expect(sb.lines.err).toContain('Redacted: 1 secrets, 1 emails, 1 paths; 0 non-conversation records dropped.');
     const html = readFileSync(sb.lines.out[0] as string, 'utf8');
-    for (const leak of [TOKEN, 'ana@example.org', '/home/ana']) expect(html).not.toContain(leak);
+    for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', '/home/ana']) expect(html).not.toContain(leak);
     expect(html).toContain('[secret:github-token]');
-    expect(html).toContain('"shared":{"replaced":9}');
+    expect(html).toContain('"shared":{"replaced":3}');
   });
 
   it('--json prints the graph to stdout and writes no file', () => {

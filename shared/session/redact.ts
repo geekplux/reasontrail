@@ -1,7 +1,7 @@
 // Redaction (PLAN R1, R4, §5.13, D24): secrets, emails and home paths become typed placeholders; content that is not
 // conversation is dropped. On for samples, shared files and anything sent to AI; off in the private local view.
 // Self-contained (type imports only): scripts/audit-samples.mjs loads this file directly.
-import type { SessionGraph, Step } from './types';
+import type { NormalizedItem, NormalizedSession, SessionGraph, Step } from './types';
 
 /** What was replaced (by placeholder type) and how many non-conversation contents were dropped. */
 export interface RedactionSummary {
@@ -116,4 +116,17 @@ export function redactGraph(graph: SessionGraph): { graph: SessionGraph; summary
     return { ...s, text: reason };
   });
   return { graph: walk({ ...graph, steps }, summary.replaced) as SessionGraph, summary };
+}
+
+/**
+ * Redact an adapter's output before the graph is built, so that text which the builder clips (titles, previews) is
+ * clipped after redaction and never ends in a cut-off secret that no rule matches. Ids and paths are kept;
+ * `redactGraph` still runs on the built graph for record drops and derived fields.
+ */
+export function redactSession(session: NormalizedSession, counts: Record<string, number> = {}): NormalizedSession {
+  const item = (it: NormalizedItem): NormalizedItem =>
+    it.kind === 'tool-call' ? { ...it, input: walk(it.input, counts) } : { ...it, text: redactText(it.text, counts) };
+  const out: NormalizedSession = { ...session, records: session.records.map((r) => ({ ...r, items: r.items.map(item) })) };
+  if (session.title) out.title = redactText(session.title, counts);
+  return out;
 }
