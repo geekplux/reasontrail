@@ -37,6 +37,7 @@ Contents:
 15. Design acceptance criteria DM1–DM38
 16. The 5-second review protocol
 17. Sign-off procedure
+18. Calm layout (CL1–CL14, binding from phase 18)
 
 ---
 
@@ -871,7 +872,97 @@ The lead-designer runs this at every sign-off from phase 16 on. Phase 13 runs a 
 
 ## 17. Sign-off procedure (each UI phase from 13 on)
 
-1. Read the phase's acceptance criteria and the DM items tagged for this phase or earlier.
+1. Read the phase's acceptance criteria, the DM items tagged for this phase or earlier, and CL1–CL14 (§18) for every view the phase builds or changes.
 2. Look at every screenshot under `docs/screenshots/phase-<n>/` (both viewports, both themes, and the CVD variants). Where a DM criterion needs the DOM, run the app with the harness: one browser, kill the processes afterwards.
 3. Run §16.
 4. Return **`DESIGN: APPROVED`**, or **`DESIGN: CHANGES REQUESTED`** with a numbered list. Each item gives the DM id, `file:line`, what is wrong and the exact fix. Optional polish goes in a separate list.
+
+---
+
+## 18. Calm layout [18 on; polish pass in 25]
+
+Source: Sean's design direction of 2026-10-21. It refines §1–§17 and does not replace them. **From phase 18 on, crowding is a design FAIL:** any failed CL item in a view the phase builds or changes is a numbered deviation under `DESIGN: CHANGES REQUESTED`. Where a CL rule conflicts with an earlier rule, the CL rule wins. The amended items are §7 (spacing scale, segmented toggle), DM5 (meta row), DM9 (labels on every episode), DM11 (bordered fold chip), DM14 (location line) and DM15 (top 5 files, card).
+
+### 18.1 One focal point per view
+
+| View | The one focal point | Visibly secondary (smaller, quieter) | One step away (disclosure or panel) |
+|---|---|---|---|
+| Map glance (viewer and website) | The trail map: route, blazes and terminus, with At a glance as its caption | Task title and one meta line above it; stuck list and destination below it | Legend, session details, provenance, step lists, key help |
+| Detail panel | The selected step: command, diff, excerpt or checklist | Breadcrumb, title, summary, previous/next | Provenance, Show raw, rule note, key hints |
+| Outline view | The Route `<ol>` | Task, At a glance | Step lists (already collapsed), session details |
+| Showcase home | The live sample map | Headline, sub-line, install line, sample switcher | Per-agent install notes, How to read |
+| Drop zone | The drop target with "Choose a file" | The privacy line | Supported formats, "or try a sample" |
+| Lens | The garden | Breadcrumb and the one Z2 line | Specimen-card details and settings, behind "More options" |
+| Chat import | The paste box | Import sources as quiet text links | Format help in `<details>` |
+| Share card | The mini route | Title, three glance rows | Nothing else: no legend, no meta |
+
+### 18.2 First-load caps and progressive disclosure
+
+- **Chrome controls** are focusable elements outside the data regions (`[data-region="route"]`, `[data-glance]`, stuck rows and step rows). In the first viewport there are at most **6 at 1440×900** and at most **4 at 390×844**.
+- **Meta row:** at most 3 items are visible (active time, tool calls, then subagents or idle). The rest (wall time, thinking count, model, "<n> records not shown") go in a `<details>` labelled "Session details". The source and model stay in the quiet TASK label.
+- **Legend:** a closed `<details><summary>Key</summary>` at the right end of the route header. Each glyph still has its kind word in its accessible name and its focus label.
+- **Route labels:** at most 8 episode titles per lane on desktop. The first and last episodes, episodes with a blaze, and delegate and verify episodes win, in that order. An unlabelled episode shows only its glyph, and its title appears on hover or focus and in its accessible name. The mobile vertical route keeps every title.
+- **Stuck list:** at most 5 rows on desktop and 3 on mobile, then a "Show all <n> patterns" button that reveals the rest of the same `<ol>`. Activating blaze *k* > cap expands the list first. Location lines (`jsonl:<n>`) move to the detail panel and the outline.
+- **Destination:** the top 3 files, then "+<n> more files". The final answer is at most 2 lines. "Show raw" moves to the detail panel.
+- **Detail panel:** on open, the breadcrumb and close button, the title and summary, the selected step, and previous/next are visible. Provenance is a `<details>` labelled "Source · <file>:<line>" that holds Show raw, Copy link and the rule note. Raw opens in a region with `max-height: 240px` and scrolls inside it. Key hints move to a shared "Keyboard" help (the `?` key or a `?` button).
+- **Never folded:** the honesty label (DM6), the At a glance rows, and the focal point.
+- **Folded content stays reachable.** Use native `<details>`/`<summary>` or `<button aria-expanded aria-controls>`. The summary names the content and, where it has one, the count. Everything folded on the map is also present in the outline view. Opening a disclosure takes ≤ 160 ms (height and opacity), or is instant under reduced motion, and focus stays on the summary.
+
+### 18.3 Spacing, room and fewer boxes
+
+| Scale | px | Token | Use |
+|---|---|---|---|
+| 1 | 4 | `--tg-space-1` | Glyph to label |
+| 2 | 8 | `--tg-space-2` | Inside a row or control |
+| 3 | 16 | `--tg-space-4` | Between rows of a group; mobile margins |
+| 4 | 24 | `--tg-space-5` | Between groups in a band; panel sections; desktop gutters |
+| 5 | 40 | `--tg-space-8` (new: `40px`) | Between bands; desktop outer margins at ≥ 1280 |
+| 6 | 64 | `--tg-space-9` (new: `64px`) | Hero room: above the showcase headline and around the showcase map |
+
+- `--tg-space-3` (12), `--tg-space-6` (32) and `--tg-space-7` (48) are legacy. Phases 18–24 add no new uses of them. Phase 25 migrates them (12 → 8 or 16, 32 → 24 or 40, 48 → 40) and then deletes them. Margin, padding and gap values in `src/map`, `src/viewer` and `src/site` are tokens or 0.
+- **Hero room:** at ≥ 1024 the route band has ≥ 40 px of clear space above and below it, with no text and no rule inside that space.
+- **Group with space and alignment, not boxes.** Bands are separated by 40 px, not hairlines. The glance, stuck list, destination and step strip have no border and no fill that differs from paper.
+- **Allowed frames:** the detail panel (its left rule only), dialogs, the mobile sticky bar, the drop overlay, and code or diff boxes (fill only, no border).
+- **The segmented Map/Outline toggle (amends §7):** the selected segment gets a 2 px ink underline and 600 weight, with no ink fill. The state is still exposed through `aria-pressed`.
+
+### 18.4 Hierarchy and the one accent
+
+- **Reading order** in every view and region: title → hero → supporting text → controls. A region's controls come after its content, except header items and close buttons.
+- **One large text element per view:** only the task title (or the showcase headline) is ≥ 25 px. Section labels stay mono 11.5–12.8 muted.
+- **The accent is `--tg-trouble` on unresolved blazes:** where it got stuck is the one thing that matters. `--tg-ok` and `--tg-lane` stay as small data marks (glyphs ≤ 16 px, 2 px strokes). `--tg-accent` appears only in the lens. No hue appears in chrome: buttons, links, chips, headings and borders are ink or muted. The focus ring is exempt.
+- **Ink fill is reserved** for the showcase's primary CTA, selected rows and items, blaze number badges and glyph interiors.
+- **Quiet chips and badges:** chips, the fold chip and the "more" control have no border and no fill. They use muted text at 12.8 mono or 13.5 UI. "more" is an inline text button at the end of the title's last line.
+
+### 18.5 Unchanged constraints
+
+The CVD-safe palette (§6), never colour alone (glyph, label, line style or position), the keyboard model (§10.3), reduced motion (§11), no decorative 3D and no shadows. Folding never hides the only text form of a colour cue.
+
+### 18.6 Crowded spots to fix in the polish phase [25]
+
+- **T1. The trailhead stack** (`phase-17/map-*-desktop.png`, y 72–260): a label, a 2-line serif title, a boxed "more", a 4–5 item meta row and the honesty line make 5 stacked rows that compete with the route. Fix: CL3 and CL11. The honesty line stays.
+- **T2. The inline legend** (route header, y ≈ 307): 8 glyph-and-word pairs beside "ROUTE · n EPISODES". Fix: the Key disclosure.
+- **T3. Route labels at 12 episodes** (`map-implementer-checks-desktop.png`): 11 truncated titles ("Read keyboar…", "typechec…") packed into one band. Fix: CL5 thinning.
+- **T4. The destination card** (all desktop maps): a bordered card with an inner vertical rule, an "edits" header, 5 file rows, the provenance line and Show raw. Fix: unbox it, top 3 files, provenance to the panel.
+- **T5. Band hairlines** (all maps; 4 in the left column of `details-*.png`): a rule between every band. Fix: 40 px of space, at most 2 full-width rules.
+- **T6. The detail panel** (`details-edit-diff.png`): 4 rule-separated sections, the raw JSON open and filling the panel below the fold, a two-button row, the rule note and key hints. Fix: CL12.
+- **T7. Subagent expansion** (`details-subagent.png`): three route-like bands at once (the main route with lanes, an "expanded below" caption, a second route on a lane-band fill), then a bordered step table. Fix: one expansion at a time; the expanded lane replaces its siding in place; the step strip is unboxed.
+- **T8. Mobile length** (`phase-17/map-trouble-mobile.png`, 2013 px tall): an extra "Generated on your machine" line under the header, a 3-line honesty label, 7 stuck rows each with a mono location line, the destination twice (the sticky bar plus a bordered card), then the footer. Fix: the privacy line goes into `⋯`, 3 stuck rows plus "Show all", no location lines, and an unboxed card.
+
+### 18.7 Criteria
+
+Check each at 1440×900 and 390×844, light and dark, from a screenshot or the DOM.
+
+- **CL1** The view's focal point (§18.1) is fully inside the first viewport at 1440×900. On the map glance the route band's top is ≤ 420 px, and the band is the largest region by area.
+- **CL2** First-viewport chrome controls: ≤ 6 at 1440×900 and ≤ 4 at 390×844 (DOM count, as defined in §18.2).
+- **CL3** At most 3 meta items are visible. The legend and key hints are not visible on load. Each sits in a closed, labelled disclosure.
+- **CL4** Every fold is a native `<details>` or a `<button aria-expanded aria-controls>` whose name gives the content and count. It is Tab-reachable, has a visible focus ring, and its content is also present in the outline view. The honesty label, glance rows and focal point are never inside a closed disclosure.
+- **CL5** There are ≤ 8 visible episode titles per lane on desktop, chosen in the §18.2 order. Every unlabelled glyph has its title in its accessible name and shows it on focus.
+- **CL6** Glance lists stay within their caps: stuck rows ≤ 5 desktop / ≤ 3 mobile before "Show all"; destination files ≤ 3; final answer ≤ 2 lines. There are no `jsonl:` locations on the glance.
+- **CL7** Margin, padding and gap values use only `--tg-space-1/2/4/5/8/9` or 0. The phase diff adds no `--tg-space-3/6/7` (grep), and none remain after phase 25. Bands are ≥ 40 px apart, and the route band has ≥ 40 px clear above and below at ≥ 1024.
+- **CL8** No element with a visible border sits inside another element with a visible border (a computed-style walk). The viewer has ≤ 2 full-width hairlines at 1440. The glance, stuck list, destination and step strip have no border and a paper background.
+- **CL9** Exactly one text element is ≥ 25 px computed font size per view (share cards excepted). Within each region, the DOM order is content before controls.
+- **CL10** `--tg-trouble`, `--tg-ok`, `--tg-lane` and `--tg-accent` appear only on data marks, plus `--tg-accent` in the lens. No chrome element uses a hue (the focus ring excepted). The selected Map/Outline segment is underlined with no ink fill.
+- **CL11** Chips, fold chips and "more" have `border: none` and a transparent background, with text ≤ 13.5 px.
+- **CL12** When the detail panel opens at 1280×800, the selected step is visible without scrolling. Provenance is collapsed, raw is closed and ≤ 240 px tall when open, and there are no hairlines between panel sections.
+- **CL13** DM2–DM4 and §11 still hold: disclosure motion ≤ 160 ms and 0 ms under reduced motion, no shadows, no 3D. The §16 review still passes with everything folded.
+- **CL14** The §16 fresh-eyes reviewer gets one extra question first, "What did you look at first?", and must name the view's focal point on the 1440 light shot. Any other answer is a crowding FAIL.
