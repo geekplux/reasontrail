@@ -2,8 +2,8 @@ STATE: IN-PROGRESS
 
 # Status (Reasontrail, formerly token-garden)
 
-- Current phase: 18 (`phase-18-codex-grok`): plan update (calm layout + polish phase), then Codex/Grok adapters
-- Plan: `docs/PLAN.md` (27 phases after the 2026-10-20 reasoning-map pivot; final = Cloudflare deploy prep, stops for Sean's approval)
+- Current phase: 18 (`phase-18-codex-grok`): Codex + Grok Build adapters
+- Plan: `docs/PLAN.md` (28 phases after the 2026-10-20 pivot and the 2026-10-21 polish phase; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
 
@@ -33,9 +33,10 @@ STATE: IN-PROGRESS
 | 22 | `phase-22-zoom-lens` | - | pending | 0 |
 | 23 | `phase-23-chat-import` | - | pending | 0 |
 | 24 | `phase-24-share-cards` | - | pending | 0 |
-| 25 | `phase-25-readme-community` | - | pending | 0 |
-| 26 | `phase-26-gallery-launch` | - | pending | 0 |
-| 27 | `phase-27-deploy-prep` | - | pending | 0 |
+| 25 | `phase-25-polish` | - | pending | 0 |
+| 26 | `phase-26-readme-community` | - | pending | 0 |
+| 27 | `phase-27-gallery-launch` | - | pending | 0 |
+| 28 | `phase-28-deploy-prep` | - | pending | 0 |
 
 ## Follow-ups
 
@@ -45,4 +46,4 @@ STATE: IN-PROGRESS
 - Codex adapter is built from the public format only: Codex is not installed on this box, so it is not verified against a real session (open item).
 - npm publish of the CLI waits for Sean's approval, like deploy (D36).
 
-Last updated: 2026-10-21 20:10 UTC (phase 17 PR opened, phase 18 started)
+Last updated: 2026-10-21 20:13 UTC (plan: calm-layout polish phase inserted (28 phases))

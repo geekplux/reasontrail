@@ -6,7 +6,8 @@ Written by `planner` on 2026-10-19 and revised on 2026-10-20 for the **repositio
 
 - Phases 1–8 are open PRs and stay exactly as written (§6).
 - Phase 9 describes what its branch already contains, now justified as shared infrastructure.
-- Phases 10–27 are new.
+- Phases 10–28 are new.
+- **Revised 2026-10-21 (Sean's design direction, "calm layout"):** from phase 18 on, every UI phase is reviewed against DESIGN.md "Calm layout", and a dedicated polish phase (25) was inserted before README/community. Former phases 25–27 are now 26–28.
 - Superseded items are kept only where open PRs refer to them, and are marked **[superseded]**: the live prompt box (old phase 10, criteria F9–F12), the garden as the first view, and "no CLI or agent skill".
 - **Renamed 2026-10-20: the product is Reasontrail** (repo `geekplux/reasontrail`, `npx reasontrail`, skill `/reasontrail`). The local folder and historical phases 1–8 keep `token-garden`; the code rename (package name, page title, wordmark, CLI and skill names) lands in phase 13.
 
@@ -17,7 +18,7 @@ Contents:
 3. Design direction (superseded by `docs/DESIGN.md` from phase 10)
 4. Product acceptance criteria (4.1 reasoning map, 4.2 lens criteria retained from phases 1–9)
 5. Architecture (5.1–5.7 lens and Worker as built; 5.8–5.15 reasoning map)
-6. Phases (27 PRs; the last one is Cloudflare deployment prep)
+6. Phases (28 PRs; the last one is Cloudflare deployment prep)
 7. Out of scope (and what was cut)
 8. Risks
 
@@ -754,9 +755,10 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - `pnpm build:cli` and `pnpm test:cli` (from 13);
   - `pnpm audit:samples` (from 12);
   - `pnpm skill:audit && pnpm skill:evals` (from 14);
-  - `pnpm check:docs` (from 25);
+  - `pnpm check:docs` (from 26);
   - no real session file, `.redact-denylist` or home path is committed (`git grep -nE "/home/[a-z]|/Users/[A-Za-z]"` clean outside the redaction tests' synthetic corpus).
 - **Screenshots** go under `docs/screenshots/phase-<n>/`, at 1280×800 and 390×844, light and dark, plus CVD variants wherever a phase adds colour.
+- **Calm layout (from phase 18 on, Sean's design direction of 2026-10-21):** every UI phase is reviewed against the "Calm layout" section of `docs/DESIGN.md` (one focal point per view; capped first-load elements with progressive disclosure that stays keyboard- and screen-reader-reachable; one spacing scale; fewer borders and boxes; one accent colour; quiet chips). **Crowding counts as a design FAIL**: `lead-designer` withholds `DESIGN: APPROVED`, and it goes back to the implementer in the normal implement → verify → fix loop (max 5 rounds). The focal point for the product is the glance view of the map: task, main route, where it got stuck, what changed. Everything else is on demand. The phase that is in progress when the direction arrived (18) is finished as planned; the rule applies to its review only where it does not require rework.
 
 <!-- Phases 1-8: unchanged (open PRs). -->
 
@@ -1297,8 +1299,35 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - **Screenshots:** `share-dialog.png`, `share-redaction-summary.png`, `share-card.png`, `share-opened-file.png`.
 - **Size:** ~380.
 
-### Phase 25: README and community files
-- **Branch:** `phase-25-readme-community`
+### Phase 25: Calm-layout polish
+- **Branch:** `phase-25-polish`
+- **Owners:** `lead-designer` (audit first, then sign-off), `implementer`, `a11y-reviewer` (sign-off). `dataviz-designer` is consulted only if a map or garden encoding changes.
+- **Goal:** every view has one focal point and reads calmly at a glance, at the same design bar. Whatever competes with the focal point is removed or folded behind progressive disclosure; spacing follows the DESIGN.md scale; fewer borders and boxes; one accent colour. Iterate the existing concept, do not start a new one.
+- **User value:** a first-time visitor sees the task, the main route, where it got stuck and what changed within seconds, without hunting through chrome, legends and metadata. Nothing is lost: secondary information is one step away, and keyboard and screen-reader users reach all of it.
+- **Scope:**
+  1. **Before audit (first commit, by `lead-designer` with the harness):** screenshot every view at **1440×900 and 390×844**, light theme (plus dark for the map), into `docs/screenshots/phase-25/before/`. Views: website map glance, outline, detail panel open, showcase home / drop zone, zoom-in lens, chat import, share dialog and the share output (opened HTML file + map card), the garden lens, and the CLI viewer (`file://` output). For each view `lead-designer` writes a short checklist in `docs/design/phase-25-audit.md` (≤ 1 page): the focal point, what competes with it, what moves behind disclosure, and spacing/border/accent fixes. If DESIGN.md's "Calm layout" section is missing or vague for a view, they tighten it in the same commit.
+  2. **Implementation (`implementer`), CSS and markup first, no new features:**
+     - fold secondary controls, legends, metadata, raw tables and "read as text" summaries into `<details>`, a "More options" toggle or the on-demand side panel; disclosure buttons have `aria-expanded`/`aria-controls`, and folded content stays in the DOM order, labelled and reachable;
+     - replace ad hoc gaps with the DESIGN.md spacing tokens in `src/styles/tokens.css`; remove card frames, borders and shadows where space and alignment group the content;
+     - one accent token for the one thing that matters per view; chips and badges in neutrals;
+     - hierarchy: title, then hero, then supporting text, then controls;
+     - files: `src/styles/*.css`, `src/map/**`, `src/site/**`, `src/share/**`, `src/chat/**`, the lens/garden components and the CLI viewer template. No change to parsing, structuring, redaction or Worker code.
+  3. **After screenshots:** the same views, viewports and names in `docs/screenshots/phase-25/after/`, via a new flow `scripts/browser/flows/polish.mjs` (`--flows polish --out docs/screenshots/phase-25`, writing `before/` only when called with `--before` on the parent commit).
+- **Acceptance criteria:**
+  1. Every rule in DESIGN.md "Calm layout" passes for every view listed above, at 1440 and 390, as recorded by `lead-designer` in the audit file with `DESIGN: APPROVED`.
+  2. Before/after screenshot pairs exist for every view at 1440 and 390 under `docs/screenshots/phase-25/{before,after}/` (same file names), are committed, and are embedded side by side in the PR body.
+  3. Nothing is removed for keyboard or screen-reader users: every folded item is reachable by Tab/Enter, announced with a label and state, and the existing keyboard flows (map, outline, detail panel, lens/garden) still pass unchanged.
+  4. axe reports 0 serious/critical on every flow; CVD screenshots and the reduced-motion check are unchanged or better; `a11y-reviewer` signs off.
+  5. `pnpm check:size` is not worse than on phase 24 (JS and CSS gzip compared; the verifier records both numbers in the PR).
+  6. No regression: `check:browser --flows all` passes; map test hooks (§6.0a) are unchanged.
+- **Verifier checks:** the common steps; `pnpm check:browser --flows all --out docs/screenshots/phase-25` and `--flows polish`; compare `check:size` output against phase 24's branch; a keyboard pass that opens every disclosure in each view; confirm both sign-offs in the PR body; look at every before/after pair.
+  - **Screenshots:** `before/` and `after/` sets, named `<view>-1440.png` and `<view>-390.png` (for example `map-glance-1440.png`, `detail-panel-390.png`, `share-card-1440.png`, `cli-viewer-390.png`), plus `after/map-glance-dark-1440.png`.
+- **Risks:** scope creep into a redesign (the audit file bounds the work, and anything bigger becomes a follow-up); hiding something users rely on (disclosure, never deletion; the keyboard pass checks it); churn across many files (CSS-first, one view per commit); before screenshots drifting (taken on the parent commit before any change).
+- **Split seam:** website views (map, outline, detail, showcase, chat, share) vs. lens/garden + CLI viewer.
+- **Size:** ~350 changed lines (mostly CSS and markup), plus the audit doc and screenshots (excluded).
+
+### Phase 26: README and community files
+- **Branch:** `phase-26-readme-community`
 - **Goal and scope:** as old phase 11, but for the reasoning map.
   - Pitch: "See how your AI agent reasoned: one command turns a Claude Code, Codex or Grok Build session into a map you understand at a glance. Local, no key, nothing uploaded."
   - Hero: a map screenshot from `scripts/browser/flows/hero.mjs`.
@@ -1312,8 +1341,8 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - **Screenshots:** `readme-above-fold.png`, `readme-full.png`, `readme-mobile.png`.
 - **Size:** ~400 (CODE_OF_CONDUCT excluded).
 
-### Phase 26: Examples gallery, social preview, hero GIF and launch kit
-- **Branch:** `phase-26-gallery-launch`
+### Phase 27: Examples gallery, social preview, hero GIF and launch kit
+- **Branch:** `phase-27-gallery-launch`
 - **Goal and scope:** as old phase 12, for maps.
   - `examples/README.md`: each sample map with a screenshot, "what to notice" and links (`https://reasontrail.example/?session=<id>&step=…`, D20), plus "Map your own session" (one command).
   - Hero GIF: the skill flow, then the map, then a click on a trouble marker, recorded in the one browser + system ffmpeg (D18).
@@ -1329,8 +1358,8 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - **Screenshots:** `gallery-readme.png`, `social-preview-check.png`, `hero-gif-frame-first.png`, `hero-gif-frame-last.png`.
 - **Size:** ~380 (images excluded).
 
-### Phase 27: Cloudflare deployment and publish preparation (stops for Sean's approval)
-- **Branch:** `phase-27-deploy-prep`
+### Phase 28: Cloudflare deployment and publish preparation (stops for Sean's approval)
+- **Branch:** `phase-28-deploy-prep`
 - **Goal:** everything needed to deploy the showcase site and Worker, and to publish the CLI, is ready and dry-run-verified. **Nothing is deployed or published.**
 - **User value:** Sean can put the site online and publish `npx reasontrail` with reviewed commands. Self-hosters get a runbook.
 - **Scope:**
@@ -1348,7 +1377,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
   2. `pnpm --dir cli pack` produces a tarball with only `dist/` and `package.json`/README/LICENSE, and no session data.
   3. The PR has the exact deploy and publish commands and "awaiting Sean's approval to deploy". STATUS.md reads `STATE: DONE` with that note.
   4. No deploy and no publish happened.
-- **Verifier checks:** the common steps + `check:deploy` + pack + `check:docs`; full regression `check:browser --flows all --out docs/screenshots/phase-27`.
+- **Verifier checks:** the common steps + `check:deploy` + pack + `check:docs`; full regression `check:browser --flows all --out docs/screenshots/phase-28`.
   - **Screenshots:** `final-site-desktop.png`, `final-site-mobile.png`, `final-map-dark.png`, `final-local-file.png`, `final-lens.png`.
 - **Size:** ~200 lines of code and config, plus ~180 lines of docs.
 
@@ -1373,11 +1402,12 @@ The session file may still be growing while the CLI reads it, so the reader stop
 | 22 | `phase-22-zoom-lens` | "Zoom into this sentence" → garden; recorded lens data; opt-in live growth | implementer, llm-integration, lead-designer, a11y-reviewer | ~480 |
 | 23 | `phase-23-chat-import` | Paste text, ChatGPT/Claude exports, share-link fallback | implementer, lead-designer, a11y-reviewer | ~450 |
 | 24 | `phase-24-share-cards` | Redaction-previewed shareable HTML, PNG map cards, OG meta | implementer, lead-designer, a11y-reviewer | ~380 |
-| 25 | `phase-25-readme-community` | README that sells in 10 s, community files, templates, good first issues, check:docs | implementer, lead-designer, a11y-reviewer | ~400 |
-| 26 | `phase-26-gallery-launch` | examples/ gallery of maps, hero GIF, social preview, LAUNCH.md | implementer, lead-designer, dataviz-designer | ~380 + images |
-| 27 | `phase-27-deploy-prep` | wrangler config, headers, DEPLOY.md + PUBLISH.md, dry run + pack; stops for Sean's approval | implementer, llm-integration | ~200 + 180 docs |
+| 25 | `phase-25-polish` | Calm-layout polish: audit every view at 1440/390, fold away what competes with the focal point, spacing scale, one accent; before/after screenshots | lead-designer, implementer, a11y-reviewer | ~350 + screenshots |
+| 26 | `phase-26-readme-community` | README that sells in 10 s, community files, templates, good first issues, check:docs | implementer, lead-designer, a11y-reviewer | ~400 |
+| 27 | `phase-27-gallery-launch` | examples/ gallery of maps, hero GIF, social preview, LAUNCH.md | implementer, lead-designer, dataviz-designer | ~380 + images |
+| 28 | `phase-28-deploy-prep` | wrangler config, headers, DEPLOY.md + PUBLISH.md, dry run + pack; stops for Sean's approval | implementer, llm-integration | ~200 + 180 docs |
 
-The old phases 10–13 (live mode, README, gallery/launch, deploy prep) are **[superseded]** by phases 22 (live provider half), 25, 26 and 27.
+The old phases 10–13 (live mode, README, gallery/launch, deploy prep) are **[superseded]** by phases 22 (live provider half), 26, 27 and 28.
 
 ---
 
@@ -1385,7 +1415,7 @@ The old phases 10–13 (live mode, README, gallery/launch, deploy prep) are **[s
 
 Not built, with the reason:
 
-- **Deploying, publishing to npm, custom domains and DNS:** they wait for Sean (phase 27 stops for approval).
+- **Deploying, publishing to npm, custom domains and DNS:** they wait for Sean (phase 28 stops for approval).
 - **Uploading or storing sessions on a server, accounts, server-side parsing, analytics and telemetry:** privacy and cost. Everything parses locally or in the browser.
 - **Following a running session live** (`--watch` / `--serve`), IDE extensions, editing or replaying sessions: these are good-first-issue or roadmap items (D26).
 - **Token, cost or usage analytics and production agent observability:** a different product. Cost fields are dropped from samples (R4).
@@ -1396,7 +1426,7 @@ Not built, with the reason:
 - D1, R2, Durable Objects, and a strict atomic budget counter.
 - Anything finance-related, and any decorative 3D.
 
-Good-first-issue candidates (phase 25, `docs/GOOD-FIRST-ISSUES.md`):
+Good-first-issue candidates (phase 26, `docs/GOOD-FIRST-ISSUES.md`):
 
 1. A Cursor or Aider session adapter (the contract suite + EXTENDING.md).
 2. `--watch`: re-render while a session grows.
@@ -1427,6 +1457,6 @@ Good-first-issue candidates (phase 25, `docs/GOOD-FIRST-ISSUES.md`):
 | The skill format or anatomy bar evolves; the skill triggers wrongly | Poor first run | Audit script, evals including negative trigger cases, narrow description, references dated |
 | npm name unavailable or the rename lands mid-stack | Docs churn | `PKG_NAME` single source (D25); rename as its own small step |
 | Phase size creep (history: ~2× estimates) | Reviews take longer than 20 min | Honest estimates, a named split seam per phase, the D14/D17 rules, `git diff --stat` before submit |
-| RAM: Chrome, the recorder (phase 22), ffmpeg (phase 26), other agents | OOM, flaky checks | One browser at a time; heavy tools run alone; harness cleanup; `ps` check in every verify; CLI tests use small fixtures |
+| RAM: Chrome, the recorder (phase 22), ffmpeg (phase 27), other agents | OOM, flaky checks | One browser at a time; heavy tools run alone; harness cleanup; `ps` check in every verify; CLI tests use small fixtures |
 | Workers AI JSON-schema support or label quality unverified (placeholder token) | AI overlay weak | Optional by design; schema validation; fakes in tests; smoke step before deploy; OpenAI-compatible fallback |
 | Lens (garden) risks from phases 1–9 (top-k temperature approximation, SVG ARIA support, tokenizer artefacts, timing flakes, soft KV cap) | As before | Mitigations unchanged (see §4.2 criteria and DECISIONS.md) |
