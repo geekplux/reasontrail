@@ -10,6 +10,7 @@ import { sandbox } from './sandbox';
 const XSS = '</script><script>alert(1)</script>';
 // Built at runtime so no secret-shaped string is committed (pnpm audit:samples scans the repo).
 const TOKEN = ['gh', 'p_', 'A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8'].join('');
+const HOME_DIR = ['', 'home', 'ana'].join('/');
 
 function session(text: string): string {
   const rec = (o: object) => JSON.stringify({ sessionId: 'sess-xss', cwd: '/work/notes-app', ...o });
@@ -84,12 +85,12 @@ describe('run', () => {
 
   it('--share redacts secrets, emails and home paths and writes into the current folder', () => {
     const sb = sandbox();
-    writeFileSync(join(sb.store, 'sess-xss.jsonl'), session(`Token ${TOKEN} from ana@example.org in /home/ana/notes`));
+    writeFileSync(join(sb.store, 'sess-xss.jsonl'), session(`Token ${TOKEN} from ana@example.org in ${HOME_DIR}/notes`));
     expect(run(['--share', '--no-open'], sb.ctx())).toBe(EXIT.ok);
     expect(sb.lines.out).toEqual([join(sb.cwd, 'reasontrail-sess-xss.html')]);
     expect(sb.lines.err).toContain('Redacted: 1 secrets, 1 emails, 1 paths; 0 non-conversation records dropped.');
     const html = readFileSync(sb.lines.out[0] as string, 'utf8');
-    for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', '/home/ana']) expect(html).not.toContain(leak);
+    for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', HOME_DIR]) expect(html).not.toContain(leak);
     expect(html).toContain('[secret:github-token]');
     expect(html).toContain('"shared":{"replaced":3}');
   });

@@ -44,7 +44,7 @@ pnpm dev:worker      # wrangler dev for /api/next-tokens; needs valid Cloudflare
 node scripts/smoke-workers-ai.mjs  # one real Workers AI logprobs call; prints SKIPPED without a valid token
 ```
 
-`pnpm check:browser` uses the system Chrome (`/usr/bin/google-chrome`, override with `CHROME_PATH`) and port 4317 (override with `TG_PORT`). Options: `--flows a,b|all`, `--out <dir>`, `--no-build`, `--fail-after-launch` (tests that cleanup also runs on failure). It always closes the browser and stops the preview server, and prints a `cleanup:` line.
+`pnpm check:browser` uses the system Chrome (`/usr/bin/google-chrome`, override with `CHROME_PATH`) and port 4317 (override with `TG_PORT`). Options: `--flows a,b|all`, `--out <dir>`, `--no-build`, `--fail-after-launch` (tests that cleanup also runs on failure), `--file <path>` (checks one local HTML map from `file://`: no server, and any request other than the page itself fails). It always closes the browser and stops the preview server, and prints a `cleanup:` line.
 
 ## How this repo is built
 

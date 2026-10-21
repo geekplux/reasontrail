@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Headless-browser check: build, start `vite preview` in its own process group, run flows in ONE system
 // Chrome, fail on console errors / non-same-origin requests / axe serious+critical, and ALWAYS clean up.
-// Usage: pnpm check:browser [--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch]
+// Usage: pnpm check:browser [--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>]
+// --file opens one local HTML file (e.g. a CLI map) instead: no build, no server; flow "file" checks it.
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright-core';
@@ -18,7 +19,9 @@ const port = Number(process.env.TG_PORT ?? 4317);
 const baseURL = `http://127.0.0.1:${port}`;
 const outDir = resolve(root, opts.out);
 const available = readdirSync(flowsDir).filter((f) => f.endsWith('.mjs')).map((f) => f.slice(0, -4)).sort();
-const flows = opts.flows === 'all' ? available.filter((f) => !BRAND_FLOWS.has(f)) : opts.flows.split(',');
+const fileURL = opts.file ? pathToFileURL(resolve(opts.file)).href : undefined;
+if (opts.file && !existsSync(resolve(opts.file))) throw new Error(`--file: no such file: ${opts.file}`);
+const flows = opts.file ? ['file'] : opts.flows === 'all' ? available.filter((f) => !BRAND_FLOWS.has(f) && f !== 'file') : opts.flows.split(',');
 for (const f of flows) if (!available.includes(f)) throw new Error(`unknown flow: ${f} (have: ${available.join(', ')})`);
 
 let server;
@@ -40,17 +43,23 @@ for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]
 process.on('exit', () => server && killGroupSync(server.child.pid));
 
 try {
-  if (opts.build) {
+  if (opts.build && !opts.file) {
     const build = spawnSync(process.execPath, [viteBin, 'build'], { cwd: root, stdio: 'inherit' });
     if (build.status !== 0) throw new Error(`build failed (exit ${build.status})`);
+    if (flows.includes('cli')) {
+      const cli = spawnSync('pnpm', ['run', 'build:cli'], { cwd: root, stdio: 'inherit' });
+      if (cli.status !== 0) throw new Error(`build:cli failed (exit ${cli.status})`);
+    }
   }
   mkdirSync(outDir, { recursive: true });
-  server = startPreview(port);
-  console.log(`preview: pid/pgid ${server.child.pid} on ${baseURL}`);
-  await waitForHttp(`${baseURL}/`, server.child).catch((err) => {
-    console.error(server.output.join(''));
-    throw err;
-  });
+  if (!opts.file) {
+    server = startPreview(port);
+    console.log(`preview: pid/pgid ${server.child.pid} on ${baseURL}`);
+    await waitForHttp(`${baseURL}/`, server.child).catch((err) => {
+      console.error(server.output.join(''));
+      throw err;
+    });
+  }
 
   browser = await chromium.launch({
     executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome',
@@ -76,7 +85,7 @@ try {
     };
     try {
       const flow = await import(pathToFileURL(join(flowsDir, `${name}.mjs`)).href);
-      await flow.run({ page, context, baseURL, shot, log, fail });
+      await flow.run({ page, context, baseURL, fileURL, root, shot, log, fail });
       log('done');
     } catch (err) {
       fail(`threw: ${err instanceof Error ? err.stack : err}`);

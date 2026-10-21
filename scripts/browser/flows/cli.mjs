@@ -9,6 +9,7 @@ import { axeProblems } from '../axe.mjs';
 
 const XSS = '</script><script>alert(1)</script>';
 const TOKEN = ['gh', 'p_', 'Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2'].join(''); // built at runtime: never committed
+const HOME_DIR = ['', 'home', 'ana'].join('/'); // a synthetic home path, assembled so the repo holds none
 const HONESTY = "Written reasoning is the agent's own account, not a record of how the model computed.";
 
 export async function run({ page, root, shot, log, fail }) {
@@ -71,13 +72,13 @@ export async function run({ page, root, shot, log, fail }) {
   // 2. --share on a session holding markup, a token, an email and a home path (written at runtime, never committed).
   const rec = (o) => JSON.stringify({ sessionId: 'sess-share', cwd: '/work/notes-app', ...o });
   writeFileSync(join(store, 'sess-share.jsonl'), `${[
-    rec({ type: 'user', uuid: 'u1', parentUuid: null, timestamp: '2026-10-01T10:00:00.000Z', message: { role: 'user', content: `Explain why ${XSS} shows as text. Token ${TOKEN}, mail ana@example.org, file /home/ana/notes/a.md` } }),
+    rec({ type: 'user', uuid: 'u1', parentUuid: null, timestamp: '2026-10-01T10:00:00.000Z', message: { role: 'user', content: `Explain why ${XSS} shows as text. Token ${TOKEN}, mail ana@example.org, file ${HOME_DIR}/notes/a.md` } }),
     rec({ type: 'assistant', uuid: 'a1', parentUuid: 'u1', timestamp: '2026-10-01T10:00:20.000Z', message: { role: 'assistant', model: 'claude-test-model', content: [{ type: 'text', text: `It is escaped, so ${XSS} stays text.` }] } }),
   ].join('\n')}\n`);
   const shared = reasontrail('--share', '--no-open');
   if (shared !== join(work, 'reasontrail-sess-sha.html')) fail(`--share wrote ${shared}`);
   const html = readFileSync(shared, 'utf8');
-  for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', '/home/ana']) if (html.includes(leak)) fail(`--share output still contains ${leak.slice(0, 6)}…`);
+  for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', HOME_DIR]) if (html.includes(leak)) fail(`--share output still contains ${leak.slice(0, 6)}…`);
   await page.goto(pathToFileURL(shared).href, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
   const text = await page.locator('[data-region="task"]').textContent();
