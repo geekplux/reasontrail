@@ -1,14 +1,14 @@
-# token-garden: plan
+# Reasontrail: plan
 
 Written by `planner` on 2026-10-19 and revised on 2026-10-20 for the **repositioning**. Binding inputs: `CLAUDE.md` (including "Repositioning 2026-10-20" and its addendum), `/workspace/gx-projects/logs/token-garden.change-request.md` (including the addendum at its end), `docs/llm-provider.md` and `docs/DECISIONS.md`.
 
-**What changed on 2026-10-20.** token-garden is now a **reasoning map of AI sessions**. You run one skill in a Claude Code, Codex or Grok Build session, and a local page opens. It shows what the task was, the route the agent took, where it got stuck or backtracked, and what it finally changed or answered. Chat transcripts come later. The next-token garden built in phases 1–9 stays as a **zoom-in lens** ("zoom into this sentence"). Its encoding, keyboard and accessibility work is reused, not deleted.
+**What changed on 2026-10-20.** The project (now **Reasontrail**) is a **reasoning map of AI sessions**. You run one skill in a Claude Code, Codex or Grok Build session, and a local page opens. It shows what the task was, the route the agent took, where it got stuck or backtracked, and what it finally changed or answered. Chat transcripts come later. The next-token garden built in phases 1–9 stays as a **zoom-in lens** ("zoom into this sentence"). Its encoding, keyboard and accessibility work is reused, not deleted.
 
 - Phases 1–8 are open PRs and stay exactly as written (§6).
 - Phase 9 describes what its branch already contains, now justified as shared infrastructure.
 - Phases 10–27 are new.
 - Superseded items are kept only where open PRs refer to them, and are marked **[superseded]**: the live prompt box (old phase 10, criteria F9–F12), the garden as the first view, and "no CLI or agent skill".
-- The working name stays `token-garden` in code. A rename will be its own small step later.
+- **Renamed 2026-10-20: the product is Reasontrail** (repo `geekplux/reasontrail`, `npx reasontrail`, skill `/reasontrail`). The local folder and historical phases 1–8 keep `token-garden`; the code rename (package name, page title, wordmark, CLI and skill names) lands in phase 13.
 
 Contents:
 
@@ -38,8 +38,8 @@ Not the user: teams who need production agent observability, tracing, cost analy
 
 ### 1.2 The fastest path to the first "wow"
 
-- **Skill (primary).** The user is in a local session and types `/reasoning-map`. The skill runs `npx <pkg> --current`. The CLI finds this session, parses it on the machine, writes a self-contained HTML file and opens it. Target: the map is on screen **≤ 5 s** after the command for a 10 MB session. There is no config, account or key, and nothing is uploaded. The agent's reply contains the file path.
-- **Shell.** `npx <pkg>` maps the latest session for the current directory. `npx <pkg> path/to/session.jsonl` maps a specific file. `--share` writes a redacted copy you can send to someone.
+- **Skill (primary).** The user is in a local session and types `/reasontrail`. The skill runs `npx reasontrail --current`. The CLI finds this session, parses it on the machine, writes a self-contained HTML file and opens it. Target: the map is on screen **≤ 5 s** after the command for a 10 MB session. There is no config, account or key, and nothing is uploaded. The agent's reply contains the file path.
+- **Shell.** `npx reasontrail` maps the latest session for the current directory. `npx reasontrail path/to/session.jsonl` maps a specific file. `--share` writes a redacted copy you can send to someone.
 - **Website (showcase).** The page opens straight onto a real, redacted map of the session that built a phase of this app. Target: **≤ 2 s**, no key. Dragging your own `.jsonl` onto it is a secondary path, parsed entirely in the browser.
 - **First wow, with zero clicks:** the glance view. A task card; the main route as one line of named episodes; "stuck here" markers that use shape plus text (for example "test failed 3×, then passed"); and an outcome card with the changed files and the final answer.
 - **Second wow, one click:** any step opens its raw tool call or text, with provenance (`<file>:<line>`).
@@ -53,7 +53,7 @@ Every phase has a **User value** line that answers: what does the user get, and 
 
 ## 2. Product goal
 
-token-garden turns an AI session into a **reasoning map** you can understand at a glance. A coding-agent transcript is long and linear: hundreds of messages, tool calls and results. token-garden parses it deterministically on your machine into a typed step graph of turns, tool calls, file touches, errors, retries, edits and subagents. It draws that graph as a map:
+Reasontrail turns an AI session into a **reasoning map** you can understand at a glance. A coding-agent transcript is long and linear: hundreds of messages, tool calls and results. Reasontrail parses it deterministically on your machine into a typed step graph of turns, tool calls, file touches, errors, retries, edits and subagents. It draws that graph as a map:
 
 - what the task was;
 - the main route the agent took, as a handful of episodes;
@@ -64,22 +64,22 @@ Every node keeps its provenance, so the raw text or tool call behind it is one c
 
 ### 2.1 The first 30 seconds (skill, the primary path)
 
-1. **0 s:** The user has just finished a Claude Code session that fixed a failing build. They type `/reasoning-map`.
-2. **~1 s:** The skill runs the kit command, `npx <pkg> --current`. The CLI reads `CLAUDE_CODE_SESSION_ID`, finds `~/.claude/projects/<encoded-cwd>/<id>.jsonl` and its `subagents/`, and parses them locally.
-3. **~3 s:** The browser opens `file:///tmp/token-garden/claude-code-<id>.html`, and the agent replies with the path.
+1. **0 s:** The user has just finished a Claude Code session that fixed a failing build. They type `/reasontrail`.
+2. **~1 s:** The skill runs the kit command, `npx reasontrail --current`. The CLI reads `CLAUDE_CODE_SESSION_ID`, finds `~/.claude/projects/<encoded-cwd>/<id>.jsonl` and its `subagents/`, and parses them locally.
+3. **~3 s:** The browser opens `file:///tmp/reasontrail/claude-code-<id>.html`, and the agent replies with the path.
    - Glance view: a task card ("Fix the failing CI build", 41 min, 212 steps, 2 subagents).
    - Seven episodes along the route: Read the error → Explore config → Try pinning the version → **stuck: tests failed 3×** → Revert the pin → Patch the import → Verify.
    - The outcome card lists `vite.config.ts` and `src/main.ts`, 4 edits, the last `pnpm test` passing, and an excerpt of the final answer.
    - Under the title: "Written reasoning is the agent's own account, not a record of how the model computed."
 4. **10 s:** The user clicks the "stuck" marker. The detail panel shows the three failing `pnpm test` calls, their stderr excerpts, `…jsonl:418`, and "Show raw".
-5. **25 s:** They run `npx <pkg> --current --share` (or press "Save shareable copy"), which writes a redacted `reasoning-map-<id>.html` and shows a redaction summary. They attach it to the PR.
+5. **25 s:** They run `npx reasontrail --current --share` (or press "Save shareable copy"), which writes a redacted `reasontrail-<id>.html` and shows a redaction summary. They attach it to the PR.
 
 ### 2.2 The first 30 seconds (website, the showcase)
 
-1. **0 s:** The page opens on "Watch the agents that built this app": the map of the implementer session that built a phase of token-garden, rendered from committed JSON with no network call beyond static assets.
+1. **0 s:** The page opens on "Watch the agents that built this app": the map of the implementer session that built a phase of Reasontrail, rendered from committed JSON with no network call beyond static assets.
 2. **5 s:** The visitor clicks a trouble marker and reads the raw command and result.
 3. **15 s:** They switch to another sample: a verifier round that failed and was fixed, or a planner's research session.
-4. **25 s:** "Map your own session" shows the one-line skill install and `npx <pkg>`. "Or drop a .jsonl here" parses a file in the browser, and nothing is uploaded.
+4. **25 s:** "Map your own session" shows the one-line skill install and `npx reasontrail`. "Or drop a .jsonl here" parses a file in the browser, and nothing is uploaded.
 
 URL entry points:
 
@@ -201,7 +201,7 @@ The two bold pairs are close under one CVD type. That is acceptable only because
 
 ## 4. Product acceptance criteria
 
-Numbered for reference from phases and PRs. "Headless check" means the Playwright flows run by `pnpm check:browser` with system Chrome, either against `vite preview` or against a `file://` HTML file written by the CLI. §4.1 holds the reasoning-map criteria, from phase 10 on. §4.2 keeps the criteria phases 1–9 were built against; the lens still meets them.
+Numbered for reference from phases and PRs. "Headless check" means the Playwright flows run by `pnpm check:browser` with system Chrome, either against `vite preview` or against a `file://` HTML file written by the CLI. §4.1 holds the reasontrail criteria, from phase 10 on. §4.2 keeps the criteria phases 1–9 were built against; the lens still meets them.
 
 ### 4.1 Reasoning map criteria (from phase 10)
 
@@ -226,7 +226,7 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **M9 Links.** `?session=<id>&step=<stepId>` on the website, and `#step=<stepId>` in a local file, reopen the selection. Back and Forward behave as expected.
 
 #### CLI and skills (C)
-- **C1** Run with no arguments in a project directory, `npx <pkg>`:
+- **C1** Run with no arguments in a project directory, `npx reasontrail`:
   - finds the latest session for that directory across Claude Code, Codex and Grok Build;
   - parses it locally and writes a self-contained HTML file;
   - opens it, or prints the path when there is no opener or `--no-open` is given;
@@ -240,9 +240,9 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **C3** The HTML file works from `file://` with zero network requests and no external resources. It is ≤ 300 KB plus the session data, and ≤ 1 MB for the largest committed sample.
 - **C4** The CLI has zero runtime dependencies (Node built-ins only) and needs Node ≥ 20.19. It finishes in ≤ 3 s for a 10 MB session on this box, median of 3.
 - **C5** Nothing is uploaded. The CLI makes no network request unless the user passes `--ai` (X5).
-- **C6** `skills/reasoning-map/` meets the wheresryan22/anatomy bar: `SKILL.md` + `kit/` + `references/` + `audit/` + `evals/`.
+- **C6** `skills/reasontrail/` meets the wheresryan22/anatomy bar: `SKILL.md` + `kit/` + `references/` + `audit/` + `evals/`.
   - `pnpm skill:audit` and `pnpm skill:evals` pass.
-  - One command (`npx <pkg> install-skill`) installs it for Claude Code (`~/.claude/skills/`, which Grok Build also scans), Grok Build (`~/.grok/skills/` when `~/.claude` is absent) and Codex.
+  - One command (`npx reasontrail install-skill`) installs it for Claude Code (`~/.claude/skills/`, which Grok Build also scans), Grok Build (`~/.grok/skills/` when `~/.claude` is absent) and Codex.
   - The installer never overwrites a changed skill without `--force`, and supports `--dry-run`.
 - **C7** Invoking the skill in a session returns the map's file path in the agent's reply and opens the page. Evals cover this with fixture sessions, a sandboxed `HOME` and `--no-open`.
 
@@ -294,7 +294,7 @@ Numbered for reference from phases and PRs. "Headless check" means the Playwrigh
 - **G2 Performance.** Website `tg:map-ready` ≤ 2000 ms on `vite preview` (median of 3). The initial JS is ≤ 170 KB gzip, including the default sample; other samples load lazily. A 10 MB `.jsonl` parses in the browser in ≤ 3 s. Glance layout for 5,000 steps takes ≤ 300 ms.
 - **G3 No key.** Everything except X and live lens growth works with no credentials. After the first load, the website works offline for the samples.
 - **G4 Typed public API.** `shared/session/types.ts` exports `SessionGraph` and its parts, with TSDoc. `shared/session/adapterContract.ts` is the executable spec for new adapters. `docs/EXTENDING.md` gains "Add a session adapter".
-- **S1'** The README pitch becomes the reasoning map. The hero is a map, and the quick start is the skill one-liner plus `npx <pkg>`. S5' examples are sample maps. S6' launch drafts are about the reasoning map. S1–S7 otherwise stand.
+- **S1'** The README pitch becomes the reasoning map. The hero is a map, and the quick start is the skill one-liner plus `npx reasontrail`. S5' examples are sample maps. S6' launch drafts are about the reasoning map. S1–S7 otherwise stand.
 
 ### 4.2 Lens (garden) criteria, retained from phases 1–9
 
@@ -518,7 +518,7 @@ The box has **Node 20.19.2** and **pnpm 9.15.9**. Several current majors need No
 | D17 | Counting phase size | Exclude lockfiles, sample/fixture JSON, images, and **verbatim standard texts** (`LICENSE`, `CODE_OF_CONDUCT.md` = Contributor Covenant 2.1) from the ~400-line budget; the verifier diffs those against the upstream text instead | Count them (would push the packaging phase over budget for no review value) |
 | D18 | Hero GIF | Dev-only script `scripts/brand/hero-gif.mjs` takes a screenshot sequence with the one headless browser and encodes it with the system `ffmpeg` (present on this box; not a project dependency). The output is committed; CI never runs it. If ffmpeg is missing it exits with a clear message and README keeps the PNG hero | Playwright `recordVideo` (needs Playwright's own ffmpeg download); an npm GIF encoder dependency |
 | D19 | Social preview | Rendered from a static template `docs/brand/social-preview.html` (logo + pitch + the real hero screenshot inlined as a data URL) at 1280×640 by a harness flow. Uploading it in GitHub settings is manual for Sean (STATUS follow-up; the API does not support it) | Hand-drawn image; generated by an external service |
-| D20 | Live demo link | Placeholder `https://token-garden.example` (reserved TLD) everywhere a demo URL is needed; `docs/DEPLOY.md` lists the files to update after Sean deploys | Guess a workers.dev URL (would be wrong or misleading) |
+| D20 | Live demo link | Placeholder `https://reasontrail.example` (reserved TLD) everywhere a demo URL is needed; `docs/DEPLOY.md` lists the files to update after Sean deploys | Guess a workers.dev URL (would be wrong or misleading) |
 | D21 | Code of conduct contact | Contributor Covenant 2.1 with the contact "the maintainers, via a private report to @geekplux on GitHub" (no email address invented) | A new email address (none exists) |
 
 ### 5.8 Reasoning map: modules (from phase 11)
@@ -554,7 +554,7 @@ fixtures/sessions/               small synthetic raw transcripts per source (ada
 cli/                             own package.json; zero runtime dependencies
   src/main.ts, args.ts, locate/{claudeCode,codex,grokBuild}.ts, html.ts, open.ts, installSkill.ts
   dist/cli.mjs, dist/viewer.html  build output (not committed)
-skills/reasoning-map/            anatomy bar: SKILL.md, kit/, references/, audit/, evals/, codex/
+skills/reasontrail/            anatomy bar: SKILL.md, kit/, references/, audit/, evals/, codex/
 tools/session-samples.json       which local sessions become samples (ids, trim ranges, titles)
 scripts/inline-viewer.mjs        dist-viewer/ -> one self-contained viewer.html
 scripts/audit-samples.mjs        R3
@@ -671,7 +671,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
 | D22 | Step-graph schema | §5.10: flat `steps` + typed `edges`, with lanes, episodes, trouble and outcome derived deterministically. Provenance is mandatory. AI labels are a separate overlay. `schemaVersion: 1` | A nested tree per turn (cannot express rewinds or retries); storing raw records in the graph (size, privacy) |
 | D23 | Dead-end and backtrack detection | The deterministic rules in §5.11, each labelled "detected pattern" with evidence steps and unit tests per rule. "Dead end" as a semantic claim is left to the optional AI overlay | AI-only detection (violates "deterministic first"); no trouble markers (fails the glance goal) |
 | D24 | Redaction policy | §5.13: on for samples, sharing and AI; off for the private local view, with a preview toggle; regex + entropy + record drops; CI audit; local untracked denylist | Always redact (hurts the private debugging use); never redact locally *and* when sharing (unsafe) |
-| D25 | npm package name | Placeholder. `cli/package.json` is `"name": "token-garden"`, `"private": true` until Sean approves publishing. Bins are `token-garden` and `reasoning-map`. Docs write `npx <pkg>` through one constant, `PKG_NAME`, in `cli/src/meta.ts` and `docs/_pkg.md`. Before publishing, the skill kit falls back to `TOKEN_GARDEN_CLI` or `node <repo>/cli/dist/cli.mjs` | Pick and reserve a name now (the rename is pending); a scoped name (decide together with the rename) |
+| D25 | npm package name | Placeholder. `cli/package.json` is `"name": "reasontrail"`, `"private": true` until Sean approves publishing. Bin is `reasontrail`. Docs write `npx reasontrail` through one constant, `PKG_NAME`, in `cli/src/meta.ts` and `docs/_pkg.md`. Before publishing, the skill kit falls back to `REASONTRAIL_CLI` or `node <repo>/cli/dist/cli.mjs` | Pick and reserve a name now (the rename is pending); a scoped name (decide together with the rename) |
 | D26 | CLI default output | **A self-contained static HTML file**, opened with the system opener. No server, so no process is left behind on a RAM-tight machine. It is also shareable as is and works from `file://`. A `--serve` mode is a good-first-issue (watch mode) | A local HTTP server (lingering process, port conflicts, nothing to share) |
 | D27 | How the skill finds the *current* session | Environment first (`CLAUDE_CODE_SESSION_ID`, `GROK_SESSION_ID`), then "latest for cwd" per §5.12, and always print which file was used. Claude Code's SKILL.md can also pass `${CLAUDE_SESSION_ID}` if the substitution is supported; phase 14 checks this and keeps the env var as the primary path | Ask the user (breaks zero config); always "latest" (wrong when two sessions run in one directory) |
 | D28 | Sample selection | Three Claude Code sessions from **this project**: (1) an implementer phase with failing tests that were fixed; (2) a verifier round that returned FAIL and a fix round; (3) a planner research session with subagents. Plus one Grok Build sample, only if a session on the box is neutral and non-finance after redaction (otherwise a synthetic Grok fixture), and one synthetic Codex sample. Each is trimmed to ≤ 400 steps and ≤ 250 KB of graph JSON. The main agent reads each before commit | Synthetic samples only (loses "watch the agents that built this app"); full untrimmed sessions (size, privacy) |
@@ -683,7 +683,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
 | D34 | Website routing | Query parameters on the existing `urlState` (`?session=`, `?view=open|install|lens`), with garden links (`?sample=`) still opening the lens. No router dependency | `react-router` (a dependency for 4 views); hash routing |
 | D35 | The old live prompt box (old phase 10) | Dropped. Its provider half (`workerProvider` + `cachedProvider`, client caps and messages) is built inside the lens phase 22 and runs only on explicit opt-in | Build it as planned (no user for it in the new product) |
 | D36 | npm publish | Treated like deploy: the final phase verifies `pnpm --dir cli pack` and documents `npm publish`. Publishing waits for Sean's approval | Publish early (irreversible name and version) |
-| D37 | Where the CLI writes by default | `<os.tmpdir()>/token-garden/<source>-<sessionId>.html`: private, outside the repo, overwritten on re-run. `--share` writes `./reasoning-map-<shortId>.html` in the current directory | Always the current directory (litters repos with unredacted transcripts) |
+| D37 | Where the CLI writes by default | `<os.tmpdir()>/reasontrail/<source>-<sessionId>.html`: private, outside the repo, overwritten on re-run. `--share` writes `./reasontrail-<shortId>.html` in the current directory | Always the current directory (litters repos with unredacted transcripts) |
 
 
 ---
@@ -1055,9 +1055,10 @@ The session file may still be growing while the CLI reads it, so the reader stop
 ### Phase 13: CLI and local viewer (outline first)
 - **Branch:** `phase-13-cli-viewer`
 - **Owners:** `implementer`; `lead-designer` + `a11y-reviewer` sign off the outline view.
-- **Goal:** `npx <pkg>` turns the latest or current Claude Code session into a self-contained HTML file and opens it. The page shows the designed, text-first outline map (task card, numbered episodes with trouble glyphs, outcome, honesty label). This is the first working end-to-end path.
+- **Goal:** `npx reasontrail` turns the latest or current Claude Code session into a self-contained HTML file and opens it. The page shows the designed, text-first outline map (task card, numbered episodes with trouble glyphs, outcome, honesty label). This is the first working end-to-end path.
 - **User value:** one command, a few seconds, and the user can see what their agent did. It works offline, makes no server or upload, and the file can be shared (`--share` redacts).
 - **Scope:**
+  - **Rename to Reasontrail (2026-10-20):** root and `cli/` `package.json` names `reasontrail`, bin `reasontrail`; `<title>`, meta/OG text, wordmark and logo `<title>` say Reasontrail (per DESIGN.md); README/CHANGELOG mentions; source URLs `github.com/geekplux/reasontrail`; tests and flows updated. Folder name and historical docs unchanged.
   - `cli/package.json` (D25, `private: true`, bins, `engines`, zero deps).
   - `vite.cli.config.ts` (SSR build → `cli/dist/cli.mjs`, D33).
   - `cli/src/{main.ts, args.ts, meta.ts, locate/claudeCode.ts, locate/index.ts, html.ts, open.ts}`, implementing C1–C5 for Claude Code. `--list`, `--current`, `--latest`, `--share`, `--json`, `--out` and `--no-open` all work. Exit codes as in C2.
@@ -1078,26 +1079,26 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - The session file is being written during the run: the reader ignores the partial line.
 - **Size:** ~550 (CLI 230, viewer + outline 170, inliner 50, tests 100). **Split seam:** 13a CLI + `--json` / 13b viewer + HTML.
 
-### Phase 14: The `reasoning-map` skill (Claude Code; Grok reads the same directory)
+### Phase 14: The `reasontrail` skill (Claude Code; Grok reads the same directory)
 - **Branch:** `phase-14-skill`
 - **Owners:** `implementer`; `lead-designer` reviews the skill's user-facing text.
-- **Goal:** `/reasoning-map` in Claude Code opens the current session's map and replies with its path. It is packaged to the wheresryan22/anatomy bar and installed with one command.
+- **Goal:** `/reasontrail` in Claude Code opens the current session's map and replies with its path. It is packaged to the wheresryan22/anatomy bar and installed with one command.
 - **User value:** the primary entry point. The user never leaves their session or learns a command line.
 - **Prep:** read the anatomy repository read-only in `/tmp` (then delete the clone) and follow its structure exactly. Record any deviation in DECISIONS.md.
 - **Scope:**
-  - `skills/reasoning-map/SKILL.md`: frontmatter `name: reasoning-map` and a `description` that says when to use it ("show how this session reasoned / map this session"). Steps: run the kit; report the path; offer `--share`. Privacy statement. Honesty statement.
-  - `skills/reasoning-map/kit/run.mjs`: resolves the CLI (`npx --yes <pkg>@<version>` once published; until then `TOKEN_GARDEN_CLI` or the repo's `cli/dist/cli.mjs`). It passes `--current` and prints exactly one line, `MAP: <path>`, for the agent to relay.
+  - `skills/reasontrail/SKILL.md`: frontmatter `name: reasontrail` and a `description` that says when to use it ("show how this session reasoned / map this session"). Steps: run the kit; report the path; offer `--share`. Privacy statement. Honesty statement.
+  - `skills/reasontrail/kit/run.mjs`: resolves the CLI (`npx --yes reasontrail@<version>` once published; until then `REASONTRAIL_CLI` or the repo's `cli/dist/cli.mjs`). It passes `--current` and prints exactly one line, `MAP: <path>`, for the agent to relay.
   - `references/`: `formats.md` (the three stores, §5.12), `privacy.md` (what is read and written, nothing uploaded, `--share`), `troubleshooting.md` (no session found, wrong session, no browser).
   - `audit/audit.mjs` (`pnpm skill:audit`): frontmatter fields and length limits; every referenced file exists; the kit makes no network calls (static check plus a sandbox run); no absolute home paths; no secrets.
   - `evals/cases.json` + `evals/run-evals.mjs` (`pnpm skill:evals`): ≥ 8 cases, each running the kit in a sandbox `HOME` with fixture sessions and `--no-open`. Covered: current via env, latest fallback, two sessions in one directory, no session, a malformed file, `--share`, a path with spaces, and a subagent session. Trigger-phrase cases are listed for manual model-in-the-loop runs (no key on this box), and the README of evals says so.
-  - `cli/src/installSkill.ts`: `npx <pkg> install-skill [--target claude|grok|codex|all] [--dry-run] [--force]`. Claude → `~/.claude/skills/reasoning-map/`. Grok → nothing extra when `~/.claude/skills` exists, because Grok scans it; otherwise `~/.grok/skills/`. Codex → phase 18.
+  - `cli/src/installSkill.ts`: `npx reasontrail install-skill [--target claude|grok|codex|all] [--dry-run] [--force]`. Claude → `~/.claude/skills/reasontrail/`. Grok → nothing extra when `~/.claude/skills` exists, because Grok scans it; otherwise `~/.grok/skills/`. Codex → phase 18.
   - Check whether Claude Code substitutes `${CLAUDE_SESSION_ID}` in SKILL.md, and record the result (D27).
 - **Acceptance criteria:**
   1. C6 (Claude and Grok targets) and C7. `skill:audit` and `skill:evals` pass.
   2. `install-skill --dry-run` in a sandbox `HOME` lists the exact files. A real install into the sandbox, then a second install, reports "unchanged". A modified installed file blocks a reinstall without `--force`.
   3. Every evaluation runs with no network and leaves no process.
   4. The real `~/.claude/skills` on this box is untouched (the verifier compares listings before and after).
-- **Verifier checks:** the common steps; audit; evals; sandbox install; one manual end-to-end run on this box. In a throwaway shell with `CLAUDE_CODE_SESSION_ID` set to a real token-garden session id, `node skills/reasoning-map/kit/run.mjs --no-open` prints `MAP:`, and the HTML stays in `.tmp/`, not committed.
+- **Verifier checks:** the common steps; audit; evals; sandbox install; one manual end-to-end run on this box. In a throwaway shell with `CLAUDE_CODE_SESSION_ID` set to a real token-garden session id, `node skills/reasontrail/kit/run.mjs --no-open` prints `MAP:`, and the HTML stays in `.tmp/`, not committed.
   - **Screenshots:** `skill-map-fixture.png` (the file from an eval case).
 - **Risks:**
   - The skill formats differ or change: the audit pins the frontmatter rules; references are dated.
@@ -1170,13 +1171,13 @@ The session file may still be growing while the CLI reads it, so the reader stop
 - **Branch:** `phase-18-codex-grok`
 - **Owners:** `implementer`.
 - **Goal:** the same CLI and skill work in Codex and Grok Build sessions, through adapters that normalize to the same step graph.
-- **User value:** whichever of the three agents you use, `/reasoning-map` (or `npx <pkg>`) gives the same kind of map.
+- **User value:** whichever of the three agents you use, `/reasontrail` (or `npx reasontrail`) gives the same kind of map.
 - **Scope:**
   - `shared/session/adapters/grokBuild.ts`: reads `updates.jsonl` session updates (D30). Chunks merge into messages; `tool_call` + `tool_call_update` become a call and its result with status. `agent_thought_chunk` becomes thinking with text. `plan` becomes a plan step. `summary.json` gives the title and model. `subagents/` become lanes.
   - `shared/session/adapters/codex.ts` (D31).
   - Synthetic fixtures for both, written from the formats. The Grok fixture's structure (not content) mirrors the box's files.
   - `cli/src/locate/{grokBuild.ts, codex.ts}` per §5.12, with `GROK_HOME` and `CODEX_HOME` respected. `--source` and `--list` cover all three. `--current` reads `GROK_SESSION_ID`, and the phase records whether Grok tool processes actually receive it.
-  - Codex skill target in `installSkill.ts` (`~/.codex/skills/reasoning-map/`, Agent Skills format). If current Codex docs show skills are unsupported, fall back to a custom prompt `~/.codex/prompts/reasoning-map.md`, record which, and add `skills/reasoning-map/codex/`.
+  - Codex skill target in `installSkill.ts` (`~/.codex/skills/reasontrail/`, Agent Skills format). If current Codex docs show skills are unsupported, fall back to a custom prompt `~/.codex/prompts/reasontrail.md`, record which, and add `skills/reasontrail/codex/`.
   - Evals: +4 cases (Grok current, Grok latest, Codex latest, mixed stores).
   - `docs/EXTENDING.md`: "Add a session adapter", using the contract suite and a worked Grok example.
 - **Acceptance criteria:**
@@ -1301,7 +1302,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
 - **Goal and scope:** as old phase 11, but for the reasoning map.
   - Pitch: "See how your AI agent reasoned: one command turns a Claude Code, Codex or Grok Build session into a map you understand at a glance. Local, no key, nothing uploaded."
   - Hero: a map screenshot from `scripts/browser/flows/hero.mjs`.
-  - Quick start: the skill install + `npx <pkg>` (with the D25 placeholder note), "How it works" (adapters → step graph → map; optional AI; the lens), privacy and honesty, "Extend it" (adapters, the Worker), and a roadmap.
+  - Quick start: the skill install + `npx reasontrail` (with the D25 placeholder note), "How it works" (adapters → step graph → map; optional AI; the lens), privacy and honesty, "Extend it" (adapters, the Worker), and a roadmap.
   - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (D21), `SECURITY.md` (scope: the CLI's file handling, redaction, the Worker).
   - Issue templates: bug report, feature request, a `new_adapter.yml` (replacing `new_garden.yml`) and a session-sample proposal. A PR template.
   - `docs/GOOD-FIRST-ISSUES.md` (≥ 8, from §7).
@@ -1314,7 +1315,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
 ### Phase 26: Examples gallery, social preview, hero GIF and launch kit
 - **Branch:** `phase-26-gallery-launch`
 - **Goal and scope:** as old phase 12, for maps.
-  - `examples/README.md`: each sample map with a screenshot, "what to notice" and links (`https://token-garden.example/?session=<id>&step=…`, D20), plus "Map your own session" (one command).
+  - `examples/README.md`: each sample map with a screenshot, "what to notice" and links (`https://reasontrail.example/?session=<id>&step=…`, D20), plus "Map your own session" (one command).
   - Hero GIF: the skill flow, then the map, then a click on a trouble marker, recorded in the one browser + system ffmpeg (D18).
   - `docs/brand/social-preview.png`.
   - `docs/LAUNCH.md`:
@@ -1331,8 +1332,9 @@ The session file may still be growing while the CLI reads it, so the reader stop
 ### Phase 27: Cloudflare deployment and publish preparation (stops for Sean's approval)
 - **Branch:** `phase-27-deploy-prep`
 - **Goal:** everything needed to deploy the showcase site and Worker, and to publish the CLI, is ready and dry-run-verified. **Nothing is deployed or published.**
-- **User value:** Sean can put the site online and publish `npx <pkg>` with reviewed commands. Self-hosters get a runbook.
+- **User value:** Sean can put the site online and publish `npx reasontrail` with reviewed commands. Self-hosters get a runbook.
 - **Scope:**
+  - `wrangler.jsonc` `name: "reasontrail"` (renamed from `token-garden`, 2026-10-20).
   - As old phase 13: `wrangler.jsonc` finalized (all bindings, including the structure route), `public/_headers` (CSP `connect-src 'self'`, long-cache assets), `docs/DEPLOY.md` (prerequisites, `pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy`, the smoke script, KV, the optional secret, **the exact deploy command `pnpm exec wrangler deploy`, run only by Sean or after his approval**, post-deploy checks for `/api/next-tokens` and `/api/structure`, URL replacement for D20, rollback, cost notes).
   - Plus `docs/PUBLISH.md`:
     - `pnpm build:cli && pnpm --dir cli pack` verified, and the tarball contents listed;
@@ -1359,8 +1361,8 @@ The session file may still be growing while the CLI reads it, so the reader stop
 | 10 | `phase-10-design` | lead-designer audit + `docs/DESIGN.md` + wireframes (docs only) | lead-designer, dataviz-designer, a11y-reviewer | ~450 docs |
 | 11 | `phase-11-session-model` | Step-graph types, tolerant reader, adapter contract, Claude Code adapter (subagents, rewinds) | implementer | ~480 |
 | 12 | `phase-12-structure-redact` | Episodes, trouble patterns, outcome; redaction + sample audit | implementer | ~450 |
-| 13 | `phase-13-cli-viewer` | `npx <pkg>`: locate → parse → self-contained HTML → open; outline viewer | implementer, lead-designer, a11y-reviewer | ~550 (split seam named) |
-| 14 | `phase-14-skill` | `/reasoning-map` skill to the anatomy bar, one-command install (Claude; Grok shares the directory) | implementer, lead-designer | ~420 |
+| 13 | `phase-13-cli-viewer` | `npx reasontrail`: locate → parse → self-contained HTML → open; outline viewer | implementer, lead-designer, a11y-reviewer | ~550 (split seam named) |
+| 14 | `phase-14-skill` | `/reasontrail` skill to the anatomy bar, one-command install (Claude; Grok shares the directory) | implementer, lead-designer | ~420 |
 | 15 | `phase-15-samples` | 3–5 redacted real sample maps from this box, reproducible | implementer, main agent review | ~200 + JSON |
 | 16 | `phase-16-map-glance` | Map v1: task card, route + lanes, trouble markers, outcome, honesty label | implementer, dataviz-designer, lead-designer, a11y-reviewer | ~560 (split seam named) |
 | 17 | `phase-17-map-details` | Detail panel, raw + provenance, tool views, keyboard, deep links | implementer, lead-designer, a11y-reviewer | ~480 |

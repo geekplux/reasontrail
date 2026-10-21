@@ -1,23 +1,23 @@
 STATE: IN-PROGRESS
 
-# Status
+# Status (Reasontrail, formerly token-garden)
 
-- Current phase: 10 (`phase-10-design`): lead-designer audit + DESIGN.md
+- Current phase: 10 (`phase-10-design`): lead-designer writing DESIGN.md; rename to Reasontrail recorded
 - Plan: `docs/PLAN.md` (27 phases after the 2026-10-20 reasoning-map pivot; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
 
 | Phase | Branch | PR | State | Verify rounds |
 |---|---|---|---|---|
-| 1 | `phase-1-toolchain` | [#1](https://github.com/geekplux/token-garden/pull/1) | PASS, PR open | 1 |
-| 2 | `phase-2-identity` | [#2](https://github.com/geekplux/token-garden/pull/2) | PASS, PR open | 1 |
-| 3 | `phase-3-garden-encoding` | [#4](https://github.com/geekplux/token-garden/pull/4) | PASS, PR open | 1 |
-| 4 | `phase-4-explore-share` | [#5](https://github.com/geekplux/token-garden/pull/5) | PASS, PR open | 1 |
-| 5 | `phase-5-keyboard-a11y` | [#6](https://github.com/geekplux/token-garden/pull/6) | PASS, PR open | 1 |
-| 6 | `phase-6-recorded-samples` | [#7](https://github.com/geekplux/token-garden/pull/7) | PASS, PR open | 1 |
-| 7 | `phase-7-temperature-sampling` | [#8](https://github.com/geekplux/token-garden/pull/8) | PASS, PR open | 1 |
-| 8 | `phase-8-worker-core` | [#9](https://github.com/geekplux/token-garden/pull/9) | PASS, PR open | 1 |
-| 9 | `phase-9-worker-limits` | [#10](https://github.com/geekplux/token-garden/pull/10) | PASS, PR open | 1 |
+| 1 | `phase-1-toolchain` | [#1](https://github.com/geekplux/reasontrail/pull/1) | PASS, PR open | 1 |
+| 2 | `phase-2-identity` | [#2](https://github.com/geekplux/reasontrail/pull/2) | PASS, PR open | 1 |
+| 3 | `phase-3-garden-encoding` | [#4](https://github.com/geekplux/reasontrail/pull/4) | PASS, PR open | 1 |
+| 4 | `phase-4-explore-share` | [#5](https://github.com/geekplux/reasontrail/pull/5) | PASS, PR open | 1 |
+| 5 | `phase-5-keyboard-a11y` | [#6](https://github.com/geekplux/reasontrail/pull/6) | PASS, PR open | 1 |
+| 6 | `phase-6-recorded-samples` | [#7](https://github.com/geekplux/reasontrail/pull/7) | PASS, PR open | 1 |
+| 7 | `phase-7-temperature-sampling` | [#8](https://github.com/geekplux/reasontrail/pull/8) | PASS, PR open | 1 |
+| 8 | `phase-8-worker-core` | [#9](https://github.com/geekplux/reasontrail/pull/9) | PASS, PR open | 1 |
+| 9 | `phase-9-worker-limits` | [#10](https://github.com/geekplux/reasontrail/pull/10) | PASS, PR open | 1 |
 | 10 | `phase-10-design` | - | in progress | 0 |
 | 11 | `phase-11-session-model` | - | pending | 0 |
 | 12 | `phase-12-structure-redact` | - | pending | 0 |
@@ -45,4 +45,4 @@ STATE: IN-PROGRESS
 - Codex adapter is built from the public format only: Codex is not installed on this box, so it is not verified against a real session (open item).
 - npm publish of the CLI waits for Sean's approval, like deploy (D36).
 
-Last updated: 2026-10-21 01:33 UTC (phase 9 PR opened, phase 10 started)
+Last updated: 2026-10-21 01:49 UTC (rename to Reasontrail (docs))
