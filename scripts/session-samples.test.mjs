@@ -27,11 +27,11 @@ describe('session-samples', () => {
   it('blanks the raw record of hidden steps and fits raw records to the size limit', () => {
     const g = { steps: [{ id: 's0', raw: { file: 'f', line: 1 }, rawText: 'secret ps list' }, { id: 's1', raw: { file: 'f', line: 1 } }] };
     expect(hideSteps(g, { s1: 'a process list' }).steps[0].rawText).toBe('[Left out of this sample: a process list.]');
-    const cli = `${'x'.repeat(4096)}…\n[cut 904 characters; full record at f.jsonl:3]`;
+    const cli = `${'x'.repeat(3096)}…\n[cut 1,904 characters; full record at f.jsonl:3]`;
     const big = { steps: Array.from({ length: 4 }, (_, i) => ({ id: `s${i}`, raw: { file: 'f.jsonl', line: 3 }, rawText: i ? 'x'.repeat(5000) : cli })) };
     const cap = fitRaw(big, 6200);
     expect(cap).toBe(1024);
-    expect(big.steps[0].rawText).toBe(`${'x'.repeat(1024)}…\n[cut 3976 characters; full record at f.jsonl:3]`);
+    expect(big.steps[0].rawText).toBe(`${'x'.repeat(1024)}…\n[cut 3,976 characters; full record at f.jsonl:3]`);
     expect(big.steps[1].rawText).toBe(big.steps[0].rawText);
     expect(fitRaw(big, 100)).toBe(0);
     expect(big.steps[0].rawText).toBeUndefined();

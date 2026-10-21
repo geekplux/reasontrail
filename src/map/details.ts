@@ -125,6 +125,20 @@ export function excerpt(text: string, lines = 12): { head: string; more: number 
   return { head: all.slice(0, lines).join('\n'), more: Math.max(0, all.length - lines) };
 }
 
+/** A text cut for a view without layout (tests, server render): its first `lines` source lines, at most about `chars`
+ * characters, cut on a word boundary. In the browser the cut is CSS's 12 visual lines instead. */
+export function textHead(text: string, lines = 12, chars = 900): { head: string; cut: boolean } {
+  const all = text.replace(/\n+$/, '');
+  let head = all.split('\n').slice(0, lines).join('\n');
+  if (head.length > chars) {
+    head = head.slice(0, chars + 1);
+    const space = head.search(/\s\S*$/);
+    head = space > 0 ? head.slice(0, space) : head.slice(0, chars);
+  }
+  head = head.trimEnd();
+  return head.length < all.length ? { head: `${head}…`, cut: true } : { head: all, cut: false };
+}
+
 /** "3f2a…c91" (DESIGN §8.10). */
 export const shortId = (id: string) => (id.length > 9 ? `${id.slice(0, 4)}…${id.slice(-3)}` : id);
 

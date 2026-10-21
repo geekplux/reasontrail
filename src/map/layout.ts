@@ -449,3 +449,7 @@ export function lepBox(open: GlanceLayout, r: RouteEpisode): { width: number; te
   return { width: w, text: Math.max(0, w - 14) };
 }
 
+/** Under 48 px of text an expanded side trail's episode shows only its step count, on one line, right-aligned in its
+ * whole box (`width`): a title would wrap mid-word. Its accessible name and tooltip keep the full name. */
+export const lepCountOnly = (box: { text: number }) => box.text < 48;
+

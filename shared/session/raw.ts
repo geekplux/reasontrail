@@ -8,8 +8,9 @@ export const RAW_TOTAL_MAX = 6_000_000;
 /** Extra chars redacted past the cap so a secret that straddles the cap is still seen whole by the rules. */
 export const RAW_REDACT_MARGIN = 512;
 
-/** The note that ends a cut raw record, inside its `<pre>`: "[cut 120 characters; full record at x.jsonl:12]". */
-export const cutNote = (n: number, at: Pick<Provenance, 'file' | 'line'>) => `[cut ${n} characters; full record at ${at.file}:${at.line}]`;
+/** The note that ends a cut raw record, inside its `<pre>`: "[cut 4,717 characters; full record at x.jsonl:12]" (the
+ * count grouped the same way in every locale, so maps are deterministic). */
+export const cutNote = (n: number, at: Pick<Provenance, 'file' | 'line'>) => `[cut ${n.toLocaleString('en-US')} characters; full record at ${at.file}:${at.line}]`;
 
 /**
  * `text` cut to `max` chars, followed on its own line by a {@link cutNote} saying how much was left out and where.

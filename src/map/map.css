@@ -130,7 +130,7 @@
 .map-body { min-width: 0; }
 .has-panel .trailhead { grid-template-columns: minmax(0, 1fr); gap: 0; }
 .has-panel .bottom-band { grid-template-columns: minmax(0, 1fr); gap: 0; }
-.detail-panel { position: sticky; top: 0; max-height: 100vh; overflow-y: auto; padding: var(--tg-space-4) var(--tg-space-5) var(--tg-space-5); font-size: 13.5px; background: var(--tg-surface); border-left: 1px solid var(--tg-ink); animation: tg-panel-in var(--tg-dur-panel) var(--tg-ease-out); }
+.detail-panel { position: sticky; top: 0; min-height: calc(100vh - 57px); max-height: 100vh; overflow-y: auto; padding: var(--tg-space-4) var(--tg-space-5) var(--tg-space-5); font-size: 13.5px; background: var(--tg-surface); border-left: 1px solid var(--tg-ink); animation: tg-panel-in var(--tg-dur-panel) var(--tg-ease-out); }
 @keyframes tg-panel-in { from { opacity: 0; transform: translateX(16px); } }
 .panel-top { display: flex; align-items: flex-start; gap: var(--tg-space-2); }
 .breadcrumb { flex: 1; min-width: 0; margin: 6px 0 0; font-size: 11.5px; color: var(--tg-ink-muted); overflow-wrap: anywhere; }
@@ -153,6 +153,8 @@
 .diff .d-same { color: var(--tg-ink-muted); }
 .step-path, .prov-file, .prov-ids { margin: 0 0 var(--tg-space-1); font-size: 12px; overflow-wrap: anywhere; }
 .step-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* A long text shows 12 visual lines (wrapped lines count) until "Show full text". */
+.step-text.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 12; overflow: hidden; }
 .step-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--tg-space-1) var(--tg-space-3); margin: 0; }
 .step-facts dt { color: var(--tg-ink-muted); }
 .step-facts dd { margin: 0; overflow-wrap: anywhere; }
@@ -185,6 +187,8 @@
 .lane-route-line { fill: none; stroke: var(--tg-lane); stroke-width: 3; }
 .lep { margin-top: 22px; }
 .lep .ep-text { top: 26px; bottom: auto; }
+/* No room for a title: the count alone, on the count row, right-aligned in the item's whole box. */
+.lep .ep-count-only { left: 0; padding-top: 16px; align-items: flex-end; text-align: right; }
 .has-open-lane .route-canvas .route-line, .has-open-lane .route-canvas .slash, .has-open-lane .route-canvas .lane-line { stroke: var(--tg-ink-muted); }
 .has-open-lane .route-canvas .lane-mark.is-expanded .lane-line { stroke: var(--tg-lane); stroke-width: 3; }
 .has-open-lane .route-canvas .mark .g-fill { fill: var(--tg-ink-muted); }
@@ -197,7 +201,7 @@
      every focused element, the footer links included, can scroll above it (WCAG 2.4.11). DetailPanel sets the class. */
   html.tg-sheet-open body { padding-bottom: 60vh; }
   html.tg-sheet-full body { padding-bottom: 90vh; }
-  .detail-panel { position: fixed; inset: auto 0 0; z-index: 3; height: 60vh; max-height: none; border-left: 0; border-top: 1px solid var(--tg-ink); animation-name: tg-sheet-in; }
+  .detail-panel { position: fixed; inset: auto 0 0; z-index: 3; height: 60vh; min-height: 0; max-height: none; border-left: 0; border-top: 1px solid var(--tg-ink); animation-name: tg-sheet-in; }
   .detail-panel.is-full { height: 90vh; }
   .sheet-size { display: inline-block; }
   .grabber { position: absolute; top: 6px; left: calc(50% - 16px); display: block; width: 32px; height: 4px; background: var(--tg-ink-muted); border-radius: 2px; }

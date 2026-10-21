@@ -94,10 +94,10 @@ export function hideSteps(graph, hide = {}) {
 const RAW_CAPS = [1024, 768, 512, 384, 256, 0];
 
 /** The CLI's cut note (shared/session/raw.ts `cutNote`): its record text and how many characters it left out. */
-const CUT = /…\n\[cut (\d+) characters; full record at [^\n]*\]$/;
+const CUT = /…\n\[cut ([\d,]+) characters; full record at [^\n]*\]$/;
 const uncut = (t) => {
   const m = CUT.exec(t);
-  return m ? { body: t.slice(0, m.index), total: m.index + Number(m[1]) } : { body: t, total: t.length };
+  return m ? { body: t.slice(0, m.index), total: m.index + Number(m[1].replaceAll(',', '')) } : { body: t, total: t.length };
 };
 
 /** Clip every `rawText` to the largest cap that keeps the sample within `bytes`, with the CLI's cut note (counting
@@ -110,7 +110,7 @@ export function fitRaw(graph, bytes = LIMITS.bytes) {
       if (t === undefined) return;
       if (cap === 0) delete s.rawText;
       else if (t.total <= cap) s.rawText = t.body;
-      else s.rawText = `${t.body.slice(0, cap)}…\n[cut ${t.total - cap} characters; full record at ${s.raw.file}:${s.raw.line}]`;
+      else s.rawText = `${t.body.slice(0, cap)}…\n[cut ${(t.total - cap).toLocaleString('en-US')} characters; full record at ${s.raw.file}:${s.raw.line}]`;
     });
     if (Buffer.byteLength(`${JSON.stringify(graph)}\n`) <= bytes) return cap;
   }

@@ -10,7 +10,7 @@ import { KIND_WORD } from './keyboard';
 import type { GlanceLayout } from './layout';
 import { duration, fileLabel, isUnstoredThinking } from './outline';
 import { RawRecord } from './RawRecord';
-import { excerpt, laneWord, lineDiff, ownWords, patternLine, rawRecords, rowCategory, rowLabel, RULE_WORDS, shortId, stepSay, type Row, type Target } from './details';
+import { excerpt, laneWord, textHead, lineDiff, ownWords, patternLine, rawRecords, rowCategory, rowLabel, RULE_WORDS, shortId, stepSay, type Row, type Target } from './details';
 import { RowGlyph, rowWords, since } from './StepList';
 
 interface Props {
@@ -234,14 +234,35 @@ function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGrap
   );
 }
 
-/** A user or agent text, its first 12 lines and "Show n more lines" (DESIGN §10.1). */
+/** A user or agent text, its first 12 visual lines and "Show full text" (DESIGN §10.1). In the browser CSS clamps it and
+ * the button shows only when it overflows; without layout (tests, server render) it is cut by `textHead`. */
 function StepText({ row, more, onMore }: { row: Row; more: boolean; onMore(): void }) {
   const text = row.step.text ?? '';
-  const ex = excerpt(text);
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [laidOut, setLaidOut] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || more || !text) return;
+    if (!laidOut) {
+      if (el.clientHeight > 0) setLaidOut(true);
+      return;
+    }
+    const measure = () => setOverflows(el.scrollHeight > el.clientHeight);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [text, more, laidOut]);
+  const fallback = textHead(text);
+  const cut = text !== '' && (laidOut ? overflows : fallback.cut);
+  const shown = more || laidOut || !fallback.cut ? text : fallback.head;
+  const cls = `${ownWords(row) ? 'agent-words step-text' : 'step-text'}${laidOut && !more ? ' is-clamped' : ''}`;
   return (
     <>
-      <p className={ownWords(row) ? 'agent-words step-text' : 'step-text'}>{more || !ex.more ? text : ex.head}</p>
-      {ex.more > 0 && <button type="button" className="link-button" aria-expanded={more} onClick={onMore}>{more ? 'Show less' : `Show ${plural(ex.more, 'more line')}`}</button>}
+      <p ref={ref} className={cls}>{shown}</p>
+      {cut && <button type="button" className="link-button" aria-expanded={more} onClick={onMore}>{more ? 'Show less' : 'Show full text'}</button>}
     </>
   );
 }

@@ -3,7 +3,7 @@ import type { Episode, Lane, SessionGraph, Step, StepStatus, Trouble } from '../
 import { sessionSamples } from '../sessions/samples';
 import { parseSession } from '../../shared/session/adapter';
 import { countText } from './keyboard';
-import { G, glanceLayout, idleSpan, laneLayout, laneStatus, lepBox, plateSpan, lineY, verdictOf } from './layout';
+import { G, glanceLayout, idleSpan, laneLayout, laneStatus, lepBox, lepCountOnly, plateSpan, lineY, verdictOf } from './layout';
 
 interface LaneSpec { ep: number; at: number; back?: number; steps: number; status?: StepStatus; agent?: string }
 interface Spec { eps: number[]; answer?: boolean; lanes?: LaneSpec[]; trouble?: { ep?: number; at?: number; lane?: number; resolved?: boolean }[]; gapMin?: Record<number, number> }
@@ -230,8 +230,9 @@ describe('lepBox (an expanded side trail)', () => {
         if (!open?.answer || !last) continue;
         const box = lepBox(open, last);
         expect(last.x - 12 + box.width).toBeLessThanOrEqual(open.routeEnd - 52 - 8);
-        const count = countText(last, box.text);
-        expect(count.length * G.monoPx <= box.text || count === String(last.steps)).toBe(true);
+        const room = lepCountOnly(box) ? box.width : box.text;
+        const count = countText(last, room);
+        expect(count.length * G.monoPx <= room || count === String(last.steps)).toBe(true);
       }
     }
   });
@@ -240,6 +241,17 @@ describe('lepBox (an expanded side trail)', () => {
     const open = { answer: {}, episodes: [r], routeEnd: 260 } as unknown as Parameters<typeof lepBox>[0];
     expect(lepBox(open, r)).toEqual({ width: 112, text: 98 });
     expect(lepBox({ ...open, answer: undefined } as unknown as Parameters<typeof lepBox>[0], r)).toEqual({ width: 200, text: 186 });
+  });
+  it('shows only the step count, on one line, when the text box is under 48 px', () => {
+    const r = { x: 100, len: 200, steps: 7, idle: '' } as unknown as Parameters<typeof lepBox>[1];
+    const open = { answer: {}, episodes: [r], routeEnd: 200 } as unknown as Parameters<typeof lepBox>[0];
+    const box = lepBox(open, r);
+    expect(box.text).toBeLessThan(48);
+    expect(lepCountOnly(box)).toBe(true);
+    // The count alone gets the whole box: a whole word, never cut in two.
+    expect(countText(r, box.width)).toBe('7 steps');
+    expect(lepCountOnly({ text: 48 })).toBe(false);
+    expect(lepCountOnly(lepBox({ ...open, answer: undefined } as unknown as Parameters<typeof lepBox>[0], r))).toBe(false);
   });
 });
 

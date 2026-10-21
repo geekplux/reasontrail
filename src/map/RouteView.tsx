@@ -4,7 +4,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { KindMark, KindGlyph } from './Glyph';
 import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, lepId, move, navItems } from './keyboard';
-import { G, idleAtEnd, lepBox, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
+import { G, idleAtEnd, lepBox, lepCountOnly, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
 import { LaneLabel, LanePath } from './LaneView';
 import { BlazeMark, blazeData } from './TroubleMarker';
 
@@ -156,12 +156,12 @@ type P<T> = (x: T) => Record<string, unknown>;
 interface LabelOpts { availPx?: number; duration?: boolean }
 interface ViewProps { L: GlanceLayout; open?: { lane: string; L: GlanceLayout; name: string } | undefined; lepProps: P<RouteEpisode>; epProps: P<RouteEpisode>; laneProps: (l: LaneItem, opts: LabelOpts) => Record<string, unknown>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
 
-function EpisodeText({ r, width }: { r: RouteEpisode; width?: number }) {
+function EpisodeText({ r, width, countOnly }: { r: RouteEpisode; width?: number; countOnly?: boolean }) {
   const full = countText(r);
   const shown = countText(r, width);
   return (
     <>
-      <span className="ep-title">{r.episode.title}</span>{' '}
+      {!countOnly && <><span className="ep-title">{r.episode.title}</span>{' '}</>}
       <span className="ep-count mono" title={shown === full ? undefined : full}>{shown}</span>
     </>
   );
@@ -191,9 +191,14 @@ function OpenLane({ open, word, lepProps }: { open: NonNullable<ViewProps['open'
       </svg>
       {eps.map((r) => {
         const box = lepBox(open.L, r);
+        const countOnly = r !== open.L.answer && lepCountOnly(box);
         return (
-          <div key={r.episode.id} className={r === open.L.answer ? 'map-item ep lep ep-answer' : 'map-item ep lep'} style={r === open.L.answer ? { left: x(r) - 52, top: LANE_Y - 12, width: 70, height: 72 } : { left: x(r) - 12, top: LANE_Y - 12, width: box.width, height: 72 }} {...lepProps(r)}>
-            <span className="ep-text" style={{ width: box.text }}><EpisodeText r={r} width={box.text} /></span>
+          <div key={r.episode.id} className={r === open.L.answer ? 'map-item ep lep ep-answer' : 'map-item ep lep'} style={r === open.L.answer ? { left: x(r) - 52, top: LANE_Y - 12, width: 70, height: 72 } : { left: x(r) - 12, top: LANE_Y - 12, width: box.width, height: 72 }} {...lepProps(r)} {...(countOnly ? { title: r.episode.title } : {})}>
+            {countOnly ? (
+              <span className="ep-text ep-count-only" style={{ width: box.width }}><EpisodeText r={r} width={box.width} countOnly /></span>
+            ) : (
+              <span className="ep-text" style={{ width: box.text }}><EpisodeText r={r} width={box.text} /></span>
+            )}
           </div>
         );
       })}

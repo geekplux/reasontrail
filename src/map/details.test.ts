@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SessionGraph, Step } from '../../shared/session/types';
 import implementerChecks from '../sessions/samples/implementer-checks.graph.json';
 import verifyFailFix from '../sessions/samples/verify-fail-fix.graph.json';
-import { excerpt, exitCode, itemForStep, lineDiff, rawRecords, readStepLink, redactionParts, rowLabel, rowStatusWord, sayLabel, shortId, stepRows, targetOf, writeStepLink } from './details';
+import { excerpt, textHead, exitCode, itemForStep, lineDiff, rawRecords, readStepLink, redactionParts, rowLabel, rowStatusWord, sayLabel, shortId, stepRows, targetOf, writeStepLink } from './details';
 import { glanceLayout } from './layout';
 
 const raw = { file: 'f.jsonl', line: 1 };
@@ -41,6 +41,14 @@ describe('details (M3)', () => {
   it('excerpts, short ids and redaction marks', () => {
     expect(excerpt('a\nb\nc\n', 2)).toEqual({ head: 'a\nb', more: 1 });
     expect(shortId('3f2a1234-5678-c91')).toBe('3f2a…c91');
+    expect(textHead('short\n')).toEqual({ head: 'short', cut: false });
+    expect(textHead('a\nb\nc', 2)).toEqual({ head: 'a\nb…', cut: true });
+    const words = Array.from({ length: 300 }, (_, i) => `word${i}`).join(' ');
+    const { head, cut } = textHead(words);
+    expect(cut).toBe(true);
+    expect(head.length).toBeLessThanOrEqual(901);
+    expect(words.startsWith(head.slice(0, -1))).toBe(true);
+    expect(words[head.length - 1]).toBe(' ');
     expect(redactionParts('key [secret:github-token] at ~/x [email]')).toEqual([
       { text: 'key ', redacted: false }, { text: '[secret:github-token]', redacted: true }, { text: ' at ', redacted: false },
       { text: '~', redacted: true }, { text: '/x ', redacted: false }, { text: '[email]', redacted: true },
