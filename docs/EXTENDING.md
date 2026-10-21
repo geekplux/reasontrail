@@ -1,4 +1,4 @@
-# Extending token-garden
+# Extending Reasontrail
 
 Four extension points, each with the files to touch and the check that proves it works:
 
@@ -85,4 +85,4 @@ Then run `pnpm vitest run src/styles/tokens.test.ts`. It checks the following:
 - the colours that must stay apart remain apart (ΔE >= 20) under protanopia, deuteranopia and tritanopia;
 - `public/favicon.svg` and `public/logo.svg` draw in `--tg-branch-hi`, and the `theme-color` in `index.html` matches `--tg-paper` (static files cannot read CSS variables, so update those copies too).
 
-Colour is never the only signal in token-garden: thickness, markers, dash patterns and labels carry the meaning. Keep it that way.
+Colour is never the only signal in Reasontrail: thickness, markers, dash patterns and labels carry the meaning. Keep it that way.

@@ -18,6 +18,7 @@ describe('locating Claude Code sessions in a sandbox HOME', () => {
     expect(locate(opts(['--latest']), sb.ctx())).toEqual({ ref: expect.objectContaining({ id: 'new-one', file: newest }), how: 'newest for this folder' });
     expect(locate(opts(['--current']), sb.ctx({ CLAUDE_CODE_SESSION_ID: 'old-one' }))).toMatchObject({ ref: { id: 'old-one' }, how: 'current (CLAUDE_CODE_SESSION_ID)' });
     expect(locate(opts(['--current']), sb.ctx())).toMatchObject({ ref: { id: 'new-one' }, how: 'newest for this folder (no current session id)' });
+    expect(locate(opts(['--current']), sb.ctx({ CLAUDE_CODE_SESSION_ID: 'gone' }))).toMatchObject({ ref: { id: 'new-one' }, how: 'session gone not found; using the latest for this folder' });
     expect(locate(opts(['old-one']), sb.ctx())).toMatchObject({ ref: { id: 'old-one' }, how: 'given' });
     expect(locate(opts([newest]), sb.ctx())).toMatchObject({ ref: { file: newest } });
     expect(locate(opts(['nope']), sb.ctx())).toEqual({ error: 'No session file or id "nope" was found.' });

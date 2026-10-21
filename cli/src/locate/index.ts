@@ -22,13 +22,14 @@ export function locate(opts: Options, ctx: LocateContext): Located {
     const ref = refFor(path) ?? findById(ctx, opts.target);
     return ref ? { ref, how: 'given' } : { error: `No session file or id "${opts.target}" was found.` };
   }
+  const id = ctx.env.CLAUDE_CODE_SESSION_ID;
   if (opts.mode === 'current') {
-    const id = ctx.env.CLAUDE_CODE_SESSION_ID;
     const ref = id ? findById(ctx, id) : undefined;
     if (ref) return { ref, how: 'current (CLAUDE_CODE_SESSION_ID)' };
   }
   const latest = listForCwd(ctx)[0];
-  if (latest) return { ref: latest, how: opts.mode === 'current' ? 'newest for this folder (no current session id)' : 'newest for this folder' };
+  const why = !id ? 'newest for this folder (no current session id)' : `session ${id} not found; using the latest for this folder`;
+  if (latest) return { ref: latest, how: opts.mode === 'current' ? why : 'newest for this folder' };
   return { error: `No Claude Code session was found for ${ctx.cwd}.` };
 }
 

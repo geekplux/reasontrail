@@ -1,8 +1,8 @@
 {
-  "name": "token-garden-record-samples",
+  "name": "reasontrail-record-samples",
   "version": "0.0.0",
   "private": true,
-  "description": "One-off recorder for token-garden's built-in sample gardens. Not part of the app install.",
+  "description": "One-off recorder for Reasontrail's built-in sample gardens. Not part of the app install.",
   "license": "MIT",
   "type": "module",
   "engines": {

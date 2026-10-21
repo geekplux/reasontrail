@@ -1,6 +1,6 @@
 # record-samples
 
-Records token-garden's built-in sample gardens (`src/samples/*.json`) from a real language model, so the app's first view needs no network and no API key.
+Records Reasontrail's built-in sample gardens (`src/samples/*.json`) from a real language model, so the app's first view needs no network and no API key.
 
 By default it runs [SmolLM2-135M](https://huggingface.co/onnx-community/SmolLM2-135M-ONNX) (base model, q8, pinned revision) on your CPU with [transformers.js](https://github.com/huggingface/transformers.js). No key, no account, no GPU. One forward pass per fork gives the full next-token distribution for the raw text, which is exactly what a garden shows.
 
@@ -31,7 +31,7 @@ node record.mjs --help
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--provider local-onnx\|worker` | `local-onnx` | Model source. `worker` posts to a running token-garden Worker's `POST /api/next-tokens` (for example `wrangler dev`). |
+| `--provider local-onnx\|worker` | `local-onnx` | Model source. `worker` posts to a running Reasontrail Worker's `POST /api/next-tokens` (for example `wrangler dev`). |
 | `--url <url>` | `http://127.0.0.1:8787` | Worker base URL, used with `--provider worker`. |
 | `--prompts <file>` | `prompts.json` here | List of `{ id, title, prompt }`. |
 | `--only <id>` | (all) | Record one id from the list. |

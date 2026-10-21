@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Records token-garden sample gardens (docs/llm-provider.md §4 and §8).
+// Records Reasontrail sample gardens (docs/llm-provider.md §4 and §8).
 // One-off tool with its own package.json; see README.md in this folder.
 //
 //   node record.mjs                                  # all prompts in prompts.json -> ../../src/samples
