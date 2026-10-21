@@ -26,7 +26,8 @@ describe('trimSession', () => {
     const s = load('basic');
     const full = buildGraph(s);
     const same = buildGraph(trimSession(s, { from: 0, to: full.steps.length - 1 }));
-    expect(same).toEqual(full);
+    expect({ ...same, stats: {} }).toEqual({ ...full, stats: {} });
+    expect(same.title).toBe('Fix slugify for titles with spaces');
   });
 
   it('keeps exactly the steps in range, renumbered from s0, and takes the title from the first kept request', () => {
@@ -50,6 +51,13 @@ describe('trimSession', () => {
     expect(cut.lanes.map((l) => l.id)).toEqual(['main']);
     expect(cut.steps).toHaveLength(before);
     expect(buildGraph(trimSession(s, { from: 9_000, to: 9_001 })).lanes.map((l) => l.id)).toEqual(['main']);
+  });
+
+  it('limits parse stats to the kept stretch', () => {
+    const s = load('basic');
+    s.stats = { ...s.stats, skippedLines: 2, partialLines: 1, unknownRecords: 3, ignoredRecords: 4, skippedLineNumbers: [{ file: `${DIR}/basic.jsonl`, line: 5 }, { file: `${DIR}/basic.jsonl`, line: 9_999 }] };
+    const n = buildGraph(s).steps.length;
+    expect(buildGraph(trimSession(s, { from: 0, to: n - 1 })).stats).toMatchObject({ skippedLines: 1, partialLines: 0, unknownRecords: 0, ignoredRecords: 0, skippedLineNumbers: [{ line: 5 }] });
   });
 
   it('is deterministic', () => {

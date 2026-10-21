@@ -1,6 +1,6 @@
 // Trim a normalized session to a step range (CLI `--trim <from>:<to>`, PLAN phase 15). Pure and deterministic.
 import { buildSteps } from './build/steps';
-import type { NormalizedRecord, NormalizedSession } from './types';
+import type { NormalizedSession, Step } from './types';
 
 export interface StepRange {
   /** First step seq of the untrimmed graph, inclusive. */
@@ -11,26 +11,18 @@ export interface StepRange {
 
 const key = (file: string, line: number) => `${file}\n${line}`;
 
-function firstUserText(records: NormalizedRecord[], laneId?: string): string | undefined {
-  for (const r of records) {
-    if (laneId !== undefined && r.laneId !== laneId) continue;
-    for (const it of r.items) if (it.kind === 'user' && it.text.trim()) return it.text;
-  }
-  return undefined;
-}
-
 /**
  * Keep only the records whose steps fall in `range` (steps `s<from>`…`s<to>` of the untrimmed graph); a record that
  * yields several steps is kept whole. Chained records without content stay when they lie inside a kept stretch of
  * their file, so parent links still resolve. Lanes without kept records are dropped (the first lane always stays).
- * The title is the custom title when the range starts at 0, else the first kept user request (main lane first).
+ * Parse stats are limited to the kept stretches. The title is the custom title when the range starts at 0, else the first kept user request (main lane first, then
+ * the earliest in any lane).
  */
 export function trimSession(session: NormalizedSession, range: StepRange): NormalizedSession {
-  const { steps } = buildSteps(session);
+  const steps = buildSteps(session).steps.filter((s) => s.seq >= range.from && s.seq <= range.to);
   const keep = new Set<string>();
   const span = new Map<string, [number, number]>();
   for (const s of steps) {
-    if (s.seq < range.from || s.seq > range.to) continue;
     keep.add(key(s.raw.file, s.raw.line));
     const [lo, hi] = span.get(s.raw.file) ?? [s.raw.line, s.raw.line];
     span.set(s.raw.file, [Math.min(lo, s.raw.line), Math.max(hi, s.raw.line)]);
@@ -42,9 +34,18 @@ export function trimSession(session: NormalizedSession, range: StepRange): Norma
   });
   const used = new Set(records.map((r) => r.laneId));
   const main = session.lanes[0]?.id;
-  const out: NormalizedSession = { ...session, lanes: session.lanes.filter((l) => l.id === main || used.has(l.id)), records };
+  // Parse counts follow the range, so a trim of a file that is still growing stays byte-identical. Unknown and ignored
+  // records carry no position, so a trimmed session reports none.
+  const skipped = session.stats.skippedLineNumbers.filter((p) => {
+    const sp = span.get(p.file);
+    return sp !== undefined && p.line >= sp[0] && p.line <= sp[1];
+  });
+  const stats = { ...session.stats, skippedLines: skipped.length, partialLines: 0, skippedLineNumbers: skipped, unknownRecords: 0, ignoredRecords: 0 };
+  const out: NormalizedSession = { ...session, lanes: session.lanes.filter((l) => l.id === main || used.has(l.id)), records, stats };
   delete out.title;
-  const title = range.from === 0 && session.title ? session.title : (firstUserText(records, main) ?? firstUserText(records));
+  const isUser = (s: Step) => s.kind === 'user' && Boolean(s.text?.trim());
+  const first = steps.find((s) => isUser(s) && s.laneId === main) ?? steps.find(isUser);
+  const title = range.from === 0 && session.title ? session.title : first?.text;
   if (title) out.title = title;
   return out;
 }
