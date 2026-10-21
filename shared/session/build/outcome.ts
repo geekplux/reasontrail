@@ -8,6 +8,8 @@ export interface FileEvent {
   step: Step;
   type: 'write' | 'delete' | 'revert';
   created?: boolean;
+  /** A recursive delete of a path with no extension: most likely a folder, never a file changed on its own. */
+  folder?: boolean;
   restores?: Step;
 }
 
@@ -60,7 +62,7 @@ export function fileHistory(steps: Step[], cwd?: string): FileEvent[] {
     } else if (t.category === 'run' && t.command) {
       const fx = shellEffects(t.command, cwd);
       for (const path of fx.writes) add({ path, step, type: 'write' });
-      for (const path of fx.deletes) add({ path, step, type: 'delete' });
+      for (const path of fx.deletes) add({ path, step, type: 'delete', ...(fx.dirs.includes(path) ? { folder: true } : {}) });
       const back = fx.revertAll ? [...touched] : touched.filter((p) => fx.reverts.some((r) => p === r || p.endsWith(`/${r}`)));
       for (const path of back) add({ path, step, type: 'revert' });
     }
@@ -82,18 +84,20 @@ export function relPath(cwd: string | undefined, p: string): string {
 }
 
 /** The files a session's outcome and its trouble count: everything in the history except scratch or build output (see
- * `isScratchOutput`) and files created or freshly written by the session and then deleted (scratch files). */
+ * `isScratchOutput`), files created or freshly written by the session and then deleted (scratch files), and folders
+ * (paths only ever removed by a recursive `rm`). */
 export function countedPaths(history: FileEvent[], cwd?: string): Set<string> {
-  const seen = new Map<string, { fresh: boolean; created: boolean; last: FileEvent['type'] }>();
+  const seen = new Map<string, { fresh: boolean; created: boolean; last: FileEvent['type']; folder: boolean }>();
   for (const e of history) {
     if (isScratchOutput(relPath(cwd, e.path))) continue;
     // `fresh`: first written by a non-Edit tool (Edit needs an existing file).
-    const f = seen.get(e.path) ?? { fresh: e.type === 'write' && e.step.tool?.category !== 'edit', created: false, last: e.type };
+    const f = seen.get(e.path) ?? { fresh: e.type === 'write' && e.step.tool?.category !== 'edit', created: false, last: e.type, folder: true };
     if (e.created && !seen.has(e.path)) f.created = true;
+    if (!e.folder) f.folder = false;
     f.last = e.type;
     seen.set(e.path, f);
   }
-  return new Set([...seen].filter(([, f]) => !((f.fresh || f.created) && f.last === 'delete')).map(([path]) => path));
+  return new Set([...seen].filter(([, f]) => !f.folder && !((f.fresh || f.created) && f.last === 'delete')).map(([path]) => path));
 }
 
 /** Files changed (minus net-reverted files and the paths `countedPaths` drops), the last verification and the answer step. */

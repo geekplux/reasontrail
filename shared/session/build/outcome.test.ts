@@ -1,7 +1,7 @@
 // Outcome: scratch and build output never count as files changed (phase 15 content review).
 import { describe, expect, it } from 'vitest';
 import type { Step } from '../types';
-import { buildOutcome, countedPaths, type FileEvent, isScratchOutput } from './outcome';
+import { buildOutcome, countedPaths, type FileEvent, fileHistory, isScratchOutput } from './outcome';
 import { findTrouble } from './trouble';
 
 const step = { id: 's0', seq: 0, laneId: 'main', kind: 'tool-call', tool: { category: 'edit', files: [] } } as unknown as Step;
@@ -49,5 +49,14 @@ describe('answer step', () => {
   it('is the last main assistant text when no main tool call follows it', () => {
     expect(buildOutcome([s(0, 'user', 'go'), s(1, 'tool-call'), s(2, 'assistant', 'Done.')], [], [], 'main').answerStepId).toBe('s2');
     expect(buildOutcome([s(0, 'assistant', 'Let me check.'), s(1, 'tool-call'), s(2, 'tool-result')], [], [], 'main').answerStepId).toBeUndefined();
+  });
+});
+
+describe('folders', () => {
+  it('never counts a folder removed with rm -r as a file changed', () => {
+    const call = (id: string, command: string) => ({ id, seq: Number(id.slice(1)), laneId: 'main', kind: 'tool-call', tool: { name: 'Bash', category: 'run', command, files: [], summary: '', callId: id } }) as unknown as Step;
+    const steps = [call('s1', 'rm -rf docs/screenshots/phase-9 old.txt'), call('s2', 'rm -f Makefile')];
+    const history = fileHistory(steps, '/w/p');
+    expect([...countedPaths(history, '/w/p')]).toEqual(['/w/p/old.txt', '/w/p/Makefile']);
   });
 });

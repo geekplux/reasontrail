@@ -239,7 +239,10 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
     for (const l of L.lanes.filter((x) => x.episodeId === r.episode.id)) {
       rows.push(
         <div key={l.id} className="vrow vsub">
-          <svg className="siding" width="24" height="44" aria-hidden="true" focusable="false"><path d={l.rejoins ? 'M0 0 L14 14 V30 L0 44' : 'M0 0 L14 14 V30 M8 30 H20'} /></svg>
+          <svg className="siding" width="24" height="44" aria-hidden="true" focusable="false">
+            <path d={l.rejoins ? 'M0 0 L14 14 V30 L0 44' : l.status === 'interrupted' ? 'M0 0 L14 14 V30 M8 30 H20' : l.status === 'unknown' ? 'M0 0 L14 14 V30' : 'M0 0 L14 14 V44'} />
+            {!l.rejoins && l.status === 'unknown' && <circle className="lane-end" cx={14} cy={34} r={4} />}
+          </svg>
           <div className="map-item vitem vlane" {...laneProps(l)}>
             <span><LaneLabel l={l} duration={false} /></span>
           </div>

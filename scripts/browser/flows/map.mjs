@@ -87,7 +87,6 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     if (fold.some((t) => t > 800)) fail(`${id}: a top region starts below the fold (${fold})`);
     if ((await page.$$eval('[data-glance]', (els) => els.filter((e) => e.getBoundingClientRect().bottom > innerHeight).length)) > 0) fail(`${id}: At a glance not fully in the first viewport`);
     for (const p of await axeProblems(page, `${id} desktop`, STRUCTURE_RULES)) fail(p);
-    await shot(`map-${id}-desktop`);
   }
 
   // G1 keyboard: Tab reaches the map; arrows, Home/End, ] [ with wrap; keys do nothing outside the map.
@@ -162,16 +161,6 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await open(page, `${baseURL}/?session=verify-fail-fix`);
   await checkGlance(page, SAMPLES[1].g, 'mobile lanes', fail, log);
   await shot('map-mobile-lanes', page.locator('[data-region="route"]'));
-  // Full-page 390×844 shots of every sample, and one in dark.
-  const full = { screenshot: (o) => page.screenshot({ ...o, fullPage: true }) };
-  for (const { id } of SAMPLES) {
-    await open(page, `${baseURL}/?session=${id}`);
-    await shot(`map-${id}-mobile`, full);
-  }
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await open(page, `${baseURL}/?session=${SAMPLES[1].id}`);
-  await shot(`map-${SAMPLES[1].id}-mobile-dark`, full);
-  await page.emulateMedia({ colorScheme: 'light' });
 
   // 320×225 (a phone in landscape at 400% zoom): Tab and the arrows never land on an item the sticky bar covers.
   await page.setViewportSize({ width: 320, height: 225 });
@@ -231,6 +220,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   rmSync(sb, { recursive: true, force: true });
   mkdirSync(join(sb, 'home'), { recursive: true });
   const fixtures = join(root, 'fixtures', 'sessions', 'claude-code');
+  const views = SAMPLES.map(({ id }) => ({ id, url: `${baseURL}/?session=${id}` }));
   for (const name of readdirSync(fixtures).filter((f) => /^(subagent|trouble)\.jsonl$/.test(f))) {
     const out = join(sb, `${name}.html`);
     const r = spawnSync(process.execPath, [cli, join(fixtures, name), '--no-open', '--out', out], { env: { PATH: process.env.PATH, HOME: join(sb, 'home'), TMPDIR: sb }, encoding: 'utf8', timeout: 20_000 });
@@ -243,11 +233,21 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     await checkGlance(page, JSON.parse(json.stdout), `file ${name}`, fail, log);
     for (const p of await axeProblems(page, `file ${name}`, STRUCTURE_RULES)) fail(p);
     if (name === 'subagent.jsonl') await shot('map-local-file');
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.reload({ waitUntil: 'load' });
-    await page.waitForSelector('[data-testid="map"][data-ready="true"]');
-    await page.waitForTimeout(450);
-    await shot(`map-${name.replace('.jsonl', '')}-mobile`, { screenshot: (o) => page.screenshot({ ...o, fullPage: true }) });
-    await page.setViewportSize({ width: 1280, height: 800 });
+    else views.push({ id: 'trouble', url: pathToFileURL(out).href });
   }
+
+  // DM38 screenshot matrix: every sample and the CLI trouble fixture at 1280 and 390, light and dark, full page.
+  const full = { screenshot: (o) => page.screenshot({ ...o, fullPage: true }) };
+  for (const scheme of ['light', 'dark']) {
+    await page.emulateMedia({ colorScheme: scheme });
+    for (const [size, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {
+      await page.setViewportSize(viewport);
+      for (const { id, url } of views) {
+        await open(page, url);
+        await shot(`map-${id}-${size}${scheme === 'dark' ? '-dark' : ''}`, full);
+      }
+    }
+  }
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.setViewportSize({ width: 1280, height: 800 });
 }

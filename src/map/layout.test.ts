@@ -131,16 +131,29 @@ describe('side trails (DM12)', () => {
   });
 });
 
+describe('lane labels (DESIGN §8.3)', () => {
+  it('never clips a status word: a lane 104 px after another on the same track moves to another track', () => {
+    const L = glanceLayout(graph({ eps: [6, 6, 6], lanes: [{ ep: 0, at: 5, steps: 3 }, { ep: 1, at: 1, steps: 3 }] }), 965);
+    const [a, b] = L.lanes;
+    expect(a?.word).toBe('no result recorded');
+    expect((b?.x1 ?? 0) - (a?.x1 ?? 0)).toBeCloseTo(104, -1);
+    expect(b?.track).not.toBe(a?.track);
+    for (const l of L.lanes) expect(Math.max(88, l.chars * G.monoPx + 12) - 10).toBeGreaterThanOrEqual((l.word.length + 2.5) * G.monoPx);
+  });
+});
+
 describe('lane status (DESIGN §8.3)', () => {
   const lane = (status?: StepStatus): Lane => ({ id: 'L', name: 'L', file: 'L.jsonl', ...(status ? { status } : {}) });
   const st = (kind: Step['kind'], text?: string): Step => ({ id: `s${text ?? kind}`, seq: 0, laneId: 'L', kind, raw: { file: 'L.jsonl', line: 1 }, ...(text ? { text } : {}) });
   const g = graph({ eps: [1] });
 
-  it('reads the verdict from the first line or a LABEL: VERDICT line, else only an unambiguous one', () => {
+  it('reads the verdict from the first line or a LABEL: VERDICT line, else only an unambiguous one on the last line', () => {
     expect(verdictOf('**PASS** with notes.\nNo FAIL left.')).toBe('PASS');
     expect(verdictOf('Checked lint and tests.\nVerdict: PASS\nNo FAIL remains.')).toBe('PASS');
     expect(verdictOf('Earlier FAIL is gone; now PASS.')).toBeUndefined();
     expect(verdictOf('All good, APPROVED.')).toBe('APPROVED');
+    expect(verdictOf('Ran the suite.\nAll 42 tests pass; no FAIL lines remain.\nShipped the change.')).toBeUndefined();
+    expect(verdictOf('Ran the suite.\nEverything checks out: PASS')).toBe('PASS');
   });
 
   it('takes a lane that ended on its own report as done when its hand-back is missing; a cut-off lane has no result', () => {
@@ -153,12 +166,12 @@ describe('lane status (DESIGN §8.3)', () => {
 });
 
 describe('blazes (DM13)', () => {
-  it('numbers patterns in route order, keeps a 24 px pitch and folds more than 3 in a segment into one "+n" plate', () => {
+  it('numbers patterns in route order, keeps a 28 px pitch and folds more than 3 in a segment into one "+n" plate', () => {
     const L = glanceLayout(graph({ eps: [10, 10], lanes: [{ ep: 0, at: 1, back: 8, steps: 10 }], trouble: [{ ep: 1, at: 0 }, { ep: 0, at: 5 }, { ep: 0, at: 5, resolved: true }, { lane: 0, at: 0 }] }), 1216);
     expect([...L.numbers.entries()]).toEqual([['t3', 1], ['t1', 2], ['t2', 3], ['t0', 4]]);
     const route = L.blazes.filter((b) => b.track === -1);
     expect(route.map((b) => b.badge)).toEqual(['2', '3', '4']);
-    expect((route[1]?.x ?? 0) - (route[0]?.x ?? 0)).toBeGreaterThanOrEqual(24);
+    expect((route[1]?.x ?? 0) - (route[0]?.x ?? 0)).toBeGreaterThanOrEqual(28);
     const many = glanceLayout(graph({ eps: [20], trouble: [0, 3, 6, 9, 12].map((at) => ({ ep: 0, at, resolved: at !== 6 })) }), 1216);
     expect(many.blazes).toEqual([expect.objectContaining({ badge: '1–5', resolved: false })]);
   });

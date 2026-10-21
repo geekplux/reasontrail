@@ -66,7 +66,8 @@ export function findTrouble(steps: Step[], edges: Edge[], episodes: Episode[], h
       if (chain.length < 2) continue;
       const last = chain[chain.length - 1] as Step;
       const ok = (last.tool?.callId ? results.get(last.tool.callId) : undefined)?.status === 'ok';
-      const summary = `Retried ${first.tool?.name ?? 'a call'} ×${chain.length - 1}${ok ? ', then passed' : ''}`;
+      const times = chain.length - 1 === 1 ? 'once' : `×${chain.length - 1}`;
+      const summary = `Retried ${first.tool?.name ?? 'a call'} ${times}${ok ? ', then passed' : ''}`;
       found.push({ kind: 'retry', stepIds: chain.map((s) => s.id), count: chain.length - 1, resolved: ok, summary });
     }
 

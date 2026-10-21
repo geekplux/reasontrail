@@ -16,6 +16,8 @@ export interface ShellEffects {
   reverts: string[];
   /** `git reset --hard` (or `git checkout .`): every touched file is put back. */
   revertAll: boolean;
+  /** Deletes that look like folders: targets of a recursive `rm` with no file extension (also listed in `deletes`). */
+  dirs: string[];
 }
 
 /** Drop heredoc bodies (`<<EOF … EOF`), keeping the line that opens them. */
@@ -125,7 +127,7 @@ const plain = (args: string[]) => args.filter((a) => !a.startsWith('-'));
 
 /** Files a shell command writes, deletes or reverts (best effort, documented in DECISIONS.md). */
 export function shellEffects(command: string, cwd?: string): ShellEffects {
-  const fx: ShellEffects = { writes: [], deletes: [], reverts: [], revertAll: false };
+  const fx: ShellEffects = { writes: [], deletes: [], reverts: [], revertAll: false, dirs: [] };
   let dir = cwd;
   const at = (list: string[], paths: (string | undefined)[]) => {
     for (const p of paths) if (usable(p)) list.push(resolvePath(dir, p));
@@ -156,7 +158,10 @@ export function shellEffects(command: string, cwd?: string): ShellEffects {
         at(fx.writes, [p[p.length - 1]]);
         if (name !== 'cp') at(fx.deletes, p.slice(0, -1));
       }
-    } else if (name === 'rm' || sub === 'rm') at(fx.deletes, plain(rest));
+    } else if (name === 'rm' || sub === 'rm') {
+      at(fx.deletes, plain(rest));
+      if (rest.some((a) => /^-[a-zA-Z]*[rR]|^--recursive$/.test(a))) at(fx.dirs, plain(rest).filter((p) => !/\.[^./]+$/.test(p.replace(/\/+$/, ''))));
+    }
     else if (sub === 'checkout' || (sub === 'restore' && (!rest.includes('--staged') || rest.includes('--worktree')))) {
       const dd = rest.indexOf('--');
       const paths = dd >= 0 ? rest.slice(dd + 1) : plain(rest).filter((_, i) => sub === 'restore' || i > 0 || rest.length === 1);

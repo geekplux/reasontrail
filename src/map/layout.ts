@@ -9,7 +9,7 @@ export type GlyphStatus = 'ok' | 'error' | 'interrupted' | 'unknown';
 /** Geometry constants, px (DESIGN §8.1, §8.3, §8.5). */
 export const G = {
   segMin: 56, segMax: 240, growMax: 480, segBase: 36, kMax: 19.5, kNum: 204,
-  start: 24, end: 30, breakW: 44, pitch: 24, foldW: 56,
+  start: 24, end: 30, breakW: 44, pitch: 24, platePitch: 28, foldW: 56,
   laneSpan: 96, laneDrop: 34, trackGap: 64, tracks: 3,
   routeY: 76, laneLabelH: 54, monoPx: 6.9,
   maxEpisodes: 12, keepFirst: 3, keepLast: 8, idleMs: 10 * 60_000, maxBreaks: 3, maxPlates: 3,
@@ -100,7 +100,7 @@ export function idleText(ms: number): string {
 
 const VERDICT = /\b(CHANGES REQUESTED|APPROVED|PASS|FAIL)\b/;
 
-/** The verdict of a report: the only one on its first line, or a `LABEL: VERDICT` line, else the only distinct verdict in the text. */
+/** The verdict of a report: the only one on its first line, or a `LABEL: VERDICT` line, else the only one on its last line. */
 export function verdictOf(text: string): string | undefined {
   const lines = text.split('\n').map((l) => l.replace(/[*_`#>]/g, '').trim()).filter(Boolean);
   const distinct = (t: string) => new Set([...t.matchAll(new RegExp(VERDICT, 'g'))].map((m) => m[1] as string));
@@ -108,8 +108,8 @@ export function verdictOf(text: string): string | undefined {
   if (first.size === 1) return [...first][0];
   const labelled = lines.map((l) => /^[A-Za-z][\w -]{0,30}:\s*(CHANGES REQUESTED|APPROVED|PASS|FAIL)\b/.exec(l)?.[1]).find(Boolean);
   if (labelled) return labelled;
-  const all = distinct(text);
-  return all.size === 1 ? [...all][0] : undefined;
+  const end = distinct(lines[lines.length - 1] ?? '');
+  return end.size === 1 ? [...end][0] : undefined;
 }
 
 /** Lane status word (DESIGN §8.3): a verdict from the lane's final text, else done / failed / interrupted. A lane whose
@@ -358,12 +358,13 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
     }
   }
   blazes.sort((a, b) => a.first - b.first);
-  // Collisions: plates on one line keep route order at a 24 px pitch, and on the route they never cover a kind glyph.
+  // Collisions: plates on one line keep route order at a 28 px pitch (a badge never overlaps the next plate), and on
+  // the route they never cover a kind glyph.
   const glyphs = episodes.map((r) => r.x);
   for (const track of new Set(blazes.map((b) => b.track))) {
     let prev = Number.NEGATIVE_INFINITY;
     for (const b of blazes.filter((z) => z.track === track).sort((p, q) => p.x - q.x || p.first - q.first)) {
-      b.x = Math.max(b.x, prev + G.pitch);
+      b.x = Math.max(b.x, prev + G.platePitch);
       const hit = track < 0 ? glyphs.find((gx) => Math.abs(b.x - gx) < G.pitch * 0.75) : undefined;
       if (hit !== undefined) b.x = hit + G.pitch * 0.75;
       prev = b.x;
@@ -389,8 +390,11 @@ function placeTrack(trackEnd: number[], x: number, min: number): number {
   while ((trackEnd[t] ?? Number.NEGATIVE_INFINITY) > x - 8) t++;
   return t;
 }
+/** Reserve the track up to the lane's end or its label's whole status word, whichever is further, so a lane after it
+ * on the same track never clips that word (it drops to another track or joins "+n parallel"). */
 function claim(trackEnd: number[], it: LaneItem) {
-  trackEnd[it.track] = Math.max(trackEnd[it.track] ?? Number.NEGATIVE_INFINITY, it.x2);
+  const label = it.x1 + 6 + (it.word.length + 2.5 + 4) * G.monoPx + 10;
+  trackEnd[it.track] = Math.max(trackEnd[it.track] ?? Number.NEGATIVE_INFINITY, it.x2, label);
 }
 
 /** y of the route (-1) or a lane track. */

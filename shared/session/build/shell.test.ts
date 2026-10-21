@@ -25,6 +25,8 @@ describe('shellEffects', () => {
   it('finds deletes, moves and reverts', () => {
     expect(fx('git mv a.ts b.ts')).toMatchObject({ writes: ['/w/b.ts'], deletes: ['/w/a.ts'] });
     expect(fx('rm -f c.ts && git rm -q d.ts').deletes).toEqual(['/w/c.ts', '/w/d.ts']);
+    expect(fx('rm -f c.ts && git rm -q d.ts').dirs).toEqual([]);
+    expect(fx('rm -rf docs/shots/phase-9/ e.ts && git rm -r --cached x && rm --recursive y')).toMatchObject({ dirs: ['/w/docs/shots/phase-9', '/w/x', '/w/y'] });
     expect(fx('git checkout -- e.ts f.ts').reverts).toEqual(['/w/e.ts', '/w/f.ts']);
     expect(fx('git checkout HEAD~1 src/g.ts').reverts).toEqual(['/w/src/g.ts']);
     expect(fx('git restore h.ts').reverts).toEqual(['/w/h.ts']);

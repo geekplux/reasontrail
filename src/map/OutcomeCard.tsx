@@ -42,7 +42,7 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
               </ol>
             </>
           )}
-          {files.length > top.length && <p className="muted more-files">+{files.length - top.length} more files</p>}
+          {files.length > top.length && <p className="muted more-files">+{plural(files.length - top.length, 'more file', 'more files')}</p>}
           {revertedFiles ? <p className="muted">({plural(revertedFiles, 'reverted file')} not counted)</p> : null}
         </div>
         <div>
