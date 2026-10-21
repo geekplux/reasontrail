@@ -43,6 +43,10 @@
       "steps": "3618:3730",
       "why": "A product pivot: the main agent reads a change request, starts a planner that is cut off (a retry marker), folds in an addendum and runs a second planner that researches the session formats and rewrites the plan.",
       "hide": {
+        "s56": "a listing of the build machine's local agent store",
+        "s57": "a listing of the build machine's local agent store",
+        "s59": "a listing of the build machine's local agent store",
+        "s60": "a listing of the build machine's local agent store",
         "s68": "environment variable names of the build machine"
       }
     }
