@@ -58,6 +58,25 @@ export function initialAssets(html) {
   };
 }
 
+/** G2 (phase 19): what must load lazily, never with the first view, and its own gzip budget. */
+export const LAZY = [
+  { name: 'sample verify-fail-fix', re: /^verify-fail-fix\.graph-.*\.js$/, max: 80 * 1024 },
+  { name: 'sample planner-pivot', re: /^planner-pivot\.graph-.*\.js$/, max: 80 * 1024 },
+  { name: 'drop zone', re: /^DropZone-.*\.js$/, max: 10 * 1024 },
+  { name: 'parse worker', re: /^parse\.worker-.*\.js$/, max: 40 * 1024 },
+];
+/** Problems with the lazy chunks: missing, loaded by the first view, or over budget. `sizes`: asset file → gzip bytes. */
+export function checkLazy(assets, initialJs, sizes) {
+  const problems = [];
+  for (const { name, re, max } of LAZY) {
+    const file = assets.find((f) => re.test(f));
+    if (!file) problems.push(`lazy chunk not found: ${name}`);
+    else if (initialJs.some((f) => f.endsWith(file))) problems.push(`${name} loads with the first view (should be lazy)`);
+    else if (sizes[file] > max) problems.push(`${name} ${(sizes[file] / 1024).toFixed(1)} KB gzip > ${max / 1024} KB`);
+  }
+  return problems;
+}
+
 /** The CLI (C3, C4): no runtime dependencies, and the viewer template (when built) at most 300 KB before session data. */
 export const VIEWER_MAX = 300 * 1024;
 export function checkCli(cliPkg, viewerBytes) {
@@ -95,6 +114,9 @@ function main(argv) {
     fontFiles: fonts.length,
   };
   const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
+  const assets = readdirSync(join(dist, 'assets'));
+  const lazySizes = Object.fromEntries(assets.filter((f) => LAZY.some(({ re }) => re.test(f))).map((f) => [f, gz([join('assets', f)])]));
+  console.log(`lazy: ${Object.entries(lazySizes).map(([f, n]) => `${f.replace(/-[\w-]{8}\.js$/, '')} ${kb(n)}`).join(', ')} (gzip)`);
   console.log(`initial JS ${kb(sizes.jsGzip)} gzip (${js.length} file(s)), CSS ${kb(sizes.cssGzip)} gzip, fonts ${kb(sizes.fontBytes)} in ${sizes.fontFiles} woff2 file(s)`);
   const workerFiles = workerSources(resolve('.'));
   console.log(`Worker: ${Object.keys(workerFiles).length} source file(s) checked for runtime dependencies`);
@@ -106,6 +128,7 @@ function main(argv) {
     ...(js.length ? [] : ['no entry script found in index.html']),
     ...checkDependencies(pkg.dependencies),
     ...checkBudgets(sizes),
+    ...checkLazy(assets, js, lazySizes),
     ...checkWorkerImports(workerFiles),
   ];
   if (problems.length) {

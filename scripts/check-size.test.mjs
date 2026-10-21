@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RUNTIME_ALLOWLIST, VIEWER_MAX, checkBudgets, checkCli, checkDependencies, checkWorkerImports, initialAssets } from './check-size.mjs';
+import { RUNTIME_ALLOWLIST, VIEWER_MAX, checkBudgets, checkCli, checkLazy, checkDependencies, checkWorkerImports, initialAssets } from './check-size.mjs';
 
 const allowed = Object.fromEntries(RUNTIME_ALLOWLIST.map((n) => [n, '*']));
 
@@ -36,5 +36,21 @@ describe('check-size', () => {
   it('keeps the CLI at zero runtime dependencies and the viewer template within 300 KB', () => {
     expect(checkCli({ name: 'reasontrail' }, VIEWER_MAX)).toEqual([]);
     expect(checkCli({ dependencies: { chalk: '*' } }, VIEWER_MAX + 1)).toEqual(['CLI runtime dependency (must be zero): chalk', 'viewer template 300.0 KB > 300 KB']);
+  });
+});
+
+describe('checkLazy (G2, phase 19)', () => {
+  const assets = ['index-a.js', 'verify-fail-fix.graph-abcdefgh.js', 'planner-pivot.graph-abcdefgh.js', 'DropZone-abcdefgh.js', 'parse.worker-abcdefgh.js'];
+  const small = Object.fromEntries(assets.map((f) => [f, 1024]));
+  it('passes when every lazy chunk exists, is not initial and is within budget', () => {
+    expect(checkLazy(assets, ['assets/index-a.js'], small)).toEqual([]);
+  });
+  it('flags missing, eager and oversized chunks', () => {
+    const problems = checkLazy(assets.slice(0, 4), ['assets/index-a.js', 'assets/DropZone-abcdefgh.js'], { ...small, 'planner-pivot.graph-abcdefgh.js': 90 * 1024 });
+    expect(problems).toEqual([
+      'sample planner-pivot 90.0 KB gzip > 80 KB',
+      'drop zone loads with the first view (should be lazy)',
+      'lazy chunk not found: parse worker',
+    ]);
   });
 });
