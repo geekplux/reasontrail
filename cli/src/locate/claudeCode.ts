@@ -1,22 +1,8 @@
 // Claude Code session store (PLAN §5.12): ~/.claude/projects/<cwd, every non-alphanumeric char → "-">/<id>.jsonl,
 // plus <id>/subagents/agent-*.jsonl with .meta.json files. Only Node built-ins.
-import { closeSync, existsSync, openSync, readdirSync, readSync, statSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-
-export interface SessionRef {
-  source: 'claude-code';
-  id: string;
-  /** Absolute path of the main transcript. */
-  file: string;
-  mtimeMs: number;
-  size: number;
-}
-
-export interface LocateContext {
-  home: string;
-  cwd: string;
-  env: Readonly<Record<string, string | undefined>>;
-}
+import { readHead, statRef, type LocateContext, type SessionRef, type Store } from './store';
 
 /** The projects directory, honouring CLAUDE_CONFIG_DIR. */
 export function projectsDir(ctx: LocateContext): string {
@@ -28,13 +14,7 @@ export function encodeCwd(cwd: string): string {
 }
 
 export function refFor(file: string): SessionRef | undefined {
-  try {
-    const st = statSync(file);
-    if (!st.isFile()) return undefined;
-    return { source: 'claude-code', id: basename(file).replace(/\.jsonl$/, ''), file, mtimeMs: st.mtimeMs, size: st.size };
-  } catch {
-    return undefined;
-  }
+  return statRef('claude-code', basename(file).replace(/\.jsonl$/, ''), file);
 }
 
 function sessionsIn(dir: string): SessionRef[] {
@@ -108,14 +88,17 @@ export function titleFromHead(text: string): string {
   return firstUser ?? '(untitled)';
 }
 
-/** The first `bytes` of a file, as text. */
-export function readHead(file: string, bytes = 256 * 1024): string {
-  const fd = openSync(file, 'r');
-  try {
-    const buf = Buffer.alloc(bytes);
-    const n = readSync(fd, buf, 0, bytes, 0);
-    return buf.subarray(0, n).toString('utf8');
-  } finally {
-    closeSync(fd);
-  }
-}
+export const claudeCodeStore: Store = {
+  source: 'claude-code',
+  label: 'Claude Code',
+  envVar: 'CLAUDE_CODE_SESSION_ID',
+  listForCwd,
+  findById,
+  claims: (file) => (file.endsWith('.jsonl') ? refFor(file) : undefined),
+  files: (ref) => sessionFiles(ref.file),
+  describe(ref) {
+    const head = readHead(ref.file);
+    const started = /"timestamp":"([^"]+)"/.exec(head)?.[1];
+    return { title: titleFromHead(head), ...(started ? { startedAt: started } : {}) };
+  },
+};

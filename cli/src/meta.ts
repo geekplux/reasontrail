@@ -13,13 +13,15 @@ export const HELP = `${PKG_NAME} ${VERSION}: see how your coding agent reasoned 
 Usage: npx ${PKG_NAME} [session] [options]
        npx ${PKG_NAME} install-skill [--target claude|grok|codex|all] [--dry-run] [--force]
 
-  session            a session .jsonl path or a session id (default: the newest session for this folder)
+  session            a session file (.jsonl, Grok's updates.jsonl, a Codex rollout) or a session id
+                     (default: the newest session for this folder)
 
 Options:
-  --current          the calling agent's session (CLAUDE_CODE_SESSION_ID), else the newest for this folder
-  --latest           the newest session for this folder
-  --list             the 10 most recent sessions for this folder
-  --source <name>    claude-code (codex and grok-build come later)
+  --current          the calling agent's session (CLAUDE_CODE_SESSION_ID, GROK_SESSION_ID or CODEX_THREAD_ID),
+                     else the newest for this folder
+  --latest           the newest session for this folder, across Claude Code, Grok Build and Codex
+  --list             the 10 most recent sessions for this folder, from all three
+  --source <name>    only look in one store: claude-code, grok or codex
   --out <file>       where to write the HTML
   --share            redact secrets, emails and home paths; writes ./reasontrail-<id>.html
   --json             print the session graph as JSON instead of writing HTML
@@ -29,7 +31,7 @@ Options:
   -v, --version      the version
 
 install-skill puts the /${PKG_NAME} skill into ~/.claude/skills (Grok Build reads it too; ~/.grok/skills
-when ~/.claude is absent). It never replaces a file you changed unless --force is given.
+when ~/.claude is absent) and ~/.agents/skills (Codex). It never replaces a file you changed unless --force.
 
 Writes <tmp>/reasontrail/<source>-<id>.html by default. Runs locally; nothing is uploaded.
 

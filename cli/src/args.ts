@@ -2,6 +2,7 @@
 import { parseStepRange, type StepRange } from '../../shared/session/trim';
 
 export type SourceName = 'claude-code' | 'codex' | 'grok-build';
+/** `grok` is accepted as a short name for `grok-build`. */
 const SOURCES: readonly SourceName[] = ['claude-code', 'codex', 'grok-build'];
 
 export interface Options {
@@ -48,8 +49,9 @@ export function parseArgs(argv: readonly string[]): Options | { error: string } 
         break;
       }
       case '--source': {
-        const v = value();
-        if (!v || !SOURCES.includes(v as SourceName)) return { error: `--source must be one of ${SOURCES.join(', ')}` };
+        const given = value();
+        const v = given === 'grok' ? 'grok-build' : given;
+        if (!v || !SOURCES.includes(v as SourceName)) return { error: '--source must be one of claude-code, grok, codex' };
         opts.source = v as SourceName;
         break;
       }

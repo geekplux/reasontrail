@@ -15,6 +15,9 @@ describe('parseArgs', () => {
     expect(parseArgs(['--list'])).toMatchObject({ mode: 'list' });
     expect(parseArgs(['x.jsonl', '--trim', '10:399'])).toMatchObject({ target: 'x.jsonl', trim: { from: 10, to: 399 } });
     expect(parseArgs(['--trim=0:0'])).toMatchObject({ trim: { from: 0, to: 0 } });
+    expect(parseArgs(['--source', 'grok'])).toMatchObject({ source: 'grok-build' });
+    expect(parseArgs(['--source=grok-build'])).toMatchObject({ source: 'grok-build' });
+    expect(parseArgs(['--source', 'codex', '--list'])).toMatchObject({ source: 'codex', mode: 'list' });
   });
 
   it('lets help and version win over everything else', () => {
@@ -28,7 +31,7 @@ describe('parseArgs', () => {
     [['--trim'], '--trim needs <from>:<to> step numbers, from <= to'],
     [['--trim', '5:2'], '--trim needs <from>:<to> step numbers, from <= to'],
     [['--trim', '1-5'], '--trim needs <from>:<to> step numbers, from <= to'],
-    [['--source', 'gpt'], '--source must be one of claude-code, codex, grok-build'],
+    [['--source', 'gpt'], '--source must be one of claude-code, grok, codex'],
     [['--latest', '--current'], 'choose one of --latest, --current'],
     [['a', 'b'], 'more than one session given: a, b'],
     [['a', '--latest'], 'a session path or id cannot be combined with --latest'],

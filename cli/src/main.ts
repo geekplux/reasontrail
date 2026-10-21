@@ -44,7 +44,8 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   if (opts.mode === 'list') {
     const list = listSessions(opts, ctx);
     if (list.length === 0) return ctx.err(`${PKG_NAME}: no sessions found for ${ctx.cwd}`), EXIT.notFound;
-    for (const s of list) ctx.out(`${s.id}  claude-code  ${s.startedAt ?? '-'}  ${kb(s.size)}  ${s.title.slice(0, 72)}`);
+    const w = Math.max(...list.map((s) => s.id.length));
+    for (const s of list) ctx.out(`${s.id.padEnd(w)}  ${s.source.padEnd(11)}  ${s.startedAt ?? '-'}  ${kb(s.size)}  ${s.title.slice(0, 72)}`);
     return EXIT.ok;
   }
 
@@ -61,7 +62,7 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   } catch (e) {
     return ctx.err(`${PKG_NAME}: could not read ${ref.file}: ${e instanceof Error ? e.message : String(e)}`), EXIT.unreadable;
   }
-  if (!session) return ctx.err(`${PKG_NAME}: this doesn't look like a Claude Code session (.jsonl). Codex and Grok Build sessions are not supported yet.`), EXIT.unreadable;
+  if (!session) return ctx.err(`${PKG_NAME}: this doesn't look like a Claude Code, Grok Build or Codex session.`), EXIT.unreadable;
   if (opts.trim) session = trimSession(session, opts.trim);
 
   // Files are re-read here (see readSession); one that vanished since only costs its raw records.

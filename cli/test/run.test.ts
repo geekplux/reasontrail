@@ -5,7 +5,7 @@ import { escapeHtml, jsonForScript, renderHtml } from '../src/html';
 import { run } from '../src/main';
 import { EXIT, VERSION } from '../src/meta';
 import { openerFor } from '../src/open';
-import { sandbox } from './sandbox';
+import { CODEX_ID, GROK_ID, sandbox } from './sandbox';
 
 const XSS = '</script><script>alert(1)</script>';
 // Built at runtime so no secret-shaped string is committed (pnpm audit:samples scans the repo).
@@ -53,7 +53,7 @@ describe('run', () => {
     const bad = join(sb.root, 'notes.jsonl');
     writeFileSync(bad, '{"hello":"world"}\n');
     expect(run([bad, '--no-open'], sb.ctx())).toBe(EXIT.unreadable);
-    expect(sb.lines.err.at(-1)).toMatch(/this doesn't look like a Claude Code session \(\.jsonl\)\. Codex and Grok Build sessions are not supported yet\./);
+    expect(sb.lines.err.at(-1)).toMatch(/this doesn't look like a Claude Code, Grok Build or Codex session\./);
   });
 
   it('writes the HTML, always prints the session used, and never opens with --no-open', () => {
@@ -110,6 +110,41 @@ describe('run', () => {
     const [full, cut] = sb.lines.out.map((l) => JSON.parse(l as string) as { steps: { text?: string }[] });
     expect(full?.steps.length).toBeGreaterThan(3);
     expect(cut?.steps.map((s) => s.text)).toEqual(full?.steps.slice(1, 3).map((s) => s.text));
+  });
+});
+
+describe('run across Claude Code, Grok Build and Codex', () => {
+  it('maps the newest session of any store, each by its variable, and lists them side by side', () => {
+    const sb = sandbox();
+    sb.add('basic', 'claude-one', 1_000);
+    const grok = sb.addGrok(3_000);
+    const codex = sb.addCodex(2_000);
+    expect(run(['--no-open'], sb.ctx())).toBe(EXIT.ok); // C1: no arguments, newest across stores
+    expect(sb.lines.err[0]).toBe(`Session: ${grok} (newest for this folder)`);
+    expect(readFileSync(sb.lines.out[0] as string, 'utf8')).toContain('"kind":"grok-build"');
+    expect(sb.lines.out[0]).toMatch(new RegExp(`reasontrail/grok-build-${GROK_ID}\\.html$`));
+    for (const [env, file, kind] of [[{ CODEX_THREAD_ID: CODEX_ID }, codex, 'codex'], [{ GROK_SESSION_ID: GROK_ID }, grok, 'grok-build']] as const) {
+      sb.lines.out.length = 0;
+      sb.lines.err.length = 0;
+      expect(run(['--current', '--json'], sb.ctx(env))).toBe(EXIT.ok);
+      expect(sb.lines.err[0]).toBe(`Session: ${file} (current (${Object.keys(env)[0]}))`);
+      expect(JSON.parse(sb.lines.out[0] as string)).toMatchObject({ source: { kind } });
+    }
+    sb.lines.out.length = 0;
+    expect(run(['--list'], sb.ctx())).toBe(EXIT.ok);
+    expect(sb.lines.out.map((l) => l.split(/\s{2,}/).slice(0, 2))).toEqual([[GROK_ID, 'grok-build'], [CODEX_ID, 'codex'], ['claude-one', 'claude-code']]);
+    sb.lines.out.length = 0;
+    expect(run(['--list', '--source', 'codex'], sb.ctx())).toBe(EXIT.ok);
+    expect(sb.lines.out).toHaveLength(1);
+  });
+
+  it('--share redacts a Codex session too', () => {
+    const sb = sandbox();
+    sb.addCodex(2_000);
+    expect(run(['--share', '--no-open', '--source', 'codex'], sb.ctx())).toBe(EXIT.ok);
+    expect(sb.lines.out).toEqual([join(sb.cwd, `reasontrail-${CODEX_ID.slice(0, 8)}.html`)]);
+    expect(sb.lines.err).toContain('Redacted: 0 secrets, 0 emails, 0 paths; 0 non-conversation records dropped.');
+    expect(readFileSync(sb.lines.out[0] as string, 'utf8')).toContain('"shared":{"replaced":0}');
   });
 });
 
