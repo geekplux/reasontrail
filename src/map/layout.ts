@@ -358,15 +358,24 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
     }
   }
   blazes.sort((a, b) => a.first - b.first);
-  // Collisions: plates on one line keep route order at a 28 px pitch (a badge never overlaps the next plate), and on
-  // the route they never cover a kind glyph.
+  // Collisions: plates on one line keep route order at a 28 px pitch (a badge never overlaps the next plate), on
+  // the route they never cover a kind glyph, and on the first lane track they never cover an idle label: a plate
+  // moves along the line to the nearer side of the label, the left only if the pitch allows.
   const glyphs = episodes.map((r) => r.x);
+  const idle = breaks.map((b) => idleSpan(b, routeEnd));
   for (const track of new Set(blazes.map((b) => b.track))) {
     let prev = Number.NEGATIVE_INFINITY;
     for (const b of blazes.filter((z) => z.track === track).sort((p, q) => p.x - q.x || p.first - q.first)) {
       b.x = Math.max(b.x, prev + G.platePitch);
       const hit = track < 0 ? glyphs.find((gx) => Math.abs(b.x - gx) < G.pitch * 0.75) : undefined;
       if (hit !== undefined) b.x = hit + G.pitch * 0.75;
+      const [l, r] = plateSpan(b.badge).map((d) => d + Math.sign(d) * 2) as [number, number];
+      const label = track === 0 ? idle.find(([a, z]) => b.x + r > a && b.x + l < z) : undefined;
+      if (label) {
+        const [left, right] = [label[0] - r, label[1] - l];
+        const leave = lanes.find((it) => it.id === b.laneItem)?.x1 ?? Number.NEGATIVE_INFINITY;
+        b.x = left >= Math.max(prev + G.platePitch, leave + G.laneDrop) && b.x - left <= right - b.x ? left : right;
+      }
       prev = b.x;
     }
   }
@@ -395,6 +404,21 @@ function placeTrack(trackEnd: number[], x: number, min: number): number {
 function claim(trackEnd: number[], it: LaneItem) {
   const label = it.x1 + 6 + (it.word.length + 2.5 + 4) * G.monoPx + 10;
   trackEnd[it.track] = Math.max(trackEnd[it.track] ?? Number.NEGATIVE_INFINITY, it.x2, label);
+}
+
+/** A plate's ink extent around its x, px: the 20 px plate, and its badge overflowing to the top right (BlazeIcon). */
+export function plateSpan(badge: string): [number, number] {
+  const bw = badge.length > 1 ? 6 + badge.length * 6.4 : 16;
+  return [-10, Math.max(10, 10 + bw / 2)];
+}
+
+/** An idle label sits under its break, centred in the gap, or right-aligned 6 px short of the terminus connector when
+ * the break ends the route. Two mono lines at 11.5 px ("≈4 h" / "idle"): its [left, right] in px. */
+export const idleAtEnd = (b: IdleBreak, routeEnd: number) => b.x + G.breakW >= routeEnd;
+export function idleSpan(b: IdleBreak, routeEnd: number): [number, number] {
+  const w = Math.max(4, b.label.replace(' idle', '').length) * G.monoPx;
+  if (idleAtEnd(b, routeEnd)) return [routeEnd - 6 - w, routeEnd - 6];
+  return [b.x + G.breakW / 2 - w / 2, b.x + G.breakW / 2 + w / 2];
 }
 
 /** y of the route (-1) or a lane track. */

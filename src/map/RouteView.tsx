@@ -3,8 +3,8 @@
 // Geometry is always solid; the draw-in sets a dash pattern only while its animation runs.
 import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { KindMark, KindGlyph } from './Glyph';
-import { blazeName, countText, episodeName, epId, jumpPattern, laneName, move, navItems } from './keyboard';
-import { G, lineY, type Blaze, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
+import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, move, navItems } from './keyboard';
+import { G, idleAtEnd, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
 import { LaneLabel, LanePath } from './LaneView';
 import { BlazeMark, blazeData } from './TroubleMarker';
 
@@ -112,11 +112,11 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
       'data-episode-id': r.episode.id, 'data-episode-kind': r.episode.kind, 'data-kind': r.episode.kind, 'data-lane': r.episode.laneId,
     };
   };
-  const laneProps = (l: LaneItem) => {
+  const laneProps = (l: LaneItem, opts: LabelOpts) => {
     const bundle = l.id.startsWith('bundle:');
     const ids = l.lanes.map((x) => x.id).join(' ');
     return {
-      ...item(l.id, laneName(l)),
+      ...item(l.id, laneName(l, opts)),
       'data-lane': ids, 'data-lane-status': l.status,
       ...(bundle ? { 'aria-expanded': false, 'data-expanded': 'false' } : {}),
     };
@@ -136,7 +136,9 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
 }
 
 type P<T> = (x: T) => Record<string, unknown>;
-interface ViewProps { L: GlanceLayout; epProps: P<RouteEpisode>; laneProps: P<LaneItem>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
+/** How a lane label is drawn: the same options give its visible text and its accessible name. */
+interface LabelOpts { availPx?: number; duration?: boolean }
+interface ViewProps { L: GlanceLayout; epProps: P<RouteEpisode>; laneProps: (l: LaneItem, opts: LabelOpts) => Record<string, unknown>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
 
 function EpisodeText({ r, width }: { r: RouteEpisode; width?: number }) {
   const full = countText(r);
@@ -150,9 +152,10 @@ function EpisodeText({ r, width }: { r: RouteEpisode; width?: number }) {
 }
 
 /** The idle label under a break: centred in its gap, or right-aligned 6 px short of the terminus connector. */
-function idleStyle(L: GlanceLayout, x: number) {
+function idleStyle(L: GlanceLayout, b: IdleBreak) {
+  const x = b.x;
   const top = G.routeY + 14;
-  return x + G.breakW >= L.routeEnd ? { right: L.width - (L.routeEnd - 6), top, textAlign: 'right' as const } : { left: x + G.breakW / 2, top, transform: 'translateX(-50%)' };
+  return idleAtEnd(b, L.routeEnd) ? { right: L.width - (L.routeEnd - 6), top, textAlign: 'right' as const } : { left: x + G.breakW / 2, top, transform: 'translateX(-50%)' };
 }
 
 function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps) {
@@ -172,9 +175,10 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps)
           ))}
           {L.episodes.map((r) => <KindMark key={r.episode.id} kind={r.episode.kind} x={r.x} y={Y} />)}
           <KindMark kind="answer" x={L.routeEnd} y={Y} size={20} />
-          {L.routeEnd > L.width * 0.45 && <path className="connector" d={`M${L.routeEnd} ${Y + 11} V${L.height}`} />}
+          {/* The destination card starts at the canvas bottom: the tick stops 5 px short of it. */}
+          {L.routeEnd > L.width * 0.45 && <path className="connector" d={`M${L.routeEnd} ${Y + 11} V${L.height - 5}`} />}
         </svg>
-        {L.breaks.map((b) => <span key={b.before} className="idle-label mono" style={idleStyle(L, b.x)} aria-hidden="true">{b.label.replace(' idle', '')}<br />idle</span>)}
+        {L.breaks.map((b) => <span key={b.before} className="idle-label mono" style={idleStyle(L, b)} aria-hidden="true">{b.label.replace(' idle', '')}<br />idle</span>)}
         {L.episodes.map((r, i) => {
           const last = i === L.episodes.length - 1;
           const w = Math.max(32, r.len - 14 - (last ? answerRoom : 0));
@@ -195,8 +199,8 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps }: ViewProps)
           </div>
         )}
         {L.lanes.map((l) => (
-          <div key={l.id} className="map-item lane-item" style={{ left: l.x1 + 6, top: lineY(l.track) - 10, width: Math.max(88, l.chars * G.monoPx + 12) }} {...laneProps(l)}>
-            <LaneLabel l={l} availPx={Math.max(88, l.chars * G.monoPx + 12) - 10} />
+          <div key={l.id} className="map-item lane-item" style={{ left: l.x1 + 6, top: lineY(l.track) - 10, width: laneAvailPx(l) + 10 }} {...laneProps(l, { availPx: laneAvailPx(l) })}>
+            <LaneLabel l={l} availPx={laneAvailPx(l)} />
           </div>
         ))}
         {L.blazes.map((b) => (
@@ -243,7 +247,7 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
             <path d={l.rejoins ? 'M0 0 L14 14 V30 L0 44' : l.status === 'interrupted' ? 'M0 0 L14 14 V30 M8 30 H20' : l.status === 'unknown' ? 'M0 0 L14 14 V30' : 'M0 0 L14 14 V44'} />
             {!l.rejoins && l.status === 'unknown' && <circle className="lane-end" cx={14} cy={34} r={4} />}
           </svg>
-          <div className="map-item vitem vlane" {...laneProps(l)}>
+          <div className="map-item vitem vlane" {...laneProps(l, { duration: false })}>
             <span><LaneLabel l={l} duration={false} /></span>
           </div>
           {blazes((b) => b.laneItem === l.id)}

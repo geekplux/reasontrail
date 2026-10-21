@@ -65,4 +65,16 @@ describe('labels never cut a count or a status word (DM9)', () => {
     expect(laneLines(l, { availPx: 40 })).toMatchObject({ count: '35 ·', word: 'changes requested' });
     expect(laneLines(l, { duration: false }).count).toBe('35 calls ·');
   });
+
+  it('names a lane with the label as drawn, then the full facts (WCAG 2.5.3)', () => {
+    const l = { ...(L.lanes[0] as LaneItem), lanes: [(L.lanes[0] as LaneItem).lanes[0]!], calls: 416, failed: 0, ms: 20 * 60_000, word: '5 failed', noHandBack: false };
+    for (const opts of [{ availPx: 78 }, { availPx: 140 }, { duration: false }, {}]) {
+      const { name, count, word } = laneLines(l, opts);
+      const accessible = laneName(l, opts);
+      expect(accessible).toContain(`${name} ${count} ${word}`);
+      expect(accessible).toContain('416 calls · 20 min');
+    }
+    expect(laneName(l, { availPx: 78 })).toMatch(/^Subagent lane: \S+ 416 · 5 failed\. 416 calls · 20 min\. /);
+    expect(laneName(l)).not.toMatch(/min\. 416 calls/);
+  });
 });

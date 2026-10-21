@@ -2,6 +2,7 @@
 // All are decorative (aria-hidden): the text next to each glyph says the same thing.
 import type { ReactNode } from 'react';
 import type { Episode, StepStatus, Trouble } from '../../shared/session/types';
+import { plateSpan } from './layout';
 
 function Svg({ className, children }: { className: string; children: ReactNode }) {
   return (
@@ -75,7 +76,7 @@ export function PlateGlyph({ kind, resolved }: { kind: Trouble['kind']; resolved
 /** A blaze (DESIGN §8.5): a 20 px plate with its kind glyph, or "+n", and an ink number badge at its top-right corner.
  * Drawn centred in a 24 px box; the badge overflows it. */
 export function BlazeIcon({ kind, resolved, badge, plus }: { kind: Trouble['kind']; resolved: boolean; badge: string; plus?: number }) {
-  const bw = badge.length > 1 ? 6 + badge.length * 6.4 : 16;
+  const bw = 2 * (plateSpan(badge)[1] - 10);
   return (
     <svg className={`glyph blaze-icon glyph-plate ${resolved ? 'is-resolved' : 'is-open'}`} viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
       <rect x="2" y="2" width="20" height="20" rx="2" className="g-plate" />

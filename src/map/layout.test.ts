@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Episode, Lane, SessionGraph, Step, StepStatus, Trouble } from '../../shared/session/types';
 import { sessionSamples } from '../sessions/samples';
 import { parseSession } from '../../shared/session/adapter';
-import { G, glanceLayout, laneStatus, lineY, verdictOf } from './layout';
+import { G, glanceLayout, idleSpan, laneStatus, plateSpan, lineY, verdictOf } from './layout';
 
 interface LaneSpec { ep: number; at: number; back?: number; steps: number; status?: StepStatus; agent?: string }
 interface Spec { eps: number[]; answer?: boolean; lanes?: LaneSpec[]; trouble?: { ep?: number; at?: number; lane?: number; resolved?: boolean }[]; gapMin?: Record<number, number> }
@@ -174,6 +174,25 @@ describe('blazes (DM13)', () => {
     expect((route[1]?.x ?? 0) - (route[0]?.x ?? 0)).toBeGreaterThanOrEqual(28);
     const many = glanceLayout(graph({ eps: [20], trouble: [0, 3, 6, 9, 12].map((at) => ({ ep: 0, at, resolved: at !== 6 })) }), 1216);
     expect(many.blazes).toEqual([expect.objectContaining({ badge: '1–5', resolved: false })]);
+  });
+
+  it('moves a side-trail plate along its line off an idle label (DM9)', () => {
+    // A background check lane crosses a 45 min idle break; its retry and error streak land on the break's label.
+    const files = import.meta.glob<string>('/fixtures/sessions/claude-code/idle-lane{.jsonl,/subagents/*}', { query: '?raw', import: 'default', eager: true });
+    const g = parseSession({ files: Object.entries(files).sort().map(([path, text]) => ({ path: path.slice(1), text })) });
+    if (!g) throw new Error('fixture did not parse');
+    for (const width of [1216, 1180, 1140]) {
+      const L = glanceLayout(g, width);
+      const [label] = L.breaks.map((b) => idleSpan(b, L.routeEnd));
+      const plates = L.blazes.filter((b) => b.track === 0);
+      expect(label).toBeDefined();
+      expect(plates).toHaveLength(2);
+      for (const b of plates) {
+        const [l, r] = plateSpan(b.badge);
+        expect(b.x + r <= (label as number[])[0]! || b.x + l >= (label as number[])[1]!).toBe(true);
+      }
+      expect((plates[1]?.x ?? 0) - (plates[0]?.x ?? 0)).toBeGreaterThanOrEqual(G.platePitch);
+    }
   });
 });
 

@@ -1,0 +1,6 @@
+{
+  "agentType": "reviewer",
+  "description": "Review slug change",
+  "toolUseId": "toolu_review",
+  "spawnDepth": 1
+}

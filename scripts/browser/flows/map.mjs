@@ -52,11 +52,33 @@ async function checkGlance(page, g, label, fail, log) {
   const top = g.lanes.filter((l) => l.spawnedBy && g.steps.find((s) => s.id === l.spawnedBy)?.laneId === g.lanes[0].id).length;
   if (lanes.join(' ').split(' ').filter(Boolean).length !== top) fail(`${label}: ${lanes.length} lane items for ${top} lanes`);
   // DM9: no two label boxes intersect; DM10: geometry solid; DM24: hit areas
-  const boxes = await page.$$eval('.route-canvas .ep-text, .route-canvas .lane-item, .route-canvas .idle-label', (els) => els.map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; }));
+  // A label box is its text's extent: a lane item's own box is a taller hit area that also covers its line.
+  const boxes = await page.$$eval('.route-canvas .ep-text, .route-canvas .lane-item, .route-canvas .idle-label', (els) => els.map((e) => {
+    const range = document.createRange();
+    range.selectNodeContents(e);
+    const [r, box] = [range.getBoundingClientRect(), e.getBoundingClientRect()];
+    return [Math.max(r.left, box.left), Math.max(r.top, box.top), Math.min(r.right, box.right), Math.min(r.bottom, box.bottom), `${e.className}: ${e.textContent.trim().slice(0, 24)}`];
+  }));
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
     const [a, b] = [boxes[i], boxes[j]];
-    if (a[0] < b[2] - 0.5 && b[0] < a[2] - 0.5 && a[1] < b[3] - 0.5 && b[1] < a[3] - 0.5) fail(`${label}: labels ${i} and ${j} overlap`);
+    if (a[0] < b[2] - 0.5 && b[0] < a[2] - 0.5 && a[1] < b[3] - 0.5 && b[1] < a[3] - 0.5) fail(`${label}: labels overlap: "${a[4]}" and "${b[4]}"`);
   }
+  // Trouble plates never cover label text (the text's own extent: a lane item's box is its taller hit area).
+  const covered = await page.$$eval('.route-canvas .blaze', (plates) => {
+    const text = [...document.querySelectorAll('.route-canvas .ep-text, .route-canvas .lane-item, .route-canvas .idle-label')].flatMap((e) => {
+      const r = document.createRange();
+      r.selectNodeContents(e);
+      return [...r.getClientRects()].filter((b) => b.width > 0 && b.height > 0).map((b) => ({ b, what: e.className }));
+    });
+    // The plate and its badge, which overflows the 24 px box at the top right.
+    return [...plates].flatMap((p) => [...p.querySelectorAll('.g-plate, .g-badge')].map((ink) => [p, ink.getBoundingClientRect()])).flatMap(([p, a]) => {
+      return text.filter(({ b }) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5).map(({ what }) => `${p.getAttribute('data-n')} on ${what}`);
+    });
+  });
+  if (covered.length) fail(`${label}: trouble plates cover labels: ${[...new Set(covered)].join(', ')}`);
+  // WCAG 2.5.3: a lane item's visible text is part of its accessible name.
+  const names = await page.$$eval('[role="application"] [data-lane-status]', (els) => els.filter((e) => !(e.getAttribute('aria-label') ?? '').includes(e.textContent.replace(/\s+/g, ' ').trim())).map((e) => `"${e.textContent.trim()}" vs "${e.getAttribute('aria-label')}"`));
+  if (names.length) fail(`${label}: lane names lack their visible text: ${names.join('; ')}`);
   const dashed = await page.$$eval('.route-svg path', (ps) => ps.filter((p) => !['none', ''].includes(getComputedStyle(p).strokeDasharray)).length);
   if (dashed) fail(`${label}: ${dashed} route/lane paths have a dash pattern after the draw-in`);
   const small = await page.$$eval('[role="application"] [data-nav]', (els) => {
@@ -221,7 +243,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   mkdirSync(join(sb, 'home'), { recursive: true });
   const fixtures = join(root, 'fixtures', 'sessions', 'claude-code');
   const views = SAMPLES.map(({ id }) => ({ id, url: `${baseURL}/?session=${id}` }));
-  for (const name of readdirSync(fixtures).filter((f) => /^(subagent|trouble)\.jsonl$/.test(f))) {
+  for (const name of readdirSync(fixtures).filter((f) => /^(subagent|trouble|idle-lane)\.jsonl$/.test(f))) {
     const out = join(sb, `${name}.html`);
     const r = spawnSync(process.execPath, [cli, join(fixtures, name), '--no-open', '--out', out], { env: { PATH: process.env.PATH, HOME: join(sb, 'home'), TMPDIR: sb }, encoding: 'utf8', timeout: 20_000 });
     if (r.status !== 0) {
@@ -233,11 +255,22 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     await checkGlance(page, JSON.parse(json.stdout), `file ${name}`, fail, log);
     for (const p of await axeProblems(page, `file ${name}`, STRUCTURE_RULES)) fail(p);
     if (name === 'subagent.jsonl') await shot('map-local-file');
-    else views.push({ id: 'trouble', url: pathToFileURL(out).href });
+    else views.push({ id: name.replace('.jsonl', ''), url: pathToFileURL(out).href });
   }
 
-  // DM38 screenshot matrix: every sample and the CLI trouble fixture at 1280 and 390, light and dark, full page.
-  const full = { screenshot: (o) => page.screenshot({ ...o, fullPage: true }) };
+  // DM38 screenshot matrix: every sample and the CLI trouble fixtures at 1280 and 390, light and dark, full page. A
+  // full-page capture is one tall viewport, so the sticky destination bar is made static for it (it would otherwise sit
+  // mid-page); the sticky bar itself is checked above.
+  const full = {
+    screenshot: async (o) => {
+      const style = await page.addStyleTag({ content: '.dest-bar { position: static !important; }' });
+      try {
+        return await page.screenshot({ ...o, fullPage: true });
+      } finally {
+        await style.evaluate((e) => e.remove());
+      }
+    },
+  };
   for (const scheme of ['light', 'dark']) {
     await page.emulateMedia({ colorScheme: scheme });
     for (const [size, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]]) {

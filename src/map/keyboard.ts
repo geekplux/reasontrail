@@ -117,11 +117,18 @@ export function laneLines(l: LaneItem, opts: { availPx?: number; duration?: bool
   return { name, count, word };
 }
 
-/** "Subagent lane: implementer 14 calls · interrupted. Fix the audit gap." / "3 subagents 41 calls · 1 failed. Collapsed." */
-export function laneName(l: LaneItem): string {
-  const { name, count, word } = laneLines(l);
-  if (l.lanes.length > 1) return `${name} ${count} ${word}. Bundle, collapsed.`;
-  return `Subagent lane: ${name} ${count} ${word}${l.noHandBack ? ', hand-back not recorded in the main session' : ''}. ${l.lanes[0]?.name ?? ''}.`;
+/** Facts-line width of a lane label on the horizontal route (its box less the padding). */
+export const laneAvailPx = (l: LaneItem) => Math.max(88, l.chars * G.monoPx + 12) - 10;
+
+/** "Subagent lane: implementer 14 calls · interrupted. Fix the audit gap." / "3 subagents 41 calls · 1 failed. Collapsed."
+ * Starts with the label as drawn with the same `opts` (WCAG 2.5.3: the visible text is part of the name), then gives the
+ * full facts when the drawn count gave way. */
+export function laneName(l: LaneItem, opts: { availPx?: number; duration?: boolean } = {}): string {
+  const { name, count, word } = laneLines(l, opts);
+  const full = laneLines(l).count.replace(/ ·$/, '');
+  const more = full !== count.replace(/ ·$/, '') ? ` ${full}.` : '';
+  if (l.lanes.length > 1) return `${name} ${count} ${word}.${more} Bundle, collapsed.`;
+  return `Subagent lane: ${name} ${count} ${word}${l.noHandBack ? ', hand-back not recorded in the main session' : ''}.${more} ${l.lanes[0]?.name ?? ''}.`;
 }
 
 /** "Detected pattern 2 of 3: error streak, resolved. Error streak: 4 failed checks, then passed. In implementer, Phase 4 UI." */
