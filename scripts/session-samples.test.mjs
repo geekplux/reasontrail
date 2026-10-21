@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkSample, expectFor, hideSteps, readDenylist, scrub, sessionFile } from './session-samples.mjs';
+import { checkSample, expectFor, hideSteps, readDenylist, rewrite, scrub, sessionFile } from './session-samples.mjs';
 
 const graph = () => ({
   title: 'Fix the slug helper so titles with spaces work in every view of the app',
@@ -22,6 +22,13 @@ describe('session-samples', () => {
     expect(g.steps[1]).toEqual({ id: 's1', text: '[Left out of this sample: a process list.]', tool: { command: '[Left out of this sample: a process list.]' } });
     expect(() => hideSteps(graph(), { s9: 'x' })).toThrow('hide: no step s9');
     expect(scrub({ a: 'x' }, [])).toEqual({ a: 'x' });
+  });
+
+  it('rewrites names and omits house-rule sentences in every string value', () => {
+    const rules = { names: { Sean: 'the maintainer' }, omitSentencesWith: ['employer', 'study site'], omission: '[house rule omitted]' };
+    const g = rewrite({ title: 'Change request from Sean', Sean: ["Sean's plan. Ask Sean.", 'Keep it short. Never mention the Employer here! Done.', '- no copying of study sites\nnext line', 'Seance and seaSean stay'] }, rules);
+    expect(g).toEqual({ title: 'Change request from the maintainer', Sean: ["The maintainer's plan. Ask the maintainer.", 'Keep it short. [house rule omitted] Done.', '[house rule omitted]\nnext line', 'Seance and seaSean stay'] });
+    expect(rewrite({ a: 'x' })).toEqual({ a: 'x' });
   });
 
   it('finds main and subagent transcripts and checks the limits', () => {

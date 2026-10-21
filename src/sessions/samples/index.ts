@@ -1,7 +1,7 @@
 // Real session maps bundled with the website (PLAN phase 15, D28): the agents that built Reasontrail, trimmed and
 // redacted by `pnpm samples:sessions` from tools/session-samples.json. The default is bundled; the others load lazily.
 import type { SessionGraph } from '../../../shared/session/types';
-import defaultGraph from './verify-fail-fix.graph.json';
+import defaultGraph from './implementer-checks.graph.json';
 
 export interface SessionSample {
   id: string;
@@ -17,14 +17,14 @@ export const defaultSessionGraph: SessionGraph = asGraph(defaultGraph);
 /** Every sample, default first. Titles match tools/session-samples.json (checked by a test). */
 export const sessionSamples: readonly SessionSample[] = [
   {
-    id: 'verify-fail-fix',
-    title: 'A verifier fails phase 12, an implementer fixes it, a second verifier passes',
+    id: 'implementer-checks',
+    title: 'An implementer builds keyboard navigation, fails lint and typecheck, then fixes both',
     load: () => Promise.resolve(defaultSessionGraph),
   },
   {
-    id: 'implementer-checks',
-    title: 'An implementer builds keyboard navigation, fails lint and typecheck, then fixes both',
-    load: () => import('./implementer-checks.graph.json').then((m) => asGraph(m.default)),
+    id: 'verify-fail-fix',
+    title: 'A verifier fails phase 12, an implementer fixes it, a second verifier passes',
+    load: () => import('./verify-fail-fix.graph.json').then((m) => asGraph(m.default)),
   },
   {
     id: 'planner-pivot',

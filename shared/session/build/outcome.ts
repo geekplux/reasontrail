@@ -29,6 +29,9 @@ const resultOf = (results: Map<string, Step>, call: Step) => (call.tool?.callId 
 /** Scratch paths that are never a session's outcome: `/tmp` outside the project, and `node_modules`. */
 export const isScratch = (path: string, cwd?: string) => (path.startsWith('/tmp/') && !(cwd && path.startsWith(`${cwd}/`))) || /(^|\/)node_modules(\/|$)/.test(path);
 
+/** Build output and scratch directories, relative or absolute, that never count as files changed (`.tmp/`, `tmp/`, `/tmp`, `node_modules/`, `dist/`, `.wrangler/`). */
+export const isScratchOutput = (path: string) => /(^|\/)(\.tmp|tmp|node_modules|dist|\.wrangler)(\/|$)/.test(path);
+
 /** Every file change in the session, from Edit/Write tools and from shell commands (best effort). Scratch paths are skipped. */
 export function fileHistory(steps: Step[], cwd?: string): FileEvent[] {
   const results = resultsByCall(steps);
@@ -78,10 +81,11 @@ export function relPath(cwd: string | undefined, p: string): string {
   return cwd && p.startsWith(`${cwd}/`) ? p.slice(cwd.length + 1) : p;
 }
 
-/** Files changed (minus net-reverted and scratch files outside the project), the last verification and the answer step. */
+/** Files changed (minus net-reverted files and scratch or build output, see `isScratchOutput`), the last verification and the answer step. */
 export function buildOutcome(steps: Step[], history: FileEvent[], checks: Verification[], mainLane: string, cwd?: string): Outcome {
   const files = new Map<string, { edits: number; live: number; created: boolean; reverted: boolean; fresh: boolean; last: FileEvent['type'] }>();
   for (const e of history) {
+    if (isScratchOutput(relPath(cwd, e.path))) continue;
     // `fresh`: first written by a non-Edit tool (Edit needs an existing file). Fresh files deleted last were scratch files.
     const f = files.get(e.path) ?? { edits: 0, live: 0, created: false, reverted: false, fresh: e.type === 'write' && e.step.tool?.category !== 'edit', last: e.type };
     if (e.type === 'revert') f.live = 0;
