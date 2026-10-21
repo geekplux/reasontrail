@@ -9,7 +9,10 @@ describe('website commands', () => {
     expect(cmd.startsWith(NPX)).toBe(true);
     const args = cmd.split(' ').slice(2);
     for (const a of args.filter((x) => x.startsWith('-') || x === 'install-skill')) expect(HELP).toContain(a);
-    if (args[0] !== 'install-skill') expect(parseArgs(args)).not.toHaveProperty('error');
+  });
+
+  it.each(Object.values(COMMANDS).filter((c) => !c.includes('install-skill')))('%s is accepted by the argument reader', (cmd) => {
+    expect(parseArgs(cmd.split(' ').slice(2))).not.toHaveProperty('error');
   });
 
   it('the help names every skill folder the installer uses', () => {
