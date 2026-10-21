@@ -52,3 +52,5 @@ pnpm-debug.log*
 
 # sample recorder (tools/record-samples): model download cache
 tools/record-samples/.cache/
+cli/dist/
+dist-viewer/

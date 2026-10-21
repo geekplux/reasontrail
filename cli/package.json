@@ -1,0 +1,22 @@
+{
+  "name": "reasontrail",
+  "version": "0.1.0",
+  "description": "See what your coding agent did: turns a Claude Code session into a self-contained HTML map. Local only; nothing is uploaded.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "reasontrail": "dist/cli.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geekplux/reasontrail.git"
+  },
+  "homepage": "https://github.com/geekplux/reasontrail#readme"
+}
