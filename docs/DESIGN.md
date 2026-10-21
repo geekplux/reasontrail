@@ -715,7 +715,7 @@ The `--tg-` prefix stays after the rename. It is internal, and renaming it would
 
 ### 14.3 Data finding for phase 12 (affects §8.8)
 
-Implementer sessions on this box write most files through Bash: `cat > file <<EOF`, `sed -i`, and Python writes. Of 62 tool calls in the phase 4 implementer run, only 4 were `Write` and 0 were `Edit`. Outcome file detection must therefore parse shell writes as well. Otherwise the destination card would say "0 files changed" for real coding sessions. Also, 0 of about 300 thinking blocks across the session's subagents had stored text, which confirms that M6 is the normal case, not an edge case.
+Implementer sessions on this box write most files through Bash: `cat > file <<EOF`, `sed -i`, and Python writes. Of 62 tool calls in the phase 4 implementer run, only 4 were `Write` and 0 were `Edit`. Outcome file detection must therefore parse shell writes as well. Otherwise the destination card would say "0 files changed" for real coding sessions. Also, none of the ~130 thinking blocks in that stretch (the main lane and its 7 subagent runs) had stored text, which confirms that M6 is the normal case, not an edge case.
 
 ---
 
