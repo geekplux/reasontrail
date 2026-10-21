@@ -7,12 +7,7 @@ export const TITLE_SLOT = '__REASONTRAIL_TITLE__';
 
 /** JSON that is safe inside a `<script>` element: no `<`, `>` or `&`, and no U+2028/U+2029. */
 export function jsonForScript(value: unknown): string {
-  return JSON.stringify(value)
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026')
-    .replace(/\u2028/g, '\\u2028')
-    .replace(/\u2029/g, '\\u2029');
+  return JSON.stringify(value).replace(/[<>&\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
 }
 
 export function escapeHtml(text: string): string {
@@ -21,7 +16,13 @@ export function escapeHtml(text: string): string {
 
 /** Fill the template's two slots. Uses split/join so `$` in session text is never a replacement pattern. */
 export function renderHtml(template: string, payload: ViewerPayload): string {
+  return renderHtmlParts(template, payload).join('');
+}
+
+/** {@link renderHtml} as the pieces to write one after another, so a large map is not copied into one more string. */
+export function renderHtmlParts(template: string, payload: ViewerPayload): string[] {
   if (!template.includes(DATA_SLOT) || !template.includes(TITLE_SLOT)) throw new Error('viewer template is missing its data or title slot');
   const title = escapeHtml(`${payload.graph.title} · Reasontrail`);
-  return template.split(TITLE_SLOT).join(title).split(DATA_SLOT).join(jsonForScript(payload));
+  const json = jsonForScript(payload);
+  return template.split(TITLE_SLOT).join(title).split(DATA_SLOT).flatMap((part, i) => (i ? [json, part] : [part]));
 }

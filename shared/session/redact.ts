@@ -33,6 +33,19 @@ function entropy(s: string): number {
   return h;
 }
 
+const RUN = /[A-Za-z0-9+/=_-]/;
+let lastRun = { input: '', at: -1, start: 0 };
+/** Where the run of base64/path chars that holds `input[at]` starts. Matches come left to right, so a scan stops at
+ * the previous match of the same run and reuses its start: linear, not quadratic, on a long `a/b/c/…` blob. */
+function runStart(input: string, at: number): number {
+  const stop = lastRun.input === input && lastRun.at < at ? lastRun.at : -1;
+  let start = at;
+  while (start > 0 && start > stop && RUN.test(input[start - 1] ?? '')) start--;
+  if (start === stop) start = lastRun.start;
+  lastRun = { input, at, start };
+  return start;
+}
+
 type Replacer = (match: string, ...groups: string[]) => string | undefined;
 /** [placeholder type, pattern, replacement (undefined keeps the match)]. Order matters: specific formats first. */
 const RULES: [string, RegExp, string | Replacer][] = [
@@ -55,8 +68,7 @@ const RULES: [string, RegExp, string | Replacer][] = [
   ['secret:high-entropy', /[A-Za-z0-9+_=-]{32,}/g, (m, ...rest) => {
     const at = rest[rest.length - 2] as unknown as number;
     const input = rest[rest.length - 1] ?? '';
-    let start = at;
-    while (start > 0 && /[A-Za-z0-9+/=_-]/.test(input[start - 1] ?? '')) start--;
+    const start = runStart(input, at);
     const integrity = /^sha(1|256|384|512)-/.test(input.slice(start, at + 1));
     const mixed = /[a-z]/.test(m) && /[A-Z]/.test(m) && /[0-9]/.test(m);
     return !integrity && mixed && entropy(m) >= ENTROPY_MIN ? '[secret:high-entropy]' : undefined;

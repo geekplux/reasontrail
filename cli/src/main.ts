@@ -1,6 +1,6 @@
 // The reasontrail CLI (PLAN C1–C5, D26, D37): find a session, parse it locally, write one self-contained HTML file.
 // No network, no server, zero runtime dependencies.
-import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { closeSync, mkdirSync, openSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -9,9 +9,10 @@ import { buildGraph } from '../../shared/session/build/graph';
 import { attachRaw } from '../../shared/session/raw';
 import { redactGraph, redactSession, redactText } from '../../shared/session/redact';
 import { trimSession } from '../../shared/session/trim';
+import type { SessionGraph } from '../../shared/session/types';
 import type { ViewerPayload } from '../../src/map/loadGraph';
 import { parseArgs } from './args';
-import { renderHtml } from './html';
+import { renderHtmlParts } from './html';
 import { installSkill } from './installSkill';
 import { listSessions, locate, readSession, type LocateContext } from './locate/index';
 import { EXIT, HELP, PKG_NAME, VERSION } from './meta';
@@ -63,16 +64,26 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   if (!session) return ctx.err(`${PKG_NAME}: this doesn't look like a Claude Code session (.jsonl). Codex and Grok Build sessions are not supported yet.`), EXIT.unreadable;
   if (opts.trim) session = trimSession(session, opts.trim);
 
-  const payload: ViewerPayload = { graph: attachRaw(buildGraph(session), files), meta: { version: VERSION } };
-  if (opts.share) {
-    // Redact before building (clipped titles never hold a cut-off secret), then the graph (drops, derived fields).
+  // Files are re-read here (see readSession); one that vanished since only costs its raw records.
+  const withRaw = (graph: SessionGraph, o?: Parameters<typeof attachRaw>[2]) => {
+    try {
+      return attachRaw(graph, files, o);
+    } catch {
+      return graph;
+    }
+  };
+  let payload: ViewerPayload;
+  if (!opts.share) payload = { graph: withRaw(buildGraph(session)), meta: { version: VERSION } };
+  else {
+    // Redact before building (clipped titles never hold a cut-off secret), then the graph (drops, derived fields),
+    // then attach raw records: each is cut to its cap first and only the kept part is redacted (once).
     const r: Record<string, number> = {};
-    const red = redactGraph(attachRaw(buildGraph(redactSession(session, r)), files, { redact: (t) => redactText(t) }));
+    const red = redactGraph(buildGraph(redactSession(session, r)));
+    const graph = withRaw(red.graph, { redact: (t) => redactText(t) }); // the same text the counts already saw
     for (const [k, v] of Object.entries(red.summary.replaced)) r[k] = (r[k] ?? 0) + v;
     const n = (pred: (k: string) => boolean) => Object.entries(r).reduce((sum, [k, v]) => sum + (pred(k) ? v : 0), 0);
     const total = n(() => true);
-    payload.graph = red.graph;
-    payload.meta.shared = { replaced: total };
+    payload = { graph, meta: { version: VERSION, shared: { replaced: total } } };
     ctx.err(`Redacted: ${n((k) => k.startsWith('secret:'))} secrets, ${n((k) => k === 'email')} emails, ${n((k) => k === 'home-path')} paths; ${red.summary.dropped} non-conversation records dropped.`);
   }
 
@@ -88,11 +99,16 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   const file = opts.out
     ? isAbsolute(opts.out) ? opts.out : resolve(ctx.cwd, opts.out)
     : opts.share ? join(ctx.cwd, `${PKG_NAME}-${id.slice(0, 8)}.html`) : join(tmpdir(), PKG_NAME, `${ref.source}-${id}.html`);
-  const html = renderHtml(template, payload);
+  const parts = renderHtmlParts(template, payload);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, html);
+  const fd = openSync(file, 'w');
+  try {
+    for (const part of parts) writeFileSync(fd, part); // at the fd's position, looping until all is written
+  } finally {
+    closeSync(fd);
+  }
   ctx.out(file);
-  ctx.err(`Map: ${kb(Buffer.byteLength(html))}, ${payload.graph.steps.length} steps. Generated on your machine; nothing was uploaded.`);
+  ctx.err(`Map: ${kb(parts.reduce((n, p) => n + Buffer.byteLength(p), 0))}, ${payload.graph.steps.length} steps. Generated on your machine; nothing was uploaded.`);
   if (opts.open && (ctx.open ?? openFile)(file)) ctx.err('Opened in your browser.');
   else ctx.err(`Open it in a browser: ${pathToFileURL(file).href}`);
   return EXIT.ok;

@@ -90,8 +90,8 @@ export function hideSteps(graph, hide = {}) {
   return graph;
 }
 
-/** Raw-record caps tried in turn (chars), largest first; 0 drops the raw records (PLAN phase 17: ≤ 4 KB each). */
-const RAW_CAPS = [4096, 3072, 2048, 1536, 1024, 768, 512, 384, 256, 0];
+/** Raw-record caps tried in turn (chars), largest first; 0 drops the raw records (the CLI keeps ≤ 1 KB each). */
+const RAW_CAPS = [1024, 768, 512, 384, 256, 0];
 
 /** The CLI's cut note (shared/session/raw.ts `cutNote`): its record text and how many characters it left out. */
 const CUT = /…\n\[cut (\d+) characters; full record at [^\n]*\]$/;

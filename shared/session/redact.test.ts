@@ -141,3 +141,17 @@ describe('redactSession (before the graph clips text)', () => {
     expect(JSON.stringify(redactGraph(buildGraph(session)).graph)).toContain(token.slice(0, 8)); // why this exists
   });
 });
+
+describe('high-entropy scan on long blobs', () => {
+  it('stays linear on a long slash-separated base64 blob and still honours lockfile integrity', () => {
+    const blob = Array.from({ length: 4000 }, (_, i) => rnd(60, 100 + i, B64.slice(0, 62))).join('/');
+    const t = performance.now();
+    const out = redactText(blob);
+    expect(performance.now() - t).toBeLessThan(1500);
+    expect(out.split('/').every((p) => p === '[secret:high-entropy]')).toBe(true);
+    const sri = `sha512-${blob.slice(0, 2000)}`;
+    const tail = (s: string) => s.split('/').slice(1).join('/');
+    expect(tail(redactText(sri))).toBe(tail(sri));
+  });
+});
+

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeSession } from './adapter';
 import { buildGraph } from './build/graph';
-import { attachRaw, clipRaw } from './raw';
+import { RAW_REDACT_MARGIN, RAW_TEXT_MIN, attachRaw, clipRaw, clipRedacted, rawCap } from './raw';
 import { redactText } from './redact';
+import { RAW_TEXT_MAX } from './types';
 
 const line = (o: object) => JSON.stringify(o);
 const file = {
@@ -35,3 +36,78 @@ describe('attachRaw', () => {
     expect(clipRaw('abc', { file: 'b.jsonl', line: 1 }, 3)).toBe('abc');
   });
 });
+
+describe('rawCap (total raw budget)', () => {
+  const sized = (lengths: number[], note = 64) => lengths.map((length) => ({ length, note }));
+  it('keeps the per-record cap while the total fits', () => {
+    expect(RAW_TEXT_MAX).toBe(1024);
+    expect(rawCap(sized([10, 5000, 300]))).toBe(1024);
+    expect(rawCap([])).toBe(1024);
+  });
+  it('lowers the cap uniformly to the largest that fits the budget, notes included', () => {
+    const records = sized(Array.from({ length: 100 }, () => 5000));
+    const cap = rawCap(records, { total: 50_000 });
+    expect(cap).toBe(436); // 100 × (436 + 64 note) = 50,000
+    const cost = (c: number) => records.reduce((sum, r) => sum + (r.length <= c ? r.length : c + r.note), 0);
+    expect(cost(cap)).toBeLessThanOrEqual(50_000);
+    expect(cost(cap + 1)).toBeGreaterThan(50_000);
+  });
+  it('never goes below the minimum', () => {
+    expect(rawCap(sized(Array.from({ length: 1000 }, () => 5000)), { total: 1000 })).toBe(RAW_TEXT_MIN);
+    expect(rawCap(sized([5000]), { max: 160, total: 10 })).toBe(160);
+  });
+  it('is deterministic and order-independent', () => {
+    const records = sized(Array.from({ length: 500 }, (_, i) => (i * 7919) % 6000));
+    const a = rawCap(records, { total: 200_000 });
+    expect(rawCap([...records].reverse(), { total: 200_000 })).toBe(a);
+    expect(rawCap(records, { total: 200_000 })).toBe(a);
+  });
+  it('applies the lowered cap to every record of a map', () => {
+    const rec = (i: number) => line({ type: i % 2 ? 'assistant' : 'user', uuid: `r${i}`, ...(i ? { parentUuid: `r${i - 1}` } : {}), timestamp: '2026-01-01T00:00:00Z', message: i % 2 ? { role: 'assistant', content: [{ type: 'text', text: 'y'.repeat(3000) }] } : { role: 'user', content: 'y'.repeat(3000) } });
+    const big = { path: 'b.jsonl', text: `${[0, 1, 2].map(rec).join('\n')}\n` };
+    const g = buildGraph(normalizeSession({ files: [big] })!);
+    const note = 2 + `[cut 3000 characters; full record at b.jsonl:1]`.length;
+    const r = attachRaw(g, [big], { total: 3 * (300 + note) });
+    const bodies = r.steps.filter((s) => s.rawText).map((s) => s.rawText!.split('…\n')[0]!.length);
+    expect(bodies).toEqual([300, 300, 300]);
+  });
+});
+
+describe('clipRedacted (redact after cutting)', () => {
+  const at = { file: 'x.jsonl', line: 4 };
+  const KEY = ['sk', 'ant', 'abcdefghijklmnopqrstuvwxyz0123'].join('-');
+  it('redacts a secret that straddles the cap and keeps its placeholder whole', () => {
+    const text = `${'a '.repeat(495)}${KEY} ${'b'.repeat(2000)}`;
+    const out = clipRedacted(text, at, 1000, (t) => redactText(t));
+    expect(out).not.toContain('sk-ant');
+    expect(out).toContain('[secret:anthropic-key]…\n[cut ');
+  });
+  it('leaves out a token cut at the edge of the redacted window (no partial secret)', () => {
+    // A quoted secret value longer than the margin: no rule sees its closing quote inside the window.
+    const value = 'q'.repeat(RAW_REDACT_MARGIN + 600);
+    const text = `{"note":"${'n'.repeat(980)}","api_token":"${value}","more":"${'m'.repeat(500)}"}`;
+    const out = clipRedacted(text, at, 1024, (t) => redactText(t));
+    expect(out).not.toMatch(/q{2}/);
+    expect(out).toMatch(/"api_token":"…\n\[cut \d+ characters; full record at x\.jsonl:4\]$/);
+  });
+  it('only redacts the cap plus a margin, and counts the cut from the whole record', () => {
+    const seen: number[] = [];
+    const text = `${'word '.repeat(2000)}`;
+    const out = clipRedacted(text, at, 300, (t) => (seen.push(t.length), t));
+    expect(seen).toEqual([300 + RAW_REDACT_MARGIN, 300]); // the window, then the kept part
+    expect(out).toBe(`${text.slice(0, 300)}…\n[cut ${text.length - 300} characters; full record at x.jsonl:4]`);
+  });
+  it('re-redacts the kept part: a cut fragment never matches a rule its whole did not', () => {
+    // A long, low-entropy blob (an image's zero padding) whose first part alone looks like a secret.
+    const blob = `${'Zq8xK2mW7pL4vN9cT3hB6yR1fJ5dG0sA'.repeat(2)}${'A'.repeat(400)}`;
+    const text = `{"data":"${blob}"}`;
+    expect(redactText(text)).toBe(text);
+    expect(clipRaw(text, at, 80)).toMatch(/^\{"data":"Zq8x/);
+    expect(clipRedacted(text, at, 80, (t) => redactText(t))).toBe(`{"data":"[secret:high-entropy]…\n[cut ${text.length - 80} characters; full record at x.jsonl:4]`);
+  });
+  it('matches redact-then-clip for records within the window', () => {
+    const text = `key ${KEY} ${'z '.repeat(200)}`;
+    expect(clipRedacted(text, at, 100, (t) => redactText(t))).toBe(clipRaw(redactText(text), at, 100));
+  });
+});
+

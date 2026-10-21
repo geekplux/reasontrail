@@ -84,8 +84,8 @@ export interface Step {
   rawText?: string;
 }
 
-/** Cap on {@link Step.rawText}. */
-export const RAW_TEXT_MAX = 4096;
+/** Cap on {@link Step.rawText} (lowered for very large sessions, see `rawCap` in shared/session/raw.ts). */
+export const RAW_TEXT_MAX = 1024;
 
 /** Preview length cap for {@link Step.text} and {@link StepTool.command}. */
 export const TEXT_PREVIEW_MAX = 2000;

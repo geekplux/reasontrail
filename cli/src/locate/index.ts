@@ -1,5 +1,5 @@
 // Session location across sources (PLAN §5.12, D27). Claude Code now; Codex and Grok Build join in phase 18.
-import { readFileSync } from 'node:fs';
+import { accessSync, constants, readFileSync } from 'node:fs';
 import { isAbsolute, resolve } from 'node:path';
 import type { SessionInput } from '../../../shared/session/types';
 import type { Options } from '../args';
@@ -53,7 +53,15 @@ export function listSessions(opts: Options, ctx: LocateContext): ListedSession[]
   });
 }
 
-/** Read every file of the session. Throws when a file cannot be read. */
+/**
+ * Every file of the session. Throws when a file cannot be read. Each `text` is read from disk when it is used and not
+ * kept, so a large session (100+ MB of subagent transcripts) is never held in memory all at once.
+ */
 export function readSession(ref: SessionRef): SessionInput {
-  return { files: sessionFiles(ref.file).map(({ abs, rel }) => ({ path: rel, text: readFileSync(abs, 'utf8') })) };
+  return {
+    files: sessionFiles(ref.file).map(({ abs, rel }) => {
+      accessSync(abs, constants.R_OK);
+      return { path: rel, get text() { return readFileSync(abs, 'utf8'); } };
+    }),
+  };
 }

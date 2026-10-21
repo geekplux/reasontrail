@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { parseArgs, type Options } from '../src/args';
 import { encodeCwd, sessionFiles, titleFromHead } from '../src/locate/claudeCode';
 import { listSessions, locate, readSession } from '../src/locate/index';
@@ -46,6 +47,7 @@ describe('locating Claude Code sessions in a sandbox HOME', () => {
     expect(sessionFiles(file).map((f) => f.rel)).toEqual(['with-sub.jsonl', 'with-sub/subagents/agent-a1.jsonl', 'with-sub/subagents/agent-a1.meta.json']);
     const input = readSession({ source: 'claude-code', id: 'with-sub', file, mtimeMs: 0, size: 0 });
     expect(input.files.every((f) => !f.path.includes(sb.root))).toBe(true);
+    expect(input.files[0]?.text).toBe(readFileSync(file, 'utf8')); // read on use, not kept
   });
 
   it('titles from the custom title, else the first plain user line', () => {
