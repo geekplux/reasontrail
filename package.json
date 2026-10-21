@@ -26,7 +26,8 @@
     "skill:evals": "node skills/reasontrail/evals/run-evals.mjs",
     "check:deploy": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "dev:worker": "wrangler dev",
-    "samples:record": "(test -d tools/record-samples/node_modules || pnpm --dir tools/record-samples install --ignore-workspace --ignore-scripts --frozen-lockfile) && node tools/record-samples/record.mjs"
+    "samples:record": "(test -d tools/record-samples/node_modules || pnpm --dir tools/record-samples install --ignore-workspace --ignore-scripts --frozen-lockfile) && node tools/record-samples/record.mjs",
+    "samples:sessions": "pnpm -s build:cli && node scripts/session-samples.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5",

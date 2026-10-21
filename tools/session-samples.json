@@ -1,0 +1,40 @@
+{
+  "//": "Real sessions of the agents that built Reasontrail, trimmed and redacted by `pnpm samples:sessions` (PLAN phase 15, D28). Local ids only; the files live under ~/.claude/projects/<project>/ on the machine that built the app. `steps` is a range of step numbers of the untrimmed map, inclusive (CLI --trim). The first entry is the default sample.",
+  "samples": [
+    {
+      "id": "verify-fail-fix",
+      "title": "A verifier fails phase 12, an implementer fixes it, a second verifier passes",
+      "source": "claude-code",
+      "project": "-workspace-gx-projects-token-garden",
+      "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
+      "steps": "4816:4981",
+      "why": "The main agent delegates three times in a row: the verifier returns FAIL with one gap in the redaction audit, an implementer closes it, and a re-verify passes. Three subagent lanes and churn markers where the verifier edits scratch files over and over while planting test secrets.",
+      "hide": {
+        "s88": "a process list of the build machine",
+        "s91": "a process list of the build machine"
+      }
+    },
+    {
+      "id": "implementer-checks",
+      "title": "An implementer builds keyboard navigation, fails lint and typecheck, then fixes both",
+      "source": "claude-code",
+      "project": "-workspace-gx-projects-token-garden",
+      "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
+      "agent": "a0e3fcacc3d1f9f82",
+      "steps": "0:141",
+      "why": "One whole implementer run: reads the plan, writes the keyboard tree logic and tests, hits two failed check runs in a row (an error streak), fixes them and ends with every check passing and three commits."
+    },
+    {
+      "id": "planner-pivot",
+      "title": "The main agent takes a change request and has the planner rewrite the plan",
+      "source": "claude-code",
+      "project": "-workspace-gx-projects-token-garden",
+      "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
+      "steps": "3618:3730",
+      "why": "A product pivot: the main agent reads a change request, starts a planner that is cut off (a retry marker), folds in an addendum and runs a second planner that researches the session formats and rewrites the plan.",
+      "hide": {
+        "s68": "environment variable names of the build machine"
+      }
+    }
+  ]
+}
