@@ -80,7 +80,7 @@ describe('--ai', () => {
     const err = sb.lines.err.join('\n');
     expect(err).toMatch(new RegExp(`will send 2 step summaries in 1 request \\(\\d+ characters\\) to ${url}`));
     expect(err).toMatch(/Only redacted text is sent/);
-    expect(err).toMatch(/SHA-256/);
+    expect(err).toMatch(/cached per batch/);
     expect(err).toMatch(/1 labels and 1 claim links, suggested by @cf\/fake\/model/);
     expect(err).toMatch(/only the redacted step summaries above were sent/);
     const p = payload();

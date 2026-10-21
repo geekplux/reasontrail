@@ -14,18 +14,21 @@ import { applyCvd } from '../cvd.mjs';
 const MODEL = 'fake-model-1';
 const UNAVAILABLE = "AI labels aren't available here; the map still works.";
 
-/** A deterministic answer for one batch: a label per step kind, and the last assistant step as a claim supported by
- * a few earlier steps plus one id that is not in the batch (which must never be drawn). */
+/** Labels by position in the batch, so episodes get different tags (an episode shows its most conclusive one). */
+const RUNS = ['sub-question', 'hypothesis', 'evidence', 'dead end', 'evidence', 'decision', 'hypothesis', 'evidence'];
+
+/** A deterministic answer for one batch: a label per run of steps, and the last assistant step as a claim supported
+ * by a few earlier steps plus one id that is not in the batch (which must never be drawn). */
 function fakeAnswer(body) {
   const steps = body.steps ?? [];
-  const word = (s) => ({ user: 'sub-question', thinking: 'hypothesis', assistant: 'decision', 'tool-result': /error|fail/i.test(s.text) ? 'dead end' : 'evidence' })[s.kind] ?? 'evidence';
+  const word = (i) => RUNS[Math.floor((i * RUNS.length) / steps.length)] ?? 'evidence';
   const claim = [...steps].reverse().find((s) => s.kind === 'assistant') ?? steps[steps.length - 1];
   const earlier = steps.filter((s) => s !== claim);
   const pick = [0.1, 0.35, 0.6, 0.85].map((f) => earlier[Math.floor(f * earlier.length)]?.id).filter(Boolean);
   return {
     model: MODEL,
     cached: false,
-    labels: steps.map((s) => ({ stepId: s.id, label: s === claim ? 'answer' : word(s), confidence: 0.7 })),
+    labels: steps.map((s, i) => ({ stepId: s.id, label: s === claim ? 'answer' : word(i), confidence: 0.7 })),
     links: claim ? [{ claimStepId: claim.id, supportStepIds: [...new Set(pick), 'ghost-step'] }] : [],
   };
 }
@@ -38,6 +41,13 @@ async function open(page, url) {
 }
 
 /** The deterministic view: task, glance, route widget and the bottom band (the AI control itself is excluded). */
+/** The route header is one line, and where the route widget starts (page coordinates). */
+const header = (page) => page.evaluate(() => {
+  const kids = [...(document.querySelector('.route-head')?.children ?? [])].map((c) => c.getBoundingClientRect()).filter((r) => r.width > 0);
+  const app = document.querySelector('.route-app')?.getBoundingClientRect();
+  return { oneLine: kids.length > 0 && Math.max(...kids.map((r) => r.top)) < Math.min(...kids.map((r) => r.bottom)), top: (app?.top ?? NaN) + window.scrollY };
+});
+
 const snapshot = (page) => page.evaluate(() => ['[data-region="task"]', '[data-region="glance"]', '.route-app', '.bottom-band'].map((s) => document.querySelector(s)?.outerHTML ?? `(no ${s})`).join('\n'));
 
 /** Runs the built CLI without blocking this process (the fake server answers from the same event loop). */
@@ -100,26 +110,30 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   const batches = Number(/(\d+) requests?, one after another/.exec(facts)?.[1] ?? NaN);
   log(`consent: ${steps} steps in ${batches} requests`);
   if (!(steps > 0) || batches !== Math.ceil(steps / 200) || batches > 5) fail(`AC1: ${steps} steps announced as ${batches} requests`);
-  for (const w of [`${new URL(baseURL).origin}/api/structure`, 'SHA-256', 'Secrets, tokens, emails and home paths']) if (!facts.includes(w)) fail(`V3: the dialog does not say "${w}"`);
+  for (const w of [`${new URL(baseURL).origin}/api/structure`, 'cached per batch', 'Secrets, tokens, emails and home paths']) if (!facts.includes(w)) fail(`V3: the dialog does not say "${w}"`);
   if (api.length) fail(`AC1: ${api.length} /api requests before consent`);
   await shot('ai-consent');
   await page.getByRole('button', { name: 'Send' }).click();
-  const toggle = page.getByRole('button', { name: 'AI labels (suggested)' });
+  const toggle = page.getByRole('button', { name: `AI labels, suggested by ${MODEL}`, exact: true });
   await toggle.waitFor({ timeout: 15_000 });
   if (api.length !== batches || posts !== batches) fail(`AC1: ${api.length} /api requests after consent, expected ${batches}`);
   if ((await toggle.getAttribute('aria-pressed')) !== 'true') fail('the overlay is not on after labelling');
 
-  // AC2 / X3: every tag's episode names the model; the visible key says it too.
+  // AC2 / X3: every tag's episode names the model; the toggle (with its dashed swatch) says it too.
   const named = await page.$$eval('[data-region="route"] [data-episode-id]', (els) => els.map((e) => e.getAttribute('aria-label') ?? ''));
   const tagged = named.filter((n) => n.includes('AI labels'));
   const tags = await page.locator('.route-canvas .ai-tag').count();
   log(`${tags} episode tags`);
   if (tags === 0 || tagged.length !== tags) fail(`X3: ${tags} tags but ${tagged.length} items name them`);
   if (tagged.some((n) => !n.includes(`suggested by ${MODEL}`))) fail('X3: a label without "suggested by <model>"');
-  if (!(await page.getByText(`dashed = suggested by ${MODEL}`).isVisible())) fail('X3: no visible "dashed = suggested by" key');
+  if (!(await toggle.textContent())?.includes(`AI labels · suggested by ${MODEL}`)) fail('X3: the toggle does not say "suggested by <model>"');
+  const kinds = new Set(await page.locator('.route-canvas .ai-tag').evaluateAll((els) => els.map((e) => e.getAttribute('data-ai-label'))));
+  log(`tags: ${[...kinds].join(', ')}`);
+  if (kinds.size < 3) fail(`the fake overlay shows only ${kinds.size} different tags`);
   if (await page.locator('.ai-links').count()) fail('supports curves on the glance');
   await page.mouse.move(0, 0);
   await shot('ai-labels');
+  const on1440 = await header(page);
 
   // Off restores the deterministic view exactly.
   await toggle.click();
@@ -130,7 +144,39 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     fail(`AC1: the map with the overlay off differs from the map before it, at …${before.slice(Math.max(0, i - 120), i + 80)}… vs …${after.slice(Math.max(0, i - 120), i + 80)}…`);
   }
   if (await page.locator('.ai-tag:not(.ai-swatch), .ai-links').count()) fail('overlay marks remain with the overlay off');
+  // The overlay never adds a header row: one line, and the route widget does not move (1440×900 and 1280×800).
+  const checkHeader = (size, on, off) => {
+    if (!on.oneLine || !off.oneLine) fail(`${size}: the route header wraps (overlay on: ${on.oneLine}, off: ${off.oneLine})`);
+    if (on.top !== off.top) fail(`${size}: the route widget moves ${on.top - off.top} px with the overlay on`);
+  };
+  checkHeader('1440×900', on1440, await header(page));
   await toggle.click();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForTimeout(150);
+  const on1280 = await header(page);
+  await toggle.click();
+  const off1280 = await header(page);
+  await toggle.click();
+  checkHeader('1280×800', on1280, off1280);
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.waitForTimeout(150);
+  await shot('ai-labels-dark');
+  await page.emulateMedia({ colorScheme: 'light' });
+
+  // 390 px: the tag sits beside the item (aria-hidden), so the item's name still starts with its visible text (2.5.3).
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(150);
+  const mobileTag = page.locator('.vrow > .ai-tag').nth(1);
+  if (!(await mobileTag.count())) fail('390 px: no tags beside the route items');
+  else await mobileTag.scrollIntoViewIfNeeded();
+  if (await page.locator('.vitem .ai-tag').count()) fail('390 px: a tag inside a route item (its name would not match)');
+  await shot('ai-labels-mobile');
+  for (const p of await axeProblems(page, 'ai labels 390 px', ['label-content-name-mismatch'])) fail(p);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForTimeout(150);
 
   // Claims link only to existing steps: select the final answer.
   await page.locator('[data-region="route"] [data-nav^="ep:"]').last().click();
@@ -185,7 +231,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     page.on('request', (q) => !q.url().startsWith('file:') && !q.url().startsWith('data:') && requests.push(q.url()));
     await page.goto(pathToFileURL(out).href, { waitUntil: 'load' });
     await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
-    const vt = page.getByRole('button', { name: 'AI labels (suggested)' });
+    const vt = page.getByRole('button', { name: /^AI labels, suggested by [^:]*$/ });
     await vt.waitFor({ timeout: 5_000 }).catch(() => fail('viewer: no AI labels toggle'));
     if ((await vt.getAttribute('aria-pressed')) !== 'false') fail('viewer: the overlay is on by default');
     if (await page.getByRole('button', { name: 'AI labels…' }).count()) fail('viewer: asks for consent although --ai already ran');

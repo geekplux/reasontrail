@@ -2,11 +2,11 @@
 // and claim → support pairs that name only steps of this graph. Pure; the overlay never changes the graph (D22).
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 
-/** Tie order when two labels are equally common in an episode: the more conclusive one wins. */
+/** Most conclusive first: an episode's tag is its most conclusive label. */
 const ORDER = ['answer', 'decision', 'dead end', 'hypothesis', 'evidence', 'sub-question'];
 
 export interface EpisodeTag {
-  /** The most common label in the episode. */
+  /** The most conclusive label in the episode. */
   label: string;
   /** How many other labels it also has. */
   others: number;
@@ -45,7 +45,7 @@ export function episodeTags(g: SessionGraph, overlay: LabelOverlay): Map<string,
   }
   const tags = new Map<string, EpisodeTag>();
   for (const [ep, c] of counts) {
-    const sorted = [...c].sort((a, b) => b[1] - a[1] || ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]));
+    const sorted = [...c].sort((a, b) => ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]) || b[1] - a[1]);
     const [label] = sorted[0] as [string, number];
     tags.set(ep, { label, others: sorted.length - 1, text: sorted.map(([l, n]) => `${l} (${plural(n)})`).join(', ') });
   }

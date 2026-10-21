@@ -24,7 +24,7 @@ export interface StructureSummary {
 }
 
 export const CACHING_NOTE =
-  'The endpoint caches its answer (labels and step ids, not your text) under a SHA-256 hash of each batch, so sending the same session again costs nothing.';
+  'Answers (labels and step ids, never your text) are cached per batch, so sending again costs nothing.';
 
 export function summarize(batches: readonly StructureRequest[], endpoint: string): StructureSummary {
   let characters = 0;

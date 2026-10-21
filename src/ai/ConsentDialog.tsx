@@ -8,6 +8,7 @@ const n = (v: number, one: string, many = `${one}s`) => `${v.toLocaleString('en'
 export function ConsentDialog({ summary, onSend, onCancel }: { summary: StructureSummary; onSend(): void; onCancel(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const descId = useId();
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -21,6 +22,7 @@ export function ConsentDialog({ summary, onSend, onCancel }: { summary: Structur
       ref={ref}
       className="ai-dialog"
       aria-labelledby={titleId}
+      aria-describedby={descId}
       onKeyDown={(e) => {
         // A native modal dialog lets Tab leave for the browser's own controls; keep it inside (focus trap).
         if (e.key !== 'Tab') return;
@@ -37,9 +39,9 @@ export function ConsentDialog({ summary, onSend, onCancel }: { summary: Structur
       }}
     >
       <h2 id={titleId} className="ai-dialog-title">Ask a model to label this session?</h2>
-      <p>
-        A model suggests a label for each step (sub-question, hypothesis, evidence, dead end, decision, answer) and links
-        the final answer to the steps that support it. The map doesn&apos;t change: the labels are an overlay you can switch off.
+      <p id={descId}>
+        A model suggests a label for each step and links the final answer to the steps that support it. The map
+        doesn&apos;t change; you can switch the labels off.
       </p>
       <dl className="ai-facts">
         <dt>What is sent</dt>

@@ -12,16 +12,33 @@ export function waypointX(L: GlanceLayout): Map<string, number> {
   return x;
 }
 
-export function SupportLinks({ L, pairs }: { L: GlanceLayout; pairs: { from: string; to: string[] }[] }) {
-  const x = waypointX(L);
-  const Y = G.routeY - 7; // just above the waypoints; the arcs stay below the titles' count lines
-  const curves = pairs.flatMap(({ from, to }) => {
+export interface Arc {
+  id: string;
+  x1: number;
+  x2: number;
+  /** Peak height above the route, proportional to the span so arcs from one origin nest and never cross. */
+  h: number;
+}
+
+/** The arcs for claim → support pairs: h = 12 × |x2 − x1| / the longest span (a lone arc gets at least 3 px). */
+export function supportArcs(x: ReadonlyMap<string, number>, pairs: { from: string; to: string[] }[]): Arc[] {
+  const raw = pairs.flatMap(({ from, to }) => {
     const x1 = x.get(from);
     return x1 === undefined ? [] : to.flatMap((id) => {
       const x2 = x.get(id);
-      return x2 === undefined || x2 === x1 ? [] : [{ id: `${from}>${id}`, x1, x2, h: Math.min(11, 5 + Math.abs(x2 - x1) / 60) }];
+      return x2 === undefined || x2 === x1 ? [] : [{ id: `${from}>${id}`, x1, x2 }];
     });
   });
+  const span = Math.max(0, ...raw.map((c) => Math.abs(c.x2 - c.x1)));
+  return raw.map((c) => {
+    const h = (12 * Math.abs(c.x2 - c.x1)) / span;
+    return { ...c, h: raw.length === 1 ? Math.max(3, h) : h };
+  });
+}
+
+export function SupportLinks({ L, pairs }: { L: GlanceLayout; pairs: { from: string; to: string[] }[] }) {
+  const Y = G.routeY - 7; // just above the waypoints; arcs of height ∝ span stay below the titles' count lines
+  const curves = supportArcs(waypointX(L), pairs);
   if (curves.length === 0) return null;
   return (
     <svg className="ai-links" width={L.width} height={L.height} aria-hidden="true" focusable="false" data-ai-links={curves.length}>

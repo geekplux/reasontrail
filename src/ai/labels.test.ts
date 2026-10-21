@@ -36,10 +36,10 @@ describe('AI labels overlay', () => {
     expect(['s0', 's2', 's4', 's5', 'nope'].map(of)).toEqual(['e0', 'e1', 'e2', 'e1', undefined]);
   });
 
-  it('tags each episode with its most common label, the conclusive one on a tie', () => {
+  it('tags each episode with its most conclusive label; the text keeps all of them with counts', () => {
     const tags = episodeTags(g, overlay);
     expect(tags.get('e0')).toEqual({ label: 'hypothesis', others: 1, text: 'hypothesis (1 step), sub-question (1 step)' });
-    expect(tags.get('e1')).toEqual({ label: 'evidence', others: 1, text: 'evidence (2 steps), decision (1 step)' });
+    expect(tags.get('e1')).toEqual({ label: 'decision', others: 1, text: 'decision (1 step), evidence (2 steps)' });
     expect(tags.get('e2')?.label).toBe('answer');
     expect(tags.size).toBe(3);
   });

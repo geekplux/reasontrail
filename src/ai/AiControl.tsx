@@ -33,8 +33,10 @@ function Toggle({ overlay, onOverlay, initial = false, focusRef }: { overlay: La
   };
   return (
     <span className="ai-control">
-      <button ref={focusRef} type="button" className="ai-button" aria-pressed={on} onClick={flip}>AI labels (suggested)</button>
-      {on && <span className="ai-key"><span className="ai-tag ai-swatch" aria-hidden="true" /> dashed = suggested by {overlay.model}</span>}
+      {/* One button, so the key never adds a header row: the dashed swatch says what a suggested label looks like. */}
+      <button ref={focusRef} type="button" className="ai-button ai-toggle" aria-pressed={on} aria-label={`AI labels, suggested by ${overlay.model}`} onClick={flip}>
+        <span className="ai-tag ai-swatch" aria-hidden="true" /> AI labels · suggested by <span className="ai-model">{overlay.model}</span>
+      </button>
     </span>
   );
 }
@@ -52,11 +54,6 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
     asked.current = true;
     ai.request();
   }, [ai]);
-  useEffect(() => {
-    const say = state.status === 'sending' ? 'Asking a model for AI labels' : state.status === 'ready' ? 'AI labels added' : state.status === 'unavailable' || state.status === 'error' ? state.message : '';
-    if (say && say !== said.current) announce(say);
-    said.current = say;
-  }, [state, announce]);
   // The element focus came from (the placeholder, the dialog, Cancel) is gone after each step: focus this state's control.
   const last = useRef('');
   useEffect(() => {
@@ -64,6 +61,20 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
     last.current = state.status;
     if (!document.activeElement || document.activeElement === document.body) (button.current ?? status.current)?.focus();
   });
+  // After the focus move: a note that just took focus is read out already, so it is not announced twice.
+  const was = useRef(state.status);
+  useEffect(() => {
+    const prev = was.current;
+    was.current = state.status;
+    const say = state.status === 'sending'
+      ? (state.total > 1 ? `Labelling ${state.done + 1} of ${state.total}` : 'Asking a model for AI labels')
+      : state.status === 'ready' ? 'AI labels added'
+      : (state.status === 'unavailable' || state.status === 'error') && document.activeElement !== status.current ? state.message
+      : state.status === 'idle' && prev === 'sending' ? 'AI labels cancelled; nothing was kept'
+      : '';
+    if (say && say !== said.current) announce(say);
+    said.current = say;
+  }, [state, announce]);
 
   if (state.status === 'ready') return <Toggle overlay={state.overlay} onOverlay={onOverlay} initial focusRef={button} />;
   if (state.status === 'sending') {
@@ -80,7 +91,7 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
       {note ? <span ref={status} tabIndex={-1} className="ai-status" data-ai-note={state.status}><InfoGlyph />{note}</span> : null}
       {state.status !== 'unavailable' && (
         <button ref={button} type="button" className="ai-button" aria-haspopup="dialog" onClick={() => ai.request()}>
-          {state.status === 'error' ? 'Try again' : 'AI labels…'}
+          {state.status === 'error' ? 'Try AI labels again' : 'AI labels…'}
         </button>
       )}
       {state.status === 'consent-needed' && (

@@ -306,8 +306,9 @@ function Vertical({ L, ai, all, epProps, laneProps, blazeProps, foldProps, open,
           <KindGlyph kind={r.episode.kind} />
           <span className="ep-title">{r.episode.title}</span>{' '}
           <span className="ep-count mono" title={countText(r)}>{countText(r, 9 * G.monoPx)}</span>
-          {ai?.tags.get(r.episode.id) && <LabelBadge tag={ai.tags.get(r.episode.id) as EpisodeTag} />}
         </div>
+        {/* Beside the item, not in it: the item's name already says the labels (WCAG 2.5.3). */}
+        {ai?.tags.get(r.episode.id) && <LabelBadge tag={ai.tags.get(r.episode.id) as EpisodeTag} />}
         {blazes((b) => b.track < 0 && b.episodeId === r.episode.id)}
       </div>,
     );

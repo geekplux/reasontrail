@@ -35,7 +35,7 @@ describe('createStructureController', () => {
     const c = createStructureController(graph(450), { fetch: fn });
     expect(c.summary()).toMatchObject({ steps: 450, batches: 3, endpoint: '/api/structure' });
     expect(c.summary().characters).toBe(Array.from({ length: 450 }, (_, i) => `thought ${i}`.length).reduce((a, b) => a + b));
-    expect(c.summary().caching).toMatch(/SHA-256/);
+    expect(c.summary().caching).toMatch(/never your text.*cached per batch/);
     c.request();
     expect(c.getState()).toMatchObject({ status: 'consent-needed', summary: { batches: 3 } });
     expect(calls).toHaveLength(0);
