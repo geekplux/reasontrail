@@ -1,8 +1,18 @@
-# token-garden
+# Reasontrail
 
-Type a prompt and watch the model's possible continuations grow as a garden of branches: each fork is a next-token choice, branch thickness is that token's probability, and clicking any branch grows it further. A built-in recorded sample means the very first view costs nothing and works offline.
+See what your coding agent did. One command turns a Claude Code session into a self-contained map: the task, the route it took, where it got stuck and what changed. It runs on your machine, makes no network requests and uploads nothing. A zoom-in lens still shows a language model's next-token choices as a garden of branches.
 
-**Status:** early development (phase 1 of the plan in [`docs/PLAN.md`](docs/PLAN.md)). License: [MIT](LICENSE).
+**Status:** early development (see [`docs/PLAN.md`](docs/PLAN.md)). License: [MIT](LICENSE).
+
+## Try it (from a clone, before the package is published)
+
+```sh
+pnpm install && pnpm build:cli
+node cli/dist/cli.mjs             # the newest Claude Code session for this folder, opened as a local HTML page
+node cli/dist/cli.mjs --list      # the 10 most recent sessions for this folder
+node cli/dist/cli.mjs --share     # a redacted copy in the current folder, safe to send
+node cli/dist/cli.mjs --help      # every flag and the exit codes
+```
 
 ## Develop
 
@@ -15,6 +25,8 @@ pnpm lint            # oxlint
 pnpm typecheck       # tsc --noEmit
 pnpm test            # Vitest, single run
 pnpm build           # production build into dist/
+pnpm build:cli       # the local viewer (one HTML file) and the CLI into cli/dist/
+pnpm test:cli        # CLI unit tests
 pnpm check:size      # size budgets on dist/ and the runtime dependency allowlist
 pnpm check:browser   # build, preview, headless Chrome flows + axe, screenshots in .tmp/screenshots/
 pnpm run check:deploy  # Worker dry run (bundle + bindings into .wrangler/dry-run/); deploys nothing

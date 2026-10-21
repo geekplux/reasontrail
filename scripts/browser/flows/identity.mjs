@@ -39,21 +39,22 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     };
     return {
       logo: Boolean(document.querySelector('header .wordmark svg.logo-mark')),
-      token: style('header .wordmark-token'),
-      garden: style('header .wordmark-garden'),
+      reason: style('header .wordmark-reason'),
+      trail: style('header .wordmark-trail'),
       loaded: document.fonts.check('500 16px "IBM Plex Mono"') && document.fonts.check('italic 400 16px "Instrument Serif"'),
       landmarks: ['header', 'main', 'footer'].map((t) => document.querySelectorAll(t).length),
     };
   });
   log(`wordmark: ${JSON.stringify(mark)}`);
   if (!mark.logo) fail('header wordmark has no logo mark');
-  if (mark.token?.text !== 'token' || !mark.token.family.startsWith('"IBM Plex Mono"')) fail('"token" is not set in IBM Plex Mono');
-  if (mark.garden?.text !== 'garden' || !mark.garden.family.startsWith('"Instrument Serif"') || mark.garden.italic !== 'italic')
-    fail('"garden" is not set in Instrument Serif Italic');
+  if (mark.reason?.text !== 'reason' || !mark.reason.family.startsWith('"IBM Plex Mono"')) fail('"reason" is not set in IBM Plex Mono');
+  if (mark.trail?.text !== 'trail' || !mark.trail.family.startsWith('"Instrument Serif"') || mark.trail.italic !== 'italic')
+    fail('"trail" is not set in Instrument Serif Italic');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
-  // One name for the brand link, not "token - garden"; the header also links to the source.
-  if ((await page.getByRole('link', { name: 'token-garden', exact: true }).count()) !== 1) fail('brand link is not named "token-garden"');
+  // One name for the brand link; the header also links to the source.
+  if ((await page.getByRole('link', { name: 'Reasontrail', exact: true }).count()) !== 1) fail('brand link is not named "Reasontrail"');
+  if (!(await page.title()).includes('Reasontrail')) fail('<title> does not contain "Reasontrail"');
   if ((await page.locator('header').getByRole('link', { name: 'GitHub', exact: true }).count()) !== 1) fail('header has no GitHub link');
 
   const fold = await page.evaluate(() =>

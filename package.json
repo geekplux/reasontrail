@@ -1,7 +1,7 @@
 {
-  "name": "token-garden",
+  "name": "reasontrail",
   "version": "0.0.0",
-  "description": "Watch a language model's possible continuations grow as a garden of branches.",
+  "description": "See what your coding agent did: a self-contained map of an AI session, with a next-token lens.",
   "private": true,
   "license": "MIT",
   "type": "module",

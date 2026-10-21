@@ -59,17 +59,13 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   color: var(--tg-ink-muted);
 }
 .header-link { font-size: var(--tg-text-sm); }
-.wordmark { display: inline-flex; align-items: center; gap: 0.3em; font-size: 22px; line-height: 1; }
-.logo-mark { width: 1.6em; height: 1.6em; color: var(--tg-branch-hi); }
-.wordmark-token { font-family: var(--tg-font-mono); font-weight: 500; letter-spacing: -0.01em; }
-
-.wordmark-garden {
-  margin-left: 0.25em;
-  font-family: var(--tg-font-serif);
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.27em; /* Instrument Serif has a small x-height; this matches Plex Mono's */
-}
+/* Wordmark (DESIGN §4.2): mono 20 / serif 25 (16 / 20 on mobile), shared baseline, no space; mark 1.6x the mono cap height. */
+.wordmark { display: inline-flex; align-items: center; gap: 0.4em; font-size: 20px; line-height: 1; }
+.logo-mark { width: 1.12em; height: 1.12em; flex: none; color: var(--tg-ink); }
+.wordmark-text { display: inline-flex; align-items: baseline; }
+.wordmark-reason { font-family: var(--tg-font-mono); font-weight: 500; letter-spacing: -0.01em; }
+.wordmark-trail { font-family: var(--tg-font-serif); font-style: italic; font-weight: 400; font-size: 1.25em; }
+@media (max-width: 767px) { .wordmark { font-size: 16px; } }
 
 /* Control row (PLAN §3.3): the sample picker as native radios drawn as labelled tabs; the chosen one is bold with a filled dot. */
 .controls { padding: var(--tg-space-4) var(--tg-space-6) 0; }

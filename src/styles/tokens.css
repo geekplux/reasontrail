@@ -17,6 +17,10 @@
   --tg-accent: #b4530a;
   --tg-focus: #2f55d4;
   --tg-error: #a3292b;
+  /* Reasoning map (DESIGN §6.2): ok and trouble are marks paired with a glyph and a word; wash is a background */
+  --tg-ok: #1a6fa0;
+  --tg-trouble: #a3292b;
+  --tg-wash: #f3e3cf;
 
   /* Type: IBM Plex Mono 500 for tokens and numbers, Instrument Serif Italic for names, system UI for the rest */
   --tg-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
@@ -63,6 +67,9 @@
     --tg-accent: #f0a04b;
     --tg-focus: #8db0ff;
     --tg-error: #ff8f87;
+    --tg-ok: #4a95cf;
+    --tg-trouble: #e5534b;
+    --tg-wash: #33281a;
   }
 }
 

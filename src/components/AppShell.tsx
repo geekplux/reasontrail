@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Wordmark } from '../brand/Wordmark';
 
-export const SOURCE_URL = 'https://github.com/geekplux/token-garden';
+export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
 
 /** Page frame: header with the wordmark (+ `actions`), the main area, and a footer (+ `footer`) with the privacy line and source link. */
 export function AppShell({ children, actions, footer }: { children: ReactNode; actions?: ReactNode; footer?: ReactNode }) {

@@ -22,15 +22,15 @@ const c = (theme: Theme, name: string) => {
 const CONTRAST: Record<Theme, Record<string, number>> = {
   light: {
     surface: 1.09, ink: 14.1, 'ink-muted': 6.5, rule: 1.35, 'branch-lo': 4.1, 'branch-mid': 6.3,
-    'branch-hi': 9.7, accent: 4.5, focus: 5.6, error: 6.5,
+    'branch-hi': 9.7, accent: 4.5, focus: 5.6, error: 6.5, ok: 4.95, trouble: 6.51, wash: 1.13,
   },
   dark: {
     surface: 1.09, ink: 15.3, 'ink-muted': 8.4, rule: 1.46, 'branch-lo': 6.5, 'branch-mid': 10.4,
-    'branch-hi': 14.4, accent: 8.5, focus: 8.4, error: 8.2,
+    'branch-hi': 14.4, accent: 8.5, focus: 8.4, error: 8.2, ok: 5.58, trouble: 4.87, wash: 1.25,
   },
 };
 const TEXT = ['ink', 'ink-muted', 'accent', 'error'];
-const MARKS = ['branch-lo', 'branch-mid', 'branch-hi', 'focus'];
+const MARKS = ['branch-lo', 'branch-mid', 'branch-hi', 'focus', 'ok', 'trouble'];
 
 // PLAN §3.2 CVD table: the rows that must stay >= 20 under every vision type.
 const DISTINCT: [Theme, string, string][] = [
@@ -39,6 +39,27 @@ const DISTINCT: [Theme, string, string][] = [
   ['light', 'focus', 'branch-hi'],
   ['dark', 'accent', 'branch-hi'],
   ['dark', 'focus', 'branch-hi'],
+  // DESIGN §6.3: did it pass, and where did it struggle?
+  ['light', 'ok', 'trouble'],
+  ['dark', 'ok', 'trouble'],
+  ['light', 'ok', 'ink'],
+  ['dark', 'ok', 'ink'],
+  ['light', 'trouble', 'ink'],
+  ['dark', 'trouble', 'ink'],
+];
+
+// DESIGN §6.2: text on the wash background and glyph interiors (paper) on the ok and trouble plates.
+const ON: [Theme, string, string, number][] = [
+  ['light', 'error', 'wash', 5.74],
+  ['dark', 'error', 'wash', 6.53],
+  ['light', 'ink', 'wash', 12.39],
+  ['light', 'ink-muted', 'wash', 5.76],
+  ['dark', 'ink', 'wash', 12.23],
+  ['dark', 'ink-muted', 'wash', 6.7],
+  ['light', 'surface', 'ok', 5.4],
+  ['light', 'surface', 'trouble', 7.1],
+  ['dark', 'paper', 'ok', 5.58],
+  ['dark', 'paper', 'trouble', 4.87],
 ];
 const VISION: (Cvd | undefined)[] = [undefined, 'protanopia', 'deuteranopia', 'tritanopia'];
 
@@ -69,6 +90,12 @@ describe.each(Object.keys(themes) as Theme[])('tokens.css %s theme', (theme) => 
   });
 });
 
+describe('map tokens on their backgrounds (DESIGN §6.2)', () => {
+  it.each(ON)('%s --tg-%s on --tg-%s is %s:1 (±0.1)', (theme, fg, bg, expected) => {
+    expect(Math.abs(contrast(c(theme, fg), c(theme, bg)) - expected)).toBeLessThanOrEqual(0.1);
+  });
+});
+
 describe('CVD distance (CIE76 ΔE after Machado 2009 simulation)', () => {
   const cases = DISTINCT.flatMap(([theme, a, b]) => VISION.map((v) => [theme, a, b, v ?? 'normal'] as const));
   it.each(cases)('%s --tg-%s vs --tg-%s stays >= 20 (%s vision)', (theme, a, b, v) => {
@@ -79,10 +106,10 @@ describe('CVD distance (CIE76 ΔE after Machado 2009 simulation)', () => {
 // Static assets cannot read CSS variables, so they carry copies of the palette; keep them in step with tokens.css.
 describe('static assets match tokens.css', () => {
   const lower = (hex: string) => hex.toLowerCase();
-  it.each([['favicon.svg', favicon], ['logo.svg', logo]])('%s draws in --tg-branch-hi per theme', (_, svg) => {
+  it.each([['favicon.svg', favicon], ['logo.svg', logo]])('%s draws in --tg-ink per theme (DESIGN §4.1)', (_, svg) => {
     const light = /svg\s*\{\s*color:\s*(#[0-9a-f]{3,6})/i.exec(svg.slice(0, svg.indexOf('@media')))?.[1];
     const dark = /prefers-color-scheme:\s*dark\)\s*\{\s*svg\s*\{\s*color:\s*(#[0-9a-f]{3,6})/i.exec(svg)?.[1];
-    expect([light && lower(light), dark && lower(dark)]).toEqual([lower(c('light', 'branch-hi')), lower(c('dark', 'branch-hi'))]);
+    expect([light && lower(light), dark && lower(dark)]).toEqual([lower(c('light', 'ink')), lower(c('dark', 'ink'))]);
   });
 
   it.each(Object.keys(themes) as Theme[])('index.html theme-color for %s is --tg-paper', (theme) => {
