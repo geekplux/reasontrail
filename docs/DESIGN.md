@@ -320,12 +320,12 @@ Wireframes:
 ### 8.1 Route and time [16]
 
 - **The main lane is the route:** one horizontal line, 4 px, `--tg-ink`, round caps, running left to right at y = route band top + 106.
-- **Episodes are route segments.** Segment length is `len = clamp(56, 36 + k·√steps, 240)` px with `k = min(19.5, 204 / √maxVisibleSteps)`, where steps include a collapsed lane's steps and `maxVisibleSteps` is the largest step count among the drawn episodes (so the biggest episode lands at ≤ 240 px). If the total is still wider than the band, all segments then scale down together to a minimum of 56 px. Segments at the 56 px floor are not to scale; the printed count is always exact. Past 12 episodes, the rest fold (§8.11).
+- **Episodes are route segments.** Segment length is `len = clamp(56, 36 + k·√steps, 240)` px with `k = min(19.5, 204 / √maxVisibleSteps)`, where steps include a collapsed lane's steps and `maxVisibleSteps` is the largest step count among the drawn episodes (so the biggest episode lands at ≤ 240 px before fitting). Then one uniform factor fits the route to the band: **a short route scales up** until the segments fill the band or the longest segment reaches 480 px, whichever comes first (a 3-episode session must not leave half the band empty); **a long route scales down** together to a minimum of 56 px per segment. Relative lengths, and so the effort reading, are preserved by both. Segments at the 56 px floor are not to scale; the printed count is always exact. (Arbitrated 2026-10-21, DECISIONS.md: the earlier 240 px cap after fitting left short routes half empty.) Past 12 episodes, the rest fold (§8.11).
 - **Position inside a segment.** Any step-anchored mark (lane leave and rejoin, blazes, rewind spurs) sits at `x(step) = segStart + segLen · (indexInEpisode / steps)`. A lane that crosses an episode boundary uses the segment of the step it is anchored to, so its leave and rejoin can fall in different segments.
 - **Boundaries.** There is no separate tick: each episode's kind glyph sits centred on its segment start (§8.2) and marks the boundary.
 - **Idle gaps** over 10 minutes are drawn only at episode boundaries, as a 44 px break: the route stops, two 1.5 px ink slashes stand in the gap (no dotted line), and "≈<n> h idle" (or "min") is set in mono `--tg-ink-muted` below the route. At most the 3 longest boundary gaps are drawn; other boundary gaps, and any gap inside an episode, add "· <n> min idle" (or "h") to the count label of the following (or containing) episode. Gaps under 10 minutes are not drawn.
 - There is no time axis. Durations are written as text: the meta row, lane labels and detail timestamps relative to the session start ("26.3 min").
-- **The terminus** is the answer glyph (§8.2) at the route's end. A 1 px ink connector drops from it to the destination card [16 desktop only].
+- **The terminus** is the answer glyph (§8.2) at the route's end, and it is **always drawn**, also when no final answer was recorded: the route always arrives somewhere, and the card then says "No final answer was recorded." A 1 px ink connector drops from it to the destination card [16 desktop only]. The final answer is the last main-lane assistant text only when no main-lane tool call follows it.
 
 ### 8.2 Episode kinds (glyph = kind; always ink; sizes below)
 
@@ -361,6 +361,7 @@ Everything **below** the route belongs to side trails.
   - "interrupted".
   - Verdict detection is deterministic: a regex on the lane's final text for `PASS|FAIL|APPROVED|CHANGES REQUESTED`.
 - **An interrupted or abandoned lane does not rejoin.** It ends in a 16 px perpendicular bar: the dead end of the logo.
+- **A finished lane whose hand-back is missing** (the session, or a trimmed sample, ends before the main lane receives the result) also does not rejoin, but it has **no end bar**: the bar means "interrupted" only. The trail simply stops under the terminus, on desktop and on the mobile vertical route alike; its status word comes from its own final report (PASS, approved, done). A lane with no recorded result ends in an 8 px hollow circle.
 - **Parallel subagents** (spawned before the previous one returned) become sidings. The second track drops vertically from the first after its 45° descent, runs 64 px lower with 16 px chamfered corners, and merges back before the shared rejoin. At most 3 tracks are drawn; a 4th or later becomes a "+n parallel" label on track 3.
 - **Expanded in place [17].** Enter on a lane, or a click, expands it:
   - The lane becomes its own route: 3 px `--tg-lane` on a `--tg-lane-band` band.
@@ -436,7 +437,7 @@ The card uses `--tg-surface` with a hairline border. Its header is the answer gl
   - Then a link to "+<n> more files", which opens the full list in the detail panel.
   - Created files get a "new" suffix in muted mono. Files whose net change was reverted are excluded (PLAN §5.11), and the number excluded is written as "(1 reverted file not counted)".
 - **Right column: proof and answer.**
-  - **Last verification:** a status glyph, the command in mono, then "<status word> · in <lane> · <clock time>". If none was found: a hollow muted circle and "No test, build, lint or typecheck run found." This states plainly that nothing was verified, and is shown just as prominently as a pass.
+  - **Last verification:** a status glyph, the command in mono, then "<status word> · in <lane> · at <n> min" (time relative to the session start, like the route's other times; never clock time, which depends on the reader's time zone). If none was found: a hollow muted circle and "No test, build, lint or typecheck run found." This states plainly that nothing was verified, and is shown just as prominently as a pass.
   - **Final answer:** up to 3 lines of the last main-lane assistant text (UI 13.5) with a dotted left rule (§8.7), then "The agent's own words · <file>:<line>" and "Show raw".
 
 ### 8.9 Trailhead card and honesty label [13]
@@ -461,6 +462,9 @@ The card uses `--tg-surface` with a hairline border. Its header is the answer gl
 ### 8.11 Labels, truncation and folding
 
 - Episode titles: maximum 2 lines; lane names: 1 line; both get an ellipsis and keep their full text in the accessible name.
+- Episode count labels never truncate a number. When the segment is narrow they step down: "<n> steps · <m> min idle" → "<n> steps" → "<n>"; the full text stays in `title` and in the accessible name.
+- Lane status words ("FAIL", "PASS", "done", "interrupted", …) are never cut; the agent-type name truncates first.
+- File paths wrap only after "/" (`<wbr>`), never inside a name.
 - **More than 12 episodes on a lane (M1b).** The middle of the route folds into one solid 56 px segment carrying a bordered chip (`--tg-surface`, 1 px ink border, radius 2) that reads "··· <n> episodes · <steps> steps". Its blazes still show as one "+n" plate with a range badge (§8.5). Enter or a click unfolds it, and the route then scrolls horizontally inside the band with sticky lane labels. The first 3 and the last 8 episodes always stay visible.
 - **5,000-step sessions.** The glance only ever lays out episodes, never steps (G2). Steps appear only in the detail step list, which is windowed (40 rows rendered).
 
@@ -667,7 +671,7 @@ Verified (pnpm check:browser passed) · 3 trouble spots, 1 resolved · 22 files 
   - The install line in a mono box with a Copy button: `npx reasontrail` and the skill install.
   - Then **a live sample map**: the real component, not a screenshot, under the label "Watch the agents that built this app".
 - **Sample switcher:** a segmented control (a `<select>` below 768 px) with sample titles of ≤ 40 characters.
-- **Sample quality bar [15]:** each sample has 5–12 episodes, at least 1 detected pattern, a verification result, and a task title of ≤ 60 characters. Otherwise the glance has nothing to show.
+- **Sample quality bar [15, loosened 16]:** each sample has 3–12 episodes, a verification result, a task title of ≤ 60 characters, and something to show under "where it got stuck": **at least 1 detected pattern, or a subagent lane whose report ends FAIL / CHANGES REQUESTED** (a verifier FAIL followed by a fix is exactly that story). Scratch-file churn never counts toward a pattern. At least one sample should be short (≤ 4 episodes) so the short-route rule (§8.1) is exercised.
 - The website footer is left-aligned: "Parsed in your browser. Nothing is uploaded." · MIT · Source.
 
 ### 13.4 Drop zone [19]
@@ -775,7 +779,7 @@ Each criterion can be checked from a 1280×800 or 390×844 screenshot, light and
 
 **Route**
 
-- **DM8 [16]** The main route is a single 4 px ink horizontal path. Episodes run left to right in sequence. Segment lengths follow `clamp(56, 36 + k·√steps, 240)` with `k = min(19.5, 204/√maxVisibleSteps)` before uniform scaling, and step-anchored marks sit at `segStart + segLen · indexInEpisode / steps` (unit tests on `layout.ts`). Each kind glyph is centred on its segment start; there are no boundary ticks.
+- **DM8 [16]** The main route is a single 4 px ink horizontal path. Episodes run left to right in sequence. Segment lengths follow `clamp(56, 36 + k·√steps, 240)` with `k = min(19.5, 204/√maxVisibleSteps)`, then one uniform factor: up until the band is full or the longest segment is 480 px, or down to fit with a 56 px floor (§8.1); a 3-episode route spans ≥ 90 % of the band, and step-anchored marks sit at `segStart + segLen · indexInEpisode / steps` (unit tests on `layout.ts`). Each kind glyph is centred on its segment start; there are no boundary ticks.
 - **DM9 [16]** Each episode shows its kind glyph from §8.2 on the line, and a title of ≤ 2 lines plus a mono count above the line. No two label bounding boxes intersect (flow assertion), and no label is under 11.5 px, except badge numerals (mono 600, 10.5 px in a 16 px badge, §8.5).
 - **DM10 [16]** Idle gaps over 10 min render only at episode boundaries, as a 44 px gap with two slashes and "≈<n> h idle" or "min" (`[data-idle-ms]`), at most 3 per map; other gaps appear as "· <n> min idle" in a count label. No route or lane path has a `stroke-dasharray`. There is no linear time axis anywhere on the glance.
 - **DM11 [16]** At most 12 episodes are drawn per lane. Any surplus is one solid fold segment with a bordered chip "··· <n> episodes · <steps> steps", and its trouble count is kept.
@@ -792,7 +796,7 @@ Each criterion can be checked from a 1280×800 or 390×844 screenshot, light and
   - the last verification as glyph, command, status word and lane, or the "No test, build, lint or typecheck run found." copy;
   - a final answer excerpt of ≤ 3 lines with a dotted left rule and "The agent's own words · file:line".
 
-  On desktop a 1 px connector joins the route terminus to the card.
+  The route terminus (answer glyph) is drawn on every map, with or without a final answer. On desktop a 1 px connector joins it to the card. The last verification reads "<status word> · in <lane> · at <n> min" (relative to the session start).
 - **DM16 [13]** The outline view is plain document structure: an `<h2>` per region in the map's order, an `<ol>` of episodes with glyph (`aria-hidden`), title, counts and trouble chips, nested `<ol>` lanes, and one disclosure `<button aria-expanded>` per episode for its steps. It has no `role="tree"`, no ARIA widget roles and no custom arrow keys (DOM and Tab-only flow). It is reachable from the Map/Outline toggle and `?view=outline` / `#view=outline`, and it is the only view in phase 13.
 
 **Detail and provenance**
