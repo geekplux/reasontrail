@@ -1,11 +1,12 @@
 # Extending Reasontrail
 
-Four extension points, each with the files to touch and the check that proves it works:
+Five extension points, each with the files to touch and the check that proves it works:
 
 1. a new **provider** in the app (where next-token distributions come from),
 2. a new **Worker upstream** (which model answers live requests),
 3. your own **recorded garden**,
-4. a new **theme**.
+4. a new **theme**,
+5. a new **session adapter** (another coding agent's transcripts on the map).
 
 Run `pnpm lint`, `pnpm typecheck` and `pnpm test` after each change.
 
@@ -86,3 +87,39 @@ Then run `pnpm vitest run src/styles/tokens.test.ts`. It checks the following:
 - `public/favicon.svg` and `public/logo.svg` draw in `--tg-branch-hi`, and the `theme-color` in `index.html` matches `--tg-paper` (static files cannot read CSS variables, so update those copies too).
 
 Colour is never the only signal in Reasontrail: thickness, markers, dash patterns and labels carry the meaning. Keep it that way.
+
+## 5. A session adapter
+
+An adapter turns one agent's raw session files into the source-neutral `NormalizedSession` (`shared/session/types.ts`); `buildGraph` does the rest (steps, edges, episodes, trouble, outcome). Adapters are pure: text in, data out, no Node APIs, no throwing. Claude Code (`claudeCode.ts`), Grok Build (`grokBuild.ts`) and Codex (`codex.ts`) are the three in `shared/session/adapters/`.
+
+1. **Add the source name.** Extend `SourceKind` in `shared/session/types.ts` and `SourceName` in `cli/src/args.ts`.
+2. **Write the adapter** in `shared/session/adapters/<name>.ts`, exporting a `SessionAdapter`:
+   - `sniff(firstLines)` returns true only for this format's record shape (the first five non-blank lines of the main file). It must not accept another adapter's records.
+   - `parse(input)` returns one `NormalizedRecord` per raw line that holds something (`file`, 1-based `line`, `t` as ISO time, `items`), the lanes (`main` first, one per subagent), and the stats. Use `readJsonl` and `countSkipped` from `shared/session/jsonl.ts` so broken and half-written lines are counted. Count records you know but do not show as `ignoredRecords`, and everything else as `unknownRecords`; never drop silently.
+   - Tool calls are `{ kind: 'tool-call', name, input, callId }` and results `{ kind: 'tool-result', callId, text, status }`. Map the tool's input keys to the ones `describeTool` reads (`file_path`, `path`, `command`, `pattern`, `url`, `query`, `description`, `old_string`/`new_string`), and add the tool names to `CATEGORY` in `shared/session/build/tools.ts` so reads, edits and shell runs are recognised.
+3. **Register it** in `adapters` in `shared/session/adapter.ts`.
+4. **Add a fixture** under `fixtures/sessions/<name>/`: synthetic content, written by hand, in the same file layout as the real store. Never copy a real session.
+5. **Prove it with the contract suite** in a test next to the adapter:
+
+   ```ts
+   import { checkAdapterContract } from '../adapterContract';
+   expect(checkAdapterContract(myAdapter, input)).toEqual([]);
+   ```
+
+   `checkAdapterContract` checks that sniff accepts the input, the output is deterministic, every step has provenance and a known lane, steps are in time order, edges point forward, and that a malformed line, an unknown record and a partial last line are each counted.
+6. **Teach the CLI where the sessions are.** Add `cli/src/locate/<name>.ts` exporting a `Store` (`cli/src/locate/store.ts`): the env variable naming the current session, `listForCwd`, `findById`, `claims` for a path, `files` (paths relative to the store, so the graph never holds absolute paths) and `describe` for `--list`. Add it to `STORES` in `cli/src/locate/index.ts`, and a sandbox helper plus tests in `cli/test/`.
+7. **Check real sessions** without printing them: `TG_REAL_SESSIONS=<path>[,<path>…] pnpm vitest run shared/session/real.test.ts` logs counts only (steps, skipped, unknown, timings).
+
+### Worked example: Grok Build
+
+Grok Build keeps each session in `~/.grok/sessions/<url-encoded cwd>/<session id>/`: `updates.jsonl` is an ACP stream of `session/update` records, `summary.json` has the title and model, and `subagents/<child id>/meta.json` describes each subagent, whose own `updates.jsonl` is in the folder next to its parent's.
+
+- **Sniff.** A Grok line looks like `{"timestamp":1792058401,"method":"session/update","params":{"sessionId":"…","update":{"sessionUpdate":"user_message_chunk","content":{"type":"text","text":"Add a word"}}}}`. `grokBuildAdapter.sniff` accepts a `method` ending in `session/update` with a string `params.update.sessionUpdate`; Claude Code lines have a top-level `type` and Codex lines a `payload`, so they never match.
+- **Chunks merge.** Consecutive `user_message_chunk`, `agent_message_chunk` or `agent_thought_chunk` updates join into one user, assistant or thinking item, kept on the first chunk's line.
+- **Calls and results.** `tool_call` opens a call (the name comes from `_meta["x.ai/tool"].name`); a later `tool_call_update` without a status fills in `rawInput` (`target_file` becomes `file_path`); one with `status: "completed"` or `"failed"` becomes the result. A shell result with a non-zero `rawOutput.exit_code` is an error, so failed test runs show up as trouble.
+- **Plans and turns.** A standalone `plan` update becomes a system step (`Plan: 1/3 done` plus the entries); one right after `todo_write` repeats it and is ignored. `turn_completed` with `stop_reason: "cancelled"` becomes an interruption.
+- **Lanes.** Each subagent log becomes a lane named by its `meta.json`, linked to the spawning call by the call id in `meta.json` or the child id in the `spawn_subagent` result.
+- **Store.** `cli/src/locate/grokBuild.ts` honours `GROK_HOME`, picks the highest `summary.json` `last_active_at`, and leaves subagent child sessions out of `--list`.
+- **Tests.** `shared/session/adapters/grokCodex.test.ts` runs the contract suite on `fixtures/sessions/grok-build/notes/` and checks the merged text, the failed and passing test runs, the subagent lane and the outcome; `cli/test/locate.test.ts` and `cli/test/run.test.ts` cover the store in a sandbox `HOME`.
+
+Run `pnpm vitest run shared/session/adapters cli/` and then `pnpm build:cli && node cli/dist/cli.mjs <path to updates.jsonl> --no-open` to see the map.
