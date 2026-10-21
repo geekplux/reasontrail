@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkSample, expectFor, hideSteps, readDenylist, rewrite, scrub, sessionFile } from './session-samples.mjs';
+import { checkSample, expectFor, fitRaw, hideSteps, readDenylist, rewrite, scrub, sessionFile } from './session-samples.mjs';
 
 const graph = () => ({
   title: 'Fix the slug helper so titles with spaces work in every view of the app',
@@ -22,6 +22,17 @@ describe('session-samples', () => {
     expect(g.steps[1]).toEqual({ id: 's1', text: '[Left out of this sample: a process list.]', tool: { command: '[Left out of this sample: a process list.]' } });
     expect(() => hideSteps(graph(), { s9: 'x' })).toThrow('hide: no step s9');
     expect(scrub({ a: 'x' }, [])).toEqual({ a: 'x' });
+  });
+
+  it('blanks the raw record of hidden steps and fits raw records to the size limit', () => {
+    const g = { steps: [{ id: 's0', raw: { file: 'f', line: 1 }, rawText: 'secret ps list' }, { id: 's1', raw: { file: 'f', line: 1 } }] };
+    expect(hideSteps(g, { s1: 'a process list' }).steps[0].rawText).toBe('[Left out of this sample: a process list.]');
+    const big = { steps: Array.from({ length: 4 }, (_, i) => ({ id: `s${i}`, rawText: 'x'.repeat(5000) })) };
+    const cap = fitRaw(big, 6000);
+    expect(cap).toBe(1024);
+    expect(big.steps[0].rawText).toBe(`${'x'.repeat(1024)}… [cut to 1024 characters for this sample]`);
+    expect(fitRaw(big, 100)).toBe(0);
+    expect(big.steps[0].rawText).toBeUndefined();
   });
 
   it('rewrites names and omits house-rule sentences in every string value', () => {

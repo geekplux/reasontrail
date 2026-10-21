@@ -6,7 +6,8 @@ import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { normalizeSession } from '../../shared/session/adapter';
 import { buildGraph } from '../../shared/session/build/graph';
-import { redactGraph, redactSession } from '../../shared/session/redact';
+import { attachRaw } from '../../shared/session/raw';
+import { redactGraph, redactSession, redactText } from '../../shared/session/redact';
 import { trimSession } from '../../shared/session/trim';
 import type { ViewerPayload } from '../../src/map/loadGraph';
 import { parseArgs } from './args';
@@ -52,19 +53,21 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   ctx.err(`Session: ${ref.file} (${how})`);
 
   let session;
+  let files;
   try {
-    session = normalizeSession(readSession(ref));
+    files = readSession(ref).files;
+    session = normalizeSession({ files });
   } catch (e) {
     return ctx.err(`${PKG_NAME}: could not read ${ref.file}: ${e instanceof Error ? e.message : String(e)}`), EXIT.unreadable;
   }
   if (!session) return ctx.err(`${PKG_NAME}: this doesn't look like a Claude Code session (.jsonl). Codex and Grok Build sessions are not supported yet.`), EXIT.unreadable;
   if (opts.trim) session = trimSession(session, opts.trim);
 
-  const payload: ViewerPayload = { graph: buildGraph(session), meta: { version: VERSION } };
+  const payload: ViewerPayload = { graph: attachRaw(buildGraph(session), files), meta: { version: VERSION } };
   if (opts.share) {
     // Redact before building (clipped titles never hold a cut-off secret), then the graph (drops, derived fields).
     const r: Record<string, number> = {};
-    const red = redactGraph(buildGraph(redactSession(session, r)));
+    const red = redactGraph(attachRaw(buildGraph(redactSession(session, r)), files, { redact: (t) => redactText(t) }));
     for (const [k, v] of Object.entries(red.summary.replaced)) r[k] = (r[k] ?? 0) + v;
     const n = (pred: (k: string) => boolean) => Object.entries(r).reduce((sum, [k, v]) => sum + (pred(k) ? v : 0), 0);
     const total = n(() => true);

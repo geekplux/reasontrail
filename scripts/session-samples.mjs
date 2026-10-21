@@ -84,8 +84,28 @@ export function hideSteps(graph, hide = {}) {
     if (!step) throw new Error(`hide: no step ${id}`);
     step.text = `[Left out of this sample: ${why}.]`;
     if (step.tool?.command) step.tool.command = step.text;
+    // The raw record sits on the first step of the record: blank it wherever it holds this step.
+    for (const s of graph.steps) if (s.rawText && s.raw.file === step.raw.file && s.raw.line === step.raw.line) s.rawText = step.text;
   }
   return graph;
+}
+
+/** Raw-record caps tried in turn (chars), largest first; 0 drops the raw records (PLAN phase 17: ≤ 4 KB each). */
+const RAW_CAPS = [4096, 3072, 2048, 1536, 1024, 768, 512, 384, 256, 0];
+
+/** Clip every `rawText` to the largest cap that keeps the sample within `bytes`. Deterministic; returns the cap. */
+export function fitRaw(graph, bytes = LIMITS.bytes) {
+  const full = graph.steps.map((s) => s.rawText);
+  for (const cap of RAW_CAPS) {
+    graph.steps.forEach((s, i) => {
+      const t = full[i];
+      if (t === undefined) return;
+      if (cap === 0) delete s.rawText;
+      else s.rawText = t.length > cap ? `${t.slice(0, cap)}… [cut to ${cap} characters for this sample]` : t;
+    });
+    if (Buffer.byteLength(`${JSON.stringify(graph)}\n`) <= bytes) return cap;
+  }
+  return 0;
 }
 
 /** Where an entry's transcript lives under `home`: the main session file, or one subagent's file. */
@@ -135,11 +155,12 @@ function main() {
     const json = execFileSync(process.execPath, [CLI, file, '--share', '--json', '--trim', entry.steps], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
     const graph = rewrite(scrub(hideSteps(JSON.parse(json), entry.hide), terms), rules);
     graph.expect = expectFor(graph);
+    const cap = fitRaw(graph);
     const text = `${JSON.stringify(graph)}\n`;
     const problems = checkSample(text);
     writeFileSync(out, text);
     const kinds = [...new Set(graph.trouble.map((t) => t.kind))].join(', ');
-    console.log(`${entry.id}: ${graph.steps.length} steps, ${Math.round(Buffer.byteLength(text) / 1024)} KB, ${graph.lanes.length} lanes, trouble ${graph.trouble.length} (${kinds})${problems.length ? `  PROBLEM: ${problems.join('; ')}` : ''}`);
+    console.log(`${entry.id}: ${graph.steps.length} steps, ${Math.round(Buffer.byteLength(text) / 1024)} KB, ${graph.lanes.length} lanes, trouble ${graph.trouble.length} (${kinds}), raw ≤ ${cap} chars${problems.length ? `  PROBLEM: ${problems.join('; ')}` : ''}`);
     if (problems.length) failed++;
   }
   return failed ? 1 : 0;

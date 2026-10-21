@@ -1,5 +1,5 @@
 // Tool name + input -> category, file touches and a one-line summary. Deterministic, source-neutral.
-import { TEXT_PREVIEW_MAX, type StepTool, type ToolCategory } from '../types';
+import { EDIT_TEXT_MAX, TEXT_PREVIEW_MAX, type StepTool, type ToolCategory } from '../types';
 
 const CATEGORY: Record<string, ToolCategory> = {
   Read: 'read',
@@ -57,6 +57,16 @@ function editHash(input: unknown): StepTool['editHash'] {
   return { before: fingerprint(before.join('\u0000')), after: fingerprint(after.join('\u0000')) };
 }
 
+const clip = (t: string) => (t.length > EDIT_TEXT_MAX ? `${t.slice(0, EDIT_TEXT_MAX - 1)}…` : t);
+
+/** The old and new text of an edit call (all edits of a MultiEdit, joined by a blank line), clipped. */
+function editText(input: unknown): StepTool['edit'] {
+  const edits = typeof input === 'object' && input !== null && Array.isArray((input as { edits?: unknown }).edits) ? ((input as { edits: unknown[] }).edits) : [input];
+  const before = edits.map((e) => str(e, 'old_string') ?? '').join('\n\n');
+  const after = edits.map((e) => str(e, 'new_string') ?? '').join('\n\n');
+  return before.trim() || after.trim() ? { before: clip(before), after: clip(after) } : undefined;
+}
+
 /** Describe a tool call: category, files it names, a short summary and (for shell tools) the verbatim command. */
 export function describeTool(name: string, input: unknown, callId?: string): StepTool {
   const category = toolCategory(name);
@@ -78,5 +88,9 @@ export function describeTool(name: string, input: unknown, callId?: string): Ste
   if (command) tool.command = command.slice(0, TEXT_PREVIEW_MAX);
   const hash = category === 'edit' ? editHash(input) : undefined;
   if (hash) tool.editHash = hash;
+  const text = category === 'edit' ? editText(input) : undefined;
+  if (text) tool.edit = text;
+  const pattern = category === 'search' ? str(input, 'pattern') : undefined;
+  if (pattern) tool.pattern = pattern.slice(0, TEXT_PREVIEW_MAX);
   return tool;
 }

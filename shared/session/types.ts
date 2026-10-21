@@ -50,7 +50,15 @@ export interface StepTool {
   persistedOutput?: string;
   /** Edit tools only: short hashes of the replaced and the new text, so reverts can be found without storing the text. */
   editHash?: { before: string; after: string };
+  /** Edit tools only, on the call: the replaced and the new text (each at most {@link EDIT_TEXT_MAX} chars), for the
+   * detail panel's line diff. Several edits of one call are joined by a blank line. */
+  edit?: { before: string; after: string };
+  /** Search tools: the pattern searched for. */
+  pattern?: string;
 }
+
+/** Cap on each side of {@link StepTool.edit}. */
+export const EDIT_TEXT_MAX = 1500;
 
 export type StepKind = 'user' | 'assistant' | 'thinking' | 'tool-call' | 'tool-result' | 'system' | 'compaction';
 
@@ -71,7 +79,13 @@ export interface Step {
   tool?: StepTool;
   status?: StepStatus;
   raw: Provenance;
+  /** The verbatim raw record (at most {@link RAW_TEXT_MAX} chars, redacted in shared copies), on the first step of
+   * each record only. Set by `attachRaw` (shared/session/raw.ts); absent when the source text was not available. */
+  rawText?: string;
 }
+
+/** Cap on {@link Step.rawText}. */
+export const RAW_TEXT_MAX = 4096;
 
 /** Preview length cap for {@link Step.text} and {@link StepTool.command}. */
 export const TEXT_PREVIEW_MAX = 2000;

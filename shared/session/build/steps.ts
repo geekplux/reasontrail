@@ -51,6 +51,7 @@ export function buildSteps(session: NormalizedSession): StepsResult {
         const call = item.callId ? calls.get(item.callId) : undefined;
         step.tool = call?.tool ? { ...call.tool } : { name: 'unknown', category: 'other', summary: 'unknown', files: [] };
         delete step.tool.command;
+        delete step.tool.edit;
         if (item.callId) step.tool.callId = item.callId;
         if (item.persistedOutput) step.tool.persistedOutput = item.persistedOutput;
         if (item.text) step.text = preview(item.text);
