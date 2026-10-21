@@ -90,9 +90,9 @@ describe('episodes (AC2)', () => {
   it('starts episodes at user turns, spawns, kind changes and the final answer, with deterministic titles', () => {
     expect(G.basic?.episodes.map((e) => [e.kind, e.title])).toEqual([
       ['discuss', 'Fix slugify in src/slug.ts so titles with spaces become dashes'],
-      ['explore', 'Explore src/slug.ts +2 more'],
-      ['change', 'Edit src/slug.ts +1 more'],
-      ['verify', 'Run pnpm test ×2'],
+      ['explore', 'Read slug.ts'],
+      ['change', 'Edit slug.ts +1 more'],
+      ['verify', 'Run tests ×2'],
       ['discuss', 'The full suite is slow; run only the slug test file with --run'],
       ['answer', 'Answer'],
     ]);
@@ -136,7 +136,7 @@ describe('outcome (AC3)', () => {
   it('marks created files and uses the last main-lane answer', () => {
     expect(G.basic?.outcome).toMatchObject({
       files: [{ path: 'src/slug.ts', edits: 2, created: false }, { path: 'src/slug.test.ts', edits: 1, created: true }],
-      lastVerification: { command: 'pnpm vitest --run src/slug.test.ts', ok: true },
+      lastVerification: { command: 'pnpm vitest', ok: true },
     });
     expect(text(G.subagent, G.subagent?.outcome.answerStepId)).toBe('Notes are saved by src/store.ts in localStorage.');
     expect(G.rewind?.outcome.lastVerification).toBeUndefined();

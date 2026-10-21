@@ -1,6 +1,6 @@
 // buildGraph: the one entry point from a normalized session to a SessionGraph. No AI, no clock, no randomness.
 import { SCHEMA_VERSION, type Lane, type NormalizedSession, type SessionGraph } from '../types';
-import { buildEpisodes } from './episodes';
+import { buildEpisodes, plainText } from './episodes';
 import { buildOutcome, fileHistory, verifications } from './outcome';
 import { buildSteps, sortEdges } from './steps';
 import { findTrouble } from './trouble';
@@ -8,7 +8,7 @@ import { findTrouble } from './trouble';
 const TITLE_MAX = 120;
 
 function firstLine(text: string): string {
-  const line = text.trim().split('\n', 1)[0]?.trim() ?? '';
+  const line = plainText(text.trim().split('\n', 1)[0] ?? '');
   return line.length > TITLE_MAX ? `${line.slice(0, TITLE_MAX - 1)}…` : line;
 }
 

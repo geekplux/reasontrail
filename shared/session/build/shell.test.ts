@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { commandHead, commandKey, isVerification, shellEffects } from './shell';
+import { commandHead, commandKey, isVerification, shellEffects, shellReads, verifyCommand, verifyNouns } from './shell';
 
 const W = '/w';
 const fx = (cmd: string) => shellEffects(cmd, W);
@@ -45,5 +45,29 @@ describe('commands', () => {
     for (const c of ['cat src/slug.test.ts', 'git commit -m "test build"', 'ls test', 'node scripts/x.mjs', 'echo ok | pnpm test']) expect(isVerification(c)).toBe(false);
     expect(commandHead('cd /w && pnpm run build --x')).toBe('pnpm run build');
     expect(commandHead('python3 -c "\nprint(1)"')).toBe('python3');
+  });
+});
+
+describe('verification and read summaries (DESIGN §8.9, phase 16 titles)', () => {
+  it.each([
+    ['cd /w && pnpm -s lint && echo LINT-OK && git diff --numstat', 'pnpm lint', ['lint']],
+    ['pnpm -s lint && pnpm -s typecheck; pnpm lint', 'pnpm lint && pnpm typecheck', ['lint', 'typecheck']],
+    ['cat && pnpm exec vitest run shared/x.test.ts && rm -f x', 'pnpm exec vitest', ['tests']],
+    ['npx tsc --noEmit -p a.json', 'npx tsc', ['typecheck']],
+    ['tsc --noEmit', 'tsc', ['typecheck']],
+    ['pnpm check:browser --flows all 2>&1 | tail -5', 'pnpm check:browser', ['browser check']],
+    ['python3 -m pytest -q', 'python3 -m pytest', ['tests']],
+    ['pnpm run build', 'pnpm run build', ['build']],
+    ['git status', '', []],
+  ])('%s → %s (%j)', (cmd, short, nouns) => {
+    expect(verifyCommand(cmd)).toBe(short);
+    expect(verifyNouns(cmd)).toEqual(nouns);
+  });
+
+  it('finds the files a read-only command looks at and the patterns it searches', () => {
+    expect(shellReads("sed -n '194,202p' src/a.ts", W)).toEqual({ files: ['/w/src/a.ts'], patterns: [] });
+    expect(shellReads('cd sub && head -n 20 b.md | grep x; cat c.json', W)).toEqual({ files: ['/w/sub/b.md', '/w/sub/c.json'], patterns: [] });
+    expect(shellReads('grep -rn -A 2 "flows|FLOWS" scripts/', W)).toEqual({ files: ['/w/scripts'], patterns: ['flows|FLOWS'] });
+    expect(shellReads("python3 - <<'EOF'\nprint(open('x.json').read())\nEOF", W)).toEqual({ files: [], patterns: [] });
   });
 });

@@ -204,3 +204,62 @@ export function commandHead(command: string): string {
   const take = next[0] === 'run' || next[0] === 'exec' ? 2 : 1;
   return [name, ...next.slice(0, take)].join(' ').slice(0, 60);
 }
+
+/** The verification runs inside a command, without `cd`, flags like `-s` or what follows them: `cd x && pnpm -s lint &&
+ * echo OK && pnpm typecheck` → "pnpm lint && pnpm typecheck". Empty when the command runs none (DESIGN §8.9). */
+export function verifyCommand(command: string): string {
+  const runs: string[] = [];
+  for (const s of lex(stripHeredocs(command))) {
+    if (s.piped) continue;
+    const { name, args } = splitWords(s.words);
+    const words = [name, ...args.filter((a) => a !== '-s' && a !== '--silent')];
+    const at = RUNNER.test(name) ? words.slice(1, 5).findIndex((a) => VERIFY.test(a)) : -1;
+    const run = DIRECT.test(name) ? name : at >= 0 ? words.slice(0, at + 2).join(' ') : '';
+    if (run && !runs.includes(run)) runs.push(run);
+  }
+  return runs.join(' && ');
+}
+
+/** What the verification runs of a command check, as nouns for titles: "tests", "lint", "typecheck", "build", "browser check". */
+export function verifyNouns(command: string): string[] {
+  const nouns = verifyCommand(command).split(' && ').flatMap((run) => {
+    const word = run.split(' ').pop() ?? '';
+    if (!word) return [];
+    if (/^(--test|tests?|vitest|jest|mocha|pytest|playwright)(:|$)/.test(word)) return ['tests'];
+    if (/^(lint|oxlint|eslint|clippy|vet)(:|$)/.test(word)) return ['lint'];
+    if (/^(typecheck|tsc|tsgo)(:|$)/.test(word)) return ['typecheck'];
+    if (/^build(:|$)/.test(word)) return ['build'];
+    const sub = /^check:([\w-]+)/.exec(word)?.[1];
+    return [sub ? `${sub} check` : 'checks'];
+  });
+  return [...new Set(nouns)];
+}
+
+const PAGERS = /^(cat|head|tail|nl|wc|less|more|bat|sed|awk)$/;
+const SEARCHERS = /^(grep|egrep|rg|ag)$/;
+
+/** Files a read-only shell command looks at (`sed -n 1,9p a.ts`, `cat a.ts`, `head -n 5 a.ts`) and the patterns it
+ * searches for (`grep -n foo src`). Best effort, like `shellEffects`; paths are resolved against the cwd. */
+export function shellReads(command: string, cwd?: string): { files: string[]; patterns: string[] } {
+  const out = { files: [] as string[], patterns: [] as string[] };
+  let dir = cwd;
+  for (const seg of lex(stripHeredocs(command))) {
+    const { name, args } = splitWords(seg.words);
+    if (name === 'cd') dir = usable(args[0]) ? resolvePath(dir, args[0]) : dir;
+    if (seg.piped) continue;
+    const takesValue = name === 'head' || name === 'tail' ? /^-[nc]$/ : SEARCHERS.test(name) ? /^-[ABCme]$/ : undefined;
+    const plainArgs = args.filter((a, i) => !a.startsWith('-') && !(i > 0 && takesValue?.test(args[i - 1] as string)));
+    let files: string[] = [];
+    if (SEARCHERS.test(name)) {
+      const e = args.indexOf('-e');
+      const pattern = e >= 0 ? args[e + 1] : plainArgs[0];
+      if (pattern) out.patterns.push(pattern);
+      files = e >= 0 ? plainArgs : plainArgs.slice(1);
+    } else if (PAGERS.test(name)) {
+      const scripted = (name === 'sed' || name === 'awk') && !args.includes('-e') && !args.includes('-f');
+      files = scripted ? plainArgs.slice(1) : plainArgs;
+    }
+    for (const f of files) if (usable(f) && /[./]/.test(f) && !/^\d/.test(f)) out.files.push(resolvePath(dir, f));
+  }
+  return out;
+}

@@ -1,6 +1,6 @@
 // File history (Edit/Write tools and shell writes) and the session outcome (PLAN §5.11, DESIGN §8.8).
 import type { Outcome, Step } from '../types';
-import { commandKey, isVerification, resolvePath, shellEffects } from './shell';
+import { isVerification, resolvePath, shellEffects, verifyCommand } from './shell';
 
 /** One change to a file, in step order. `revert` puts the file back; `restores` names the edit step an Edit undid. */
 export interface FileEvent {
@@ -107,7 +107,7 @@ export function buildOutcome(steps: Step[], history: FileEvent[], checks: Verifi
   };
   if (netReverted.length > 0) outcome.revertedFiles = netReverted.length;
   const last = checks[checks.length - 1];
-  if (last) outcome.lastVerification = { stepId: last.step.id, command: commandKey(last.step.tool?.command ?? '').slice(0, 200), ok: last.ok };
+  if (last) outcome.lastVerification = { stepId: last.step.id, command: verifyCommand(last.step.tool?.command ?? '').slice(0, 200), ok: last.ok };
   for (let i = steps.length - 1; i >= 0; i--) {
     const s = steps[i] as Step;
     if (s.laneId === mainLane && s.kind === 'assistant') {

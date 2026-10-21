@@ -2,7 +2,7 @@
 import type { Episode, Lane, Step } from '../types';
 import { FILE_SPLIT_STEPS, KIND_WINDOW, MAX_EPISODE_STEPS, MAX_TOP_EPISODES, MIN_EPISODE_STEPS } from './constants';
 import { relPath } from './outcome';
-import { commandHead, isVerification, shellEffects } from './shell';
+import { isVerification, shellEffects, shellReads, verifyNouns } from './shell';
 
 type Kind = Episode['kind'];
 type Work = 'explore' | 'change' | 'verify' | 'delegate';
@@ -34,27 +34,80 @@ function mostCommon(values: string[]): [string, number] | undefined {
 }
 
 const clip = (s: string, max = 80) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
+const base = (p: string) => p.replace(/\/+$/, '').split('/').pop() || p;
+/** Distinct values, most frequent first (ties keep first appearance). */
+const ranked = (values: string[]) => {
+  const n = new Map<string, number>();
+  for (const v of values) n.set(v, (n.get(v) ?? 0) + 1);
+  return [...n.keys()].sort((a, b) => (n.get(b) ?? 0) - (n.get(a) ?? 0));
+};
+const more = (list: string[]) => (list.length > 1 ? ` +${list.length - 1} more` : '');
+/** "a", "a and b", "a, b and c". */
+const series = (items: string[]) => (items.length < 2 ? (items[0] ?? '') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`);
+/** Markdown emphasis and code marks dropped: titles are plain text. */
+export const plainText = (s: string) => s.replace(/\*\*|__|`/g, '').trim();
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const GIT: Record<string, string> = { commit: 'commit', push: 'push', status: 'review changes', diff: 'review changes', log: 'review history', show: 'review history', add: 'stage files' };
 
+/** What a verify episode did: the checks by name ("Run tests", "Typecheck", "Run lint and typecheck"), else git/gh work. */
+function verifyTitle(calls: Step[]): string {
+  const runs = calls.map((s) => (s.tool?.command ? verifyNouns(s.tool.command) : [])).filter((n) => n.length > 0);
+  const kinds = [...new Set(runs.flat())];
+  if (kinds.length === 1) {
+    const one = { tests: 'Run tests', lint: 'Lint', typecheck: 'Typecheck', build: 'Build' }[kinds[0] as string] ?? `Run ${kinds[0]}`;
+    return runs.length > 1 ? `${one} ×${runs.length}` : one;
+  }
+  if (kinds.length > 1) return `Run ${series(kinds.slice(0, 3))}${kinds.length > 3 ? ` +${kinds.length - 3} more` : ''}`;
+  const git = calls.flatMap((s) => {
+    const words = (s.tool?.command ?? '').replace(/^\s*cd \S+ && /, '').trim().split(/\s+/);
+    if (words[0] === 'gh') return [words[1] === 'pr' ? (words[2] === 'create' ? 'open the PR' : 'update the PR') : `gh ${words[1] ?? ''}`.trim()];
+    const sub = words[0] === 'git' ? words.slice(1).find((w) => !w.startsWith('-')) : undefined;
+    return sub ? [GIT[sub] ?? `git ${sub}`] : [];
+  });
+  return git.length > 0 ? cap(series([...new Set(git)].slice(0, 3))) : 'Verify';
+}
+
+/**
+ * Deterministic episode titles for the glance (DESIGN §8.2): the user's words for user turns, the files read or edited
+ * (basename + "+n more"), checks by name, the delegated task. Never a generic interpreter or pager ("sed", "python3").
+ */
 function title(kind: Kind, steps: Step[], cwd: string | undefined): string {
   if (kind === 'answer') return 'Answer';
-  if (kind === 'discuss') return clip(steps[0]?.text?.trim().split('\n', 1)[0]?.trim() || 'User turn');
+  if (kind === 'discuss') return clip(plainText(steps[0]?.text?.trim().split('\n', 1)[0] ?? '') || 'User turn');
   const calls = steps.filter((s) => workKind(s, cwd) === kind);
   if (kind === 'delegate') {
-    const t = calls[0]?.tool;
-    return calls.length > 1 ? `Delegate ${calls.length} subagents` : clip(`Delegate: ${t ? t.summary.slice(t.name.length + 1) || t.name : ''}`);
+    const tasks = ranked(calls.map((s) => (s.tool ? s.tool.summary.slice(s.tool.name.length + 1) || s.tool.name : 'subagent')));
+    return clip(`Delegate: ${clip(tasks[0] ?? 'subagent', 60)}${more(tasks)}`);
   }
-  const targets = calls.map((s) => {
+  if (kind === 'verify') return verifyTitle(calls);
+  if (kind === 'change') {
+    const files = ranked(calls.flatMap((s) => {
+      const t = s.tool;
+      const fx = t?.command ? shellEffects(t.command, cwd) : undefined;
+      return fx ? [...fx.writes, ...fx.deletes, ...fx.reverts] : (t?.files ?? []);
+    }).map((f) => relPath(cwd, f)));
+    return files[0] ? clip(`Edit ${base(files[0])}`) + more(files) : 'Edit files';
+  }
+  const files: string[] = [];
+  const patterns: string[] = [];
+  let web = false;
+  for (const s of calls) {
     const t = s.tool;
-    const fx = kind === 'change' && t?.command ? shellEffects(t.command, cwd) : undefined;
-    const file = fx ? (fx.writes[0] ?? fx.deletes[0] ?? fx.reverts[0]) : t?.files[0];
-    if (file) return relPath(cwd, file);
-    return t?.command ? commandHead(t.command) : (t?.summary ?? '');
-  });
-  const [top = '', n = 0] = mostCommon(targets) ?? [];
-  const distinct = new Set(targets).size;
-  if (kind === 'verify') return clip(`Run ${top}${n > 1 ? ` ×${n}` : ''}`);
-  const more = distinct > 1 ? ` +${distinct - 1} more` : '';
-  return clip(`${kind === 'change' ? 'Edit' : 'Explore'} ${top}`) + more;
+    if (!t) continue;
+    if (t.category === 'read') files.push(...t.files);
+    else if (t.category === 'search') patterns.push(t.summary.slice(t.name.length + 1) || t.name);
+    else if (t.category === 'web') web = true;
+    else if (t.command) {
+      const r = shellReads(t.command, cwd);
+      files.push(...r.files);
+      patterns.push(...r.patterns);
+    }
+  }
+  const read = ranked(files.map((f) => relPath(cwd, f)));
+  if (read[0]) return clip(`Read ${base(read[0])}`) + more(read);
+  const sought = ranked(patterns);
+  if (sought[0]) return `Search “${clip(sought[0], 32)}”${more(sought)}`;
+  return web ? 'Search the web' : 'Explore';
 }
 
 /** Split one lane's steps into fine-grained episodes. */
@@ -79,8 +132,13 @@ function splitLane(ls: Step[], cwd: string | undefined): Draft[] {
   const out: { kind: Kind | undefined; start: number }[] = [];
   let running: Kind | undefined;
   let lastFile: string | undefined;
+  // Subagents spawned in the current delegate episode, and those not yet returned: a spawn after all have returned
+  // starts a new episode (one per sequential delegation); parallel spawns share one.
+  let spawned = 0;
+  const open = new Set<string | undefined>();
   ls.forEach((s, i) => {
     const k = kinds[i];
+    if (s.kind === 'tool-result') open.delete(s.tool?.callId);
     const cur = out[out.length - 1];
     const size = cur ? i - cur.start : 0;
     const file = s.kind === 'tool-call' ? s.tool?.files[0] : undefined;
@@ -89,7 +147,7 @@ function splitLane(ls: Step[], cwd: string | undefined): Draft[] {
     else if (i === answerAt) next = { kind: 'answer', pull: false };
     else if (s.kind === 'user') next = { kind: 'discuss', pull: false };
     else if (size >= MAX_EPISODE_STEPS) next = { kind: k, pull: false };
-    else if (k === 'delegate' && running !== 'delegate') next = { kind: 'delegate', pull: true };
+    else if (k === 'delegate' && (running !== 'delegate' || (spawned > 0 && open.size === 0))) next = { kind: 'delegate', pull: true };
     else if (s.kind === 'tool-call' && running === 'delegate' && k !== 'delegate') next = { kind: k, pull: true };
     else if (k && k !== running && size >= MIN_EPISODE_STEPS && dominant(i) === k) next = { kind: k, pull: true };
     else if (s.kind === 'tool-call' && size >= FILE_SPLIT_STEPS && file && lastFile && file !== lastFile) next = { kind: k, pull: true };
@@ -99,6 +157,11 @@ function splitLane(ls: Step[], cwd: string | undefined): Draft[] {
       while (start > floor && (ls[start - 1]?.kind === 'assistant' || ls[start - 1]?.kind === 'thinking')) start--;
       out.push({ kind: next.kind, start });
       running = next.kind;
+      spawned = 0;
+    }
+    if (k === 'delegate') {
+      spawned++;
+      open.add(s.tool?.callId);
     }
     running ??= k;
     if (file) lastFile = file;
