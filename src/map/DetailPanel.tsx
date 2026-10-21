@@ -4,14 +4,14 @@
 // Copy link, previous/next, and the rule note for patterns. Everything from the transcript is rendered as text.
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
-import { BlazeIcon, InfoGlyph, KindGlyph, StatusGlyph, UnstoredGlyph } from './Glyph';
+import { BlazeIcon, InfoGlyph, KindGlyph } from './Glyph';
 import { HONESTY_TEXT, HOW_TO_READ_URL } from './HonestyLabel';
 import { KIND_WORD } from './keyboard';
 import type { GlanceLayout } from './layout';
 import { duration, fileLabel, isUnstoredThinking } from './outline';
 import { RawRecord } from './RawRecord';
-import { excerpt, laneWord, lineDiff, ownWords, patternLine, rawRecords, rowCategory, rowLabel, rowStatus, RULE_WORDS, shortId, type Row, type Target } from './details';
-import { rowWords, since } from './StepList';
+import { excerpt, laneWord, lineDiff, ownWords, patternLine, rawRecords, rowCategory, rowLabel, RULE_WORDS, shortId, stepSay, type Row, type Target } from './details';
+import { RowGlyph, rowWords, since } from './StepList';
 
 interface Props {
   g: SessionGraph;
@@ -61,7 +61,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
     const next = nav[(at < 0 ? (dir > 0 ? -1 : nav.length) : at) + dir];
     if (!next) return;
     onStep(next.id);
-    announce(`${pattern ? 'Evidence' : 'Step'} ${nav.indexOf(next) + 1} of ${nav.length}: ${rowLabel(next)}`);
+    announce(stepSay(pattern ? 'Evidence' : 'Step', nav.indexOf(next) + 1, nav.length, next));
   };
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -155,7 +155,7 @@ function ProvenanceBlock({ g, row, openRaw, link, announce }: { g: SessionGraph;
         <button type="button" onClick={copy}>{copied ? 'Link copied' : 'Copy link to step'}</button>
       </div>
       {raw && rawRecords(g, row).slice(0, 4).map((r) => <RawRecord key={`${r.file}:${r.line}`} {...r} />)}
-      <p className="muted fine">Verbatim record; redacted in samples and shared copies.</p>
+      <p className="muted fine">Verbatim record; redacted in samples and shared copies. Dotted underline marks a redaction.</p>
     </section>
   );
 }
@@ -168,7 +168,7 @@ function Provenance({ g, row }: { g: SessionGraph; row: Row }) {
   return (
     <>
       <p className="mono prov-file" title={s.raw.file}>
-        {fileLabel(s.raw.file)}:{s.raw.line}{res ? ` · result :${res}` : ''}
+        {fileLabel(s.raw.file)}:{s.raw.line}{res ? ` · result at line ${res}` : ''}
         <span className="visually-hidden"> (file {s.raw.file}, line {s.raw.line}{lane ? `, in ${laneWord(g, lane)}` : ''})</span>
       </p>
       {ids.length > 0 && <p className="mono muted prov-ids">{ids.join(' · ')}</p>}
@@ -180,7 +180,6 @@ function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGrap
   const [more, setMore] = useState(false);
   const s = row.step;
   const tool = s.kind === 'tool-call' ? s.tool : undefined;
-  const status = rowStatus(row);
   const words = rowWords(row);
   const out = row.result?.text ?? '';
   const ex = excerpt(out);
@@ -189,7 +188,7 @@ function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGrap
     <section className="step-block" aria-label={label} data-step={row.id} data-tool={tool?.name}>
       <h3 className="section-label">{label} · {index + 1} of {count}</h3>
       <p className="step-status">
-        {isUnstoredThinking(s) ? <UnstoredGlyph /> : status ? <StatusGlyph status={status} /> : <span className="glyph-space" aria-hidden="true" />}
+        <RowGlyph row={row} />
         <strong>{rowCategory(row)}</strong>{words ? ` · ${words}` : ''}
         <span className="mono muted">{since(g, s.t)}</span>
       </p>
@@ -197,7 +196,7 @@ function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGrap
         <p className="agent-words muted">{rowLabel(row)}. Only a signature was recorded for {row.times > 1 ? 'these blocks' : 'this block'}, so no text is shown.</p>
       ) : tool?.command ? (
         <>
-          <Box label="Command">{`$ ${tool.command}`}</Box>
+          <Box label="Command" className="cmd">{`$ ${tool.command}`}</Box>
           {row.result && (
             <>
               <h4 className="section-label">Output · {more || !ex.more ? 'recorded' : 'excerpt'}</h4>
@@ -229,9 +228,21 @@ function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGrap
           {row.result?.text && <Box label="Result">{ex.head}</Box>}
         </>
       ) : (
-        <p className={ownWords(row) ? 'agent-words step-text' : 'step-text'}>{s.text ?? ''}</p>
+        <StepText row={row} more={more} onMore={() => setMore(!more)} />
       )}
     </section>
+  );
+}
+
+/** A user or agent text, its first 12 lines and "Show n more lines" (DESIGN §10.1). */
+function StepText({ row, more, onMore }: { row: Row; more: boolean; onMore(): void }) {
+  const text = row.step.text ?? '';
+  const ex = excerpt(text);
+  return (
+    <>
+      <p className={ownWords(row) ? 'agent-words step-text' : 'step-text'}>{more || !ex.more ? text : ex.head}</p>
+      {ex.more > 0 && <button type="button" className="link-button" aria-expanded={more} onClick={onMore}>{more ? 'Show less' : `Show ${plural(ex.more, 'more line')}`}</button>}
+    </>
   );
 }
 

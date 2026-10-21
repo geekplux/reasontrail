@@ -79,6 +79,17 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.goForward();
   await page.waitForTimeout(100);
   if (await panel(page).count()) fail('Forward did not close the details');
+  // Back from the panel title closes it with focus on the map item, never <body>; Forward from <body> focuses the title.
+  await page.keyboard.press('Enter');
+  if (!(await titleFocused(page))) fail('reopen: focus is not on the panel title');
+  await page.goBack();
+  await page.waitForTimeout(100);
+  if (await panel(page).count()) fail('Back from the title did not close the details');
+  if (!(await active(page)).nav) fail(`Back from the title left focus on ${(await active(page)).cls || 'body'}`);
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.goForward();
+  await page.waitForTimeout(100);
+  if (!(await panel(page).count()) || !(await titleFocused(page))) fail('Forward from <body> did not reopen the details with focus on the title');
 
   // M6: unstored thinking, via a deep link: no focus move, the honesty label repeated.
   const g = sample('implementer-checks');
@@ -188,6 +199,42 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   if (!(await panel(page).getByRole('button', { name: 'Collapse' }).isVisible())) fail('no Collapse button');
   await page.keyboard.press('Escape');
   if ((await active(page)).nav !== mBlaze) fail('mobile: Esc did not return focus to the pattern');
+
+  // WCAG 2.4.11: Tab from the sheet title on through the footer, and Shift+Tab back from it: no focused element sits
+  // entirely below the sheet's top edge (the page has room to scroll it above the sheet).
+  for (const [w, h] of [[390, 844], [320, 225]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await open(page, `${baseURL}/?session=implementer-checks`);
+    await tabToMap(page);
+    await page.keyboard.press(']');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(250);
+    if (!(await titleFocused(page))) fail(`${w}×${h}: focus is not on the sheet title`);
+    const where = () => page.evaluate(() => {
+      const a = document.activeElement;
+      const p = document.querySelector('[data-testid="detail-panel"]');
+      if (!a || a === document.body || !p || p.contains(a)) return null;
+      const rect = a.getBoundingClientRect();
+      return { below: rect.top >= p.getBoundingClientRect().top, footer: Boolean(a.closest('footer')), what: `${a.tagName.toLowerCase()} “${(a.textContent ?? '').trim().slice(0, 30)}”` };
+    });
+    let footer = false;
+    let stops = 0;
+    for (const dir of ['Tab', 'Shift+Tab']) {
+      await page.locator('[data-testid="detail-panel"] h2').focus();
+      for (let i = 0; i < 60; i++) {
+        await page.keyboard.press(dir);
+        const at = await where();
+        if (dir === 'Tab' && !at && footer) break;
+        if (!at) continue;
+        stops++;
+        footer ||= at.footer;
+        if (at.below) fail(`${w}×${h}: ${dir} focused ${at.what} behind the sheet`);
+      }
+    }
+    if (!footer) fail(`${w}×${h}: Tab from the sheet never reached the footer`);
+    log(`${w}×${h}: ${stops} focus stops outside the sheet checked`);
+    await page.keyboard.press('Escape');
+  }
 
   // Dark and reduced motion with the panel open.
   await page.setViewportSize({ width: 1280, height: 800 });

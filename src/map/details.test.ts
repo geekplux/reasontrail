@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SessionGraph, Step } from '../../shared/session/types';
 import implementerChecks from '../sessions/samples/implementer-checks.graph.json';
 import verifyFailFix from '../sessions/samples/verify-fail-fix.graph.json';
-import { excerpt, exitCode, itemForStep, lineDiff, rawRecords, readStepLink, redactionParts, rowLabel, rowStatusWord, shortId, stepRows, targetOf, writeStepLink } from './details';
+import { excerpt, exitCode, itemForStep, lineDiff, rawRecords, readStepLink, redactionParts, rowLabel, rowStatusWord, sayLabel, shortId, stepRows, targetOf, writeStepLink } from './details';
 import { glanceLayout } from './layout';
 
 const raw = { file: 'f.jsonl', line: 1 };
@@ -69,5 +69,13 @@ describe('details (M3)', () => {
     const t = targetOf(i, P, P.blazes[0]!.id);
     expect(t?.kind).toBe('pattern');
     expect([...(t?.evidence ?? [])].sort()).toEqual([...i.trouble[0]!.stepIds].sort());
+  });
+
+  it('strips markdown and shortens a label for announcements', () => {
+    expect(sayLabel('## Fix the **slug** helper in `src/a.ts` (see [docs](https://x.y))')).toBe('Fix the slug helper in src/a.ts (see docs)');
+    const long = sayLabel('word '.repeat(40));
+    expect(long.length).toBeLessThanOrEqual(80);
+    expect(long.endsWith('…')).toBe(true);
+    expect(sayLabel('snake_case_name stays')).toBe('snake_case_name stays');
   });
 });

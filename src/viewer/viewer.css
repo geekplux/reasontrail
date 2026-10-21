@@ -19,7 +19,7 @@
 .viewer-privacy, .viewer-footer { margin: 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .viewer-footer { padding: var(--tg-space-4) var(--tg-space-6) var(--tg-space-6); border-top: var(--tg-hairline); }
 .shared-ribbon { display: block; margin: 0; padding: var(--tg-space-2) var(--tg-space-6); font: 500 var(--tg-text-sm) var(--tg-font-mono); background: var(--tg-wash); border-bottom: 1px solid var(--tg-ink); }
-.viewer-main { width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-5) var(--tg-space-6) var(--tg-space-7); }
+.viewer-main { --tg-frame-top: var(--tg-space-5); width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-5) var(--tg-space-6) var(--tg-space-7); }
 .viewer-error { padding: var(--tg-space-6) var(--tg-space-5); max-width: 65ch; }
 .bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--tg-paper); background: var(--tg-trouble); font-weight: 700; }
 

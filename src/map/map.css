@@ -35,6 +35,10 @@
 .ep-count { font-size: 11.5px; line-height: 16px; white-space: nowrap; color: var(--tg-ink-muted); }
 .ep-answer .ep-text { left: auto; right: 4px; align-items: flex-end; text-align: right; }
 .map-item[aria-current='true'] .ep-title, .map-item[aria-current='true'] .lane-name { color: var(--tg-paper); background: var(--tg-ink); }
+/* The selected pattern: an ink ring round its plate, distinct from the blue focus ring. */
+.map-item[aria-current='true'] .blaze-icon { outline: 2px solid var(--tg-ink); outline-offset: 2px; }
+/* The side trail expanded below the route: its name keeps ink and an ink underline while the rest mutes. */
+.map-item[data-expanded='true'] .lane-name { box-shadow: inset 0 -2px 0 var(--tg-ink); color: var(--tg-ink); }
 .lane-item { display: flex; flex-direction: column; height: 58px; padding: 22px 4px 0 6px; white-space: nowrap; overflow: hidden; }
 .lane-name, .lane-facts { overflow: hidden; font-size: 11.5px; line-height: 17px; text-overflow: ellipsis; }
 /* Only the agent name may ellipsis; in the facts line the count gives way and the status word is always whole. */
@@ -114,7 +118,7 @@
 }
 
 /* Website page frame for the map (the viewer has its own, viewer.css). */
-.site-map { width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-4) var(--tg-space-6) var(--tg-space-7); }
+.site-map { --tg-frame-top: var(--tg-space-4); width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-4) var(--tg-space-6) var(--tg-space-7); }
 @media (max-width: 767px) { .site-map { padding: var(--tg-space-3) var(--tg-space-4) 0; } }
 
 /* The sticky destination bar must never cover the focused item: tall phones scroll past it, short ones unstick it. */
@@ -143,6 +147,7 @@
 .step-status .mono { margin-left: auto; font-size: 11.5px; }
 .glyph-space { display: inline-block; width: 14px; }
 .box { max-height: 50vh; margin: 0 0 var(--tg-space-2); padding: var(--tg-space-2) var(--tg-space-3); overflow: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--tg-paper); border: 1px solid var(--tg-rule); }
+.box.cmd { max-height: calc(8 * 1.5em + 2 * var(--tg-space-2)); }
 .diff > span { display: block; }
 .diff .d-del { color: var(--tg-error); background: var(--tg-wash); }
 .diff .d-same { color: var(--tg-ink-muted); }
@@ -180,13 +185,18 @@
 .lane-route-line { fill: none; stroke: var(--tg-lane); stroke-width: 3; }
 .lep { margin-top: 22px; }
 .lep .ep-text { top: 26px; bottom: auto; }
-.has-open-lane .route-canvas .route-line, .has-open-lane .route-canvas .slash { stroke: var(--tg-ink-muted); }
+.has-open-lane .route-canvas .route-line, .has-open-lane .route-canvas .slash, .has-open-lane .route-canvas .lane-line { stroke: var(--tg-ink-muted); }
+.has-open-lane .route-canvas .lane-mark.is-expanded .lane-line { stroke: var(--tg-lane); stroke-width: 3; }
 .has-open-lane .route-canvas .mark .g-fill { fill: var(--tg-ink-muted); }
 .has-open-lane .route-canvas .mark .g-line { stroke: var(--tg-ink-muted); }
 .has-open-lane .route-canvas .ep:not([aria-current='true']) .ep-title, .has-open-lane .vrow:not(.vlep) .ep:not([aria-current='true']) .ep-title { color: var(--tg-ink-muted); }
 
 @media (max-width: 1023px) {
-  .map.has-panel { display: block; padding-bottom: 60vh; }
+  .map.has-panel { display: block; }
+  /* The open sheet covers the lower 60 % (90 %) of the viewport: the page gets that much room below the footer, so
+     every focused element, the footer links included, can scroll above it (WCAG 2.4.11). DetailPanel sets the class. */
+  html.tg-sheet-open body { padding-bottom: 60vh; }
+  html.tg-sheet-full body { padding-bottom: 90vh; }
   .detail-panel { position: fixed; inset: auto 0 0; z-index: 3; height: 60vh; max-height: none; border-left: 0; border-top: 1px solid var(--tg-ink); animation-name: tg-sheet-in; }
   .detail-panel.is-full { height: 90vh; }
   .sheet-size { display: inline-block; }
@@ -195,6 +205,11 @@
   html.tg-sheet-open { scroll-padding-bottom: 60vh; }
   html.tg-sheet-full { scroll-padding-bottom: 90vh; }
 }
+/* At 1024 px and up the panel column sits flush under the header and its surface bleeds to the viewport's right edge
+   (border-image outset is paint only: no layout, no scrollbar). The gradient's first pixel is its ink rule. */
+@media (min-width: 1024px) {
+  .detail-panel { margin-top: calc(-1 * var(--tg-frame-top, 0px)); border-image: linear-gradient(to right, var(--tg-ink) 1px, var(--tg-surface) 1px) fill 0 / 0 / 0 100vw 0 0; }
+}
 @keyframes tg-sheet-in { from { opacity: 0; transform: translateY(16px); } }
 @media (max-width: 767px) {
   .step-rows button { grid-template-columns: 14px minmax(0, 1fr) auto; min-height: 36px; }
@@ -202,4 +217,6 @@
   .vlep { padding-left: 40px; }
   .vlep::after { content: ''; position: absolute; top: 0; bottom: 0; left: 30px; width: 3px; background: var(--tg-lane); }
   .has-open-lane .vrow::before { background: var(--tg-ink-muted); }
+  .has-open-lane .siding path { stroke: var(--tg-ink-muted); }
+  .has-open-lane .siding.is-expanded path { stroke: var(--tg-lane); stroke-width: 3; }
 }

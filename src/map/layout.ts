@@ -438,3 +438,14 @@ export function laneLayout(g: SessionGraph, laneId: string, width: number): Glan
   if (!lane) return undefined;
   return glanceLayout({ ...g, lanes: [lane, ...g.lanes.filter((l) => l.id !== laneId)], trouble: [] }, width, { unfold: true });
 }
+
+/** Box of an expanded side trail's episode item and its label (DESIGN §8.3 [17]). The one just before the answer
+ * stops 8 px short of the answer's label (its box starts 52 px left of the terminus), so its count steps down
+ * instead of running into "Answer". */
+export function lepBox(open: GlanceLayout, r: RouteEpisode): { width: number; text: number } {
+  const width = Math.max(56, r.len);
+  if (!open.answer || open.episodes[open.episodes.length - 1] !== r) return { width, text: Math.max(48, r.len - 14) };
+  const w = Math.min(width, open.routeEnd - 52 - (r.x - 12) - 8);
+  return { width: w, text: Math.max(0, w - 14) };
+}
+

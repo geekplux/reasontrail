@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { parseSession } from '../../shared/session/adapter';
 import { attachRaw } from '../../shared/session/raw';
 import { MapView } from './MapView';
+import { RawRecord } from './RawRecord';
 
 import details from '../../fixtures/sessions/claude-code/details.jsonl?raw';
 
@@ -77,5 +78,42 @@ describe('detail panel (M3, M9, G1)', () => {
     expect(panel.textContent).toContain('thinking (text not stored)');
     expect(panel.querySelector('[data-honesty="detail"]')).not.toBeNull();
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it('Back that closes the panel puts focus on its map item; Forward from <body> focuses the title', () => {
+    render(<MapView graph={graph()} />);
+    const item = openFirst();
+    const step = window.location.search;
+    window.history.pushState(null, '', '/');
+    fireEvent(window, new PopStateEvent('popstate'));
+    expect(screen.queryByTestId('detail-panel')).toBeNull();
+    expect(document.activeElement).toBe(item);
+    (document.activeElement as HTMLElement).blur();
+    window.history.pushState(null, '', `/${step}`);
+    fireEvent(window, new PopStateEvent('popstate'));
+    const panel = screen.getByTestId('detail-panel');
+    expect(document.activeElement?.id).toBe(panel.getAttribute('aria-labelledby'));
+  });
+
+  it('Esc in the step strip closes the panel and returns focus; Enter on a row announces its position', () => {
+    render(<MapView graph={graph()} />);
+    const item = openFirst();
+    const rows = screen.getAllByRole('button').filter((b) => b.closest('.step-rows'));
+    fireEvent.click(rows[1] as HTMLElement);
+    expect(screen.getByRole('status').textContent).toMatch(new RegExp(`^Step 2 of ${rows.length}: `));
+    (rows[1] as HTMLElement).focus();
+    fireEvent.keyDown(rows[1] as HTMLElement, { key: 'Escape' });
+    expect(screen.queryByTestId('detail-panel')).toBeNull();
+    expect(document.activeElement).toBe(item);
+  });
+});
+
+describe('RawRecord (DM19)', () => {
+  it('says "(redacted)" in the accessible text of every redaction, not only on hover', () => {
+    const { container } = render(<RawRecord file="a/b.jsonl" line={3} text={'{"token":"[secret:github-token]","cwd":"~/x"}'} />);
+    const marks = container.querySelectorAll('.redacted');
+    expect(marks).toHaveLength(2);
+    for (const m of marks) expect(m.textContent).toMatch(/ \(redacted\)$/);
+    expect(container.querySelector('pre')?.textContent).toBe('{"token":"[secret:github-token] (redacted)","cwd":"~ (redacted)/x"}');
   });
 });

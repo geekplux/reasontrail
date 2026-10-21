@@ -17,10 +17,11 @@ export function lanePath(l: LaneItem): string {
   return `M${l.x1} ${y0} ${down} ${up}`;
 }
 
-export function LanePath({ l }: { l: LaneItem }) {
+/** `expanded`: this side trail is open below the route; it keeps its lane colour at 3 px while the others mute. */
+export function LanePath({ l, expanded = false }: { l: LaneItem; expanded?: boolean }) {
   const y = lineY(l.track);
   return (
-    <g className="lane-mark">
+    <g className={expanded ? 'lane-mark is-expanded' : 'lane-mark'}>
       <path className="lane-line draw" d={lanePath(l)} pathLength={1} />
       {l.status === 'interrupted' && <path className="lane-line" d={`M${l.x2} ${y - 8} V${y + 8}`} />}
       {/* No recorded result and no rejoin: the trail ends in an 8 px hollow status circle. */}

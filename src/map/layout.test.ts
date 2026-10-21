@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { Episode, Lane, SessionGraph, Step, StepStatus, Trouble } from '../../shared/session/types';
 import { sessionSamples } from '../sessions/samples';
 import { parseSession } from '../../shared/session/adapter';
-import { G, glanceLayout, idleSpan, laneStatus, plateSpan, lineY, verdictOf } from './layout';
+import { countText } from './keyboard';
+import { G, glanceLayout, idleSpan, laneLayout, laneStatus, lepBox, plateSpan, lineY, verdictOf } from './layout';
 
 interface LaneSpec { ep: number; at: number; back?: number; steps: number; status?: StepStatus; agent?: string }
 interface Spec { eps: number[]; answer?: boolean; lanes?: LaneSpec[]; trouble?: { ep?: number; at?: number; lane?: number; resolved?: boolean }[]; gapMin?: Record<number, number> }
@@ -218,3 +219,27 @@ describe('samples and performance (G2)', () => {
     expect(performance.now() - t0).toBeLessThanOrEqual(300);
   });
 });
+
+describe('lepBox (an expanded side trail)', () => {
+  it.each(sessionSamples.map((s) => [s.id, s] as const))('%s: the episode before the answer never runs into its label', async (_, sample) => {
+    const g = await sample.load();
+    for (const lane of g.lanes.slice(1)) {
+      for (const width of [1216, 900]) {
+        const open = laneLayout(g, lane.id, width);
+        const last = open?.episodes.at(-1);
+        if (!open?.answer || !last) continue;
+        const box = lepBox(open, last);
+        expect(last.x - 12 + box.width).toBeLessThanOrEqual(open.routeEnd - 52 - 8);
+        const count = countText(last, box.text);
+        expect(count.length * G.monoPx <= box.text || count === String(last.steps)).toBe(true);
+      }
+    }
+  });
+  it('steps the count down when the answer is close', () => {
+    const r = { x: 100, len: 200, steps: 12, idle: '' } as unknown as Parameters<typeof lepBox>[1];
+    const open = { answer: {}, episodes: [r], routeEnd: 260 } as unknown as Parameters<typeof lepBox>[0];
+    expect(lepBox(open, r)).toEqual({ width: 112, text: 98 });
+    expect(lepBox({ ...open, answer: undefined } as unknown as Parameters<typeof lepBox>[0], r)).toEqual({ width: 200, text: 186 });
+  });
+});
+

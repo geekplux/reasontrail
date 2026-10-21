@@ -1,5 +1,5 @@
 // "Show raw" (DESIGN §8.10, DM19): the verbatim record in a <pre>, as text (React escapes it; never HTML), with
-// redaction placeholders marked "Redacted". The <pre> scrolls, so it is a tab stop; map keys do nothing inside it.
+// redaction placeholders marked by a dotted underline and " (redacted)" for screen readers. The <pre> scrolls, so it is a tab stop; map keys do nothing inside it.
 import { fileLabel } from './outline';
 import { redactionParts } from './details';
 
@@ -13,7 +13,7 @@ export function RawRecord({ file, line, text }: { file: string; line: number; te
       ) : (
         // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling region must be keyboard-reachable
         <pre className="raw-pre mono" tabIndex={0} aria-label={label}>
-          {redactionParts(text).map((p, i) => (p.redacted ? <span key={i} className="redacted" title="Redacted">{p.text}</span> : p.text))}
+          {redactionParts(text).map((p, i) => (p.redacted ? <span key={i} className="redacted" title="Redacted">{p.text}<span className="visually-hidden"> (redacted)</span></span> : p.text))}
         </pre>
       )}
     </figure>

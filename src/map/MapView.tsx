@@ -115,20 +115,30 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
     (back ?? root.current?.querySelector<HTMLElement>('[role="application"] [tabindex="0"]'))?.focus();
   };
   // Deep links and Back/Forward: the step in the URL is the selection.
-  const fromUrl = useRef(() => {});
-  const read = () => {
+  // Back that closes the panel puts focus on its map item (never <body>); Forward that reopens it from <body> focuses
+  // its title. A deep link on load never moves focus.
+  const fromUrl = useRef((_nav: boolean) => {});
+  const read = (nav: boolean) => {
     const id = readStepLink(link, here());
     const item = id ? atStep(id) : undefined;
-    if (!id || !item) return setSel(null);
+    const active = document.activeElement;
+    if (!id || !item) {
+      if (sel && active?.closest('.detail-panel')) {
+        const el = root.current?.querySelector<HTMLElement>(`[data-nav="${CSS.escape(sel.item)}"]`) ?? root.current?.querySelector<HTMLElement>('[role="application"] [tabindex="0"]');
+        el?.focus();
+      }
+      return setSel(null);
+    }
     const t = targetOf(g, L, item);
-    setSel({ item, step: t ? stepRows(g, t.steps).find((r) => r.ids.includes(id))?.id ?? id : id, focus: false });
+    const focus = nav && !sel && (!active || active === document.body);
+    setSel({ item, step: t ? stepRows(g, t.steps).find((r) => r.ids.includes(id))?.id ?? id : id, focus });
   };
   useLayoutEffect(() => {
     fromUrl.current = read;
   });
   useEffect(() => {
-    const sync = () => fromUrl.current();
-    sync();
+    const sync = () => fromUrl.current(true);
+    fromUrl.current(false);
     window.addEventListener('popstate', sync);
     window.addEventListener('hashchange', sync);
     return () => {
@@ -197,7 +207,7 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
             />
           )}
         </div>
-        {target && rows.length > 0 && <StepList g={g} rows={rows} selected={sel?.step} evidence={target.evidence} heading={heading} onPick={(id) => { setSel((s) => s && { ...s, step: id, focus: false }); url(id, false); }} />}
+        {target && rows.length > 0 && <StepList g={g} rows={rows} selected={sel?.step} evidence={target.evidence} heading={heading} onPick={(id) => { setSel((s) => s && { ...s, step: id, focus: false }); url(id, false); }} onClose={close} announce={announce} />}
       </section>
       <a className="dest-bar" href="#destination">
         <KindGlyph kind="answer" />

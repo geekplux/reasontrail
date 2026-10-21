@@ -77,6 +77,21 @@ export function rowLabel(r: Row): string {
   return line.length > 160 ? `${line.slice(0, 159)}…` : line;
 }
 
+/** A row label fit to announce: markdown marks stripped, whitespace collapsed, at most `max` characters. */
+export function sayLabel(text: string, max = 80): string {
+  const plain = text
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/^\s{0,3}(?:#{1,6}\s+|>\s?|[-*+]\s+|\d+\.\s+)/gm, '')
+    .replace(/(\*\*|~~|`+)(?=\S)([^]*?\S)\1/g, '$2')
+    .replace(/(^|[^\w])(__|[*_])(?=\S)([^]*?\S)\2(?!\w)/g, '$1$3')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return plain.length > max ? `${plain.slice(0, max - 1).trimEnd()}…` : plain;
+}
+
+/** "Step 2 of 5: pnpm test" for the live region. */
+export const stepSay = (word: string, n: number, total: number, r: Row) => `${word} ${n} of ${total}: ${sayLabel(rowLabel(r))}`;
+
 /** Assistant text and thinking are the agent's own words: the honesty label repeats for them (M5). */
 export const ownWords = (r: Row) => r.step.kind === 'assistant' || r.step.kind === 'thinking';
 

@@ -4,7 +4,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { KindMark, KindGlyph } from './Glyph';
 import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, lepId, move, navItems } from './keyboard';
-import { G, idleAtEnd, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
+import { G, idleAtEnd, lepBox, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
 import { LaneLabel, LanePath } from './LaneView';
 import { BlazeMark, blazeData } from './TroubleMarker';
 
@@ -178,22 +178,25 @@ const inner = (L: GlanceLayout) => [...L.episodes, ...(L.answer ? [L.answer] : [
 const LANE_Y = 30;
 
 /** An expanded side trail (DESIGN §8.3 [17]): its own route, 3 px lane colour on the lane band, 14 px glyphs, labels below. */
-function OpenLane({ open, lepProps }: { open: NonNullable<ViewProps['open']>; lepProps: P<RouteEpisode> }) {
+function OpenLane({ open, word, lepProps }: { open: NonNullable<ViewProps['open']>; word: string | undefined; lepProps: P<RouteEpisode> }) {
   const x = (r: RouteEpisode) => (r === open.L.answer ? open.L.routeEnd : r.x);
   const eps = inner(open.L);
   return (
     <div className="lane-route" style={{ width: open.L.width }} data-lane-route={open.lane}>
-      <p className="mono lane-route-head" aria-hidden="true">{open.name} · {eps.length === 1 ? '1 episode' : `${eps.length} episodes`} · expanded</p>
+      <p className="mono lane-route-head" aria-hidden="true">{[open.name, word, eps.length === 1 ? '1 episode' : `${eps.length} episodes`, 'expanded below'].filter(Boolean).join(' · ')}</p>
       <svg className="route-svg" width={open.L.width} height={96} aria-hidden="true" focusable="false">
         <rect className="lane-band" x={0} y={LANE_Y - 12} width={open.L.width} height={24} />
         {eps[0] && <path className="lane-route-line" d={`M${x(eps[0])} ${LANE_Y} H${x(eps[eps.length - 1] as RouteEpisode)}`} />}
         {eps.map((r) => <KindMark key={r.episode.id} kind={r.episode.kind} x={x(r)} y={LANE_Y} size={14} />)}
       </svg>
-      {eps.map((r) => (
-        <div key={r.episode.id} className={r === open.L.answer ? 'map-item ep lep ep-answer' : 'map-item ep lep'} style={r === open.L.answer ? { left: x(r) - 52, top: LANE_Y - 12, width: 70, height: 72 } : { left: x(r) - 12, top: LANE_Y - 12, width: Math.max(56, r.len), height: 72 }} {...lepProps(r)}>
-          <span className="ep-text" style={{ width: Math.max(48, r.len - 14) }}><EpisodeText r={r} width={Math.max(48, r.len - 14)} /></span>
-        </div>
-      ))}
+      {eps.map((r) => {
+        const box = lepBox(open.L, r);
+        return (
+          <div key={r.episode.id} className={r === open.L.answer ? 'map-item ep lep ep-answer' : 'map-item ep lep'} style={r === open.L.answer ? { left: x(r) - 52, top: LANE_Y - 12, width: 70, height: 72 } : { left: x(r) - 12, top: LANE_Y - 12, width: box.width, height: 72 }} {...lepProps(r)}>
+            <span className="ep-text" style={{ width: box.text }}><EpisodeText r={r} width={box.text} /></span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -206,7 +209,7 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps, open, lepPro
     <div className="route-scroll">
       <div className="route-canvas" style={{ width: L.width, height: L.height }}>
         <svg className="route-svg" width={L.width} height={L.height} aria-hidden="true" focusable="false">
-          {L.lanes.map((l) => <LanePath key={l.id} l={l} />)}
+          {L.lanes.map((l) => <LanePath key={l.id} l={l} expanded={open?.lane === l.id} />)}
           {L.pieces.map(([a, b]) => <path key={a} className="route-line draw" d={`M${a} ${Y} H${b}`} pathLength={1} />)}
           {L.breaks.map((b) => (
             <g key={b.before} className="idle-break" data-idle-ms={b.ms}>
@@ -249,7 +252,7 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps, open, lepPro
           </div>
         ))}
       </div>
-      {open && <OpenLane open={open} lepProps={lepProps} />}
+      {open && <OpenLane open={open} word={L.lanes.find((l) => l.id === open.lane)?.word} lepProps={lepProps} />}
     </div>
   );
 }
@@ -284,7 +287,7 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps, open, lep
     for (const l of L.lanes.filter((x) => x.episodeId === r.episode.id)) {
       rows.push(
         <div key={l.id} className="vrow vsub">
-          <svg className="siding" width="24" height="44" aria-hidden="true" focusable="false">
+          <svg className={open?.lane === l.id ? 'siding is-expanded' : 'siding'} width="24" height="44" aria-hidden="true" focusable="false">
             <path d={l.rejoins ? 'M0 0 L14 14 V30 L0 44' : l.status === 'interrupted' ? 'M0 0 L14 14 V30 M8 30 H20' : l.status === 'unknown' ? 'M0 0 L14 14 V30' : 'M0 0 L14 14 V44'} />
             {!l.rejoins && l.status === 'unknown' && <circle className="lane-end" cx={14} cy={34} r={4} />}
           </svg>

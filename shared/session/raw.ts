@@ -1,9 +1,12 @@
 // Show raw (PLAN M3, DESIGN §8.10): attach each record's verbatim text to the first step it produced, capped. Pure.
-import { RAW_TEXT_MAX, type SessionGraph, type SourceFile } from './types';
+import { RAW_TEXT_MAX, type Provenance, type SessionGraph, type SourceFile } from './types';
 
-/** `text` cut to `max` chars with a note saying how much was left out. */
-export function clipRaw(text: string, max = RAW_TEXT_MAX): string {
-  return text.length <= max ? text : `${text.slice(0, max)}… [${text.length - max} more characters at this line of the file]`;
+/** The note that ends a cut raw record, inside its `<pre>`: "[cut 120 characters; full record at x.jsonl:12]". */
+export const cutNote = (n: number, at: Pick<Provenance, 'file' | 'line'>) => `[cut ${n} characters; full record at ${at.file}:${at.line}]`;
+
+/** `text` cut to `max` chars, followed on its own line by a {@link cutNote} saying how much was left out and where. */
+export function clipRaw(text: string, at: Pick<Provenance, 'file' | 'line'>, max = RAW_TEXT_MAX): string {
+  return text.length <= max ? text : `${text.slice(0, max)}…\n${cutNote(text.length - max, at)}`;
 }
 
 /**
@@ -19,7 +22,7 @@ export function attachRaw(graph: SessionGraph, files: readonly SourceFile[], opt
     seen.add(key);
     const line = lines.get(s.raw.file)?.[s.raw.line - 1]?.replace(/\r$/, '');
     if (line === undefined || line.trim() === '') return s;
-    return { ...s, rawText: clipRaw(opts.redact ? opts.redact(line) : line, opts.max) };
+    return { ...s, rawText: clipRaw(opts.redact ? opts.redact(line) : line, s.raw, opts.max) };
   });
   return { ...graph, steps };
 }
