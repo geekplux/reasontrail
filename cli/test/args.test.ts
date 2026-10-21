@@ -13,6 +13,8 @@ describe('parseArgs', () => {
     expect(parseArgs(['abc-123'])).toMatchObject({ mode: 'auto', target: 'abc-123' });
     expect(parseArgs(['--current'])).toMatchObject({ mode: 'current' });
     expect(parseArgs(['--list'])).toMatchObject({ mode: 'list' });
+    expect(parseArgs(['x.jsonl', '--trim', '10:399'])).toMatchObject({ target: 'x.jsonl', trim: { from: 10, to: 399 } });
+    expect(parseArgs(['--trim=0:0'])).toMatchObject({ trim: { from: 0, to: 0 } });
   });
 
   it('lets help and version win over everything else', () => {
@@ -23,6 +25,9 @@ describe('parseArgs', () => {
   it.each([
     [['--bogus'], 'unknown option: --bogus'],
     [['--out'], '--out needs a file path'],
+    [['--trim'], '--trim needs <from>:<to> step numbers, from <= to'],
+    [['--trim', '5:2'], '--trim needs <from>:<to> step numbers, from <= to'],
+    [['--trim', '1-5'], '--trim needs <from>:<to> step numbers, from <= to'],
     [['--source', 'gpt'], '--source must be one of claude-code, codex, grok-build'],
     [['--latest', '--current'], 'choose one of --latest, --current'],
     [['a', 'b'], 'more than one session given: a, b'],

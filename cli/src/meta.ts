@@ -23,6 +23,7 @@ Options:
   --out <file>       where to write the HTML
   --share            redact secrets, emails and home paths; writes ./reasontrail-<id>.html
   --json             print the session graph as JSON instead of writing HTML
+  --trim <from>:<to> keep only steps <from>..<to> of the full map (e.g. 0:399)
   --no-open          print the path instead of opening a browser
   -h, --help         this help
   -v, --version      the version

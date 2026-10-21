@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { normalizeSession } from '../../shared/session/adapter';
 import { buildGraph } from '../../shared/session/build/graph';
 import { redactGraph, redactSession } from '../../shared/session/redact';
+import { trimSession } from '../../shared/session/trim';
 import type { ViewerPayload } from '../../src/map/loadGraph';
 import { parseArgs } from './args';
 import { renderHtml } from './html';
@@ -57,6 +58,7 @@ export function run(argv: readonly string[], ctx: RunContext): number {
     return ctx.err(`${PKG_NAME}: could not read ${ref.file}: ${e instanceof Error ? e.message : String(e)}`), EXIT.unreadable;
   }
   if (!session) return ctx.err(`${PKG_NAME}: this doesn't look like a Claude Code session (.jsonl). Codex and Grok Build sessions are not supported yet.`), EXIT.unreadable;
+  if (opts.trim) session = trimSession(session, opts.trim);
 
   const payload: ViewerPayload = { graph: buildGraph(session), meta: { version: VERSION } };
   if (opts.share) {

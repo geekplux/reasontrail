@@ -101,6 +101,16 @@ describe('run', () => {
     expect(run(['--json'], sb.ctx())).toBe(EXIT.ok);
     expect(JSON.parse(sb.lines.out[0] as string)).toMatchObject({ schemaVersion: 1, source: { kind: 'claude-code' } });
   });
+
+  it('--trim keeps only the given step range', () => {
+    const sb = sandbox();
+    sb.add('basic', 'sess-t', 1_000);
+    expect(run(['--json'], sb.ctx())).toBe(EXIT.ok);
+    expect(run(['--json', '--trim', '1:2'], sb.ctx())).toBe(EXIT.ok);
+    const [full, cut] = sb.lines.out.map((l) => JSON.parse(l as string) as { steps: { text?: string }[] });
+    expect(full?.steps.length).toBeGreaterThan(3);
+    expect(cut?.steps.map((s) => s.text)).toEqual(full?.steps.slice(1, 3).map((s) => s.text));
+  });
 });
 
 describe('openerFor', () => {

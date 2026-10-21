@@ -1,4 +1,5 @@
 // Command-line parsing (C2). Pure: argv in, options or a usage error out.
+import { parseStepRange, type StepRange } from '../../shared/session/trim';
 
 export type SourceName = 'claude-code' | 'codex' | 'grok-build';
 const SOURCES: readonly SourceName[] = ['claude-code', 'codex', 'grok-build'];
@@ -13,6 +14,8 @@ export interface Options {
   share: boolean;
   json: boolean;
   open: boolean;
+  /** Keep only steps `from`…`to` of the full graph (inclusive). */
+  trim?: StepRange;
 }
 
 export function parseArgs(argv: readonly string[]): Options | { error: string } {
@@ -35,6 +38,13 @@ export function parseArgs(argv: readonly string[]): Options | { error: string } 
         const v = value();
         if (!v) return { error: '--out needs a file path' };
         opts.out = v;
+        break;
+      }
+      case '--trim': {
+        const v = value();
+        const range = v === undefined ? undefined : parseStepRange(v);
+        if (!range) return { error: '--trim needs <from>:<to> step numbers, from <= to' };
+        opts.trim = range;
         break;
       }
       case '--source': {
