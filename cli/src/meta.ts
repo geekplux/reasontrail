@@ -5,6 +5,8 @@ import { PKG_NAME, SKILL_HOMES } from '../../shared/commands';
 export { PKG_NAME };
 export const VERSION: string = pkg.version;
 export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
+/** `--ai`'s default endpoint: the public site's Worker (a placeholder until deployment, D20). */
+export const DEFAULT_AI_ENDPOINT = 'https://reasontrail.example/api/structure';
 
 /** Documented exit codes (C2). */
 export const EXIT = { ok: 0, usage: 1, notFound: 2, unreadable: 3 } as const;
@@ -28,12 +30,17 @@ Options:
   --json             print the session graph as JSON instead of writing HTML
   --trim <from>:<to> keep only steps <from>..<to> of the full map (e.g. 0:399)
   --no-open          print the path instead of opening a browser
+  --ai               ask a model to suggest labels and claim links (opt-in; the only option that uses the
+                     network): prints what will be sent and asks first. Sends redacted one-line step
+                     summaries only
+  --api <url>        the endpoint for --ai (default ${DEFAULT_AI_ENDPOINT})
+  -y, --yes          send without asking (needed for --ai without a terminal)
   -h, --help         this help
   -v, --version      the version
 
 install-skill puts the /${PKG_NAME} skill into ${SKILL_HOMES.claude} (Grok Build reads it too; ${SKILL_HOMES.grok}
 when ~/.claude is absent) and ${SKILL_HOMES.codex} (Codex). It never replaces a file you changed unless --force.
 
-Writes <tmp>/reasontrail/<source>-<id>.html by default. Runs locally; nothing is uploaded.
+Writes <tmp>/reasontrail/<source>-<id>.html by default. Runs locally; nothing is uploaded unless you pass --ai.
 
 Exit codes: 0 ok, 1 bad arguments, 2 no session found, 3 unreadable or unsupported file.`;

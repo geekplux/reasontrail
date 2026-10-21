@@ -3,12 +3,12 @@ import { parseArgs } from '../src/args';
 
 describe('parseArgs', () => {
   it('defaults to the newest session for the folder, opened in a browser', () => {
-    expect(parseArgs([])).toEqual({ mode: 'auto', share: false, json: false, open: true });
+    expect(parseArgs([])).toEqual({ mode: 'auto', share: false, json: false, open: true, ai: false, yes: false });
   });
 
   it('reads every flag, with values as separate or = arguments', () => {
     expect(parseArgs(['--latest', '--share', '--json', '--no-open', '--out', 'x.html', '--source=claude-code'])).toEqual({
-      mode: 'latest', share: true, json: true, open: false, out: 'x.html', source: 'claude-code',
+      mode: 'latest', share: true, json: true, open: false, ai: false, yes: false, out: 'x.html', source: 'claude-code',
     });
     expect(parseArgs(['abc-123'])).toMatchObject({ mode: 'auto', target: 'abc-123' });
     expect(parseArgs(['--current'])).toMatchObject({ mode: 'current' });

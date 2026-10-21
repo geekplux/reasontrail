@@ -53,6 +53,29 @@ export interface StructureResponse extends StructureResult {
   cached: boolean;
 }
 
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/** The valid part of an answer for a batch with step `ids` (the Worker's cache reads and replies, and the client's check of a response), or null if its shape is wrong. */
+export function sanitizeResult(value: unknown, ids: ReadonlySet<string>): StructureResult | null {
+  if (!isObject(value) || !Array.isArray(value.labels ?? []) || !Array.isArray(value.links ?? [])) return null;
+  const labels = new Map<string, StructureLabelItem>();
+  for (const l of (value.labels ?? []) as unknown[]) {
+    if (!isObject(l) || typeof l.stepId !== 'string' || !ids.has(l.stepId) || labels.has(l.stepId)) continue;
+    if (!STRUCTURE_LABELS.includes(l.label as StructureLabel)) continue;
+    const c = l.confidence;
+    if (typeof c !== 'number' || !(c >= 0 && c <= 1)) continue;
+    labels.set(l.stepId, { stepId: l.stepId, label: l.label as StructureLabel, confidence: c });
+  }
+  const links = new Map<string, StructureLink>();
+  for (const l of (value.links ?? []) as unknown[]) {
+    if (!isObject(l) || typeof l.claimStepId !== 'string' || !ids.has(l.claimStepId) || links.has(l.claimStepId) || !Array.isArray(l.supportStepIds)) continue;
+    const claim = l.claimStepId;
+    const supports = [...new Set(l.supportStepIds.filter((s): s is string => typeof s === 'string' && ids.has(s) && s !== claim))].slice(0, LINK_MAX_SUPPORTS);
+    if (supports.length > 0) links.set(claim, { claimStepId: claim, supportStepIds: supports });
+  }
+  return { labels: [...labels.values()], links: [...links.values()] };
+}
+
 // C0/C1 controls and lone surrogates, which the Worker rejects.
 // oxlint-disable-next-line no-control-regex -- matching control characters is the point
 const CONTROL = /[\u0000-\u0008\u000E-\u001F\u007F-\u009F]|\p{Cs}/gu;

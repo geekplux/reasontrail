@@ -1,13 +1,17 @@
 // The reasontrail CLI (PLAN C1–C5, D26, D37): find a session, parse it locally, write one self-contained HTML file.
-// No network, no server, zero runtime dependencies.
+// No server, zero runtime dependencies, and no network unless the user passes --ai and confirms (X5).
 import { closeSync, mkdirSync, openSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { createInterface } from 'node:readline/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { ProviderError } from '../../shared/llm/types';
 import { normalizeSession } from '../../shared/session/adapter';
 import { buildGraph } from '../../shared/session/build/graph';
 import { attachRaw } from '../../shared/session/raw';
 import { redactGraph, redactSession, redactText } from '../../shared/session/redact';
+import { buildBatches } from '../../shared/session/structure';
+import { sendBatches, structureMessage, summarize } from '../../shared/structureClient';
 import { trimSession } from '../../shared/session/trim';
 import type { SessionGraph } from '../../shared/session/types';
 import type { ViewerPayload } from '../../src/map/loadGraph';
@@ -15,7 +19,7 @@ import { parseArgs } from './args';
 import { renderHtmlParts } from './html';
 import { installSkill } from './installSkill';
 import { listSessions, locate, readSession, type LocateContext } from './locate/index';
-import { EXIT, HELP, PKG_NAME, VERSION } from './meta';
+import { DEFAULT_AI_ENDPOINT, EXIT, HELP, PKG_NAME, VERSION } from './meta';
 import { openFile } from './open';
 
 export interface RunContext extends LocateContext {
@@ -26,12 +30,19 @@ export interface RunContext extends LocateContext {
   open?: (file: string) => boolean;
   /** Path of the running CLI (for install-skill); defaults to cli.mjs next to the template. */
   cli?: string;
+  /** `--ai`: the HTTP client (tests pass a fake or point --api at a local server). */
+  fetch?: typeof fetch;
+  /** `--ai`: whether a person can answer the confirmation; without one, --ai needs --yes. */
+  isTTY?: boolean;
+  /** `--ai`: asks a yes/no question on the terminal. */
+  confirm?: (question: string) => Promise<boolean>;
 }
 
 const safe = (id: string) => id.replace(/[^\w.-]/g, '-').slice(0, 80) || 'session';
 const kb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
-export function run(argv: readonly string[], ctx: RunContext): number {
+/** Exit code; a promise only with --ai, which waits for the confirmation and the endpoint. */
+export function run(argv: readonly string[], ctx: RunContext): number | Promise<number> {
   if (argv[0] === 'install-skill') return installSkill(argv.slice(1), { ...ctx, cli: ctx.cli ?? join(dirname(ctx.template), 'cli.mjs') });
   const opts = parseArgs(argv);
   if ('error' in opts) {
@@ -89,7 +100,57 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   }
 
   if (opts.json) return ctx.out(JSON.stringify(payload.graph)), EXIT.ok;
+  const write = (p: ViewerPayload, sent = false) => writeMap(p, sent, opts, ctx, ref);
+  if (!opts.ai) return write(payload);
+  // The batches come from a graph built on redacted text, so no secret is clipped before redaction (buildBatches).
+  const aiGraph = opts.share ? payload.graph : buildGraph(redactSession(session));
+  return addLabels(payload, aiGraph, opts, ctx).then((r) => (typeof r === 'number' ? r : write(r.payload, r.sent)));
+}
 
+/** Prints what --ai will send, asks (unless --yes), sends, and returns the payload with the overlay if it worked. */
+async function addLabels(
+  payload: ViewerPayload,
+  graph: SessionGraph,
+  opts: { api?: string; yes: boolean },
+  ctx: RunContext,
+): Promise<number | { payload: ViewerPayload; sent: boolean }> {
+  const endpoint = opts.api ?? DEFAULT_AI_ENDPOINT;
+  const batches = buildBatches(graph);
+  const s = summarize(batches, endpoint);
+  if (s.batches === 0) return ctx.err('AI labels: this session has no step text to send; the map is written without labels.'), { payload, sent: false };
+  ctx.err(`AI labels (--ai) will send ${s.steps} step summaries in ${s.batches} request${s.batches === 1 ? '' : 's'} (${s.characters} characters) to ${endpoint}.`);
+  ctx.err('Only redacted text is sent: secrets, emails and home paths are replaced, and each step becomes one line of at most 300 characters.');
+  ctx.err(s.caching);
+  ctx.err('Labels are a model\'s suggestions, shown as an overlay on the map that you can switch off.');
+  if (!opts.yes) {
+    if (!ctx.isTTY) return ctx.err(`${PKG_NAME}: --ai sends data, so it asks first; run it in a terminal or add --yes.`), EXIT.usage;
+    if (!(await (ctx.confirm ?? askTerminal)('Send them? [y/N] '))) return ctx.err('Nothing was sent; the map is written without labels.'), { payload, sent: false };
+  }
+  try {
+    const overlay = await sendBatches(endpoint, batches, {
+      ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
+      onProgress: (k, n) => n > 1 && ctx.err(`Sending batch ${k} of ${n}…`),
+    });
+    ctx.err(`AI labels: ${overlay.labels.length} labels and ${overlay.links.length} claim links, suggested by ${overlay.model}.`);
+    return { payload: { ...payload, labels: overlay }, sent: true };
+  } catch (e) {
+    const err = e instanceof ProviderError ? e : new ProviderError('upstream_error', String(e));
+    const why = err.code === 'unavailable' ? `${endpoint} could not be reached or has no AI labels; the map still works.` : structureMessage(err.code, err.retryAfterSec);
+    ctx.err(`No AI labels: ${why} The map is written without them.`);
+    return { payload, sent: true };
+  }
+}
+
+async function askTerminal(question: string): Promise<boolean> {
+  const rl = createInterface({ input: process.stdin, output: process.stderr });
+  try {
+    return /^y(es)?$/i.test((await rl.question(question)).trim());
+  } finally {
+    rl.close();
+  }
+}
+
+function writeMap(payload: ViewerPayload, sent: boolean, opts: { out?: string; share: boolean; open: boolean }, ctx: RunContext, ref: { id: string; source: string }): number {
   let template: string;
   try {
     template = readFileSync(ctx.template, 'utf8');
@@ -109,7 +170,7 @@ export function run(argv: readonly string[], ctx: RunContext): number {
     closeSync(fd);
   }
   ctx.out(file);
-  ctx.err(`Map: ${kb(parts.reduce((n, p) => n + Buffer.byteLength(p), 0))}, ${payload.graph.steps.length} steps. Generated on your machine; nothing was uploaded.`);
+  ctx.err(`Map: ${kb(parts.reduce((n, p) => n + Buffer.byteLength(p), 0))}, ${payload.graph.steps.length} steps. Generated on your machine; ${sent ? 'only the redacted step summaries above were sent' : 'nothing was uploaded'}.`);
   if (opts.open && (ctx.open ?? openFile)(file)) ctx.err('Opened in your browser.');
   else ctx.err(`Open it in a browser: ${pathToFileURL(file).href}`);
   return EXIT.ok;
@@ -124,7 +185,7 @@ function isEntry(): boolean {
 }
 
 if (isEntry()) {
-  process.exitCode = run(process.argv.slice(2), {
+  const code = run(process.argv.slice(2), {
     home: homedir(),
     cwd: process.cwd(),
     env: process.env,
@@ -132,5 +193,8 @@ if (isEntry()) {
     err: (l) => process.stderr.write(`${l}\n`),
     template: join(dirname(fileURLToPath(import.meta.url)), 'viewer.html'),
     cli: fileURLToPath(import.meta.url),
+    isTTY: Boolean(process.stdin.isTTY),
   });
+  if (typeof code === 'number') process.exitCode = code;
+  else void code.then((c) => (process.exitCode = c));
 }
