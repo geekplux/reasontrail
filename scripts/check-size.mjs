@@ -19,6 +19,34 @@ export function checkDependencies(deps = {}) {
   ];
 }
 
+/** Problems with the Worker bundle's imports: it must have no runtime dependencies, only relative modules (`import type` is fine). */
+export function checkWorkerImports(files) {
+  const problems = [];
+  for (const [file, src] of Object.entries(files)) {
+    for (const m of src.matchAll(/^\s*(import|export)(\s+type)?\b[^;]*?\bfrom\s+['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]/gm)) {
+      const spec = m[3] ?? m[4];
+      if (!m[2] && !spec.startsWith('.')) problems.push(`Worker runtime dependency in ${file}: ${spec}`);
+    }
+  }
+  return problems;
+}
+
+/** Source files the Worker bundles: worker/ and shared/, minus tests and fakes. */
+function workerSources(root) {
+  const out = {};
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name !== 'test') walk(path);
+      }
+      else if (/\.ts$/.test(entry.name) && !/\.test\.ts$/.test(entry.name)) out[path] = readFileSync(path, 'utf8');
+    }
+  };
+  for (const dir of ['worker', 'shared']) walk(join(root, dir));
+  return out;
+}
+
 /** Assets the first view loads, read from the built index.html: entry + modulepreload JS and stylesheets. */
 export function initialAssets(html) {
   const attr = (re) => [...html.matchAll(re)].map((m) => m[1].replace(/^\//, ''));
@@ -56,7 +84,14 @@ function main(argv) {
   };
   const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
   console.log(`initial JS ${kb(sizes.jsGzip)} gzip (${js.length} file(s)), CSS ${kb(sizes.cssGzip)} gzip, fonts ${kb(sizes.fontBytes)} in ${sizes.fontFiles} woff2 file(s)`);
-  const problems = [...(js.length ? [] : ['no entry script found in index.html']), ...checkDependencies(pkg.dependencies), ...checkBudgets(sizes)];
+  const workerFiles = workerSources(resolve('.'));
+  console.log(`Worker: ${Object.keys(workerFiles).length} source file(s) checked for runtime dependencies`);
+  const problems = [
+    ...(js.length ? [] : ['no entry script found in index.html']),
+    ...checkDependencies(pkg.dependencies),
+    ...checkBudgets(sizes),
+    ...checkWorkerImports(workerFiles),
+  ];
   if (problems.length) {
     console.error(`check:size FAILED:\n${problems.map((p) => `  - ${p}`).join('\n')}`);
     process.exitCode = 1;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RUNTIME_ALLOWLIST, checkBudgets, checkDependencies, initialAssets } from './check-size.mjs';
+import { RUNTIME_ALLOWLIST, checkBudgets, checkDependencies, checkWorkerImports, initialAssets } from './check-size.mjs';
 
 const allowed = Object.fromEntries(RUNTIME_ALLOWLIST.map((n) => [n, '*']));
 
@@ -20,5 +20,16 @@ describe('check-size', () => {
   it('flags every budget it exceeds', () => {
     expect(checkBudgets({ jsGzip: 1000, cssGzip: 1000, fontBytes: 1000, fontFiles: 2 })).toEqual([]);
     expect(checkBudgets({ jsGzip: 200_000, cssGzip: 20_000, fontBytes: 50_000, fontFiles: 3 })).toHaveLength(4);
+  });
+
+  it('allows only relative and type-only imports in the Worker', () => {
+    const ok = `import type { Env } from './env';\nimport { handle } from '../shared/llm/types';\nexport { x } from './x';`;
+    expect(checkWorkerImports({ 'worker/a.ts': ok })).toEqual([]);
+    const bad = `import { z } from 'zod';\nexport * from "hono";\nconst m = await import('itty-router');`;
+    expect(checkWorkerImports({ 'worker/b.ts': bad })).toEqual([
+      'Worker runtime dependency in worker/b.ts: zod',
+      'Worker runtime dependency in worker/b.ts: hono',
+      'Worker runtime dependency in worker/b.ts: itty-router',
+    ]);
   });
 });
