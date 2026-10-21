@@ -8,7 +8,7 @@ export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
 /** Documented exit codes (C2). */
 export const EXIT = { ok: 0, usage: 1, notFound: 2, unreadable: 3 } as const;
 
-export const HELP = `${PKG_NAME} ${VERSION}: see what your coding agent did.
+export const HELP = `${PKG_NAME} ${VERSION}: see how your coding agent reasoned and worked.
 
 Usage: npx ${PKG_NAME} [session] [options]
        npx ${PKG_NAME} install-skill [--target claude|grok|codex|all] [--dry-run] [--force]

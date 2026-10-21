@@ -83,9 +83,11 @@ export function installSkill(argv: readonly string[], ctx: InstallContext): numb
   let ok = true;
   if (want('claude')) ok = installInto('Claude Code', join(claudeSkills, PKG_NAME), files, o, ctx) && ok;
   if (want('grok')) {
-    if (existsSync(claudeSkills) || (want('claude') && ok)) ctx.out(`Grok Build: reads ${claudeSkills}, so nothing extra is needed.`);
+    // Grok scans ~/.claude/skills, so the Claude Code install serves it only once the skill is really there.
+    if (existsSync(join(claudeSkills, PKG_NAME, 'SKILL.md')) || (want('claude') && ok && !o.dryRun)) ctx.out(`Grok Build: reads ${claudeSkills}, so nothing extra is needed.`);
+    else if (want('claude') && ok) ctx.out(`Grok Build: would read ${claudeSkills}, so nothing extra would be needed.`);
     else ok = installInto('Grok Build', join(ctx.env.GROK_HOME || join(ctx.home, '.grok'), 'skills', PKG_NAME), files, o, ctx) && ok;
   }
-  if (want('codex')) ctx.out('Codex: not supported yet (coming in phase 18 of the roadmap).');
+  if (want('codex')) ctx.out('Codex: not supported yet; it is on the roadmap.');
   return ok ? 0 : 1;
 }

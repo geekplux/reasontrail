@@ -53,7 +53,7 @@ describe('run', () => {
     const bad = join(sb.root, 'notes.jsonl');
     writeFileSync(bad, '{"hello":"world"}\n');
     expect(run([bad, '--no-open'], sb.ctx())).toBe(EXIT.unreadable);
-    expect(sb.lines.err.at(-1)).toMatch(/doesn't look like a Claude Code, Codex or Grok Build session/);
+    expect(sb.lines.err.at(-1)).toMatch(/this doesn't look like a Claude Code session \(\.jsonl\)\. Codex and Grok Build sessions are not supported yet\./);
   });
 
   it('writes the HTML, always prints the session used, and never opens with --no-open', () => {

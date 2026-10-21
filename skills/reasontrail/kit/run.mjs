@@ -29,7 +29,7 @@ function resolveCli(env = process.env, kit = KIT) {
 
 const cli = resolveCli();
 if (!cli) {
-  process.stderr.write('reasontrail: the CLI was not found. Set REASONTRAIL_CLI to its cli.mjs, or run `pnpm build:cli` in the reasontrail repository (references/troubleshooting.md).\n');
+  process.stderr.write('reasontrail: the CLI was not found. In a clone of the repository, run `pnpm install && pnpm build:cli`, then `node cli/dist/cli.mjs install-skill`; or set REASONTRAIL_CLI to the path of cli.mjs. See references/troubleshooting.md.\n');
   process.exit(1);
 }
 const res = spawnSync(process.execPath, [cli, '--current', ...process.argv.slice(2)], { stdio: ['ignore', 'pipe', 'inherit'], encoding: 'utf8' });

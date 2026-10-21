@@ -56,7 +56,7 @@ export function run(argv: readonly string[], ctx: RunContext): number {
   } catch (e) {
     return ctx.err(`${PKG_NAME}: could not read ${ref.file}: ${e instanceof Error ? e.message : String(e)}`), EXIT.unreadable;
   }
-  if (!session) return ctx.err(`${PKG_NAME}: This doesn't look like a Claude Code, Codex or Grok Build session (.jsonl).`), EXIT.unreadable;
+  if (!session) return ctx.err(`${PKG_NAME}: this doesn't look like a Claude Code session (.jsonl). Codex and Grok Build sessions are not supported yet.`), EXIT.unreadable;
 
   const payload: ViewerPayload = { graph: buildGraph(session), meta: { version: VERSION } };
   if (opts.share) {

@@ -28,9 +28,9 @@ export function locate(opts: Options, ctx: LocateContext): Located {
     if (ref) return { ref, how: 'current (CLAUDE_CODE_SESSION_ID)' };
   }
   const latest = listForCwd(ctx)[0];
-  const why = !id ? 'newest for this folder (no current session id)' : `session ${id} not found; using the latest for this folder`;
+  const why = !id ? 'newest for this folder (no current session id)' : `session ${id} was not found; using the newest for this folder`;
   if (latest) return { ref: latest, how: opts.mode === 'current' ? why : 'newest for this folder' };
-  return { error: `No Claude Code session was found for ${ctx.cwd}.` };
+  return { error: `No Claude Code session was found for ${ctx.cwd}. Run it from the folder the session started in, or pass a session file.` };
 }
 
 export interface ListedSession extends SessionRef {

@@ -22,7 +22,7 @@ Nothing. The kit and the CLI make no network request, and the HTML file loads no
 
 ## Private map and shareable copy
 
-The default map is **private and unredacted**. It can show anything the session saw: file contents, command output, tokens pasted into the chat. Keep it on your machine.
+The default map is **private and unredacted**. It can show anything the session saw: file contents, command output, access tokens or passwords pasted into the chat. Keep it on your machine.
 
 `--share` writes a separate copy for other people. Before it writes, it replaces:
 

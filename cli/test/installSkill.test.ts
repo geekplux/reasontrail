@@ -28,8 +28,8 @@ describe('install-skill in a sandbox HOME', () => {
       `Claude Code: ${sb.skill}`,
       '  add  SKILL.md', '  add  kit/run.mjs', '  add  references/formats.md', '  add  references/privacy.md', '  add  references/troubleshooting.md', '  add  kit/cli.json', '  record  .reasontrail-install.json',
       'Claude Code: dry run, nothing written',
-      `Grok Build: reads ${join(sb.home, '.claude', 'skills')}, so nothing extra is needed.`,
-      'Codex: not supported yet (coming in phase 18 of the roadmap).',
+      `Grok Build: would read ${join(sb.home, '.claude', 'skills')}, so nothing extra would be needed.`,
+      'Codex: not supported yet; it is on the roadmap.',
     ]);
     expect(existsSync(join(sb.home, '.claude'))).toBe(false);
   });
@@ -70,13 +70,30 @@ describe('install-skill in a sandbox HOME', () => {
     expect(sb.run('--target', 'grok')).toBe(0);
     expect(existsSync(join(sb.home, '.grok', 'skills', 'reasontrail', 'SKILL.md'))).toBe(true);
     const sb2 = sandbox();
-    mkdirSync(join(sb2.home, '.claude', 'skills'), { recursive: true });
+    mkdirSync(join(sb2.home, '.claude', 'skills', 'reasontrail'), { recursive: true });
+    writeFileSync(join(sb2.home, '.claude', 'skills', 'reasontrail', 'SKILL.md'), SKILL_FILES['SKILL.md'] as string);
     expect(sb2.run('--target', 'grok')).toBe(0);
     expect(sb2.lines.out).toEqual([`Grok Build: reads ${join(sb2.home, '.claude', 'skills')}, so nothing extra is needed.`]);
     expect(existsSync(join(sb2.home, '.grok'))).toBe(false);
     const sb3 = sandbox();
     expect(sb3.run('--target', 'codex')).toBe(0);
-    expect(sb3.lines.out).toEqual(['Codex: not supported yet (coming in phase 18 of the roadmap).']);
+    expect(sb3.lines.out).toEqual(['Codex: not supported yet; it is on the roadmap.']);
     expect(sb3.run('--target', 'vscode')).toBe(1);
+  });
+
+  it('--target grok installs into ~/.grok when ~/.claude/skills exists without the reasontrail skill', () => {
+    const sb = sandbox({ GROK_HOME: '' });
+    mkdirSync(join(sb.home, '.claude', 'skills', 'other-skill'), { recursive: true });
+    expect(sb.run('--target', 'grok')).toBe(0);
+    expect(sb.lines.out[0]).toBe(`Grok Build: ${join(sb.home, '.grok', 'skills', 'reasontrail')}`);
+    expect(existsSync(join(sb.home, '.grok', 'skills', 'reasontrail', 'SKILL.md'))).toBe(true);
+    expect(existsSync(join(sb.home, '.claude', 'skills', 'reasontrail'))).toBe(false);
+  });
+
+  it('--target all after a real Claude Code install says Grok reads it', () => {
+    const sb = sandbox();
+    expect(sb.run()).toBe(0);
+    expect(sb.lines.out).toContain(`Grok Build: reads ${join(sb.home, '.claude', 'skills')}, so nothing extra is needed.`);
+    expect(existsSync(join(sb.home, '.grok'))).toBe(false);
   });
 });

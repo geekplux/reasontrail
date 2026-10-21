@@ -1,15 +1,18 @@
 // A sandboxed HOME with fixture sessions in a Claude Code store, for CLI tests. Never touches the real home.
-import { copyFileSync, cpSync, mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { onTestFinished } from 'vitest';
 import { encodeCwd } from '../src/locate/claudeCode';
 import type { RunContext } from '../src/main';
 
 export const FIXTURES = resolve(import.meta.dirname, '../../fixtures/sessions/claude-code');
 export const TEMPLATE = '<!doctype html><title>__REASONTRAIL_TITLE__</title><script id="reasontrail-data" type="application/json">__REASONTRAIL_DATA__</script>';
 
+/** Call inside a test: the sandbox is removed when that test finishes, pass or fail. */
 export function sandbox() {
   const root = mkdtempSync(join(tmpdir(), 'reasontrail-test-'));
+  onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const home = join(root, 'home');
   const cwd = join(root, 'work', 'notes-app');
   const store = join(home, '.claude', 'projects', encodeCwd(cwd));
