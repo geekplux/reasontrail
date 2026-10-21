@@ -6,7 +6,8 @@
 // Two extra, deterministic scrubs on top of the CLI's redaction: an entry's `hide` map replaces the text of the
 // listed steps (ids after trimming) with a short note, and every term of the local, gitignored `.redact-denylist`
 // (the same file `pnpm audit:samples` checks) is replaced with "[private]" in every string of the graph. Last, the
-// global `rewrite` rules of tools/session-samples.json (names, house-rule sentences) apply to every string.
+// global `rewrite` rules of tools/session-samples.json (names, house-rule sentences) apply to every string. An entry's
+// optional `displayTitle` is copied to the graph as is (the showcase heading; the raw first request is kept).
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -163,6 +164,7 @@ function main() {
     }
     const json = execFileSync(process.execPath, [CLI, file, '--share', '--json', '--trim', entry.steps], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
     const graph = rewrite(scrub(hideSteps(JSON.parse(json), entry.hide), terms), rules);
+    if (entry.displayTitle) graph.displayTitle = entry.displayTitle;
     graph.expect = expectFor(graph);
     const cap = fitRaw(graph);
     const text = `${JSON.stringify(graph)}\n`;

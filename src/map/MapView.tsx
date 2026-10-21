@@ -173,7 +173,7 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
     <div ref={root} className={target ? 'map has-panel' : 'map'} data-testid="map" data-view="map" data-ready="true">
       <div className="map-body">
       <div className="trailhead">
-        <TaskCard g={g} sample={sample} />
+        <TaskCard g={g} sample={sample} title={sample ? g.displayTitle : undefined} />
         <GlanceRows g={g} />
       </div>
       <section className="region route-band" data-region="route" aria-labelledby="h-route">
@@ -191,7 +191,7 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
           ) : (
             <RouteView
               L={L}
-              title={g.title}
+              title={g.displayTitle ?? g.title}
               vertical={vertical}
               expanded={expanded}
               unfolded={unfolded}

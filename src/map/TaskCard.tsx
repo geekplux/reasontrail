@@ -7,8 +7,9 @@ import { HonestyLabel } from './HonestyLabel';
 import { selectOnClick, useSelector } from './SelectContext';
 import { REQUEST_MAX, glance, parseNotes, skippedWhere, taskCard } from './outline';
 
-/** The first request in serif: at most 280 chars and 2 lines until "more" (M1a, DM5). */
-function Request({ text }: { text: string }) {
+/** The first request in serif: at most 280 chars and 2 lines until "more" (M1a, DM5). With an authored `title`
+ * (website samples), the title is shown instead and "more" adds the raw first request below it. */
+function Request({ text, title }: { text: string; title?: string | undefined }) {
   const [more, setMore] = useState(false);
   const [clamped, setClamped] = useState(false);
   const ref = useRef<HTMLParagraphElement>(null);
@@ -30,27 +31,32 @@ function Request({ text }: { text: string }) {
     };
   }, [more]);
   const long = text.length > REQUEST_MAX;
+  const shown = title ?? (long && !more ? `${text.slice(0, REQUEST_MAX - 1)}…` : text);
   return (
-    <div className="task-request">
-      <p ref={ref} className={more ? 'task-title' : 'task-title is-clamped'}>
-        {long && !more ? `${text.slice(0, REQUEST_MAX - 1)}…` : text}
-      </p>
-      {(long || clamped || more) && (
-        <button type="button" className="link-button" aria-expanded={more} onClick={() => setMore(!more)}>
-          {more ? 'less' : 'more'}
-        </button>
-      )}
-    </div>
+    <>
+      <div className="task-request">
+        <p ref={ref} className={more ? 'task-title' : 'task-title is-clamped'}>{shown}</p>
+        {(title !== undefined || long || clamped || more) && (
+          <button type="button" className="link-button" aria-expanded={more} onClick={() => setMore(!more)}>
+            {more ? 'less' : 'more'}
+          </button>
+        )}
+      </div>
+      {title !== undefined && more && <p className="task-raw"><span className="sub-label">First request</span>{text}</p>}
+    </>
   );
 }
 
-export function TaskCard({ g, sample = false }: { g: SessionGraph; sample?: boolean }) {
+/** `title`: the sample's authored heading (the showcase map), shown in place of the first request until "more". */
+export function TaskCard({ g, sample = false, title }: { g: SessionGraph; sample?: boolean; title?: string | undefined }) {
   const card = taskCard(g);
   const where = skippedWhere(g);
   return (
     <section className="region task-card" data-region="task" aria-labelledby="h-task">
-      <h2 id="h-task" className="section-label">Task <span>· {card.label}{sample ? ' · sample' : ''}</span></h2>
-      <Request text={card.request.replace(/\*\*|`/g, '')} />
+      <h2 id="h-task" className="section-label task-label">
+        Task <span>· {card.source}{card.model && <span className="task-model"> · {card.model}</span>}{sample ? ' · sample' : ''}</span>
+      </h2>
+      <Request text={card.request.replace(/\*\*|`/g, '')} title={title} />
       <p className="mono muted task-meta">{card.meta.map((m) => <span key={m} className={/ wall$|^\d+ thinking/.test(m) ? 'meta-extra' : undefined}>{m}</span>)}</p>
       {parseNotes(g).map((n) => (
         <p key={n} className="note"><InfoGlyph /><span>{n}</span></p>

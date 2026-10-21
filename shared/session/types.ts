@@ -190,6 +190,9 @@ export interface SessionGraph {
   trouble: Trouble[];
   outcome: Outcome;
   stats: SessionStats;
+  /** Samples only: a short authored title (tools/session-samples.json) for the showcase heading; the raw first request
+   * stays in the task card's "more" and in the outline. */
+  displayTitle?: string;
   /** Samples only (M2). */
   expect?: { task: string; files: string[]; trouble: number; final: 'ok' | 'error' | 'unknown' };
 }

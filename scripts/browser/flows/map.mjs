@@ -27,7 +27,9 @@ async function checkGlance(page, g, label, fail, log) {
   if (Object.keys(regions).join() !== 'task,glance,route,trouble,outcome') fail(`${label}: regions ${Object.keys(regions)}`);
   const x = g.expect;
   // M1a / M5 / M6
-  if (x && !plain(regions.task).includes(plain(x.task))) fail(`${label}: task card lacks "${x.task}"`);
+  // A website sample shows its authored title; the raw first request (expect.task) is behind "more".
+  const task = g.displayTitle ?? x?.task;
+  if (task && !plain(regions.task).includes(plain(task))) fail(`${label}: task card lacks "${task}"`);
   if (!regions.task?.includes(HONESTY) || !(await page.locator('[data-region="task"] [data-honesty] a', { hasText: 'How to read this map' }).isVisible())) fail(`${label}: honesty label`);
   if (!/\d+ tool calls?/.test(regions.task ?? '')) fail(`${label}: no tool-call count`);
   const unstored = g.steps.filter((s) => s.kind === 'thinking' && (s.textStored === false || !s.text?.trim())).length;

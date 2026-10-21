@@ -16,7 +16,7 @@ describe('session samples', () => {
   it('lists 3–5 samples, one file each, in the order and with the titles of tools/session-samples.json', () => {
     expect(config.samples.length).toBeGreaterThanOrEqual(3);
     expect(config.samples.length).toBeLessThanOrEqual(5);
-    expect(sessionSamples.map((s) => [s.id, s.title])).toEqual(config.samples.map((s) => [s.id, s.title]));
+    expect(sessionSamples.map((s) => [s.id, s.title, s.displayTitle])).toEqual(config.samples.map((s) => [s.id, s.title, s.displayTitle]));
     expect(files).toEqual(config.samples.map((s) => `${s.id}.graph.json`).sort());
   });
 
@@ -27,6 +27,7 @@ describe('session samples', () => {
     expect(g.steps.length).toBeLessThanOrEqual(400);
     expect(g.trouble.length > 0 || g.lanes.some((l) => laneStatus(g, l).status === 'error')).toBe(true);
     expect(g.expect).toBeDefined();
+    expect(g.displayTitle).toBe(config.samples.find((s) => `${s.id}.graph.json` === name)?.displayTitle);
     expect(loadGraph(JSON.stringify({ graph: g, meta: { version: '0.0.0' } })).ok).toBe(true);
   });
 
@@ -47,6 +48,7 @@ describe('session samples', () => {
     g.steps[1]!.laneId = 'nowhere';
     g.edges.push({ from: 's5', to: 's2', kind: 'next' });
     if (g.expect) g.expect.trouble += 1;
-    expect(validateSessionGraph(g)).toEqual(expect.arrayContaining(['s1: unknown lane nowhere', 'edge s5->s2 next', 'expect.trouble differs from trouble.length']));
+    g.displayTitle = 'x'.repeat(65);
+    expect(validateSessionGraph(g)).toEqual(expect.arrayContaining(['s1: unknown lane nowhere', 'edge s5->s2 next', 'expect.trouble differs from trouble.length', 'displayTitle empty or too long']));
   });
 });

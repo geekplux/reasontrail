@@ -10,15 +10,15 @@ afterEach(() => {
 });
 
 const clipboard = (writeText: () => Promise<void>) => Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
-/** Lets the clipboard promise settle and the next frame run. */
+/** Lets the clipboard promise settle and the delayed announcement land. */
 const flush = () => act(async () => {
   await Promise.resolve();
-  vi.advanceTimersByTime(20);
+  vi.advanceTimersByTime(120);
 });
 
 describe('CommandLine copy feedback', () => {
   it('says "Copied" in a visible status, again on a repeat, and clears it after a while', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     clipboard(() => Promise.resolve());
     render(<CommandLine command="npx reasontrail" label="the map command" />);
     const status = screen.getByRole('status');
@@ -28,7 +28,9 @@ describe('CommandLine copy feedback', () => {
     expect(status.textContent).toBe('Copied');
     fireEvent.click(screen.getByRole('button', { name: 'Copy the map command' }));
     await act(async () => Promise.resolve());
-    expect(status.textContent).toBe(''); // cleared first, so the repeat is announced
+    expect(status.textContent).toBe(''); // emptied first, so the repeat is announced
+    act(() => vi.advanceTimersByTime(50));
+    expect(status.textContent).toBe(''); // still empty until the 100 ms delay
     await flush();
     expect(status.textContent).toBe('Copied');
     act(() => vi.advanceTimersByTime(2600));
@@ -36,7 +38,7 @@ describe('CommandLine copy feedback', () => {
   });
 
   it('selects the command when the clipboard refuses', async () => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'requestAnimationFrame', 'cancelAnimationFrame'] });
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     clipboard(() => Promise.reject(new Error('denied')));
     render(<CommandLine command="npx reasontrail --list" />);
     fireEvent.click(screen.getByRole('button', { name: 'Copy command' }));

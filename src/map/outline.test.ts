@@ -23,7 +23,7 @@ describe('outline model', () => {
 
   it('builds the task card from the first request, omitting zero counts', () => {
     const g = graph([step('s0', 'user', { text: 'Fix the slug', t: '2026-10-01T10:00:00Z' }), step('s1', 'thinking', { textStored: false, t: '2026-10-01T10:00:30Z' }), step('s2', 'tool-call', { tool: { name: 'Read', category: 'read', summary: 'Read a.ts', files: [] } })]);
-    expect(taskCard(g)).toEqual({ label: 'Claude Code · model-a', request: 'Fix the slug', meta: ['30 s active', '1 tool call', '1 thinking (text not stored)'] });
+    expect(taskCard(g)).toEqual({ source: 'Claude Code', model: 'model-a', request: 'Fix the slug', meta: ['30 s active', '1 tool call', '1 thinking (text not stored)'] });
   });
 
   it('says plainly when nothing was verified, changed or went wrong', () => {

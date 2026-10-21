@@ -56,7 +56,7 @@ export function SiteShell({ children, onFile, home, view }: { children: ReactNod
       <header className="site-header showcase-header">
         {home ? <Wordmark /> : <a className="brand" href="./" aria-label="Reasontrail home"><Wordmark /></a>}
         <nav className="site-nav" aria-label="Site">
-          <a className="header-link" href="?view=install">Install</a>
+          <a className="header-link" href="?view=install" aria-current={view === 'install' ? 'page' : undefined}>Install</a>
         </nav>
         <a className="button primary" href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
       </header>

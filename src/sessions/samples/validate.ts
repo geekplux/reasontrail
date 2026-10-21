@@ -6,6 +6,8 @@ const EDGE_KINDS = new Set(['next', 'result-of', 'spawned', 'retry-of', 'reverts
 const EPISODE_KINDS = new Set(['explore', 'change', 'verify', 'delegate', 'answer', 'discuss']);
 const TROUBLE_KINDS = new Set(['error-streak', 'retry', 'revert', 'rewind', 'interrupt', 'churn']);
 const FINALS = new Set(['ok', 'error', 'unknown']);
+/** An authored sample title fits one line of the showcase task card. */
+export const DISPLAY_TITLE_MAX = 64;
 
 export function validateSessionGraph(g: SessionGraph): string[] {
   const out: string[] = [];
@@ -13,6 +15,7 @@ export function validateSessionGraph(g: SessionGraph): string[] {
   if (g.schemaVersion !== SCHEMA_VERSION) bad(`schemaVersion ${String(g.schemaVersion)}`);
   if (!g.source?.kind || typeof g.source.sessionId !== 'string') bad('source.kind/sessionId missing');
   if (typeof g.title !== 'string' || !g.title) bad('title missing');
+  if (g.displayTitle !== undefined && (typeof g.displayTitle !== 'string' || !g.displayTitle.trim() || g.displayTitle.length > DISPLAY_TITLE_MAX)) bad('displayTitle empty or too long');
   const lanes = new Set(g.lanes.map((l) => l.id));
   if (g.lanes[0]?.id !== 'main') bad('first lane is not main');
   const steps = new Set<string>();

@@ -46,12 +46,11 @@ export function isUnstoredThinking(s: Step): boolean {
   return s.kind === 'thinking' && (s.textStored === false || !s.text?.trim());
 }
 
-/** The trailhead card: label (after "Task · "), the first user request and the meta row (zero counts omitted). */
+/** The trailhead card: source and model (after "Task · "), the first user request and the meta row (zero counts omitted). */
 export function taskCard(g: SessionGraph) {
   const main = g.lanes[0]?.id ?? 'main';
   const request = g.steps.find((s) => s.laneId === main && s.kind === 'user' && s.text?.trim())?.text?.trim() || g.title;
   // Set in capitals by CSS ("TASK · CLAUDE CODE · <MODEL>"); the DOM keeps normal case for screen readers.
-  const label = [SOURCE_LABEL[g.source.kind], g.source.model].filter(Boolean).join(' · ');
   const meta: string[] = [];
   const tm = times(g.steps);
   if (tm && tm.wall - tm.active > IDLE_MS) meta.push(`${duration(tm.wall)} wall`);
@@ -61,7 +60,7 @@ export function taskCard(g: SessionGraph) {
   count(g.lanes.length - 1, 'subagent');
   const unstored = g.steps.filter(isUnstoredThinking).length;
   if (unstored > 0) meta.push(`${unstored} thinking (text not stored)`);
-  return { label, request, meta };
+  return { source: SOURCE_LABEL[g.source.kind], model: g.source.model, request, meta };
 }
 
 export type GlanceStatus = 'ok' | 'error' | 'unknown';

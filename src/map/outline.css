@@ -13,6 +13,8 @@
 .task-title.is-clamped { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .task-request { margin-bottom: var(--tg-space-2); }
 .task-request .task-title { margin: 0; }
+.task-raw { margin: var(--tg-space-2) 0 var(--tg-space-3); max-width: 72ch; white-space: pre-line; overflow-wrap: anywhere; }
+.task-raw .sub-label { margin-bottom: var(--tg-space-1); }
 .task-meta { margin: 0 0 var(--tg-space-3); }
 .task-meta span + span::before { content: ' · '; }
 .link-button { min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: 400 var(--tg-text-sm) var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
@@ -78,6 +80,11 @@
 .files .edits { white-space: nowrap; }
 .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; font-size: 13.5px; }
 code.mono { overflow-wrap: anywhere; }
+
+/* Below 480 px the model name is dropped so the label stays one line and "Task" never sits alone (DESIGN §9.2). */
+@media (max-width: 479px) {
+  .task-label .task-model { display: none; }
+}
 
 @media (max-width: 767px) {
   .task-title { font-size: 25px; }

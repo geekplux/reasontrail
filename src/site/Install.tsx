@@ -1,6 +1,7 @@
 // Install (DESIGN §13.3, PLAN phase 19 AC2): the skill one-liner and the CLI. Every command comes from
 // shared/commands.ts, which the CLI's --help and the skill installer also use; the site flow runs each one.
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { COMMANDS, SKILL_CALL, SKILL_HOMES } from '../../shared/commands';
 
 const SAID_MS = 2500;
@@ -11,20 +12,15 @@ export function CommandLine({ command, label }: { command: string; label?: strin
   const [said, setSaid] = useState('');
   const code = useRef<HTMLElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const frame = useRef(0);
-  useEffect(() => () => {
-    cancelAnimationFrame(frame.current);
-    clearTimeout(timer.current);
-  }, []);
-  // Cleared first, then set on the next frame, so a second copy is announced again.
+  useEffect(() => () => clearTimeout(timer.current), []);
+  // Emptied synchronously, then set 100 ms later, so a second copy is announced again whatever the timing.
   const say = (text: string) => {
     clearTimeout(timer.current);
-    cancelAnimationFrame(frame.current);
-    setSaid('');
-    frame.current = requestAnimationFrame(() => {
+    flushSync(() => setSaid(''));
+    timer.current = setTimeout(() => {
       setSaid(text);
       timer.current = setTimeout(() => setSaid(''), SAID_MS);
-    });
+    }, 100);
   };
   const selectCommand = () => {
     const el = code.current;

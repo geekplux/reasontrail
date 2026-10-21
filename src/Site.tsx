@@ -29,12 +29,16 @@ export function Site() {
   const [file, setFile] = useState<File | null>(null);
   const state = readSiteState(search);
   // A link or a dropped file changed the view: focus its heading once it is drawn (the drop zone is lazy, so it asks
-  // again when it mounts). The gallery, the view switch and Back keep focus where it is.
+  // again when it mounts). The gallery and the view switch keep focus where it is; Back and Forward too, unless the
+  // focused element went away with the old view (focus fell to <body>).
   const navigated = useRef(false);
+  const popped = useRef(false);
   const focusTitle = useCallback(() => {
-    const h1 = navigated.current ? document.querySelector<HTMLElement>('main h1') : null;
+    const lost = popped.current && (!document.activeElement || document.activeElement === document.body);
+    const h1 = navigated.current || lost ? document.querySelector<HTMLElement>('main h1') : null;
     if (!h1) return;
     navigated.current = false;
+    popped.current = false;
     h1.focus();
   }, []);
   useEffect(focusTitle, [search, focusTitle]);
@@ -43,7 +47,10 @@ export function Site() {
     if (!state.garden && state.view !== 'open') document.title = state.view === 'install' ? pageTitle('Install') : HOME_TITLE;
   }, [state.garden, state.view]);
   useEffect(() => {
-    const sync = () => setSearch(window.location.search);
+    const sync = () => {
+      popped.current = true;
+      setSearch(window.location.search);
+    };
     window.addEventListener('popstate', sync);
     return () => window.removeEventListener('popstate', sync);
   }, []);

@@ -1,5 +1,5 @@
 {
-  "//": "Real sessions of the agents that built Reasontrail, trimmed and redacted by `pnpm samples:sessions` (PLAN phase 15, D28). Local ids only; the files live under ~/.claude/projects/<project>/ on the machine that built the app. `steps` is a range of step numbers of the untrimmed map, inclusive (CLI --trim). The first entry is the default sample. `rewrite` applies to every sample, after redaction: each name becomes its replacement (word boundary, so possessives follow), and every sentence or line containing an `omitSentencesWith` term becomes `omission`.",
+  "//": "Real sessions of the agents that built Reasontrail, trimmed and redacted by `pnpm samples:sessions` (PLAN phase 15, D28). Local ids only; the files live under ~/.claude/projects/<project>/ on the machine that built the app. `steps` is a range of step numbers of the untrimmed map, inclusive (CLI --trim). The first entry is the default sample. `displayTitle` (optional, ≤ 64 characters) is the showcase heading; the raw first request stays in the task card's \"more\" and the outline. `rewrite` applies to every sample, after redaction: each name becomes its replacement (word boundary, so possessives follow), and every sentence or line containing an `omitSentencesWith` term becomes `omission`.",
   "rewrite": {
     "names": {
       "Sean": "the maintainer"
@@ -14,6 +14,7 @@
     {
       "id": "implementer-checks",
       "title": "An implementer builds keyboard navigation, fails lint and typecheck, then fixes both",
+      "displayTitle": "Build keyboard navigation and a screen-reader table (phase 5)",
       "source": "claude-code",
       "project": "-workspace-gx-projects-token-garden",
       "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
@@ -24,6 +25,7 @@
     {
       "id": "verify-fail-fix",
       "title": "A verifier fails phase 12, an implementer fixes it, a second verifier passes",
+      "displayTitle": "Verify phase 12, fix the audit gap, re-verify",
       "source": "claude-code",
       "project": "-workspace-gx-projects-token-garden",
       "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
@@ -37,6 +39,7 @@
     {
       "id": "planner-pivot",
       "title": "The main agent takes a change request and has the planner rewrite the plan",
+      "displayTitle": "Plan the reasoning-map pivot",
       "source": "claude-code",
       "project": "-workspace-gx-projects-token-garden",
       "session": "9c552da7-7c65-41ef-b9b5-5a0edba645d7",
