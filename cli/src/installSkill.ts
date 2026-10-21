@@ -10,6 +10,8 @@ const BUNDLED = import.meta.glob(['../../skills/reasontrail/SKILL.md', '../../sk
   query: '?raw', import: 'default', eager: true,
 }) as Record<string, string>;
 export const SKILL_FILES: Record<string, string> = Object.fromEntries(Object.entries(BUNDLED).map(([k, v]) => [k.replace('../../skills/reasontrail/', ''), v]).sort());
+/** Codex reads `agents/openai.yaml` (display name, short description) next to SKILL.md. */
+const CODEX_FILES = import.meta.glob('../../skills/reasontrail/agents/openai.yaml', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
 /** Written last; holds a hash of each file as installed, so a later run can tell a user's edit from an old version. */
 export const MANIFEST = '.reasontrail-install.json';
@@ -64,7 +66,7 @@ function installInto(label: string, dir: string, files: Record<string, string>, 
   }
   const hashes = Object.fromEntries(Object.entries(files).map(([rel, text]) => [rel, sha(text)]));
   writeFileSync(join(dir, MANIFEST), `${JSON.stringify({ version: VERSION, files: hashes }, null, 2)}\n`);
-  ctx.out(`${label}: installed. Restart the agent, then ask it to "map this session" or type /${PKG_NAME}.`);
+  ctx.out(`${label}: installed. Restart the agent, then ask it to "map this session" or type ${label === 'Codex' ? '$' : '/'}${PKG_NAME}.`);
   return true;
 }
 
@@ -88,6 +90,10 @@ export function installSkill(argv: readonly string[], ctx: InstallContext): numb
     else if (want('claude') && ok) ctx.out(`Grok Build: would read ${claudeSkills}, so nothing extra would be needed.`);
     else ok = installInto('Grok Build', join(ctx.env.GROK_HOME || join(ctx.home, '.grok'), 'skills', PKG_NAME), files, o, ctx) && ok;
   }
-  if (want('codex')) ctx.out('Codex: not supported yet; it is on the roadmap.');
+  if (want('codex')) {
+    // Codex loads user skills from $HOME/.agents/skills (Agent Skills format; see docs/DECISIONS.md, phase 18).
+    const extra = Object.fromEntries(Object.entries(CODEX_FILES).map(([k, v]) => [k.replace('../../skills/reasontrail/', ''), v]));
+    ok = installInto('Codex', join(ctx.home, '.agents', 'skills', PKG_NAME), { ...files, ...extra }, o, ctx) && ok;
+  }
   return ok ? 0 : 1;
 }

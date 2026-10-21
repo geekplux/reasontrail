@@ -29,9 +29,12 @@ describe('install-skill in a sandbox HOME', () => {
       '  add  SKILL.md', '  add  kit/run.mjs', '  add  references/formats.md', '  add  references/privacy.md', '  add  references/troubleshooting.md', '  add  kit/cli.json', '  record  .reasontrail-install.json',
       'Claude Code: dry run, nothing written',
       `Grok Build: would read ${join(sb.home, '.claude', 'skills')}, so nothing extra would be needed.`,
-      'Codex: not supported yet; it is on the roadmap.',
+      `Codex: ${join(sb.home, '.agents', 'skills', 'reasontrail')}`,
+      '  add  SKILL.md', '  add  kit/run.mjs', '  add  references/formats.md', '  add  references/privacy.md', '  add  references/troubleshooting.md', '  add  kit/cli.json', '  add  agents/openai.yaml', '  record  .reasontrail-install.json',
+      'Codex: dry run, nothing written',
     ]);
     expect(existsSync(join(sb.home, '.claude'))).toBe(false);
+    expect(existsSync(join(sb.home, '.agents'))).toBe(false);
   });
 
   it('installs, then reports unchanged, and keeps a changed file unless --force', () => {
@@ -65,7 +68,7 @@ describe('install-skill in a sandbox HOME', () => {
     expect(planInstall(sb.skill, SKILL_FILES).find(([rel]) => rel === 'SKILL.md')?.[1]).toBe('update');
   });
 
-  it('grok installs into GROK_HOME only when ~/.claude/skills is absent; codex is not yet supported', () => {
+  it('grok installs into GROK_HOME only when ~/.claude/skills is absent; codex installs into ~/.agents/skills', () => {
     const sb = sandbox({ GROK_HOME: '' });
     expect(sb.run('--target', 'grok')).toBe(0);
     expect(existsSync(join(sb.home, '.grok', 'skills', 'reasontrail', 'SKILL.md'))).toBe(true);
@@ -77,7 +80,11 @@ describe('install-skill in a sandbox HOME', () => {
     expect(existsSync(join(sb2.home, '.grok'))).toBe(false);
     const sb3 = sandbox();
     expect(sb3.run('--target', 'codex')).toBe(0);
-    expect(sb3.lines.out).toEqual(['Codex: not supported yet; it is on the roadmap.']);
+    const codex = join(sb3.home, '.agents', 'skills', 'reasontrail');
+    expect(readFileSync(join(codex, 'SKILL.md'), 'utf8')).toBe(SKILL_FILES['SKILL.md']);
+    expect(readFileSync(join(codex, 'agents', 'openai.yaml'), 'utf8')).toMatch(/display_name: "Reasontrail"/);
+    expect(sb3.lines.out.at(-1)).toBe('Codex: installed. Restart the agent, then ask it to "map this session" or type $reasontrail.');
+    expect(existsSync(join(sb3.home, '.codex'))).toBe(false);
     expect(sb3.run('--target', 'vscode')).toBe(1);
   });
 

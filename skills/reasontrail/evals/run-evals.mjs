@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // Scripted evals for the reasontrail skill (`pnpm skill:evals`): runs kit/run.mjs once per case in cases.json, each in
 // a fresh sandbox (HOME, TMPDIR and project folder under the system temp folder), with fixture sessions, --no-open,
-// a clean environment (the real CLAUDE_CODE_SESSION_ID never leaks in) and the network blocked.
+// a clean environment (the real CLAUDE_CODE_SESSION_ID, GROK_SESSION_ID or CODEX_THREAD_ID never leaks in) and the
+// network blocked. Sessions come from the Claude Code, Grok Build (`"source": "grok"`) or Codex (`"source": "codex"`)
+// fixtures.
 // Usage: node run-evals.mjs [--keep] [case-id ...]   (--keep leaves the sandboxes and prints where they are)
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -13,6 +15,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const SKILL = resolve(HERE, '..');
 const REPO = resolve(SKILL, '../..');
 const FIXTURES = join(REPO, 'fixtures/sessions/claude-code');
+const GROK = join(REPO, 'fixtures/sessions/grok-build/notes');
+const CODEX = join(REPO, 'fixtures/sessions/codex');
+/** Grok's folder name for a cwd: percent-encoded except letters, digits and -_.~ */
+const grokCwd = (cwd) => encodeURIComponent(cwd).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 export const CLI = process.env.REASONTRAIL_CLI || join(REPO, 'cli/dist/cli.mjs');
 export const CASES = JSON.parse(readFileSync(join(HERE, 'cases.json'), 'utf8')).cases;
 
@@ -25,6 +31,23 @@ export function runCase(c, { keep = false } = {}) {
   const store = join(home, '.claude', 'projects', cwd.replace(/[^A-Za-z0-9]/g, '-'));
   for (const d of [store, cwd, tmp]) mkdirSync(d, { recursive: true });
   for (const s of c.sessions ?? []) {
+    if (s.source === 'grok') {
+      // The fixture's session folders (main + subagent child); the main session was last active at `mtime`.
+      const dir = join(home, '.grok', 'sessions', grokCwd(cwd));
+      cpSync(GROK, dir, { recursive: true });
+      const summary = join(dir, s.id, 'summary.json');
+      writeFileSync(summary, readFileSync(summary, 'utf8').replace(/"last_active_at": "[^"]+"/, `"last_active_at": "${new Date(s.mtime * 1000).toISOString()}"`));
+      continue;
+    }
+    if (s.source === 'codex') {
+      // The fixture rollout, moved to this sandbox's project folder.
+      const name = readdirSync(CODEX).find((n) => n.endsWith(`${s.id}.jsonl`));
+      const dir = join(home, '.codex', 'sessions', '2026', '10', '16');
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, name), readFileSync(join(CODEX, name), 'utf8').replaceAll('"/work/notes-app"', JSON.stringify(cwd)));
+      utimesSync(join(dir, name), s.mtime, s.mtime);
+      continue;
+    }
     const file = join(store, `${s.id}.jsonl`);
     copyFileSync(join(FIXTURES, `${s.fixture}.jsonl`), file);
     if (existsSync(join(FIXTURES, s.fixture))) cpSync(join(FIXTURES, s.fixture), join(store, s.id), { recursive: true });
@@ -39,6 +62,7 @@ export function runCase(c, { keep = false } = {}) {
     REASONTRAIL_CLI: CLI,
     NODE_OPTIONS: `--import=${pathToFileURL(join(HERE, 'no-network.mjs')).href}`,
     ...(c.current ? { CLAUDE_CODE_SESSION_ID: c.current } : {}),
+    ...c.env,
   };
   const res = spawnSync(process.execPath, [join(SKILL, 'kit/run.mjs'), '--no-open', ...(c.args ?? [])], { cwd, env, encoding: 'utf8', timeout: 30_000 });
   const problems = [];
@@ -48,7 +72,7 @@ export function runCase(c, { keep = false } = {}) {
   if (res.status !== e.exit) problems.push(`exit ${res.status}, expected ${e.exit}`);
   if (res.stderr.includes('NETWORK BLOCKED')) problems.push('attempted a network request');
   for (const s of e.stderr ?? []) if (!res.stderr.includes(s)) problems.push(`stderr lacks "${s}"`);
-  if (e.mapped && !res.stderr.includes(`${e.mapped}.jsonl (`)) problems.push(`did not map session ${e.mapped}`);
+  if (e.mapped && !res.stderr.includes(`${e.mapped}.jsonl (`) && !res.stderr.includes(`${e.mapped}/updates.jsonl (`)) problems.push(`did not map session ${e.mapped}`);
   if (e.exit !== 0) {
     if (lines.length) problems.push(`stdout should be empty, got: ${lines.join(' | ')}`);
   } else if (lines.length !== 1 || !/^MAP: \S/.test(lines[0])) {

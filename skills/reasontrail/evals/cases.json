@@ -1,5 +1,5 @@
 {
-  "//": "Sandbox runs of kit/run.mjs: each case gets its own HOME, TMPDIR and project folder, fixture sessions from fixtures/sessions/claude-code, --no-open, and no network. `current` becomes CLAUDE_CODE_SESSION_ID in the run's clean environment.",
+  "//": "Sandbox runs of kit/run.mjs: each case gets its own HOME, TMPDIR and project folder, fixture sessions from fixtures/sessions/{claude-code,grok-build,codex} (by `source`), --no-open, and no network. `current` becomes CLAUDE_CODE_SESSION_ID and `env` is added to the run's clean environment.",
   "cases": [
     { "id": "current-env", "about": "the current session comes from CLAUDE_CODE_SESSION_ID",
       "sessions": [{ "fixture": "basic", "id": "s-current", "mtime": 1000 }],
@@ -18,11 +18,11 @@
       "expect": { "exit": 0, "mapped": "s-only", "stderr": ["session s-missing was not found; using the newest for this folder"] } },
     { "id": "no-session", "about": "an empty store: exit 2 and no MAP line",
       "sessions": [],
-      "expect": { "exit": 2, "stderr": ["No Claude Code session was found"] } },
+      "expect": { "exit": 2, "stderr": ["No Claude Code, Grok Build or Codex session was found"] } },
     { "id": "malformed", "about": "a file that is not a transcript: exit 3 and no MAP line",
       "write": [{ "id": "s-broken", "text": "this is not json\n{\"half\": \n" }],
       "current": "s-broken",
-      "expect": { "exit": 3, "stderr": ["this doesn't look like a Claude Code session"] } },
+      "expect": { "exit": 3, "stderr": ["this doesn't look like a Claude Code, Grok Build or Codex session"] } },
     { "id": "share", "about": "--share writes a redacted copy into the project folder",
       "sessions": [{ "fixture": "basic", "id": "s-share", "mtime": 1000 }],
       "current": "s-share", "args": ["--share"],
@@ -35,6 +35,19 @@
     { "id": "subagent", "about": "a session with a subagent transcript and its .meta.json",
       "sessions": [{ "fixture": "subagent", "id": "s-sub", "mtime": 1000 }],
       "current": "s-sub",
-      "expect": { "exit": 0, "mapped": "s-sub", "html": ["Find note storage"] } }
+      "expect": { "exit": 0, "mapped": "s-sub", "html": ["Find note storage"] } },
+    { "id": "grok-current", "about": "Grok Build: GROK_SESSION_ID picks the session, even with a newer Claude Code one in the folder",
+      "sessions": [{ "source": "grok", "id": "019a2c10-5e00-7a00-8000-000000000001", "mtime": 1000 }, { "fixture": "basic", "id": "s-claude", "mtime": 2000 }],
+      "env": { "GROK_SESSION_ID": "019a2c10-5e00-7a00-8000-000000000001" },
+      "expect": { "exit": 0, "mapped": "019a2c10-5e00-7a00-8000-000000000001", "stderr": ["current (GROK_SESSION_ID)"], "html": ["Word count in the note footer", "Find where notes are rendered"] } },
+    { "id": "grok-latest", "about": "Grok Build without GROK_SESSION_ID: the most recently active Grok session for the folder",
+      "sessions": [{ "source": "grok", "id": "019a2c10-5e00-7a00-8000-000000000001", "mtime": 1000 }],
+      "expect": { "exit": 0, "mapped": "019a2c10-5e00-7a00-8000-000000000001", "stderr": ["no current session id"], "html": ["\"kind\":\"grok-build\""] } },
+    { "id": "codex-latest", "about": "Codex: the newest rollout whose session_meta cwd is this folder",
+      "sessions": [{ "source": "codex", "id": "019a2c20-7c00-7c00-8000-000000000003", "mtime": 1000 }],
+      "expect": { "exit": 0, "mapped": "019a2c20-7c00-7c00-8000-000000000003", "stderr": ["newest for this folder"], "html": ["Sort the note list by last edit"] } },
+    { "id": "mixed-stores", "about": "all three stores hold sessions for the folder and no id is set: the most recent across stores wins",
+      "sessions": [{ "fixture": "basic", "id": "s-claude", "mtime": 1000 }, { "source": "grok", "id": "019a2c10-5e00-7a00-8000-000000000001", "mtime": 3000 }, { "source": "codex", "id": "019a2c20-7c00-7c00-8000-000000000003", "mtime": 2000 }],
+      "expect": { "exit": 0, "mapped": "019a2c10-5e00-7a00-8000-000000000001", "stderr": ["newest for this folder"], "html": ["\"kind\":\"grok-build\""] } }
   ]
 }
