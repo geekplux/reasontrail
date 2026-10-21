@@ -95,3 +95,6 @@ This project will be released as open source and is not meant to be commercializ
 The product is now a **reasoning map** for AI sessions: coding-agent sessions (Claude Code / Codex .jsonl) first, chat transcripts second; the next-token garden stays only as a zoom-in lens. A new `lead-designer` sub-agent owns docs/DESIGN.md and signs off every UI phase. Full details: /workspace/gx-projects/logs/token-garden.change-request.md
 Addendum: the primary entry point is a **skill** (Claude Code / Codex / Grok Build) backed by one local CLI that opens the session's reasoning map in a local web page; the hosted site is the showcase. See the addendum at the end of the change-request file.
 Rename 2026-10-20: the product is now **Reasontrail** (repo geekplux/reasontrail; `origin` already points there; old URLs redirect). Use the name in all user-facing text, package name, CLI (`npx reasontrail`), skill name, README and PR links. Keep the local folder name.
+
+## Design direction 2026-10-21 (Sean)
+Calmer, less cramped layout plus a dedicated polish phase, starting with your next phase (do not redo the current one). Full details: /workspace/gx-projects/logs/token-garden.design-direction.md
