@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { cacheKey, CACHE_TTL_SEC } from '../cache';
 import { handle } from '../handler';
-import { SYSTEM_PROMPT } from '../upstream/workersAi';
+import { SYSTEM_PROMPT } from '../upstream/chat';
 import { completion, FakeAi, fakeCtx, fakeEnv, post, TOP8 } from './fakes';
 
 const MODEL = '@cf/zai-org/glm-4.7-flash';
