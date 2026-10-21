@@ -23,4 +23,18 @@ describe('audit:samples (R3)', () => {
       { file: 'skills/s/evals/e.md', line: 1, rule: 'email' },
     ]);
   });
+
+  it('scans decoded JSON string values, including nested JSON, and ignores escaped newlines after NAME=', async () => {
+    const r = mkdtempSync(join(tmpdir(), 'tg-audit-'));
+    try {
+      mkdirSync(join(r, 'fixtures'));
+      const pair = { [['pass', 'word'].join('')]: ['open', 'sesame77'].join('') };
+      const nested = JSON.stringify({ type: 'user', message: { content: JSON.stringify(pair) } });
+      const newline = JSON.stringify({ type: 'tool', text: `${['GITHUB', 'TOKEN'].join('_')}=\nnext line` });
+      writeFileSync(join(r, 'fixtures/a.jsonl'), `${newline}\n${nested}\n`);
+      expect(await audit(r)).toEqual([{ file: 'fixtures/a.jsonl', line: 2, rule: 'secret:value' }]);
+    } finally {
+      rmSync(r, { recursive: true, force: true });
+    }
+  });
 });

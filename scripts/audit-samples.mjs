@@ -19,6 +19,53 @@ export async function loadRules() {
   return import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
 }
 
+const STRING_LITERAL = /"(?:[^"\\\n]|\\.)*"/g;
+const JSON_ESCAPE = /\\[nrt]/g;
+
+/** Every decoded string (keys and values) in `value`, recursing into strings that are themselves JSON objects/arrays. */
+function strings(value, out = []) {
+  if (typeof value === 'string') {
+    out.push(value);
+    if (/^\s*[[{]/.test(value)) {
+      try {
+        strings(JSON.parse(value), out);
+      } catch {
+        // plain text that happens to start with a bracket
+      }
+    }
+  } else if (value && typeof value === 'object') {
+    for (const [k, v] of Object.entries(value)) {
+      strings(k, out);
+      strings(v, out);
+    }
+  }
+  return out;
+}
+
+/** Decoded strings of one JSON(L) line: the parsed line, else its string literals (pretty-printed `.json`), else nothing. */
+function decodedStrings(text) {
+  try {
+    return strings(JSON.parse(text));
+  } catch {
+    return (text.match(STRING_LITERAL) ?? []).flatMap((lit) => {
+      try {
+        return strings(JSON.parse(lit));
+      } catch {
+        return [];
+      }
+    });
+  }
+}
+
+/** Rules matched on one line. JSON(L) lines are also scanned decoded, and their raw form with escaped
+ * whitespace turned back into whitespace, so `NAME=\\n…` is not read as a secret value. */
+function lineRules(findSecrets, text, json) {
+  if (!json) return findSecrets(text);
+  const rules = new Set(findSecrets(text.replace(JSON_ESCAPE, ' ')));
+  for (const s of decodedStrings(text)) for (const rule of findSecrets(s)) rules.add(rule);
+  return [...rules];
+}
+
 function walk(dir, out = []) {
   for (const name of readdirSync(dir).sort()) {
     const p = join(dir, name);
@@ -40,8 +87,9 @@ export async function audit(root) {
     for (const file of walk(dir)) {
       const rel = relative(root, file);
       if (!TEXT.test(file) || (rel.startsWith('skills') && !rel.includes('/evals/'))) continue;
+      const json = /\.jsonl?$/.test(file);
       readFileSync(file, 'utf8').split('\n').forEach((text, i) => {
-        for (const rule of findSecrets(text)) findings.push({ file: rel, line: i + 1, rule });
+        for (const rule of lineRules(findSecrets, text, json)) findings.push({ file: rel, line: i + 1, rule });
         const lower = text.toLowerCase();
         deny.forEach((term, n) => lower.includes(term) && findings.push({ file: rel, line: i + 1, rule: `denylist term #${n + 1}` }));
       });
