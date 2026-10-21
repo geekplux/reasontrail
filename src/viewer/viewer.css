@@ -17,7 +17,7 @@
 .viewer-header { justify-content: space-between; }
 .viewer-privacy, .viewer-footer { margin: 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .viewer-footer { padding: var(--tg-space-4) var(--tg-space-6) var(--tg-space-6); border-top: var(--tg-hairline); }
-.shared-ribbon { margin: 0; padding: var(--tg-space-2) var(--tg-space-6); font: 500 var(--tg-text-sm) var(--tg-font-mono); background: var(--tg-wash); border-bottom: 1px solid var(--tg-ink); }
+.shared-ribbon { display: block; margin: 0; padding: var(--tg-space-2) var(--tg-space-6); font: 500 var(--tg-text-sm) var(--tg-font-mono); background: var(--tg-wash); border-bottom: 1px solid var(--tg-ink); }
 .viewer-main { width: 100%; max-width: 1040px; margin: 0 auto; padding: var(--tg-space-5) var(--tg-space-6) var(--tg-space-7); }
 .viewer-error { padding: var(--tg-space-6) 0; }
 .bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--tg-paper); background: var(--tg-trouble); font-weight: 700; }
@@ -37,10 +37,13 @@
 .task-request { margin-bottom: var(--tg-space-2); }
 .task-request .task-title { margin: 0; }
 .task-meta { margin: 0 0 var(--tg-space-3); }
-.link-button { min-height: 24px; padding: 0 var(--tg-space-1); border: 0; background: none; color: inherit; font: 400 var(--tg-text-sm) var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+.link-button { min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: 400 var(--tg-text-sm) var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .note, .honesty, .glance-rows li, .episode-head { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-2); margin: 0; }
 .note, .honesty { margin: 0 0 var(--tg-space-2); font-size: 13.5px; }
 .note { color: var(--tg-ink-muted); }
+.skipped-where { margin: 0 0 var(--tg-space-2) 22px; font-size: 13.5px; color: var(--tg-ink-muted); }
+.skipped-where summary { min-height: 24px; cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; }
+.skipped-where p { margin: var(--tg-space-1) 0 0; overflow-wrap: anywhere; }
 .honesty a { min-height: 24px; }
 
 /* Glyphs: shape = meaning (DESIGN §8.2, §8.5, §8.6) */
@@ -59,6 +62,9 @@
 .glyph-plate .g-plate-mark { fill: none; stroke: var(--tg-paper); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .glyph-plate.is-resolved .g-plate { fill: var(--tg-paper); }
 .glyph-plate.is-resolved .g-plate-mark { stroke: var(--tg-trouble); }
+.glyph-plate.is-neutral .g-plate { fill: var(--tg-paper); stroke: var(--tg-ink); }
+.glyph-plate.is-neutral .g-plate-mark { stroke: var(--tg-ink); }
+.glyph-plate .g-plate-dot { fill: var(--tg-ink); }
 
 /* At a glance */
 .glance-rows { display: grid; gap: var(--tg-space-2); margin: 0; padding: 0; list-style: none; }

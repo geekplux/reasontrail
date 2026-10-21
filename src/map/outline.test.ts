@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionGraph, Step } from '../../shared/session/types';
-import { duration, glance, parseNotes, stepLines, taskCard, times } from './outline';
+import { duration, glance, parseNotes, skippedWhere, stepLines, taskCard, times } from './outline';
 
 const step = (id: string, kind: Step['kind'], extra: Partial<Step> = {}): Step => ({ id, seq: Number(id.slice(1)), laneId: 'main', kind, raw: { file: 'f.jsonl', line: 1 }, ...extra });
 
@@ -9,7 +9,7 @@ function graph(steps: Step[], extra: Partial<SessionGraph> = {}): SessionGraph {
     schemaVersion: 1, source: { kind: 'claude-code', sessionId: 'x', model: 'model-a' }, title: 'T',
     lanes: [{ id: 'main', name: 'Main', file: 'f.jsonl' }], steps, edges: [],
     episodes: [{ id: 'e0', title: 'Work', kind: 'explore', stepIds: steps.map((s) => s.id), laneId: 'main' }],
-    trouble: [], outcome: { files: [] }, stats: { steps: steps.length, skippedLines: 0, partialLines: 0, unknownRecords: 0, ignoredRecords: 0 },
+    trouble: [], outcome: { files: [] }, stats: { steps: steps.length, skippedLines: 0, partialLines: 0, skippedLineNumbers: [], unknownRecords: 0, ignoredRecords: 0 },
     ...extra,
   };
 }
@@ -23,7 +23,7 @@ describe('outline model', () => {
 
   it('builds the task card from the first request, omitting zero counts', () => {
     const g = graph([step('s0', 'user', { text: 'Fix the slug', t: '2026-10-01T10:00:00Z' }), step('s1', 'thinking', { textStored: false, t: '2026-10-01T10:00:30Z' }), step('s2', 'tool-call', { tool: { name: 'Read', category: 'read', summary: 'Read a.ts', files: [] } })]);
-    expect(taskCard(g)).toEqual({ label: 'Claude Code · model-a', request: 'Fix the slug', meta: ['30 s active', '3 steps', '1 tool call', '1 thinking (text not stored)'] });
+    expect(taskCard(g)).toEqual({ label: 'Claude Code · model-a', request: 'Fix the slug', meta: ['30 s active', '1 tool call', '1 thinking (text not stored)'] });
   });
 
   it('says plainly when nothing was verified, changed or went wrong', () => {
@@ -42,9 +42,14 @@ describe('outline model', () => {
   });
 
   it('notes skipped and partial lines', () => {
-    expect(parseNotes(graph([], { stats: { steps: 0, skippedLines: 3, partialLines: 1, unknownRecords: 0, ignoredRecords: 0 } }))).toEqual([
+    const at = [{ file: 'f.jsonl', line: 12 }, { file: 'f.jsonl', line: 40 }];
+    const g = graph([], { stats: { steps: 0, skippedLines: 3, partialLines: 1, skippedLineNumbers: at, unknownRecords: 0, ignoredRecords: 0 } });
+    expect(parseNotes(g)).toEqual([
       '2 lines could not be read and were skipped.',
       'This session is still being written; the last line was incomplete and was skipped. Run the command again to update.',
     ]);
+    expect(skippedWhere(g)).toEqual(['line 12', 'line 40', 'and 1 more']);
+    const multi = { ...g, lanes: [...g.lanes, { id: 'a1', name: 'Sub', file: 'a1.jsonl' }] };
+    expect(skippedWhere({ ...multi, stats: { ...g.stats, skippedLines: 2 } })).toEqual(['f.jsonl:12', 'f.jsonl:40']);
   });
 });

@@ -51,7 +51,6 @@ export function taskCard(g: SessionGraph) {
   if (tm && tm.wall - tm.active > IDLE_MS) meta.push(`${duration(tm.wall)} wall`);
   if (tm) meta.push(`${duration(tm.active)} active`);
   const count = (n: number, one: string, many?: string) => n > 0 && meta.push(plural(n, one, many));
-  count(g.steps.length, 'step');
   count(g.steps.filter((s) => s.kind === 'tool-call').length, 'tool call');
   count(g.lanes.length - 1, 'subagent');
   const unstored = g.steps.filter(isUnstoredThinking).length;
@@ -132,4 +131,15 @@ export function parseNotes(g: SessionGraph): string[] {
   if (bad > 0) notes.push(`${plural(bad, 'line')} could not be read and ${bad === 1 ? 'was' : 'were'} skipped.`);
   if (g.stats.partialLines > 0) notes.push('This session is still being written; the last line was incomplete and was skipped. Run the command again to update.');
   return notes;
+}
+
+/** Where the skipped lines are, for the "Show where" disclosure: "line 12", or "file:12" when the session spans several
+ * files; "and n more" past the stored cap. */
+export function skippedWhere(g: SessionGraph): string[] {
+  const at = g.stats.skippedLineNumbers ?? [];
+  const multi = g.lanes.length > 1 || new Set(at.map((p) => p.file)).size > 1;
+  const out = at.map((p) => (multi ? `${p.file}:${p.line}` : `line ${p.line}`));
+  const rest = g.stats.skippedLines - at.length;
+  if (at.length > 0 && rest > 0) out.push(`and ${rest} more`);
+  return out;
 }

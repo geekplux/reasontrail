@@ -62,6 +62,17 @@ export function PlateGlyph({ kind, resolved }: { kind: Trouble['kind']; resolved
   );
 }
 
+/** A neutral "!" plate for a trouble count whose spots are all resolved: outlined in ink, no trouble colour. */
+export function NeutralPlateGlyph() {
+  return (
+    <Svg className="glyph-plate is-neutral">
+      <rect x="1" y="1" width="14" height="14" rx="2" className="g-plate" />
+      <path d="M8 4 V9" className="g-plate-mark" />
+      <circle cx="8" cy="11.8" r="1" className="g-plate-dot" />
+    </Svg>
+  );
+}
+
 export function InfoGlyph() {
   return (
     <Svg className="glyph-info">

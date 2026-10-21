@@ -13,6 +13,8 @@ export interface JsonlResult {
   malformed: number;
   /** 1 when the file does not end in a newline and its last line does not parse (still being written). */
   partial: number;
+  /** 1-based numbers of the lines counted in `malformed` and `partial`, in file order. */
+  skipped: number[];
 }
 
 /** Parse JSONL text. Blank lines are skipped; `\r\n` is accepted. */
@@ -22,6 +24,7 @@ export function readJsonl(text: string): JsonlResult {
   const records: JsonlRecord[] = [];
   let malformed = 0;
   let partial = 0;
+  const skipped: number[] = [];
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i] ?? '';
     const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw;
@@ -29,11 +32,12 @@ export function readJsonl(text: string): JsonlResult {
     try {
       records.push({ line: i + 1, value: JSON.parse(line) as unknown });
     } catch {
+      skipped.push(i + 1);
       if (i === lines.length - 1 && !endsComplete) partial++;
       else malformed++;
     }
   }
-  return { records, malformed, partial };
+  return { records, malformed, partial, skipped };
 }
 
 /** The first `n` non-blank lines, for adapter sniffing. */

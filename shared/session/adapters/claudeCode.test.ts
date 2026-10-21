@@ -37,6 +37,14 @@ describe('Claude Code adapter contract', () => {
     expect(() => claudeCodeAdapter.parse({ files: [{ path: 'x.jsonl', text: '{"type":"user","message":7}\n42\n' }] })).not.toThrow();
     expect(claudeCodeAdapter.parse({ files: [] }).records).toEqual([]);
   });
+
+  it('records where skipped lines are, capped at 50', () => {
+    const text = `${'{"type":"user","message":{"role":"user","content":"hi"}}\n'}${'bad\n'.repeat(60)}`;
+    const { stats } = claudeCodeAdapter.parse({ files: [{ path: 'x.jsonl', text }] });
+    expect(stats.skippedLines).toBe(60);
+    expect(stats.skippedLineNumbers).toHaveLength(50);
+    expect(stats.skippedLineNumbers[0]).toEqual({ file: 'x.jsonl', line: 2 });
+  });
 });
 
 describe('basic.jsonl', () => {
@@ -46,6 +54,7 @@ describe('basic.jsonl', () => {
     expect(g.source).toMatchObject({ kind: 'claude-code', sessionId: 'sess-basic', cwd: '/work/notes-app', gitBranch: 'fix-slug', model: 'claude-test-model' });
     expect(g.title).toBe('Fix slugify for titles with spaces');
     expect(g.stats).toMatchObject({ skippedLines: 2, partialLines: 1, unknownRecords: 1, ignoredRecords: 7 });
+    expect(g.stats.skippedLineNumbers).toEqual([{ file: `${DIR}/basic.jsonl`, line: 36 }, { file: `${DIR}/basic.jsonl`, line: 39 }]);
     expect(g.lanes).toEqual([{ id: 'main', name: 'Main', file: `${DIR}/basic.jsonl` }]);
   });
 

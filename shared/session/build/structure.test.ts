@@ -106,7 +106,7 @@ describe('episodes (AC2)', () => {
       records.push({ laneId: 'main', file: 'x.jsonl', line: 2 * i + 2, items: [{ kind: 'tool-call', name: 'Read', input: { file_path: `/w/f${i}.ts` } }] });
     }
     records.push({ laneId: 'main', file: 'x.jsonl', line: 99, items: [{ kind: 'assistant', text: 'Done.' }] });
-    const session = { source: { kind: 'claude-code' as const, sessionId: 'x' }, lanes: [{ id: 'main', name: 'Main', file: 'x.jsonl' }], records, stats: { skippedLines: 0, partialLines: 0, unknownRecords: 0, ignoredRecords: 0 } };
+    const session = { source: { kind: 'claude-code' as const, sessionId: 'x' }, lanes: [{ id: 'main', name: 'Main', file: 'x.jsonl' }], records, stats: { skippedLines: 0, partialLines: 0, skippedLineNumbers: [], unknownRecords: 0, ignoredRecords: 0 } };
     const g = buildGraph(session);
     const top = g.episodes.filter((e) => !e.parentId);
     expect(top).toHaveLength(12);

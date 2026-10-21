@@ -2,6 +2,8 @@
 
 /** Bump on any breaking change to {@link SessionGraph}. */
 export const SCHEMA_VERSION = 1;
+/** Cap on `SessionStats.skippedLineNumbers`. */
+export const SKIPPED_LINES_MAX = 50;
 
 /** Where a session came from. */
 export type SourceKind = 'claude-code' | 'codex' | 'grok-build' | 'chat';
@@ -142,6 +144,8 @@ export interface SessionStats {
   skippedLines: number;
   /** A last line cut off mid-write (0 or 1 per file). */
   partialLines: number;
+  /** Where the skipped lines are, in file order, at most `SKIPPED_LINES_MAX` (deterministic). */
+  skippedLineNumbers: Provenance[];
   /** Records of a type the adapter does not know. */
   unknownRecords: number;
   /** Known bookkeeping records that carry no step (counted, not shown). */

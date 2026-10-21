@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { axeProblems } from '../axe.mjs';
+import { STRUCTURE_RULES, axeProblems } from '../axe.mjs';
 
 const XSS = '</script><script>alert(1)</script>';
 const TOKEN = ['gh', 'p_', 'Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2'].join(''); // built at runtime: never committed
@@ -46,26 +46,26 @@ export async function run({ page, root, shot, log, fail }) {
   log(`regions: ${Object.keys(regions).join(', ')}`);
   if (Object.keys(regions).join() !== 'task,glance,route,outcome') fail(`regions: ${Object.keys(regions)}`);
   if (!regions.task?.includes(HONESTY) || !regions.task.includes('How to read this map')) fail('honesty label missing from the task card');
-  if (!/\d+ steps?/.test(regions.task ?? '')) fail('task card has no step count');
+  if (!/\d+ tool calls?/.test(regions.task ?? '')) fail('task card has no tool-call count');
   if ((await page.locator('[data-region="route"] [data-episode-id]').count()) < 2) fail('route lists fewer than 2 episodes');
   if ((await page.locator('[data-trouble-kind]').count()) < 1) fail('no trouble chip on the route');
   if (!/files? changed/.test(regions.outcome ?? '') || !/Last verification/i.test(regions.outcome ?? '')) fail('destination lacks files or verification');
   if (await page.locator('[role="tree"], [role="treeitem"], [role="grid"]').count()) fail('outline uses ARIA widget roles');
   const title = await page.evaluate(() => getComputedStyle(document.querySelector('.task-title')).fontFamily);
   if (!title.startsWith('"Instrument Serif"') || !(await page.evaluate(() => document.fonts.check('italic 400 16px "Instrument Serif"')))) fail(`task title font: ${title}`);
-  for (const p of await axeProblems(page, 'desktop')) fail(p);
+  for (const p of await axeProblems(page, 'desktop', STRUCTURE_RULES)) fail(p);
   await shot('cli-outline-desktop');
 
   await page.setViewportSize({ width: 390, height: 844 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   if (overflow > 0) fail(`mobile: page overflows horizontally by ${overflow}px`);
   if (!(await page.locator('[data-honesty]').isVisible())) fail('mobile: honesty label not visible');
-  for (const p of await axeProblems(page, 'mobile')) fail(p);
+  for (const p of await axeProblems(page, 'mobile', STRUCTURE_RULES)) fail(p);
   await shot('cli-outline-mobile');
 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.emulateMedia({ colorScheme: 'dark' });
-  for (const p of await axeProblems(page, 'dark')) fail(p);
+  for (const p of await axeProblems(page, 'dark', STRUCTURE_RULES)) fail(p);
   await shot('cli-outline-dark');
   await page.emulateMedia({ colorScheme: 'light' });
 
@@ -85,6 +85,6 @@ export async function run({ page, root, shot, log, fail }) {
   if (!text?.includes(XSS)) fail('the </script> payload is not shown as text');
   if ((await page.locator('script').count()) !== 2) fail('the page has extra script elements');
   if (!(await page.getByText(/^Shared copy · redacted \(\d+ items replaced\)$/).isVisible())) fail('shared ribbon missing');
-  for (const p of await axeProblems(page, 'share')) fail(p);
+  for (const p of await axeProblems(page, 'share', STRUCTURE_RULES)) fail(p);
   await shot('cli-share-redacted');
 }

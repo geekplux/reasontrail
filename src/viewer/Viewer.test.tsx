@@ -49,9 +49,25 @@ describe('local viewer', () => {
     expect(screen.getByText('The session data in this page could not be read.')).toBeTruthy();
   });
 
-  it('marks shared copies', () => {
+  it('marks shared copies in a labelled region, under one page heading', () => {
     const payload = { ...JSON.parse(fixture('basic')), meta: { version: '0.1.0', shared: { replaced: 4 } } };
     render(<Viewer loaded={loadGraph(JSON.stringify(payload))} />);
-    expect(screen.getByText('Shared copy · redacted (4 items replaced)')).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Shared copy' }).textContent).toBe('Shared copy · redacted (4 items replaced)');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
+    cleanup();
+    render(<Viewer loaded={loadGraph('{')} />);
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
+  });
+
+  it('shows no "more" button for a one-line request', () => {
+    render(<Viewer loaded={loadGraph(fixture('basic'))} />);
+    expect(screen.queryByRole('button', { name: 'more' })).toBeNull();
+  });
+
+  it('says where skipped lines are behind a native disclosure', () => {
+    const { container } = render(<Viewer loaded={loadGraph(fixture('basic'))} />);
+    const details = container.querySelector('[data-region="task"] details');
+    expect(details?.querySelector('summary')?.textContent).toBe('Show where');
+    expect(details?.querySelector('p')?.textContent).toBe('line 36, line 39');
   });
 });

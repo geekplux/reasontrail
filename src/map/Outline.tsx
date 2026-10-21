@@ -2,9 +2,9 @@
 // no custom keys: headings, ordered lists and one disclosure button per episode.
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 import type { Episode, SessionGraph } from '../../shared/session/types';
-import { InfoGlyph, KindGlyph, PlateGlyph, StatusGlyph, UnstoredGlyph } from './Glyph';
+import { InfoGlyph, KindGlyph, NeutralPlateGlyph, PlateGlyph, StatusGlyph, UnstoredGlyph } from './Glyph';
 import { HonestyLabel } from './HonestyLabel';
-import { REQUEST_MAX, STATUS_WORD, TROUBLE_LABEL, episodeLinks, glance, laneEpisodes, parseNotes, stepLines, taskCard } from './outline';
+import { REQUEST_MAX, STATUS_WORD, TROUBLE_LABEL, episodeLinks, glance, laneEpisodes, parseNotes, skippedWhere, stepLines, taskCard } from './outline';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -16,11 +16,19 @@ function Request({ text }: { text: string }) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || more) return;
-    const check = () => setClamped(el.scrollHeight > el.clientHeight + 1);
+    let live = true;
+    // Half a line of tolerance: serif ascenders and sub-pixel line boxes must not count as a third line.
+    const check = () => {
+      if (live) setClamped(el.scrollHeight - el.clientHeight > parseFloat(getComputedStyle(el).lineHeight) / 2);
+    };
     check();
+    void document.fonts?.ready.then(check);
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(check);
     observer?.observe(el);
-    return () => observer?.disconnect();
+    return () => {
+      live = false;
+      observer?.disconnect();
+    };
   }, [more]);
   const long = text.length > REQUEST_MAX;
   return (
@@ -39,7 +47,8 @@ function Request({ text }: { text: string }) {
 
 function EpisodeList({ g, laneId }: { g: SessionGraph; laneId: string }) {
   return (
-    <ol className="episodes">
+    // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics under list-style: none
+    <ol className="episodes" role="list">
       {laneEpisodes(g, laneId).map((e) => <EpisodeItem key={e.id} g={g} e={e} />)}
     </ol>
   );
@@ -48,13 +57,14 @@ function EpisodeList({ g, laneId }: { g: SessionGraph; laneId: string }) {
 function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
   const [open, setOpen] = useState(false);
   const stepsId = useId();
+  const titleId = useId();
   const { trouble, lanes } = episodeLinks(g, e);
   return (
     <li className="episode" data-episode-id={e.id} data-episode-kind={e.kind} data-lane={e.laneId}>
       <p className="episode-head">
         <KindGlyph kind={e.kind} />
         <span>
-          <span className="episode-title">{e.title}</span> <span className="mono muted">{e.kind} · {plural(e.stepIds.length, 'step')}</span>
+          <span id={titleId} className="episode-title">{e.title}</span> <span className="mono muted">{e.kind} · {plural(e.stepIds.length, 'step')}</span>
         </span>
       </p>
       {trouble.length > 0 && (
@@ -72,7 +82,8 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
         </ul>
       )}
       {lanes.length > 0 && (
-        <ol className="lanes">
+        // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics under list-style: none
+        <ol className="lanes" role="list">
           {lanes.map((l) => {
             const status = l.status ?? 'unknown';
             const calls = g.steps.filter((s) => s.laneId === l.id && s.kind === 'tool-call').length;
@@ -89,10 +100,11 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
           })}
         </ol>
       )}
-      <button type="button" className="disclosure" aria-expanded={open} aria-controls={stepsId} onClick={() => setOpen(!open)}>
+      <button type="button" className="disclosure" aria-expanded={open} aria-controls={stepsId} aria-describedby={titleId} onClick={() => setOpen(!open)}>
         Steps ({e.stepIds.length})
       </button>
-      <ol id={stepsId} className="steps" hidden={!open}>
+      {/* oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics under list-style: none */}
+      <ol id={stepsId} className="steps" role="list" hidden={!open}>
         {open &&
           stepLines(g, e).map((s) => (
             <li key={s.id} data-step-id={s.id} data-kind={s.kind} data-status={s.status}>
@@ -160,6 +172,8 @@ function Destination({ g }: { g: SessionGraph }) {
 export function Outline({ graph: g }: { graph: SessionGraph }) {
   const card = taskCard(g);
   const rows = glance(g);
+  const where = skippedWhere(g);
+  const open = g.trouble.find((t) => !t.resolved);
   return (
     <div className="outline" data-testid="map" data-view="outline" data-ready="true">
       <section className="region task-card" data-region="task" aria-labelledby="h-task">
@@ -169,6 +183,12 @@ export function Outline({ graph: g }: { graph: SessionGraph }) {
         {parseNotes(g).map((n) => (
           <p key={n} className="note"><InfoGlyph /><span>{n}</span></p>
         ))}
+        {where.length > 0 && (
+          <details className="skipped-where">
+            <summary>Show where</summary>
+            <p className="mono">{where.join(', ')}</p>
+          </details>
+        )}
         <HonestyLabel />
       </section>
       <section className="region glance" data-region="glance" aria-labelledby="h-glance">
@@ -176,7 +196,7 @@ export function Outline({ graph: g }: { graph: SessionGraph }) {
         <ul className="glance-rows">
           {rows.map((r) => (
             <li key={r.key} data-glance={r.key} data-status={r.status}>
-              {r.key === 'trouble' && r.status === 'error' ? <PlateGlyph kind="error-streak" resolved={false} /> : <StatusGlyph status={r.status} />}{' '}
+              {r.key === 'trouble' && g.trouble.length > 0 ? (open ? <PlateGlyph kind={open.kind} resolved={false} /> : <NeutralPlateGlyph />) : <StatusGlyph status={r.status} />}{' '}
               <span><strong>{r.lead}</strong>{r.rest}</span>
             </li>
           ))}

@@ -2,7 +2,7 @@
 // Undocumented format, read tolerantly: unknown record types are counted, never fatal.
 import type { SessionAdapter } from '../adapter';
 import { readJsonl } from '../jsonl';
-import type { NormalizedItem, NormalizedLane, NormalizedRecord, NormalizedSession, SessionInput, SourceFile, StepStatus } from '../types';
+import { SKIPPED_LINES_MAX, type NormalizedItem, type NormalizedLane, type NormalizedRecord, type NormalizedSession, type SessionInput, type SourceFile, type StepStatus } from '../types';
 
 /** Bookkeeping records that never become steps (counted as ignored). */
 const IGNORED = new Set([
@@ -89,7 +89,7 @@ export function parseClaudeCode(input: SessionInput): NormalizedSession {
     source: { kind: 'claude-code', sessionId: '', agent: 'Claude Code' },
     lanes: [],
     records: [],
-    stats: { skippedLines: 0, partialLines: 0, unknownRecords: 0, ignoredRecords: 0 },
+    stats: { skippedLines: 0, partialLines: 0, skippedLineNumbers: [], unknownRecords: 0, ignoredRecords: 0 },
   };
   if (!main) return session;
   session.source.file = main.path;
@@ -107,9 +107,12 @@ export function parseClaudeCode(input: SessionInput): NormalizedSession {
 
   for (const [file, lane] of files) {
     session.lanes.push(lane);
-    const { records, malformed, partial } = readJsonl(file.text);
+    const { records, malformed, partial, skipped } = readJsonl(file.text);
     session.stats.skippedLines += malformed + partial;
     session.stats.partialLines += partial;
+    for (const line of skipped) {
+      if (session.stats.skippedLineNumbers.length < SKIPPED_LINES_MAX) session.stats.skippedLineNumbers.push({ file: file.path, line });
+    }
     for (const { line, value } of records) {
       const type = isObj(value) ? str(value.type) : undefined;
       if (!isObj(value) || !type) {

@@ -20,9 +20,10 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
         <p className="viewer-privacy">Generated on your machine · nothing was uploaded</p>
       </header>
       {meta?.shared && (
-        <p className="shared-ribbon">Shared copy · redacted ({meta.shared.replaced} items replaced)</p>
+        <section className="shared-ribbon" aria-label="Shared copy">Shared copy · redacted ({meta.shared.replaced} items replaced)</section>
       )}
       <main className="site-main viewer-main">
+        <h1 className="visually-hidden">Reasoning map</h1>
         {loaded.ok ? (
           <Outline graph={loaded.payload.graph} />
         ) : (
