@@ -58,7 +58,11 @@ Thinking models must have thinking switched off on the server side: the Worker r
 
 ### Writing another upstream
 
-Return an `Upstream` (`worker/upstream/chat.ts`): a `model` (part of the cache key; `undefined` means "not configured") and `nextTokens(prefix)` that resolves to the normalized list or rejects with `ProviderError`. Wrap the network call in `callUpstream(name, (signal) => …)` and throw `RetryableError` for a 5xx. Then add a `case` to `selectUpstream`, its vars to `Env` in `worker/env.ts`, and tests with a mocked `fetch` next to `worker/test/limits.test.ts`. The Worker has no runtime dependencies; `pnpm check:size` enforces that.
+Return an `Upstream` (`worker/upstream/chat.ts`): a `model` (part of the cache key; `undefined` means "not configured"), `nextTokens(prefix)` that resolves to the normalized list or rejects with `ProviderError`, and `complete(body, timeoutMs)` that sends one OpenAI-style chat body (without `model`) and resolves to the raw completion. Wrap the network call in `callUpstream(name, (signal) => …)` and throw `RetryableError` for a 5xx. Then add a `case` to `selectUpstream`, its vars to `Env` in `worker/env.ts`, and tests with a mocked `fetch` next to `worker/test/limits.test.ts`. The Worker has no runtime dependencies; `pnpm check:size` enforces that.
+
+### The structuring endpoint uses the same upstream
+
+`POST /api/structure` (`worker/structure/`) sends one batch of up to 200 redacted step summaries (≤ 300 chars each, built by `buildBatches` in `shared/session/structure.ts`) through `complete` with a JSON-schema `response_format` and `temperature: 0.1`, and keeps only labels from the fixed set and links between step ids of that batch. It shares the KV cache (`st:v1:<model>:<sha256>`), `RL_ALL`/`RL_MISS` and the daily budget, so a self-hosted OpenAI-compatible upstream needs nothing extra, as long as the server supports `response_format: {type: "json_schema"}`. Bump `STRUCTURE_CACHE_VERSION` in `worker/structure/prompt.ts` when you change the prompt or the schema.
 
 ### Does a host return `top_logprobs`?
 
