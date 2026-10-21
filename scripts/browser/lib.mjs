@@ -93,6 +93,9 @@ export function killGroupSync(pgid) {
 
 /** Collects console errors, page errors, failed and non-same-origin requests on a browser context. A `file://` page
  * must be self-contained: any request other than the document itself is a problem (PLAN §6.0a, C3). */
+/** `vite preview` has no Worker: a 404 from the AI labels endpoint is the expected "unavailable" path (phase 21 AC3). */
+const noWorker = (url) => /^https?:\/\/[^/]+\/api\/structure$/.test(url ?? '');
+
 export function watchContext(context, origin, problems) {
   context.on('request', (req) => {
     const url = req.url();
@@ -103,13 +106,13 @@ export function watchContext(context, origin, problems) {
     }
     if (new URL(url).origin !== origin) problems.push(`non-same-origin request: ${url}`);
   });
-  context.on('requestfailed', (req) => problems.push(`request failed: ${req.url()} (${req.failure()?.errorText})`));
+  context.on('requestfailed', (req) => noWorker(req.url()) || problems.push(`request failed: ${req.url()} (${req.failure()?.errorText})`));
   context.on('response', (res) => {
-    if (res.status() >= 400) problems.push(`HTTP ${res.status()}: ${res.url()}`);
+    if (res.status() >= 400 && !(res.status() === 404 && noWorker(res.url()))) problems.push(`HTTP ${res.status()}: ${res.url()}`);
   });
   context.on('page', (page) => {
     page.on('console', (msg) => {
-      if (msg.type() === 'error') problems.push(`console error: ${msg.text()}`);
+      if (msg.type() === 'error' && !noWorker(msg.location()?.url)) problems.push(`console error: ${msg.text()}`);
     });
     page.on('pageerror', (err) => problems.push(`page error: ${err.message}`));
   });
