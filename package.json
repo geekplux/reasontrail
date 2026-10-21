@@ -22,6 +22,8 @@
     "check:size": "node scripts/check-size.mjs",
     "check:browser": "node scripts/check-browser.mjs",
     "audit:samples": "node scripts/audit-samples.mjs",
+    "skill:audit": "node skills/reasontrail/audit/audit.mjs",
+    "skill:evals": "node skills/reasontrail/evals/run-evals.mjs",
     "check:deploy": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "dev:worker": "wrangler dev",
     "samples:record": "(test -d tools/record-samples/node_modules || pnpm --dir tools/record-samples install --ignore-workspace --ignore-scripts --frozen-lockfile) && node tools/record-samples/record.mjs"
