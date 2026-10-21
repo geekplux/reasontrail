@@ -2,8 +2,8 @@
 // at 768 px and up (an SVG of the route and side trails, with HTML items over it), a vertical rail below 768 px.
 // Geometry is always solid; the draw-in sets a dash pattern only while its animation runs.
 import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { KindMark, KindGlyph, StatusGlyph } from './Glyph';
-import { blazeName, countText, episodeName, epId, jumpPattern, laneLines, laneName, move, navItems } from './keyboard';
+import { KindMark, KindGlyph } from './Glyph';
+import { blazeName, countText, episodeName, epId, jumpPattern, laneName, move, navItems } from './keyboard';
 import { G, lineY, type Blaze, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
 import { LaneLabel, LanePath } from './LaneView';
 import { BlazeMark, blazeData } from './TroubleMarker';
@@ -224,9 +224,8 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps }: ViewPro
       rows.push(
         <div key={l.id} className="vrow vsub">
           <svg className="siding" width="24" height="44" aria-hidden="true" focusable="false"><path d={l.rejoins ? 'M0 0 L14 14 V30 L0 44' : 'M0 0 L14 14 V30 M8 30 H20'} /></svg>
-          <div className="map-item vitem lane-item" {...laneProps(l)}>
-            <StatusGlyph status={l.status} />
-            <span className="mono">{laneLines(l).join(' ')}</span>
+          <div className="map-item vitem vlane" {...laneProps(l)}>
+            <span><LaneLabel l={l} /></span>
           </div>
           {blazes((b) => b.laneItem === l.id)}
         </div>,

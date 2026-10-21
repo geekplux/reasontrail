@@ -42,6 +42,7 @@ export async function run({ page, root, shot, log, fail }) {
   log(`output ${file}: ${Math.round(readFileSync(file).length / 1024)} KB`);
   await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
+  await page.waitForFunction(() => document.getAnimations().length === 0); // the map's draw-in (≤ 400 ms)
   const regions = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-region]')].map((r) => [r.getAttribute('data-region'), r.textContent])));
   log(`regions: ${Object.keys(regions).join(', ')}`);
   if (Object.keys(regions).join() !== 'task,glance,route,trouble,outcome') fail(`regions: ${Object.keys(regions)}`);
@@ -81,6 +82,7 @@ export async function run({ page, root, shot, log, fail }) {
   for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', HOME_DIR]) if (html.includes(leak)) fail(`--share output still contains ${leak.slice(0, 6)}…`);
   await page.goto(pathToFileURL(shared).href, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
+  await page.waitForFunction(() => document.getAnimations().length === 0); // the map's draw-in (≤ 400 ms)
   const text = await page.locator('[data-region="task"]').textContent();
   if (!text?.includes(XSS)) fail('the </script> payload is not shown as text');
   // data, the packed app, its loader and the inflated app: anything more was injected

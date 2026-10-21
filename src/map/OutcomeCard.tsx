@@ -2,7 +2,7 @@
 // an excerpt of the final answer in the agent's own words.
 import type { SessionGraph } from '../../shared/session/types';
 import { KindGlyph, StatusGlyph } from './Glyph';
-import { duration, fileLabel, middle } from './outline';
+import { duration, fileLabel } from './outline';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -34,7 +34,7 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
               <ol className="files">
                 {top.map((f) => (
                   <li key={f.path}>
-                    <span className="mono path" title={f.path}>{middle(f.path, 34)}{f.created && <span className="muted"> new</span>}</span>
+                    <span className="mono path" title={f.path}>{f.path.split('/').map((part, i, all) => (i < all.length - 1 ? <span key={i}>{part}/<wbr /></span> : part))}{f.created && <span className="muted"> new</span>}</span>
                     <span className="mono edits">{f.edits}<span className="visually-hidden"> {f.edits === 1 ? 'edit' : 'edits'}</span></span>
                     <span className="bar" style={{ width: `${Math.max(4, (48 * f.edits) / max)}px` }} aria-hidden="true" />
                   </li>

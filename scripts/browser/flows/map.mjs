@@ -159,6 +159,9 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   for (const p of await axeProblems(page, 'mobile', STRUCTURE_RULES)) fail(p);
   await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   await shot('map-mobile');
+  await open(page, `${baseURL}/?session=verify-fail-fix`);
+  await checkGlance(page, SAMPLES[1].g, 'mobile lanes', fail, log);
+  await shot('map-mobile-lanes', page.locator('[data-region="route"]'));
 
   // Dark and CVD (desktop, default sample).
   await page.setViewportSize({ width: 1280, height: 800 });

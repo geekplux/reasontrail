@@ -333,11 +333,14 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
     }
   }
   blazes.sort((a, b) => a.first - b.first);
-  // Collisions: plates on one line keep route order at a 24 px pitch.
+  // Collisions: plates on one line keep route order at a 24 px pitch, and on the route they never cover a kind glyph.
+  const glyphs = episodes.map((r) => r.x);
   for (const track of new Set(blazes.map((b) => b.track))) {
     let prev = Number.NEGATIVE_INFINITY;
     for (const b of blazes.filter((z) => z.track === track).sort((p, q) => p.x - q.x || p.first - q.first)) {
       b.x = Math.max(b.x, prev + G.pitch);
+      const hit = track < 0 ? glyphs.find((gx) => Math.abs(b.x - gx) < G.pitch * 0.75) : undefined;
+      if (hit !== undefined) b.x = hit + G.pitch * 0.75;
       prev = b.x;
     }
   }

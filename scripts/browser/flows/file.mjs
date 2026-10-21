@@ -5,6 +5,7 @@ import { STRUCTURE_RULES, axeProblems } from '../axe.mjs';
 export async function run({ page, fileURL, shot, log, fail }) {
   await page.goto(fileURL, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
+  await page.waitForFunction(() => document.getAnimations().length === 0); // the map's draw-in (≤ 400 ms)
   log(`regions: ${await page.$$eval('[data-region]', (els) => els.map((e) => e.getAttribute('data-region')).join(', '))}`);
   for (const p of await axeProblems(page, 'desktop', STRUCTURE_RULES)) fail(p);
   await shot('file-desktop');
