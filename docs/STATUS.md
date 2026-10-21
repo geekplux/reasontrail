@@ -2,7 +2,7 @@ STATE: IN-PROGRESS
 
 # Status (Reasontrail, formerly token-garden)
 
-- Current phase: 14 verified PASS; PR submitted
+- Current phase: 15 (`phase-15-samples`) implementing: redacted real sample maps
 - Plan: `docs/PLAN.md` (27 phases after the 2026-10-20 reasoning-map pivot; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
@@ -22,8 +22,8 @@ STATE: IN-PROGRESS
 | 11 | `phase-11-session-model` | [#12](https://github.com/geekplux/reasontrail/pull/12) | PASS, PR open | 1 |
 | 12 | `phase-12-structure-redact` | [#13](https://github.com/geekplux/reasontrail/pull/13) | PASS, PR open | 2 |
 | 13 | `phase-13-cli-viewer` | [#14](https://github.com/geekplux/reasontrail/pull/14) | PASS, PR open | 1 |
-| 14 | `phase-14-skill` | - | PASS, PR open | 1 |
-| 15 | `phase-15-samples` | - | pending | 0 |
+| 14 | `phase-14-skill` | [#15](https://github.com/geekplux/reasontrail/pull/15) | PASS, PR open | 1 |
+| 15 | `phase-15-samples` | - | in progress | 0 |
 | 16 | `phase-16-map-glance` | - | pending | 0 |
 | 17 | `phase-17-map-details` | - | pending | 0 |
 | 18 | `phase-18-codex-grok` | - | pending | 0 |
@@ -45,4 +45,4 @@ STATE: IN-PROGRESS
 - Codex adapter is built from the public format only: Codex is not installed on this box, so it is not verified against a real session (open item).
 - npm publish of the CLI waits for Sean's approval, like deploy (D36).
 
-Last updated: 2026-10-21 10:53 UTC (phase 14 verified)
+Last updated: 2026-10-21 10:53 UTC (phase 14 PR opened, phase 15 started)
