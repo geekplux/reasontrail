@@ -1,7 +1,9 @@
 // The route (DESIGN §8.1–8.5, §9, §10.3): one application widget with one tab stop and a roving tabindex. Horizontal
 // at 768 px and up (an SVG of the route and side trails, with HTML items over it), a vertical rail below 768 px.
 // Geometry is always solid; the draw-in sets a dash pattern only while its animation runs.
-import { useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { LabelBadge } from '../ai/LabelBadge';
+import { tagName, type EpisodeTag } from '../ai/labels';
 import { KindMark, KindGlyph } from './Glyph';
 import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, lepId, move, navItems } from './keyboard';
 import { G, idleAtEnd, lepBox, lepCountOnly, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
@@ -30,11 +32,15 @@ interface Props {
   onToggleLane(id: string, open: boolean): void;
   panelOpen: boolean;
   onClose(): void;
+  /** The AI overlay (X3), only while it is switched on: episode tags, the model, and the `supports` layer. */
+  ai?: RouteAi | undefined;
 }
+
+export interface RouteAi { tags: ReadonlyMap<string, EpisodeTag>; model: string; links?: ReactNode }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, onUnfold, announce, current, onSelect, open, onToggleLane, panelOpen, onClose }: Props) {
+export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, onUnfold, announce, current, onSelect, open, onToggleLane, panelOpen, onClose, ai }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const keysId = useId();
   const items = useMemo(() => navItems(L, open), [L, open]);
@@ -121,8 +127,9 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
   });
   const epProps = (r: RouteEpisode) => {
     const idle = breakBefore(r);
+    const tag = ai?.tags.get(r.episode.id);
     return {
-      ...item(epId(r), `${idle ? `After ${idle.label}. ` : ''}${episodeName(L, r, total)}`),
+      ...item(epId(r), `${idle ? `After ${idle.label}. ` : ''}${episodeName(L, r, total)}${tag && ai ? `. ${tagName(tag, ai.model)}` : ''}`),
       'data-episode-id': r.episode.id, 'data-episode-kind': r.episode.kind, 'data-kind': r.episode.kind, 'data-lane': r.episode.laneId,
     };
   };
@@ -146,7 +153,7 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- role="application" is the map widget (DESIGN §10.3); its items are buttons
     <div ref={ref} className={`route-app${vertical ? ' is-vertical' : ''}${open ? ' has-open-lane' : ''}`} role="application" aria-roledescription="reasoning map" aria-label={`Reasoning map: ${title}`} aria-describedby={keysId} onKeyDown={onKeyDown}>
       <p id={keysId} className="visually-hidden">{vertical ? KEYS.vertical : KEYS.horizontal} The Outline view lists the same content as text.</p>
-      {vertical ? <Vertical L={L} all={all} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} open={open} lepProps={lepProps} /> : <Horizontal L={L} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} open={open} lepProps={lepProps} />}
+      {vertical ? <Vertical L={L} ai={ai} all={all} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} open={open} lepProps={lepProps} /> : <Horizontal L={L} ai={ai} epProps={epProps} laneProps={laneProps} blazeProps={blazeProps} foldProps={foldProps} open={open} lepProps={lepProps} />}
     </div>
   );
 }
@@ -154,7 +161,7 @@ export function RouteView({ L, title, vertical, expanded, unfolded, onExpand, on
 type P<T> = (x: T) => Record<string, unknown>;
 /** How a lane label is drawn: the same options give its visible text and its accessible name. */
 interface LabelOpts { availPx?: number; duration?: boolean }
-interface ViewProps { L: GlanceLayout; open?: { lane: string; L: GlanceLayout; name: string } | undefined; lepProps: P<RouteEpisode>; epProps: P<RouteEpisode>; laneProps: (l: LaneItem, opts: LabelOpts) => Record<string, unknown>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
+interface ViewProps { L: GlanceLayout; ai: RouteAi | undefined; open?: { lane: string; L: GlanceLayout; name: string } | undefined; lepProps: P<RouteEpisode>; epProps: P<RouteEpisode>; laneProps: (l: LaneItem, opts: LabelOpts) => Record<string, unknown>; blazeProps: P<Blaze>; foldProps: () => Record<string, unknown> }
 
 function EpisodeText({ r, width, countOnly }: { r: RouteEpisode; width?: number; countOnly?: boolean }) {
   const full = countText(r);
@@ -164,6 +171,17 @@ function EpisodeText({ r, width, countOnly }: { r: RouteEpisode; width?: number;
       {!countOnly && <><span className="ep-title">{r.episode.title}</span>{' '}</>}
       <span className="ep-count mono" title={shown === full ? undefined : full}>{shown}</span>
     </>
+  );
+}
+
+/** An AI tag just above an episode's title (outside its button, so the button's name stays its visible text): an
+ * invisible copy of the title column holds the tag at the right height whatever the title wraps to. */
+function TagSlot({ r, tag, style, w, end = false }: { r: RouteEpisode; tag: EpisodeTag | undefined; style: CSSProperties; w?: number; end?: boolean }) {
+  if (!tag) return null;
+  return (
+    <div className={end ? 'ai-slot ep-answer' : 'ai-slot'} style={style} aria-hidden="true">
+      <span className="ep-text" style={w ? { width: w } : undefined}><LabelBadge tag={tag} /><span className="ai-ghost"><EpisodeText r={r} {...(w ? { width: w } : {})} /></span></span>
+    </div>
   );
 }
 
@@ -206,7 +224,7 @@ function OpenLane({ open, word, lepProps }: { open: NonNullable<ViewProps['open'
   );
 }
 
-function Horizontal({ L, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps) {
+function Horizontal({ L, ai, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps) {
   const Y = G.routeY;
   // The terminus (◉, 20 px) always ends the route with 44 px of room; it is labelled only when the last episode is an answer.
   const answerRoom = 44;
@@ -241,6 +259,9 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps, open, lepPro
             <span className="ep-text"><EpisodeText r={L.answer} /></span>
           </div>
         )}
+        {ai && L.episodes.map((r, i) => <TagSlot key={r.episode.id} r={r} tag={ai.tags.get(r.episode.id)} style={{ left: r.x - 12, width: r.len, height: Y + 12 }} w={Math.max(32, r.len - 14 - (i === L.episodes.length - 1 ? answerRoom : 0))} />)}
+        {ai && L.answer && <TagSlot r={L.answer} tag={ai.tags.get(L.answer.episode.id)} style={{ left: L.routeEnd - 52, width: 70, height: Y + 14 }} end />}
+        {ai?.links}
         {L.fold && (
           <div className="map-item fold-chip mono" style={{ left: L.fold.x - 4, top: Y - 12 }} {...foldProps()}>
             ··· {L.fold.episodes.length} episodes · {L.fold.steps} steps
@@ -262,7 +283,7 @@ function Horizontal({ L, epProps, laneProps, blazeProps, foldProps, open, lepPro
   );
 }
 
-function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps & { all: RouteEpisode[] }) {
+function Vertical({ L, ai, all, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps & { all: RouteEpisode[] }) {
   const rows: ReactNode[] = [];
   // Blazes sit in their own right-hand column, as wide as the busiest row, so the counts line up beside it.
   const per = new Map<string, number>();
@@ -285,6 +306,7 @@ function Vertical({ L, all, epProps, laneProps, blazeProps, foldProps, open, lep
           <KindGlyph kind={r.episode.kind} />
           <span className="ep-title">{r.episode.title}</span>{' '}
           <span className="ep-count mono" title={countText(r)}>{countText(r, 9 * G.monoPx)}</span>
+          {ai?.tags.get(r.episode.id) && <LabelBadge tag={ai.tags.get(r.episode.id) as EpisodeTag} />}
         </div>
         {blazes((b) => b.track < 0 && b.episodeId === r.episode.id)}
       </div>,

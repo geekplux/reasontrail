@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { InlineNote } from '../components/states/InlineNote';
 import { HowToReadMap } from '../map/HowToReadMap';
-import { MapView, ViewSwitch, type View } from '../map/MapView';
+import { LIVE_AI, MapView, ViewSwitch, type View } from '../map/MapView';
 import { Outline } from '../map/Outline';
 import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
 import { Gallery } from './Gallery';
@@ -36,7 +36,7 @@ export function Showcase({ session, view, onView, onSession }: { session: string
       <section className="site-map showcase-map" aria-labelledby="h-watch">
         <h2 id="h-watch" className="section-label">Watch the agents that built this app</h2>
         {unknown && <InlineNote variant="info">That session isn&apos;t here, so here is “{sample?.title}”.</InlineNote>}
-        {!graph ? <p className="muted">Loading the sample map…</p> : view === 'map' ? <MapView key={sample?.id} graph={graph} sample /> : <Outline key={sample?.id} graph={graph} sample />}
+        {!graph ? <p className="muted">Loading the sample map…</p> : view === 'map' ? <MapView key={sample?.id} graph={graph} sample ai={LIVE_AI} /> : <Outline key={sample?.id} graph={graph} sample />}
         <div className="showcase-controls">
           <Gallery samples={sessionSamples} current={sample?.id ?? ''} onChoose={onSession} />
           <ViewSwitch view={view} onChange={onView} />

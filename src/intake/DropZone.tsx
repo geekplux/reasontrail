@@ -4,7 +4,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { COMMANDS } from '../../shared/commands';
 import type { SessionGraph } from '../../shared/session/types';
 import { LogoMark } from '../brand/LogoMark';
-import { MapView, ViewSwitch, type View } from '../map/MapView';
+import { LIVE_AI, MapView, ViewSwitch, type View } from '../map/MapView';
 import { Outline } from '../map/Outline';
 import { CommandLine } from '../site/Install';
 import { PRIVACY, pageTitle } from '../site/SiteShell';
@@ -101,7 +101,7 @@ export function OpenSession({ file, onFile, onMount }: { file: File | null; onFi
             }}>Open another file</button>
           </div>
           <MapBoundary key={view} onOutline={() => setView('outline')}>
-            {view === 'map' ? <MapView graph={state.graph} /> : <Outline graph={state.graph} />}
+            {view === 'map' ? <MapView graph={state.graph} ai={LIVE_AI} /> : <Outline graph={state.graph} />}
           </MapBoundary>
         </>
       ) : (

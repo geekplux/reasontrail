@@ -29,11 +29,13 @@ interface Props {
   onOpenLane?: ((laneId: string) => void) | undefined;
   linkFor(stepId: string): string;
   announce(text: string): void;
+  /** The selected step's AI label and supports, while the overlay is on (phase 21). */
+  aiNote?: ReactNode;
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, openRaw = false, onStep, onClose, onPattern, onOpenLane, linkFor, announce }: Props) {
+export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, openRaw = false, onStep, onClose, onPattern, onOpenLane, linkFor, announce, aiNote }: Props) {
   const titleId = useId();
   const title = useRef<HTMLHeadingElement>(null);
   const [full, setFull] = useState(false);
@@ -120,6 +122,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
             <p className="honesty agent-words" data-honesty="detail"><InfoGlyph /><span>{HONESTY_TEXT} <a href={HOW_TO_READ_URL}>How to read this map</a></span></p>
           )}
           {row && <StepBlock key={row.id} g={g} row={row} index={at} count={nav.length} label={pattern ? 'Evidence' : 'Selected step'} onOpenLane={onOpenLane} />}
+          {row && aiNote}
           {row && <ProvenanceBlock key={`${row.id}:${openRaw}`} g={g} row={row} openRaw={openRaw} link={linkFor(row.id)} announce={announce} />}
           <div className="panel-nav">
             <button type="button" data-panel-nav="" aria-disabled={at <= 0} onClick={() => stepBy(-1)}>← Previous {pattern ? 'evidence' : 'step'}</button>

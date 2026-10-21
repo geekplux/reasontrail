@@ -1,7 +1,11 @@
 // The glance (DESIGN §9, PLAN M1): the task, the route with side trails and blazes, where it got stuck, and the
 // destination, all visible without a click. Pure layout in layout.ts; this component measures only the band width.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import type { SessionGraph } from '../../shared/session/types';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
+import type { AiSource } from '../ai/AiControl';
+import { StepAiNote } from '../ai/LabelBadge';
+import { episodeTags, supportPairs } from '../ai/labels';
+import { SupportLinks } from '../ai/SupportLinks';
 import { LiveRegion, useAnnouncer } from '../components/LiveRegion';
 import './outline.css';
 import './map.css';
@@ -18,6 +22,11 @@ import { glance } from './outline';
 import { RouteView } from './RouteView';
 import { GlanceRows, TaskCard } from './TaskCard';
 import { StuckList } from './TroubleMarker';
+
+// The AI labels control, its dialog and client load only when first used (or with a CLI overlay in the page).
+const AiControl = lazy(() => import('../ai/AiControl'));
+/** The website's AI labels: asked for live through `/api/structure`, after consent. */
+export const LIVE_AI: AiSource = { live: true };
 
 const NARROW = '(max-width: 767px)';
 const subscribe = (cb: () => void) => {
@@ -38,14 +47,17 @@ const here = () => ({ search: window.location.search, hash: window.location.hash
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 interface Sel { item: string; step: string | undefined; focus: boolean; raw?: boolean }
 
-/** `link`: how a step link is written: `?step=` on the website, `#step=` in a local file (PLAN M9). */
-export function MapView({ graph: g, sample = false, link = 'search' }: { graph: SessionGraph; sample?: boolean; link?: LinkMode }) {
+/** `link`: how a step link is written: `?step=` on the website, `#step=` in a local file (PLAN M9). `ai`: the opt-in
+ * AI labels (phase 21): live on the website, or the overlay the CLI's `--ai` embedded. */
+export function MapView({ graph: g, sample = false, link = 'search', ai }: { graph: SessionGraph; sample?: boolean; link?: LinkMode; ai?: AiSource | undefined }) {
   const [message, announce] = useAnnouncer();
   const vertical = useSyncExternalStore(subscribe, narrow, () => false);
   const band = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [unfolded, setUnfolded] = useState(false);
+  const [aiLoaded, setAiLoaded] = useState(() => Boolean(ai && 'overlay' in ai));
+  const [overlay, setOverlay] = useState<LabelOverlay>();
   useLayoutEffect(() => {
     const el = band.current;
     if (!el) return;
@@ -165,6 +177,11 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
     if (hit) choose(hit.id, undefined, { push: false, focus: true, say: hit.say });
   };
 
+  const tags = useMemo(() => (overlay ? episodeTags(g, overlay) : undefined), [g, overlay]);
+  // `supports` curves only while a claim's episode (or the destination, for the final answer) is selected (§8.4).
+  const claimEp = target?.kind === 'files' ? (L.answer ?? L.episodes[L.episodes.length - 1])?.episode.id : sel?.item.startsWith('ep:') ? target?.episode?.id : undefined;
+  const pairs = overlay && claimEp && !vertical ? supportPairs(g, overlay, new Set([claimEp])) : [];
+  const routeAi = overlay && tags ? { tags, model: overlay.model, links: pairs.length > 0 ? <SupportLinks L={L} pairs={pairs} /> : undefined } : undefined;
   const count = g.episodes.filter((e) => e.laneId === g.lanes[0]?.id && !e.parentId).length;
   const [verify, , files] = glance(g);
   const heading = target ? (target.kind === 'pattern' ? `Steps in pattern ${L.numbers.get(target.trouble?.[0]?.id ?? '') ?? ''} · evidence highlighted` : `Steps in “${target.title.length > 48 ? `${target.title.slice(0, 47)}…` : target.title}”`) : '';
@@ -180,6 +197,11 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
         <div className="route-head">
           <h2 id="h-route" className="section-label">Route <span>· {count === 1 ? '1 episode' : `${count} episodes`} · in order</span></h2>
           <MapLegend />
+          {ai && (aiLoaded ? (
+            <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} /></Suspense>
+          ) : (
+            <button type="button" className="ai-button" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI labels…</button>
+          ))}
         </div>
         <div ref={band}>
           {g.steps.length === 0 ? (
@@ -204,6 +226,7 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
               onToggleLane={toggleLane}
               panelOpen={Boolean(target)}
               onClose={close}
+              ai={routeAi}
             />
           )}
         </div>
@@ -238,6 +261,7 @@ export function MapView({ graph: g, sample = false, link = 'search' }: { graph: 
           onOpenLane={openLaneOf}
           linkFor={(id) => new URL(writeStepLink(link, here(), id), window.location.href).href}
           announce={announce}
+          aiNote={overlay && sel?.step ? <StepAiNote g={g} overlay={overlay} stepId={sel.step} episode={sel.item.startsWith('ep:') ? target.episode?.id : undefined} onPick={(id) => selector.selectStep(id)} /> : undefined}
         />
       )}
       <LiveRegion message={message} />
