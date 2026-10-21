@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { SKILL_CALL } from '../../shared/commands';
 import { PKG_NAME, VERSION } from './meta';
 
 /** The skill's files, bundled into the CLI at build time (relative path → text). */
@@ -66,7 +67,7 @@ function installInto(label: string, dir: string, files: Record<string, string>, 
   }
   const hashes = Object.fromEntries(Object.entries(files).map(([rel, text]) => [rel, sha(text)]));
   writeFileSync(join(dir, MANIFEST), `${JSON.stringify({ version: VERSION, files: hashes }, null, 2)}\n`);
-  ctx.out(`${label}: installed. Restart the agent, then ask it to "map this session" or type ${label === 'Codex' ? '$' : '/'}${PKG_NAME}.`);
+  ctx.out(`${label}: installed. Restart the agent, then ask it to "map this session" or type ${label === 'Codex' ? SKILL_CALL.codex : SKILL_CALL.slash}.`);
   return true;
 }
 

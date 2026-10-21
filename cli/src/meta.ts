@@ -1,7 +1,8 @@
 // Package identity and exit codes (PLAN D25, C2). Docs and the skill write `npx reasontrail` through PKG_NAME.
 import pkg from '../package.json';
+import { PKG_NAME, SKILL_HOMES } from '../../shared/commands';
 
-export const PKG_NAME = 'reasontrail';
+export { PKG_NAME };
 export const VERSION: string = pkg.version;
 export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
 
@@ -30,8 +31,8 @@ Options:
   -h, --help         this help
   -v, --version      the version
 
-install-skill puts the /${PKG_NAME} skill into ~/.claude/skills (Grok Build reads it too; ~/.grok/skills
-when ~/.claude is absent) and ~/.agents/skills (Codex). It never replaces a file you changed unless --force.
+install-skill puts the /${PKG_NAME} skill into ${SKILL_HOMES.claude} (Grok Build reads it too; ${SKILL_HOMES.grok}
+when ~/.claude is absent) and ${SKILL_HOMES.codex} (Codex). It never replaces a file you changed unless --force.
 
 Writes <tmp>/reasontrail/<source>-<id>.html by default. Runs locally; nothing is uploaded.
 
