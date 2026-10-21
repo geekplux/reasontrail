@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeSession, parseSession } from './adapter';
 import { buildGraph } from './build/graph';
 import { findSecrets, redactGraph, redactSession, redactText } from './redact';
+import { buildBatches } from './structure';
 
 /** Deterministic pseudo-random string over an alphabet (LCG; not for security). */
 function rnd(n: number, seed: number, abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'): string {
@@ -155,3 +156,43 @@ describe('high-entropy scan on long blobs', () => {
   });
 });
 
+
+describe('buildBatches sends only redacted text (phase 20 AC3)', () => {
+  const base = parseSession({ files: [{ path: j(HOME, 'erin/fx/basic.jsonl'), text: readFileSync('fixtures/sessions/claude-code/basic.jsonl', 'utf8') }] });
+  if (!base) throw new Error('fixture');
+  const graph = structuredClone(base);
+  const tmpl = graph.steps[0]!;
+  const kinds = ['user', 'assistant', 'thinking', 'tool-result', 'tool-call'] as const;
+  CASES.forEach(([, input], i) => {
+    const kind = kinds[i % kinds.length]!;
+    const tool = kind === 'tool-call' ? { name: 'Bash', category: 'run' as const, summary: input, files: [] } : undefined;
+    graph.steps.push({ ...tmpl, id: `c${i}`, seq: 1000 + i, kind, status: 'ok', text: input, ...(tool && { tool }) });
+  });
+  const token = j('gh', 'p_', rnd(36, 31));
+  graph.steps.push({ ...tmpl, id: 'edge', seq: 2000, kind: 'assistant', text: `${'word '.repeat(58)}${token} tail` });
+  const steps = buildBatches(graph).flatMap((b) => b.steps);
+  /** What a corpus case removes: the span between the common prefix and suffix of input and expected output. */
+  const removed = ([, input, expected]: [string, string, string]) => {
+    let pre = 0;
+    while (input[pre] === expected[pre]) pre++;
+    let suf = 0;
+    while (suf < input.length - pre && input.at(-1 - suf) === expected.at(-1 - suf)) suf++;
+    return input.slice(pre, input.length - suf).split('\n').filter((l) => l.length >= 6);
+  };
+
+  it('every summary is redacted, one line and at most 300 chars', () => {
+    expect(steps.length).toBeGreaterThan(CASES.length);
+    for (const s of steps) {
+      expect([s.id, findSecrets(s.text)]).toEqual([s.id, []]);
+      expect([...s.text].length).toBeLessThanOrEqual(300);
+      expect(s.text).not.toMatch(/\n|\/home\/|\/Users\/|C:\\Users\\|@example\./);
+    }
+  });
+
+  it('no secret, email or home path from the corpus survives, even next to the clip point', () => {
+    const all = steps.map((s) => s.text).join('\n');
+    for (const c of CASES.filter(([, input, expected]) => input !== expected)) for (const part of removed(c)) expect([c[0], all.includes(part)]).toEqual([c[0], false]);
+    expect(all).not.toContain(token.slice(0, 8));
+    expect(steps.find((s) => s.id === 'edge')?.text).toMatch(/^(word )+\[secret:g…$/); // the placeholder is clipped, never the secret
+  });
+});
