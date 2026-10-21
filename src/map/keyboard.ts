@@ -142,12 +142,14 @@ export function laneName(l: LaneItem, opts: { availPx?: number; duration?: boole
   return `Subagent lane: ${name} ${count} ${word}${l.noHandBack ? ', hand-back not recorded in the main session' : ''}.${more} ${l.lanes[0]?.name ?? ''}.`;
 }
 
-/** "Detected pattern 2 of 3: error streak, resolved. Error streak: 4 failed checks, then passed. In implementer, Phase 4 UI." */
+/** "Detected pattern 2 of 3: error streak, resolved. Error streak: 4 failed checks, then passed. In implementer, Phase 4 UI."
+ * A group: "Detected patterns, group of 6: 4–9 of 12, some unresolved. In the main route, Build." */
 export function blazeName(L: GlanceLayout, b: Blaze): string {
   const ep = [...L.episodes, ...(L.answer ? [L.answer] : [])].find((r) => r.episode.id === b.episodeId)?.episode.title ?? '';
   const lane = L.lanes.find((l) => l.id === b.laneItem);
   const where = `In ${lane ? (lane.lanes.length > 1 ? 'subagents' : lane.lanes[0]?.agentType ?? 'a subagent') : 'the main route'}${ep ? `, ${ep}` : ''}.`;
   const t = b.trouble[0];
-  if (!t || b.trouble.length > 1) return `Detected patterns ${b.badge} of ${L.order.length}: ${plural(b.trouble.length, 'pattern')}, ${b.resolved ? 'all resolved' : 'some unresolved'}. ${where}`;
+  // A group's plate reads "+6" with "4–9" on its badge: the name says both, in that order (WCAG 2.5.3).
+  if (!t || b.trouble.length > 1) return `Detected patterns, group of ${b.trouble.length}: ${b.badge} of ${L.order.length}, ${b.resolved ? 'all resolved' : 'some unresolved'}. ${where}`;
   return `Detected pattern ${b.badge} of ${L.order.length}: ${TROUBLE_WORD[t.kind]}, ${t.resolved ? 'resolved' : 'unresolved'}. ${t.summary}. ${where}`;
 }

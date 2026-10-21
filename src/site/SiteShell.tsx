@@ -5,9 +5,12 @@ import { useEffect, useState, type ReactNode } from 'react';
 import './site.css';
 import { LogoMark } from '../brand/LogoMark';
 import { Wordmark } from '../brand/Wordmark';
+import type { SiteView } from '../app/urlState';
 import { SOURCE_URL } from '../components/AppShell';
 
 export const PRIVACY = 'Parsed in your browser. Nothing is uploaded.';
+/** The tab title of a page other than home: "Install · Reasontrail". */
+export const pageTitle = (what: string) => `${what} · Reasontrail`;
 const hasFiles = (e: DragEvent) => e.dataTransfer?.types.includes('Files') ?? false;
 
 /** Shows the overlay while files are dragged over the window, and hands a dropped file to `onFile`. */
@@ -45,7 +48,8 @@ function useFileDrop(onFile: (file: File) => void) {
   return over;
 }
 
-export function SiteShell({ children, onFile, home }: { children: ReactNode; onFile(file: File): void; home: boolean }) {
+export function SiteShell({ children, onFile, home, view }: { children: ReactNode; onFile(file: File): void; home: boolean; view: SiteView }) {
+  const open = view === 'open';
   const dragging = useFileDrop(onFile);
   return (
     <>
@@ -54,11 +58,12 @@ export function SiteShell({ children, onFile, home }: { children: ReactNode; onF
         <nav className="site-nav" aria-label="Site">
           <a className="header-link" href="?view=install">Install</a>
         </nav>
-        <a className="button primary" href="?view=open">Map your own session</a>
+        <a className="button primary" href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
       </header>
       <main className="site-main">{children}</main>
       <footer className="site-footer showcase-footer">
-        <p>{PRIVACY} · MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
+        {/* The drop zone says the privacy line beside the drop target, so the footer does not repeat it there. */}
+        <p>{open ? '' : `${PRIVACY} · `}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
         <p>
           <a className="footer-link" href="./#how-to-read">How to read a map</a> ·{' '}
           <a className="footer-link" href="?view=install">Install</a> · Zoom into the words:{' '}

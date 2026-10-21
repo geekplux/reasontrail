@@ -28,7 +28,9 @@ const calm = (page) => page.evaluate(() => {
   });
   const large = [...document.querySelectorAll('body *')].filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(el).fontSize) >= 25 && el.getBoundingClientRect().height > 0 && !el.closest('.wordmark')); // the logo is not text
   const route = document.querySelector('[data-region="route"]')?.getBoundingClientRect();
-  return { controls: controls.map((c) => (c.getAttribute('aria-label') ?? c.textContent ?? c.tagName).trim().slice(0, 24)), large: large.map((e) => e.textContent.trim().slice(0, 30)), routeTop: Math.round(route?.top ?? -1) };
+  const area = (e) => { const r = e.getBoundingClientRect(); return r.width * r.height; };
+  const largest = [...document.querySelectorAll('main [data-region]')].sort((a, b) => area(b) - area(a))[0]?.getAttribute('data-region');
+  return { controls: controls.map((c) => (c.getAttribute('aria-label') ?? c.textContent ?? c.tagName).trim().slice(0, 24)), large: large.map((e) => e.textContent.trim().slice(0, 30)), routeTop: Math.round(route?.top ?? -1), largest };
 });
 
 /** A synthetic drag and drop on the body of a file built in the page (`text`, or `bytes` zero bytes). Returns whether
@@ -59,8 +61,10 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await ready(page);
   await settle(page);
   const home = await calm(page);
-  log(`home 1440: route top ${home.routeTop}px; controls ${home.controls.length} [${home.controls.join(' | ')}]; large text ${JSON.stringify(home.large)}`);
-  if (home.routeTop < 0 || home.routeTop > 900 - 160) fail(`CL1: the route band starts at ${home.routeTop}px`);
+  log(`home 1440: route top ${home.routeTop}px (largest region by area: ${home.largest}); controls ${home.controls.length} [${home.controls.join(' | ')}]; large text ${JSON.stringify(home.large)}`);
+  if (home.routeTop < 0 || home.routeTop > 420) fail(`CL1: the route band starts at ${home.routeTop}px (> 420)`);
+  if (home.largest !== 'route') fail(`CL1: the largest region is ${home.largest}, not the route`);
+  if ((await page.title()) !== 'Reasontrail: see what your coding agent did') fail(`home title: ${await page.title()}`);
   if (home.controls.length > 6) fail(`CL2: ${home.controls.length} chrome controls in the first viewport at 1440×900`);
   if (home.large.length !== 1) fail(`CL9: ${home.large.length} text elements ≥ 25 px: ${home.large}`);
   if (!(await page.getByText('Watch the agents that built this app').isVisible())) fail('no "Watch the agents that built this app" label');
@@ -83,6 +87,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => location.search === '?session=planner-pivot').catch(() => fail(`gallery keyboard: ${page.url()}`));
   await ready(page);
+  if (!(await page.evaluate(() => document.activeElement?.matches('.gallery input:checked')))) fail('gallery keyboard: focus left the checked sample');
   await page.goBack();
   await page.waitForFunction(() => location.search === '?session=verify-fail-fix').catch(() => fail(`gallery Back: ${page.url()}`));
   await ready(page);
@@ -95,6 +100,8 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.goto(`${baseURL}/`, { waitUntil: 'load' });
   await page.locator('header').getByRole('link', { name: 'Install' }).click();
   await page.waitForSelector('.install');
+  if (!(await page.evaluate(() => document.activeElement?.matches('main h1')))) fail('Install: focus did not move to the page heading');
+  if ((await page.title()) !== 'Install · Reasontrail') fail(`install title: ${await page.title()}`);
   const commands = await page.locator('.install [data-command]').allTextContents();
   const installText = await page.locator('.install').textContent();
   const cli = join(root, 'cli', 'dist', 'cli.mjs');
@@ -128,6 +135,10 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.getByRole('link', { name: 'Map your own session' }).click();
   await page.waitForSelector('[data-testid="drop-target"]');
   if (!(await page.locator('main').textContent()).includes(PRIVACY)) fail('V2: the drop zone lacks the privacy line');
+  await page.waitForFunction(() => document.activeElement?.matches('main h1')).catch(() => fail('open: focus did not move to the page heading'));
+  if ((await page.title()) !== 'Map your own session · Reasontrail') fail(`open title: ${await page.title()}`);
+  if ((await page.locator('header .button.primary').getAttribute('aria-current')) !== 'page') fail('open: the header button is not aria-current="page"');
+  if ((await page.locator('footer').textContent()).includes(PRIVACY)) fail('open: the footer repeats the privacy line');
   const input = page.locator('input[type="file"]');
   await input.focus();
   if (!(await page.evaluate(() => getComputedStyle(document.activeElement.closest('label')).outlineStyle !== 'none'))) fail('the file picker shows no focus ring');
@@ -138,6 +149,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   if (requests.length) fail(`V1: ${requests.length} requests while parsing: ${requests.slice(0, 3)}`);
   if (!/^Map ready: \d+ episodes?, \d+ detected patterns?/.test((await live(page)) ?? '')) fail(`announce: "${await live(page)}"`);
   if (!(await page.evaluate(() => document.activeElement?.tagName === 'H1'))) fail('focus did not move to the mapped file');
+  if ((await page.title()) !== 'trouble.jsonl · Reasontrail') fail(`dropped map title: ${await page.title()}`);
   await settle(page);
   for (const p of await axeProblems(page, 'dropped map')) fail(p);
 
@@ -158,6 +170,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   const big = join(tmp, 'big-session.jsonl');
   writeFileSync(big, repeat(30));
   await page.getByRole('button', { name: 'Open another file' }).click();
+  await page.waitForFunction(() => document.activeElement?.type === 'file').catch(() => fail('Open another file did not focus the file picker'));
   await input.setInputFiles(big);
   const bar = page.locator('[role="progressbar"]');
   await bar.waitFor({ timeout: 5_000 });
@@ -218,6 +231,14 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   log(`home 390: controls ${mobile.controls.length} [${mobile.controls.join(' | ')}]; large ${JSON.stringify(mobile.large)}; overflow ${overflow}`);
   if (mobile.controls.length > 4) fail(`CL2: ${mobile.controls.length} chrome controls in the first viewport at 390×844`);
+  await page.locator('.gallery-select').focus();
+  await page.locator('.gallery-select').selectOption('verify-fail-fix');
+  await page.waitForFunction(() => location.search === '?session=verify-fail-fix').catch(() => fail(`mobile select: ${page.url()}`));
+  await ready(page);
+  if (!(await page.evaluate(() => document.activeElement?.matches('.gallery-select')))) fail('mobile select: focus left the sample select');
+  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await ready(page);
+  await settle(page);
   if (mobile.large.length > 1) fail(`CL9 mobile: ${mobile.large}`);
   if (overflow > 0) fail(`mobile overflows by ${overflow}px`);
   await shot('site-home-mobile');

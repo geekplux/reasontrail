@@ -17,7 +17,13 @@
 .headline { margin: 0 0 var(--tg-space-2); font: 400 2.441rem / 1.1 var(--tg-font-serif); letter-spacing: -0.01em; }
 .sub-line { margin: 0; max-width: 64rem; color: var(--tg-ink-muted); }
 .showcase .site-map { padding: 0; max-width: none; }
-.showcase .task-title { font-size: var(--tg-text-lg); } /* CL9: the headline is the one large text */
+/* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point; the headline is the one large text */
+/* DESIGN §18.3: 40 px between the route band and the bands below it, so the route reads as the largest region (CL1). */
+.showcase .route-band { padding-bottom: var(--tg-space-8); }
+.showcase .task-request { display: flex; align-items: baseline; gap: var(--tg-space-2); }
+.showcase .task-title { min-width: 0; font-size: var(--tg-text-lg); }
+.showcase .task-title.is-clamped { -webkit-line-clamp: 1; line-clamp: 1; }
+.showcase .task-request .link-button { flex: none; border: 0; background: none; padding: 0; color: var(--tg-ink-muted); font-size: var(--tg-text-sm); text-decoration: underline; text-underline-offset: 0.2em; }
 .showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-5); }
 
 .gallery { margin: 0; padding: 0; border: 0; min-width: 0; }
@@ -46,7 +52,8 @@
 .page summary { cursor: pointer; }
 .plain-list { margin: var(--tg-space-2) 0; padding-inline-start: var(--tg-space-5); }
 
-.showcase-footer { justify-content: flex-start; flex-direction: column; padding: var(--tg-space-5) var(--tg-space-8); }
+/* The footer sits in the same 1280 px column as the page. */
+.showcase-footer { justify-content: flex-start; flex-direction: column; padding: var(--tg-space-5) max(var(--tg-space-8), calc((100% - 1280px) / 2 + var(--tg-space-8))); }
 
 /* Drop zone */
 .drop-target { display: grid; justify-items: center; gap: var(--tg-space-4); max-width: 40rem; padding: var(--tg-space-8) var(--tg-space-5); border: 2px dashed var(--tg-ink-muted); border-radius: var(--tg-radius); text-align: center; }
@@ -54,8 +61,9 @@
 .drop-target .logo-mark { width: 48px; height: 48px; }
 .drop-target[data-busy] { opacity: 0.6; }
 .button input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.intake-alert:empty { display: none; }
+
 .intake-alert { margin-top: var(--tg-space-5); }
+.intake-alert:empty { margin: 0; } /* present and empty from load, so the first message is announced */
 .intake-error { display: flex; align-items: center; flex-wrap: wrap; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); }
 .bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--tg-paper); background: var(--tg-trouble); font-weight: 700; }
 .open-session .trail-stub { margin-top: var(--tg-space-5); }
@@ -64,6 +72,8 @@
 .intake-progress { display: grid; gap: var(--tg-space-4); max-width: 40rem; }
 .intake-progress p { margin: 0; }
 .intake-progress .button { justify-self: start; }
+.copy-said { color: var(--tg-ink-muted); font-size: var(--tg-text-sm); }
+.copy-said:empty { margin-inline-start: calc(-1 * var(--tg-space-2)); } /* kept (a live region must exist before it speaks), without its gap */
 .progress-track { height: 4px; background: var(--tg-rule); }
 .progress-bar { height: 100%; background: var(--tg-ink); }
 .route-skeleton { width: 100%; height: 24px; fill: var(--tg-paper); stroke: var(--tg-rule); stroke-width: 2; }

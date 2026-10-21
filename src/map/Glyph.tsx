@@ -80,7 +80,8 @@ export function BlazeIcon({ kind, resolved, badge, plus }: { kind: Trouble['kind
   return (
     <svg className={`glyph blaze-icon glyph-plate ${resolved ? 'is-resolved' : 'is-open'}`} viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
       <rect x="2" y="2" width="20" height="20" rx="2" className="g-plate" />
-      {plus ? <text x="12" y="16" className="g-plus">+{plus}</text> : <path d={PLATE[kind]} className="g-plate-mark" transform="translate(2 2) scale(1.25)" />}
+      {/* The space keeps "+6" and "4–9" two words for the accessible-name check; SVG does not draw it. */}
+      {plus ? <><text x="12" y="16" className="g-plus">+{plus}</text>{' '}</> : <path d={PLATE[kind]} className="g-plate-mark" transform="translate(2 2) scale(1.25)" />}
       {badge && (
         <>
           <rect x={22 - bw / 2} y="-6" width={bw} height="16" rx="8" className="g-badge" />

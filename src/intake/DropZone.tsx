@@ -7,9 +7,9 @@ import { LogoMark } from '../brand/LogoMark';
 import { MapView, ViewSwitch, type View } from '../map/MapView';
 import { Outline } from '../map/Outline';
 import { CommandLine } from '../site/Install';
-import { PRIVACY } from '../site/SiteShell';
+import { PRIVACY, pageTitle } from '../site/SiteShell';
 import { startParse, warmIntake, type Job } from './intake';
-import { MAX_BYTES, PROGRESS_MIN_BYTES, megabytes, type IntakeError } from './messages';
+import { MAX_BYTES, PROGRESS_MIN_BYTES, megabytes, progressText, type IntakeError } from './messages';
 
 const ACCEPT = '.jsonl,.json,.ndjson,application/x-ndjson,application/jsonl';
 
@@ -28,7 +28,8 @@ const MESSAGE: Record<IntakeError, string> = {
 };
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 
-export function OpenSession({ file, onFile }: { file: File | null; onFile(file: File): void }) {
+/** `onMount` lets the site move focus to this page's heading once the lazy page is drawn. */
+export function OpenSession({ file, onFile, onMount }: { file: File | null; onFile(file: File): void; onMount?(): void }) {
   const [state, setState] = useState<State>({ at: 'idle' });
   const [said, setSaid] = useState('');
   const [view, setView] = useState<View>('map');
@@ -36,6 +37,7 @@ export function OpenSession({ file, onFile }: { file: File | null; onFile(file: 
   const title = useRef<HTMLHeadingElement>(null);
   const job = useRef<Job | null>(null);
   useEffect(() => void warmIntake(), []);
+  useEffect(() => onMount?.(), [onMount]);
 
   // A new file starts a new read (state adjusted during render; the read itself starts in the effect below).
   const [seen, setSeen] = useState<File | null>(null);
@@ -71,6 +73,10 @@ export function OpenSession({ file, onFile }: { file: File | null; onFile(file: 
   useEffect(() => {
     if (state.at === 'done') title.current?.focus();
   }, [state.at]);
+  const name = state.at === 'done' ? state.name : null;
+  useEffect(() => {
+    document.title = pageTitle(name ?? 'Map your own session');
+  }, [name]);
 
   const cancel = () => {
     job.current?.cancel();
@@ -89,7 +95,10 @@ export function OpenSession({ file, onFile }: { file: File | null; onFile(file: 
           <div className="open-head">
             <h1 ref={title} tabIndex={-1} className="open-file"><span className="visually-hidden">Your session map: </span>{state.name}</h1>
             <ViewSwitch view={view} onChange={setView} />
-            <button type="button" className="text-button" onClick={() => setState({ at: 'idle' })}>Open another file</button>
+            <button type="button" className="text-button" onClick={() => {
+              setState({ at: 'idle' });
+              requestAnimationFrame(() => input.current?.focus());
+            }}>Open another file</button>
           </div>
           <MapBoundary key={view} onOutline={() => setView('outline')}>
             {view === 'map' ? <MapView graph={state.graph} /> : <Outline graph={state.graph} />}
@@ -97,7 +106,7 @@ export function OpenSession({ file, onFile }: { file: File | null; onFile(file: 
         </>
       ) : (
         <>
-          <h1 className="page-title">Map your own session</h1>
+          <h1 className="page-title" tabIndex={-1}>Map your own session</h1>
           {state.at === 'reading' && state.big ? (
             <Progress lines={state.lines} total={state.total} onCancel={cancel} />
           ) : (
@@ -141,7 +150,7 @@ export function OpenSession({ file, onFile }: { file: File | null; onFile(file: 
 }
 
 function Progress({ lines, total, onCancel }: { lines: number; total: number; onCancel(): void }) {
-  const text = `${lines.toLocaleString('en')} of ${total.toLocaleString('en')} lines`;
+  const text = progressText(lines, total);
   return (
     <div className="intake-progress" data-testid="intake-progress">
       <div className="progress-track" role="progressbar" aria-label="Reading session" aria-valuemin={0} aria-valuemax={total} aria-valuenow={lines} aria-valuetext={text}>
@@ -151,7 +160,7 @@ function Progress({ lines, total, onCancel }: { lines: number; total: number; on
         <path d="M12 12 H588" />
         {[0, 1, 2, 3, 4, 5].map((i) => <circle key={i} cx={60 + i * 96} cy={12} r={6} />)}
       </svg>
-      <p>Reading session… {text}</p>
+      <p>{total > 0 && lines >= total ? text : `Reading session… ${text}`}</p>
       <button type="button" className="button" onClick={onCancel}>Cancel</button>
     </div>
   );

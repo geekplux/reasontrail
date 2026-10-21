@@ -21,3 +21,7 @@ export type FromWorker =
 
 /** The size in whole MB, as the over-50-MB message says it. */
 export const megabytes = (bytes: number) => Math.ceil(bytes / (1024 * 1024));
+
+/** The progress text: "1,234 of 5,678 lines" while reading, then "Building the map…" while the read file is parsed. */
+export const progressText = (lines: number, total: number) =>
+  total > 0 && lines >= total ? 'Building the map…' : `${lines.toLocaleString('en')} of ${total.toLocaleString('en')} lines`;

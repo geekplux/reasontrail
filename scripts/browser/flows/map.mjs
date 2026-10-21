@@ -130,7 +130,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await page.keyboard.press('Home');
   if ((await at()) !== first || second === first || end === first) fail(`arrows/Home/End: ${first} → ${second} → ${end} → ${await at()}`);
   for (let i = 0; i <= n; i++) await page.keyboard.press(']');
-  const live = await page.locator('[role="status"]').textContent();
+  const live = await page.locator('[data-testid="map"] [role="status"]').textContent();
   if ((await page.evaluate(() => document.activeElement?.getAttribute('data-n'))) !== '1' || !/wrapped/.test(live ?? '')) fail(`] wrap: focus ${await at()}, live "${live}"`);
   await page.keyboard.press('Shift+Tab');
   const outside = await at();

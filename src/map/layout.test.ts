@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Episode, Lane, SessionGraph, Step, StepStatus, Trouble } from '../../shared/session/types';
 import { sessionSamples } from '../sessions/samples';
 import { parseSession } from '../../shared/session/adapter';
-import { countText } from './keyboard';
+import { blazeName, countText } from './keyboard';
 import { G, glanceLayout, idleSpan, laneLayout, laneStatus, lepBox, lepCountOnly, plateSpan, lineY, verdictOf } from './layout';
 
 interface LaneSpec { ep: number; at: number; back?: number; steps: number; status?: StepStatus; agent?: string }
@@ -175,6 +175,11 @@ describe('blazes (DM13)', () => {
     expect((route[1]?.x ?? 0) - (route[0]?.x ?? 0)).toBeGreaterThanOrEqual(28);
     const many = glanceLayout(graph({ eps: [20], trouble: [0, 3, 6, 9, 12].map((at) => ({ ep: 0, at, resolved: at !== 6 })) }), 1216);
     expect(many.blazes).toEqual([expect.objectContaining({ badge: '1–5', resolved: false })]);
+    // WCAG 2.5.3: the plate shows "+5" and the badge "1–5"; the name has those words in that order.
+    const name = blazeName(many, many.blazes[0] as never);
+    expect(name).toMatch(/^Detected patterns, group of 5: 1–5 of 5, some unresolved\. In the main route/);
+    const words = (t: string) => t.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    expect(words(name)).toContain(words('+5 1–5'));
   });
 
   it('moves a side-trail plate along its line off an idle label (DM9)', () => {
