@@ -7,9 +7,9 @@ import { dirname, join } from 'node:path';
 const require = createRequire(import.meta.url);
 export const viteBin = join(dirname(require.resolve('vite/package.json')), 'bin', 'vite.js');
 
-/** Parses `[--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch]`. */
+/** Parses `[--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>]`. */
 export function parseArgs(argv) {
-  const opts = { flows: 'all', out: '.tmp/screenshots', build: true, failAfterLaunch: false };
+  const opts = { flows: 'all', out: '.tmp/screenshots', build: true, failAfterLaunch: false, file: undefined };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const value = () => {
@@ -19,6 +19,7 @@ export function parseArgs(argv) {
     };
     if (arg === '--flows') opts.flows = value();
     else if (arg === '--out') opts.out = value();
+    else if (arg === '--file') opts.file = value();
     else if (arg === '--no-build') opts.build = false;
     else if (arg === '--fail-after-launch') opts.failAfterLaunch = true;
     else throw new Error(`unknown argument: ${arg}`);
@@ -90,11 +91,16 @@ export function killGroupSync(pgid) {
   }
 }
 
-/** Collects console errors, page errors, failed and non-same-origin requests on a browser context. */
+/** Collects console errors, page errors, failed and non-same-origin requests on a browser context. A `file://` page
+ * must be self-contained: any request other than the document itself is a problem (PLAN §6.0a, C3). */
 export function watchContext(context, origin, problems) {
   context.on('request', (req) => {
     const url = req.url();
     if (url.startsWith('data:') || url.startsWith('blob:')) return;
+    if (url.startsWith('file:')) {
+      if (req.resourceType() !== 'document') problems.push(`file:// page requested ${url}`);
+      return;
+    }
     if (new URL(url).origin !== origin) problems.push(`non-same-origin request: ${url}`);
   });
   context.on('requestfailed', (req) => problems.push(`request failed: ${req.url()} (${req.failure()?.errorText})`));
