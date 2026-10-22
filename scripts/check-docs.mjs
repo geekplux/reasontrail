@@ -21,9 +21,14 @@ export function stripCode(md) {
 
 /** Links and images in Markdown and inline HTML: `{ kind: 'link' | 'image', target, alt?, line }`. */
 export function extractRefs(md) {
-  const text = stripCode(md);
+  let text = stripCode(md);
   const refs = [];
   const lineOf = (i) => text.slice(0, i).split('\n').length;
+  // A linked image, `[![alt](src)](href)`: both refs, then blanked so the general pattern below does not see it.
+  for (const m of text.matchAll(/\[!\[((?:[^\]\\]|\\.)*)\]\(\s*<?([^)\s>]+)>?\)\]\(\s*<?([^)\s>]+)>?\)/g)) {
+    refs.push({ kind: 'image', target: m[2], alt: m[1], line: lineOf(m.index) }, { kind: 'link', target: m[3], line: lineOf(m.index) });
+  }
+  text = text.replace(/\[!\[(?:[^\]\\]|\\.)*\]\(\s*<?[^)\s>]+>?\)\]\(\s*<?[^)\s>]+>?\)/g, (m) => ' '.repeat(m.length));
   for (const m of text.matchAll(/(!?)\[((?:[^\]\\]|\\.)*)\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) {
     refs.push({ kind: m[1] ? 'image' : 'link', target: m[3], alt: m[1] ? m[2] : undefined, line: lineOf(m.index) });
   }
@@ -62,7 +67,7 @@ export function checkRefs(file, md, has) {
 export const DEMO_ORIGIN = 'https://reasontrail.example';
 
 /** Problems with demo links: each `?session=` must be a sample in `samples` (id → its step ids), each `?step=` one of
- * that sample's steps. Links in code count too, since they are meant to be copied. */
+ * that sample's steps. Links in code count too, since they are meant to be copied. A template (`?session=<id>`) is skipped. */
 export function checkDemoLinks(file, md, samples) {
   const problems = [];
   const lineOf = (i) => md.slice(0, i).split('\n').length;
@@ -71,6 +76,7 @@ export function checkDemoLinks(file, md, samples) {
     const session = q.get('session');
     const step = q.get('step');
     const where = `${file}:${lineOf(m.index)}`;
+    if (session === '') continue; // a template such as `?session=<id>`
     if (session === null) {
       if (step !== null) problems.push(`${where}: demo link has a step but no session: ${m[0]}`);
       continue;

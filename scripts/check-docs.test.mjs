@@ -31,6 +31,17 @@ describe('extractRefs and checkRefs', () => {
     expect(checkRefs('docs/X.md', '[up](../CONTRIBUTING.md) [gone](gone.md)', has)).toEqual(['docs/X.md:1: link does not resolve to a committed file: gone.md']);
   });
 
+  it('checks both halves of a linked image', () => {
+    const has = (p) => p === 'docs/a.webp';
+    expect(extractRefs('x\n[![A map](docs/a.webp)](https://reasontrail.example/) [![](b.png)](c.md)').map((r) => [r.kind, r.target, r.alt, r.line])).toEqual([
+      ['image', 'docs/a.webp', 'A map', 2],
+      ['link', 'https://reasontrail.example/', undefined, 2],
+      ['image', 'b.png', '', 2],
+      ['link', 'c.md', undefined, 2],
+    ]);
+    expect(checkRefs('README.md', '[![](b.png)](c.md)', has)).toEqual(['README.md:1: image without alt text: b.png', 'README.md:1: image does not resolve to a committed file: b.png', 'README.md:1: link does not resolve to a committed file: c.md']);
+  });
+
   it('rejects alt text that only names the kind of image', () => {
     const has = () => true;
     expect(checkRefs('README.md', '![Screenshot](a.png)\n<img src="b.png" alt=" logo ">\n![A map of a session](c.png)', has)).toEqual([
