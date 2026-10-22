@@ -47,7 +47,7 @@ export function ConsentDialog({ summary, onSend, onCancel }: { summary: Structur
         <dt>What is sent</dt>
         <dd>{n(summary.steps, 'redacted step summary', 'redacted step summaries')}, {n(summary.characters, 'character')} in all</dd>
         <dt>Requests</dt>
-        <dd>{n(summary.batches, 'request')}, one after another</dd>
+        <dd>{summary.batches === 1 ? '1 request' : `${n(summary.batches, 'request')}, one after another`}</dd>
         <dt>To</dt>
         <dd className="mono">{endpoint}</dd>
         <dt>Redaction</dt>

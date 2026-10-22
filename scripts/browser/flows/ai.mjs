@@ -107,7 +107,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await dialog.waitFor();
   const facts = (await dialog.textContent()) ?? '';
   const steps = Number(/([\d,]+) redacted step summar/.exec(facts)?.[1]?.replace(/,/g, '') ?? NaN);
-  const batches = Number(/(\d+) requests?, one after another/.exec(facts)?.[1] ?? NaN);
+  const batches = Number(/(\d+) requests?(, one after another)?/.exec(facts)?.[1] ?? NaN);
   log(`consent: ${steps} steps in ${batches} requests`);
   if (!(steps > 0) || batches !== Math.ceil(steps / 200) || batches > 5) fail(`AC1: ${steps} steps announced as ${batches} requests`);
   for (const w of [`${new URL(baseURL).origin}/api/structure`, 'cached per batch', 'Secrets, tokens, emails and home paths']) if (!facts.includes(w)) fail(`V3: the dialog does not say "${w}"`);

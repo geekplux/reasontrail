@@ -40,6 +40,14 @@ export interface RunContext extends LocateContext {
 
 const safe = (id: string) => id.replace(/[^\w.-]/g, '-').slice(0, 80) || 'session';
 const kb = (bytes: number) => `${Math.max(1, Math.round(bytes / 1024))} KB`;
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+const pad = (n: number) => String(n).padStart(2, '0');
+/** A `--list` start time: local `YYYY-MM-DD HH:MM` for every source, or "-" when unknown. */
+export function listTime(at: string | undefined): string {
+  const d = at ? new Date(at) : undefined;
+  if (!d || Number.isNaN(d.getTime())) return '-'.padEnd(16);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 /** Exit code; a promise only with --ai, which waits for the confirmation and the endpoint. */
 export function run(argv: readonly string[], ctx: RunContext): number | Promise<number> {
@@ -56,7 +64,7 @@ export function run(argv: readonly string[], ctx: RunContext): number | Promise<
     const list = listSessions(opts, ctx);
     if (list.length === 0) return ctx.err(`${PKG_NAME}: no sessions found for ${ctx.cwd}`), EXIT.notFound;
     const w = Math.max(...list.map((s) => s.id.length));
-    for (const s of list) ctx.out(`${s.id.padEnd(w)}  ${s.source.padEnd(11)}  ${s.startedAt ?? '-'}  ${kb(s.size)}  ${s.title.slice(0, 72)}`);
+    for (const s of list) ctx.out(`${s.id.padEnd(w)}  ${s.source.padEnd(11)}  ${listTime(s.startedAt)}  ${kb(s.size)}  ${s.title.slice(0, 72)}`);
     return EXIT.ok;
   }
 
@@ -131,7 +139,7 @@ async function addLabels(
       ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
       onProgress: (k, n) => n > 1 && ctx.err(`Sending batch ${k} of ${n}…`),
     });
-    ctx.err(`AI labels: ${overlay.labels.length} labels and ${overlay.links.length} claim links, suggested by ${overlay.model}.`);
+    ctx.err(`AI labels: ${plural(overlay.labels.length, 'label')} and ${plural(overlay.links.length, 'claim link')}, suggested by ${overlay.model}.`);
     return { payload: { ...payload, labels: overlay }, sent: true };
   } catch (e) {
     const err = e instanceof ProviderError ? e : new ProviderError('upstream_error', String(e));

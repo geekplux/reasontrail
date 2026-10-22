@@ -39,3 +39,14 @@ describe('parseArgs', () => {
     expect(parseArgs(argv)).toEqual({ error });
   });
 });
+
+describe('listTime', () => {
+  it('prints every source\'s start as local YYYY-MM-DD HH:MM, or "-" when unknown', async () => {
+    const { listTime } = await import('../src/main');
+    const d = new Date(2026, 9, 15, 9, 5);
+    expect(listTime(d.toISOString())).toBe('2026-10-15 09:05');
+    expect(listTime(undefined).trim()).toBe('-');
+    expect(listTime('not a date').trim()).toBe('-');
+    expect(listTime(undefined)).toHaveLength(16);
+  });
+});
