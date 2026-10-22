@@ -2,7 +2,7 @@ STATE: IN-PROGRESS
 
 # Status (Reasontrail, formerly token-garden)
 
-- Current phase: 23 verified PASS; PR submitted
+- Current phase: 24 (`phase-24-share-cards`): shareable static HTML and map cards
 - Plan: `docs/PLAN.md` (28 phases after the 2026-10-20 pivot and the 2026-10-21 polish phase; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
@@ -31,8 +31,8 @@ STATE: IN-PROGRESS
 | 20 | `phase-20-ai-structure-worker` | [#21](https://github.com/geekplux/reasontrail/pull/21) | PASS, PR open | 1 |
 | 21 | `phase-21-ai-labels-ui` | [#22](https://github.com/geekplux/reasontrail/pull/22) | PASS, PR open | 1 |
 | 22 | `phase-22-zoom-lens` | [#23](https://github.com/geekplux/reasontrail/pull/23) | PASS, PR open | 2 |
-| 23 | `phase-23-chat-import` | - | PASS, PR open | 2 |
-| 24 | `phase-24-share-cards` | - | pending | 0 |
+| 23 | `phase-23-chat-import` | [#24](https://github.com/geekplux/reasontrail/pull/24) | PASS, PR open | 2 |
+| 24 | `phase-24-share-cards` | - | in progress | 0 |
 | 25 | `phase-25-polish` | - | pending | 0 |
 | 26 | `phase-26-readme-community` | - | pending | 0 |
 | 27 | `phase-27-gallery-launch` | - | pending | 0 |
@@ -47,4 +47,4 @@ STATE: IN-PROGRESS
 - Codex: adapter built from the public source and a synthetic fixture; Codex is not installed on this box, so it is not verified against a real session (open item). Skill installs to `~/.agents/skills/reasontrail/`; `--current` uses `CODEX_THREAD_ID`.
 - Polish backlog for phase 25: `--list` mixes two time formats; Grok fixture delegate episode shows 2 steps in Outline vs 8 on the Map; Map/Outline toggle looks clipped at 390 px; AI wording with one request/link ("1 request, one after another", "1 claim links"); AI tags crowd at 12 episodes; flaky `src/App.test.tsx` copy-link test under load; lens footer still says nothing leaves the browser after live opt-in; initial JS at 150 KB (lazy-load lens chips if the first view grows); chat maps say "the agent's own account" and label a user correction "Interrupted:" (chat-specific wording).
 
-Last updated: 2026-10-22 03:51 UTC (phase 23 verified)
+Last updated: 2026-10-22 03:52 UTC (phase 23 PR opened, phase 24 started)
