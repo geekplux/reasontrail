@@ -1,14 +1,14 @@
 <h1 align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/brand/wordmark-dark.png">
-    <img alt="Reasontrail" src="docs/brand/wordmark-light.png" height="48">
+    <img alt="Reasontrail" src="docs/brand/wordmark-light.png" height="62">
   </picture>
 </h1>
 
-<p align="center"><strong>See how your AI agent reasoned: one command turns a Claude Code, Codex or Grok Build session into a map you understand at a glance. Local, no key, nothing uploaded.</strong></p>
+<p align="center"><strong>See how your coding agent got there: one command turns a Claude Code, Codex or Grok Build session into a map you can read at a glance. Local, no API key, nothing uploaded.</strong></p>
 
 <p align="center">
-  <a href="https://reasontrail.example">Live demo (coming soon)</a> ·
+  <a href="#roadmap">Live demo: coming soon</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="docs/EXTENDING.md">Extend it</a>
@@ -18,19 +18,23 @@
 
 ## Quick start
 
+**Not on npm yet.** These commands work once it is published; until then use [From a clone](#from-a-clone).
+
 ```sh
-npx reasontrail install-skill   # once: the skill for Claude Code, Codex and Grok Build
-npx reasontrail                 # or map this folder's newest session yourself
+npx reasontrail install-skill   # once: adds the skill to your agents
+npx reasontrail                 # or map this folder's newest session
 ```
 
 Then ask your agent to "map this session" (`/reasontrail`, or `$reasontrail` in Codex). It opens the map in your browser and replies with the file path.
 
-> **Not on npm yet.** Until the package is published, run the same commands from a clone, with `node cli/dist/cli.mjs` in place of `npx reasontrail` (Node 20.19+ and pnpm 9):
->
-> ```sh
-> git clone https://github.com/geekplux/reasontrail && cd reasontrail
-> pnpm install && pnpm build:cli && node cli/dist/cli.mjs install-skill
-> ```
+### From a clone
+
+Until the package is published, run the same commands from a clone, with `node cli/dist/cli.mjs` in place of `npx reasontrail` (Node 20.19+ and pnpm 9):
+
+```sh
+git clone https://github.com/geekplux/reasontrail && cd reasontrail
+pnpm install && pnpm build:cli && node cli/dist/cli.mjs install-skill
+```
 
 More commands:
 
@@ -63,8 +67,8 @@ Grok Build   ─┘            provenance for every step        trouble markers,
 1. **Adapters** read each agent's transcript files where the agent keeps them (`~/.claude/projects`, `~/.codex/sessions`, `~/.grok/sessions`) and turn them into one neutral format.
 2. **The step graph** is built by deterministic rules: the same session always gives the same map, and every step links back to the file and line it came from.
 3. **The map** is a single self-contained HTML file. It opens from `file://`, works offline and makes no requests.
-4. **Optional AI labels.** With `--ai` (or "AI labels…" on the website) a model suggests labels such as hypothesis, evidence or dead end, and links the final claim to the steps that support it. It shows what would be sent and asks first, sends only redacted one-line step summaries, and every label says which model suggested it. Switch the overlay off and the map is exactly as before.
-5. **The zoom-in lens.** Pick a sentence the agent wrote and see an open model's next-token choices as a garden of branches, where thickness is probability. Recorded sentences work offline; others grow live through the Worker only when you ask.
+4. **Optional AI labels.** With `--ai` (or "AI labels…" on the website) a model suggests labels such as hypothesis, evidence or dead end, and links the final claim to the steps that support it. It shows what would be sent and asks first, sends only redacted one-line step summaries, and every label says which model suggested it. Until the hosted Worker is live, point it at your own with `--api <url>` (see docs/EXTENDING.md). Switch the overlay off and the map is exactly as before.
+5. **The zoom-in lens.** Pick a sentence the agent wrote and see an open model's next-token choices as a garden of branches, where thickness is probability. Recorded sentences work offline; others grow live through a Worker (yours, until the hosted one is live), only when you ask.
 
 ## Privacy and honesty
 
@@ -99,7 +103,7 @@ Ideas that are ready to pick up are in [`docs/GOOD-FIRST-ISSUES.md`](docs/GOOD-F
 
 Contributions are welcome: read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and checks, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [`SECURITY.md`](SECURITY.md). Changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
-The sample maps on the website are sessions of the agents that built this repository: [`CLAUDE.md`](CLAUDE.md) is their operating manual, and [`docs/PLAN.md`](docs/PLAN.md) the plan they work from.
+This project is built by a team of AI agents; see the PR history. The sample maps on the website are their own sessions, and [`docs/PLAN.md`](docs/PLAN.md) is the plan they work from.
 
 ## License
 

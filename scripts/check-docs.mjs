@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Docs check (PLAN S7, phase 26): every relative link and image in the top-level docs resolves to a committed file,
-// every image has alt text, and every `npx reasontrail …` command the README shows is one of `shared/commands.ts`
+// every image has descriptive alt text, and every `npx reasontrail …` command the README shows is one of `shared/commands.ts`
 // (the single source the CLI's --help, the skill installer and the website use).
 // Usage: pnpm check:docs
 import { execFileSync } from 'node:child_process';
@@ -36,6 +36,9 @@ export function extractRefs(md) {
   return refs;
 }
 
+/** Alt text that names the kind of thing instead of saying what it shows. */
+export const VAGUE_ALT = /^(image|img|screenshot|picture|photo|logo|hero)$/i;
+
 /** True for targets this check does not resolve: other sites, mail, in-page anchors. */
 export const isExternal = (target) => /^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('#') || target.startsWith('//');
 
@@ -45,6 +48,7 @@ export function checkRefs(file, md, has) {
   for (const ref of extractRefs(md)) {
     const where = `${file}:${ref.line}`;
     if (ref.kind === 'image' && !ref.alt?.trim()) problems.push(`${where}: image without alt text: ${ref.target}`);
+    else if (ref.kind === 'image' && VAGUE_ALT.test(ref.alt.trim())) problems.push(`${where}: image alt text does not describe it ("${ref.alt.trim()}"): ${ref.target}`);
     if (!ref.target || isExternal(ref.target)) continue;
     const path = decodeURI(ref.target.replace(/[?#].*$/, ''));
     const target = ref.target.startsWith('/') ? path.slice(1) : join(dirname(file), path);

@@ -30,6 +30,14 @@ describe('extractRefs and checkRefs', () => {
     expect(checkRefs('README.md', md, has)).toEqual(['README.md:4: image without alt text: docs/no-alt.png', 'README.md:2: image without alt text: docs/light.png']);
     expect(checkRefs('docs/X.md', '[up](../CONTRIBUTING.md) [gone](gone.md)', has)).toEqual(['docs/X.md:1: link does not resolve to a committed file: gone.md']);
   });
+
+  it('rejects alt text that only names the kind of image', () => {
+    const has = () => true;
+    expect(checkRefs('README.md', '![Screenshot](a.png)\n<img src="b.png" alt=" logo ">\n![A map of a session](c.png)', has)).toEqual([
+      'README.md:1: image alt text does not describe it ("Screenshot"): a.png',
+      'README.md:2: image alt text does not describe it ("logo"): b.png',
+    ]);
+  });
 });
 
 describe('checkCommands', () => {

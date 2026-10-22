@@ -44,7 +44,7 @@ try {
         const bottom = (el) => (el ? Math.round(el.getBoundingClientRect().bottom) : null);
         return {
           wordmark: bottom(document.querySelector('img[alt="Reasontrail"]')),
-          pitch: bottom([...document.querySelectorAll('p')].find((p) => p.textContent.startsWith('See how your AI agent reasoned'))),
+          pitch: bottom([...document.querySelectorAll('p')].find((p) => p.textContent.startsWith('See how your coding agent got there'))),
           demo: bottom([...document.querySelectorAll('a')].find((a) => a.textContent.includes('Live demo'))),
           hero: bottom(document.querySelector('img[src$="hero.webp"]')),
           quickStart: bottom(document.querySelector('h2 ~ div pre, h2 ~ pre')),

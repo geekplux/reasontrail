@@ -46,13 +46,13 @@ Scoped tasks for a first contribution. Each one lists why it matters, the files 
 
 ## 8. Render `**bold**` in excerpts
 
-- **Why:** the final answer and other excerpts show Markdown asterisks literally (a phase 25 audit follow-up).
+- **Why:** the final answer and other excerpts show Markdown asterisks literally.
 - **Files:** `src/map/OutcomeCard.tsx`, `src/map/details.ts`.
 - **Done when:** `**text**` renders as bold text without `dangerouslySetInnerHTML`, other Markdown stays plain, and a unit test covers nested and unclosed markers.
 
 ## 9. One time format in `--list`
 
-- **Why:** `--list` mixes two time formats, which makes the newest session hard to spot (a phase 25 follow-up).
+- **Why:** `--list` mixes two time formats, which makes the newest session hard to spot.
 - **Files:** `cli/src/main.ts`, `cli/src/locate/store.ts` (`describe`), `cli/test/`.
 - **Done when:** every row uses the same format, rows line up, and a test pins the output with a fixed clock.
 

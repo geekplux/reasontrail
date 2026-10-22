@@ -13,8 +13,11 @@
 
 <!-- Screenshots (light and dark if colours changed). -->
 
-- [ ] Works with the keyboard alone, and colour is never the only signal
-- [ ] Respects reduced motion
+- [ ] Works with the keyboard alone, and focus is always visible
+- [ ] Controls and readouts have screen-reader names
+- [ ] Colour is never the only signal, and categories stay distinct under a protanopia, deuteranopia and tritanopia simulation
+- [ ] Motion stops under reduced motion
+- [ ] `pnpm check:browser` reports no axe violations
 
 ## Privacy
 

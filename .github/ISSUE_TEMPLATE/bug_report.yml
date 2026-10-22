@@ -18,6 +18,12 @@ body:
     attributes:
       label: Agent whose session you mapped
       options: [Claude Code, Codex, Grok Build, Chat transcript, Not relevant]
+  - type: dropdown
+    id: a11y
+    attributes:
+      label: Is this an accessibility problem?
+      description: Keyboard, screen reader, colour or contrast, zoom, or motion. Say which assistive tech and version in "Versions".
+      options: ["No", Keyboard, Screen reader, Colour or contrast, Zoom or reflow, Motion]
   - type: textarea
     id: what
     attributes:
@@ -36,7 +42,7 @@ body:
     id: env
     attributes:
       label: Versions
-      description: "`npx reasontrail --version`, Node version, OS, browser."
+      description: "`npx reasontrail --version`, Node version, OS, browser, and any assistive tech (screen reader, magnifier) with its version."
   - type: textarea
     id: output
     attributes:

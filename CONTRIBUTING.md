@@ -27,7 +27,7 @@ Run these before you open a pull request. CI runs the same ones (its definition 
 | `pnpm test` | Vitest, one run |
 | `pnpm build` | the website build into `dist/` |
 | `pnpm check:size` | size budgets on `dist/` and the runtime dependency allowlist |
-| `pnpm check:docs` | every relative link and image in the docs resolves, and the README's commands match `shared/commands.ts` |
+| `pnpm check:docs` | every relative link and image in the docs resolves, every image has descriptive alt text, and the README's commands match `shared/commands.ts` |
 | `pnpm check:browser` | builds, starts a preview server and runs the browser flows in headless Chrome with axe; screenshots go to `.tmp/screenshots/` |
 | `pnpm audit:samples` | no secret, email, home path or denylisted term in committed samples and fixtures |
 | `pnpm skill:audit`, `pnpm skill:evals` | the skill's structure, and its offline sandbox cases |
@@ -63,7 +63,7 @@ Follow [`docs/EXTENDING.md`](docs/EXTENDING.md) section 5. In short: add the sou
 - Keep each pull request to one change you can review in about 20 minutes.
 - Add or update tests next to the code. Keep logic in pure, tested modules and components thin.
 - Add a line to `CHANGELOG.md` under "Unreleased".
-- For UI changes, attach a screenshot and check the keyboard path: everything works without a mouse, colour is never the only signal, and motion respects reduced motion.
+- For UI changes, attach a screenshot and check accessibility: everything works with the keyboard alone and focus is always visible; controls and readouts have screen-reader names (check with VoiceOver, NVDA or Orca); colour is never the only signal and categories stay distinct under Chrome DevTools > Rendering > "Emulate vision deficiencies" (protanopia, deuteranopia, tritanopia); text contrast is at least 4.5:1 and graphics at least 3:1; and motion stops under "Emulate CSS prefers-reduced-motion: reduce". `pnpm check:browser` runs axe and must report no violations.
 - No secrets in commits: local keys go in `.dev.vars` (gitignored).
 - Looking for a first task? See [`docs/GOOD-FIRST-ISSUES.md`](docs/GOOD-FIRST-ISSUES.md).
 
