@@ -9,7 +9,6 @@ import { SupportLinks } from '../ai/SupportLinks';
 import { LiveRegion, useAnnouncer } from '../components/LiveRegion';
 import './outline.css';
 import './map.css';
-import { DetailPanel } from './DetailPanel';
 import { itemForStep, readStepLink, stepRows, targetOf, writeStepLink, type LinkMode } from './details';
 import { KindGlyph } from './Glyph';
 import { jumpPattern } from './keyboard';
@@ -25,6 +24,9 @@ import { StuckList } from './TroubleMarker';
 
 // The AI labels control, its dialog and client load only when first used (or with a CLI overlay in the page).
 const AiControl = lazy(() => import('../ai/AiControl'));
+/** The detail panel loads after the first view (it is fetched once the map is drawn, so a click opens it at once). */
+export const loadDetailPanel = () => import('./DetailPanel');
+const DetailPanel = lazy(() => loadDetailPanel().then((m) => ({ default: m.DetailPanel })));
 /** The website's AI labels: asked for live through `/api/structure`, after consent. */
 export const LIVE_AI: AiSource = { live: true };
 
@@ -36,10 +38,11 @@ const subscribe = (cb: () => void) => {
 };
 const narrow = () => typeof matchMedia === 'function' && matchMedia(NARROW).matches;
 
-/** `performance.mark('tg:map-ready')` once the first view is drawn (PLAN G2). */
+/** `performance.mark('tg:map-ready')` once the first view is drawn (PLAN G2); then the detail panel's code is fetched. */
 export function useMapReady() {
   useEffect(() => {
     if (performance.getEntriesByName('tg:map-ready').length === 0) performance.mark('tg:map-ready');
+    void loadDetailPanel();
   }, []);
 }
 
@@ -150,6 +153,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
       return setSel(null);
     }
     const t = targetOf(g, L, item);
+    if (sel?.step === id) return; // our own URL write: nothing changed (the panel may still be loading)
     const focus = nav && !sel && (!active || active === document.body);
     setSel({ item, step: t ? stepRows(g, t.steps).find((r) => r.ids.includes(id))?.id ?? id : id, focus });
   };
@@ -258,6 +262,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
       </div>
       </div>
       {target && (
+        <Suspense fallback={null}>
         <DetailPanel
           g={g}
           L={L}
@@ -275,6 +280,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
           announce={announce}
           aiNote={overlay && sel?.step ? <StepAiNote g={g} overlay={overlay} stepId={sel.step} episode={sel.item.startsWith('ep:') ? target.episode?.id : undefined} onPick={(id) => selector.selectStep(id)} /> : undefined}
         />
+        </Suspense>
       )}
       <LiveRegion message={message} />
     </div>

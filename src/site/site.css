@@ -21,8 +21,6 @@
 /* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point; the headline is the one large text */
 .showcase .task-request { display: flex; align-items: baseline; gap: var(--tg-space-2); }
 .showcase .task-title { min-width: 0; font-size: var(--tg-text-lg); }
-.showcase .task-title.is-clamped { -webkit-line-clamp: 1; line-clamp: 1; }
-.showcase .task-request .link-button { flex: none; font-size: var(--tg-text-sm); }
 .showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-5); }
 
 .gallery { margin: 0; padding: 0; border: 0; min-width: 0; }

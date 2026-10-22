@@ -17,7 +17,7 @@ async function panelAt(step: string, opener: LensOpener | null) {
   const graph = await pivot();
   const map = <MapView graph={graph} />;
   render(opener ? <LensContext.Provider value={opener}>{map}</LensContext.Provider> : map);
-  return screen.getByTestId('detail-panel');
+  return screen.findByTestId('detail-panel');
 }
 
 describe('Zoom into this sentence (Z1)', () => {

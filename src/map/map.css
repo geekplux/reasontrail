@@ -31,9 +31,9 @@
 .glyph .g-halo { fill: var(--tg-paper); }
 
 .map-item { position: absolute; top: 0; cursor: pointer; border-radius: var(--tg-radius); }
-.ep-text { position: absolute; left: 18px; bottom: 31px; display: flex; flex-direction: column; }
+.ep-text, .ep-peek { position: absolute; left: 18px; bottom: 31px; display: flex; flex-direction: column; }
 /* An untitled episode (CL5): its title shows only on hover or keyboard focus, on paper over its neighbours. */
-.ep-peek { position: absolute; left: 18px; bottom: 31px; display: none; flex-direction: column; padding: 0 var(--tg-space-1); background: var(--tg-paper); }
+.ep-peek { display: none; background: var(--tg-paper); }
 .map-item.is-quiet:is(:hover, :focus-visible, [aria-current='true']) { z-index: 2; }
 .map-item.is-quiet:is(:hover, :focus-visible, [aria-current='true']) .ep-peek { display: flex; }
 .ep-title { hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; font: 600 13px / 16px var(--tg-font-ui); }
@@ -172,10 +172,8 @@
 /* Source (CL12): folded, no hairline; its summary names the record. */
 .provenance-block, .key-help { margin-top: var(--tg-space-5); }
 :is(.provenance-block, .key-help) > summary { min-height: 24px; color: var(--tg-ink-muted); font-size: 12.8px; cursor: pointer; }
-.provenance-block > summary .mono { font-size: 12px; }
 .provenance-block[open] > summary { margin-bottom: var(--tg-space-2); }
-.key-help { margin-top: var(--tg-space-2); }
-.key-q { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: 50%; font: 600 11.5px var(--tg-font-ui); }
+.key-q { font-weight: 600; }
 .panel-actions, .panel-nav { display: flex; flex-wrap: wrap; gap: var(--tg-space-2) var(--tg-space-4); margin: var(--tg-space-2) 0; }
 .panel-nav { justify-content: space-between; margin-top: var(--tg-space-5); }
 .panel-nav button[aria-disabled='true'] { color: var(--tg-ink-muted); border-color: var(--tg-rule); cursor: default; }

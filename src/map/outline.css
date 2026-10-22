@@ -22,7 +22,6 @@
 .task-eyebrow .section-label { margin: 0; }
 .task-meta .session-toggle { margin-inline-start: var(--tg-space-4); font-size: 12.8px; }
 .session-details > p { margin: 0 0 var(--tg-space-2); }
-.link-button { min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: 400 var(--tg-text-sm) var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .note, .honesty, .glance-rows li, .episode-head { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-2); margin: 0; }
 .note, .honesty { margin: 0 0 var(--tg-space-2); font-size: 13.5px; }
 .note { color: var(--tg-ink-muted); }

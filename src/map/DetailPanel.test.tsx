@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { parseSession } from '../../shared/session/adapter';
 import { attachRaw } from '../../shared/session/raw';
@@ -22,6 +22,14 @@ const openFirst = () => {
   fireEvent.keyDown(item, { key: 'Enter' });
   return item;
 };
+// The panel is lazy (it loads after the first view): open it once so every test below renders it at once.
+beforeAll(async () => {
+  render(<MapView graph={graph()} />);
+  openFirst();
+  await screen.findByTestId('detail-panel');
+  cleanup();
+  window.history.replaceState(null, '', '/');
+});
 const row = (label: RegExp) => screen.getAllByRole('button').find((b) => b.closest('.step-rows') && label.test(b.textContent ?? '')) as HTMLElement;
 
 describe('detail panel (M3, M9, G1)', () => {

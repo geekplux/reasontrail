@@ -36,7 +36,7 @@ describe('local viewer', () => {
     expect(screen.getByRole('button', { name: 'Outline' }).getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('moves along the route with arrow keys, jumps to patterns with ] and announces wrap-around', () => {
+  it('moves along the route with arrow keys, jumps to patterns with ] and announces wrap-around', async () => {
     render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
     const app = screen.getByRole('application');
     const first = app.querySelector<HTMLElement>('[tabindex="0"]');
@@ -55,6 +55,7 @@ describe('local viewer', () => {
     const blaze = document.activeElement as HTMLElement;
     fireEvent.keyDown(blaze, { key: 'Enter' });
     expect(blaze.getAttribute('aria-current')).toBe('true');
+    await screen.findByTestId('detail-panel'); // the panel's code loads after the first view
     // Enter opens the details: focus on the panel title, the step in the hash; Esc returns focus to the blaze.
     expect(document.activeElement?.classList.contains('panel-title')).toBe(true);
     expect(window.location.hash).toMatch(/^#step=s\d+$/);

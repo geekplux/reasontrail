@@ -45,7 +45,7 @@
 .specimen-fields dt { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .specimen-fields dd { margin: 0; }
 .specimen > .specimen-prompt { margin: 0 0 var(--tg-space-2); overflow-wrap: anywhere; }
-.specimen-about summary { min-height: 24px; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); cursor: pointer; }
+
 .specimen-fields abbr { text-decoration: none; }
 .specimen-prompt { font-family: var(--tg-font-mono); font-weight: 500; }
 .specimen-num { font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
@@ -151,8 +151,8 @@
 .garden-table [data-ws], .table-prefix { color: var(--tg-ink-muted); }
 
 .legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-.garden-key summary { min-height: 24px; cursor: pointer; }
-.legend-lead { max-width: var(--tg-measure); margin: var(--tg-space-1) 0; }
+:is(.garden-key, .specimen-about) summary { min-height: 24px; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); cursor: pointer; }
+.legend-lead { margin: var(--tg-space-1) 0; }
 .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; padding: 0; list-style: none; }
 .legend-title { color: var(--tg-ink); }
 .legend-item { display: inline-flex; align-items: center; gap: var(--tg-space-2); font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
