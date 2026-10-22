@@ -14,7 +14,13 @@
   <a href="docs/EXTENDING.md">Extend it</a>
 </p>
 
-<p align="center"><img src="docs/brand/hero.webp" width="680" alt="A Reasontrail map of a real session: the task card with three At a glance rows, a route of twelve named episodes from the request to the answer, a numbered trouble marker where test runs failed, and the destination card with the six changed files, the last check and the final answer."></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/brand/hero.webp">
+    <img src="docs/brand/hero.gif" width="680" alt="A Reasontrail map of a real session: the task card with three At a glance rows, a route of twelve named episodes from the request to the answer with a numbered trouble marker where check runs failed, and the destination card. The pointer clicks the marker, the detail panel opens on the first failed run and steps to the second, and Esc returns to the map.">
+  </picture>
+  <br><sub><a href="docs/brand/hero.webp">Still image</a> · <a href="examples/README.md">Three example maps</a></sub>
+</p>
 
 ## Quick start
 
@@ -53,7 +59,7 @@ One page answers four questions, in this order:
 - **Where it got stuck:** numbered markers for error streaks, retries, reverts, rewinds, interruptions and churn, each with its evidence.
 - **Destination:** the files that changed, the last test, build, lint or typecheck run, and the agent's final words.
 
-Press Enter on any episode or marker for its steps: the command and its output, an edit as a diff, a file read, a subagent's own trail, and the raw record behind it. The Outline view shows the same thing as plain text.
+Press Enter on any episode or marker for its steps (the [examples](examples/README.md) link straight to a few worth reading): the command and its output, an edit as a diff, a file read, a subagent's own trail, and the raw record behind it. The Outline view shows the same thing as plain text.
 
 ## How it works
 
