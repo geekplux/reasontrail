@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Hero GIF (PLAN D18), dev-only and never run in CI: builds the site, serves it with `vite preview`, opens one system
-// Chrome at 1280×720, and records the map of the default sample: the map as it opens, the pointer moving to the
+// Chrome at 1024×640, scrolled so the frame starts at the TASK row (no site header or headline, so the route labels stay
+// legible at the README's 800 px), and records the map of the default sample: the map, the pointer moving to the
 // numbered trouble marker, the click that opens its details, the next piece of evidence, and Esc back to the map.
 // The frames are encoded with the system ffmpeg into docs/brand/hero.gif (looping, ≤ 2.5 MB).
 // Without ffmpeg it stops with a message, and the README keeps the still docs/brand/hero.webp.
@@ -41,7 +42,7 @@ const POINTER = `(() => {
   const el = document.createElement('div');
   el.id = 'rt-pointer';
   el.setAttribute('aria-hidden', 'true');
-  el.style.cssText = 'position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;width:22px;height:22px;transform:translate(1000px,640px)';
+  el.style.cssText = 'position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;width:22px;height:22px;transform:translate(900px,560px)';
   el.innerHTML = '<svg viewBox="0 0 22 22" width="22" height="22"><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.5 L12.4 19.2 L9.4 12.6 L15.5 12.6 Z" fill="#1c2620" stroke="#fffdf7" stroke-width="1.5" stroke-linejoin="round"/></svg>';
   document.body.append(el);
 })()`;
@@ -56,16 +57,18 @@ try {
   server = startPreview(port);
   await waitForHttp(`${baseURL}/`, server.child);
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome', headless: true, args: ['--disable-dev-shm-usage', '--disable-gpu', '--no-first-run'] });
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, colorScheme: 'light' });
+  const ctx = await browser.newContext({ viewport: { width: 1024, height: 640 }, colorScheme: 'light' });
   const page = await ctx.newPage();
 
   const frames = []; // [file, seconds]
+  let top = 0; // page y of the frame's first row (the TASK row); every frame is re-scrolled there
   const shot = async (seconds) => {
+    await page.evaluate((y) => window.scrollTo(0, y), top);
     const file = join(tmp, `${String(frames.length).padStart(3, '0')}.png`);
     await page.screenshot({ path: file });
     frames.push([file, seconds]);
   };
-  let at = { x: 1000, y: 640 };
+  let at = { x: 900, y: 560 };
   const moveTo = async (x, y, steps = 10) => {
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;
@@ -82,11 +85,18 @@ try {
   await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 15_000 });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(POINTER);
+  // Room below the map so the frame can start at the TASK row even near the end of the page.
+  await page.addStyleTag({ content: 'body { padding-bottom: 640px; }' });
+  top = await page.evaluate(() => {
+    const row = document.querySelector('.task-eyebrow');
+    if (!row) throw new Error('no TASK row on the map');
+    return Math.max(0, Math.floor(row.getBoundingClientRect().top + window.scrollY - 16));
+  });
+  await page.evaluate((y) => window.scrollTo(0, y), top);
   await page.waitForTimeout(400);
   await shot(1.6);
 
   const blaze = page.locator('[data-nav^="blaze:"]').first();
-  await blaze.scrollIntoViewIfNeeded();
   const box = await blaze.boundingBox();
   if (!box) throw new Error('no trouble marker on the map');
   await moveTo(box.x + box.width / 2, box.y + box.height / 2);

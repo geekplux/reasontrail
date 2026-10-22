@@ -1,6 +1,7 @@
 // Hero flow (brand, never part of "all"): the README's images, written to committed paths.
-// - docs/brand/hero.webp: the website's live map of a sample session at 1440×900 and 2× pixels, clipped to the map
-//   itself (the Task label row down to the end of the final answer, 24 px padding), light theme, motion reduced.
+// - docs/brand/hero.webp: the still for readers who prefer reduced motion, framed like the hero GIF's first frame
+//   (pnpm brand:hero-gif): the website's live map of a sample session in a 1024×640 viewport at 2× pixels, scrolled so
+//   it starts at the TASK row (no site header or headline), light theme, motion reduced.
 // - docs/brand/wordmark-{light,dark}.png: the header wordmark (DESIGN §4.2: mono 40 / serif 50) at 2× pixels on a
 //   transparent background, so GitHub can pick one with <picture> and prefers-color-scheme.
 // Usage: pnpm check:browser --flows hero
@@ -11,20 +12,15 @@ import { watchContext } from '../lib.mjs';
 export const HERO_SESSION = 'implementer-checks'; // the richest glance: 12 episodes, a trouble spot, a final answer
 const ready = (page) => page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 15_000 });
 
-/** The map region in page pixels: the map body's width, from the Task label row to the end of the final answer, padded. */
-async function mapClip(page, pad = 24) {
-  return page.evaluate((p) => {
-    const body = document.querySelector('.map-body');
-    const top = document.querySelector('.task-eyebrow');
-    const answer = [...document.querySelectorAll('#destination .sub-label')].find((h) => h.textContent.trim() === 'Final answer')?.parentElement;
-    if (!body || !top || !answer) return null;
-    const b = body.getBoundingClientRect();
-    const t = top.getBoundingClientRect();
-    const a = answer.getBoundingClientRect();
-    const x = Math.max(0, Math.floor(b.left - p));
-    const y = Math.max(0, Math.floor(t.top + window.scrollY - p));
-    return { x, y, width: Math.ceil(Math.min(document.documentElement.clientWidth, b.right + p) - x), height: Math.ceil(a.bottom + window.scrollY + p - y) };
-  }, pad);
+/** Scrolls so the viewport starts 16 px above the TASK row, as in the hero GIF; false when there is no TASK row. */
+async function scrollToTask(page) {
+  await page.addStyleTag({ content: 'body { padding-bottom: 640px; }' });
+  return page.evaluate(() => {
+    const row = document.querySelector('.task-eyebrow');
+    if (!row) return false;
+    window.scrollTo(0, Math.max(0, Math.floor(row.getBoundingClientRect().top + window.scrollY - 16)));
+    return true;
+  });
 }
 
 export async function run({ context, baseURL, root, log, fail }) {
@@ -32,7 +28,7 @@ export async function run({ context, baseURL, root, log, fail }) {
   mkdirSync(dir, { recursive: true });
   const browser = context.browser();
   for (const scheme of ['light', 'dark']) {
-    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: scheme, reducedMotion: 'reduce', deviceScaleFactor: 2 });
+    const ctx = await browser.newContext({ viewport: { width: 1024, height: 640 }, colorScheme: scheme, reducedMotion: 'reduce', deviceScaleFactor: 2 });
     const problems = [];
     watchContext(ctx, baseURL, problems);
     try {
@@ -43,9 +39,8 @@ export async function run({ context, baseURL, root, log, fail }) {
       await page.waitForTimeout(300);
       if (scheme === 'light') {
         const hero = join(dir, 'hero.webp');
-        const clip = await mapClip(page);
-        if (!clip) fail('hero: the Task label or the final answer was not found');
-        else writeFileSync(hero, await page.screenshot({ type: 'webp', quality: 82, clip }));
+        if (!(await scrollToTask(page))) fail('hero: the TASK row was not found');
+        else writeFileSync(hero, await page.screenshot({ type: 'webp', quality: 82 }));
         log(`screenshot ${hero}`);
       }
       // The wordmark alone, README size, nothing behind it.

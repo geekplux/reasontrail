@@ -17,7 +17,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="docs/brand/hero.webp">
-    <img src="docs/brand/hero.gif" width="680" alt="A Reasontrail map of a real session: the task card with three At a glance rows, a route of twelve named episodes from the request to the answer with a numbered trouble marker where check runs failed, and the destination card. The pointer clicks the marker, the detail panel opens on the first failed run and steps to the second, and Esc returns to the map.">
+    <img src="docs/brand/hero.gif" width="800" alt="A Reasontrail map of a real session: the task card with three At a glance rows, a route of twelve named episodes from the request to the answer with a numbered trouble marker where check runs failed, and the destination card. The pointer clicks the marker, the detail panel opens on the first failed run and steps to the second, and Esc returns to the map.">
   </picture>
   <br><sub><a href="docs/brand/hero.webp">Still image</a> · <a href="examples/README.md">Three example maps</a></sub>
 </p>
@@ -47,7 +47,7 @@ More commands:
 ```sh
 npx reasontrail --list                  # the 10 most recent sessions for this folder, from all three agents
 npx reasontrail path/to/session.jsonl   # any session file or session id
-npx reasontrail --share                 # a redacted copy in the current folder, safe to send
+npx reasontrail --share                 # a redacted copy in the current folder; read it before you send it
 ```
 
 ## What you see
