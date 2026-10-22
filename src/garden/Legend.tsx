@@ -32,11 +32,14 @@ function Sample({ p, kind = 'legend-sample' }: { p: number; kind?: SampleKind })
   );
 }
 
-/** How to read the drawing: thickness samples with direct labels, then the marker shapes. */
-/** `missingState`: the hollow ring's meaning (default "not recorded"; the live lens names its depth limit). */
+/** How to read the drawing (DESIGN §18.1, L4): one closed "Key" disclosure that opens on the sentence, then the thickness
+ * samples with direct labels and the marker shapes. `missingState`: the hollow ring's meaning (default "not recorded";
+ * the live lens names its depth limit). */
 export function Legend({ missingState = STATE_TEXT['not-recorded'] }: { missingState?: string | undefined } = {}) {
   return (
-    <div className="legend">
+    <details className="legend garden-key">
+      <summary>Key</summary>
+      <p className="legend-lead">Each branch is one possible next token; the thicker the branch, the more likely the token.</p>
       <p className="legend-row">
         <span className="legend-title">Thickness = chance of the next token</span>
         {LEGEND_P.map((p) => (
@@ -64,6 +67,6 @@ export function Legend({ missingState = STATE_TEXT['not-recorded'] }: { missingS
           </li>
         ))}
       </ul>
-    </div>
+    </details>
   );
 }

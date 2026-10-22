@@ -5,6 +5,13 @@ import { axeProblems } from '../axe.mjs';
 import { applyCvd } from '../cvd.mjs';
 import { loadSample } from '../lib.mjs';
 
+/** Opens More options (the presets and New seed) with the keyboard, if it is closed. */
+async function moreOptions(page) {
+  if (await page.locator('.lens-options').evaluate((d) => d.open)) return;
+  await page.locator('.lens-options summary').focus();
+  await page.keyboard.press('Enter');
+}
+
 const width = (p) => 1.5 + 18.5 * Math.min(1, Math.max(0, p));
 /** Same as src/llm/temperature.ts temper(), so the flow checks the page against the recording's logprobs. */
 function temper(ps, r, t) {
@@ -78,6 +85,8 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
       await slider(page).focus();
       for (const k of keys) await page.keyboard.press(k);
     } else {
+      // GA2: the presets wait in More options; it opens by keyboard.
+      await moreOptions(page);
       await page.getByRole('button', { name: 'Temperature 1.0' }).focus();
       await page.keyboard.press('Enter');
     }
@@ -158,6 +167,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     window.tgSaid = 0;
     new MutationObserver(() => window.tgSaid++).observe(document.querySelector('[data-role="live"]'), { childList: true, characterData: true, subtree: true });
   });
+  await moreOptions(page);
   await page.getByRole('button', { name: 'Temperature 0 (greedy)' }).click();
   await page.waitForTimeout(800);
   const greedy = await sampledKeys(page);

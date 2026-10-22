@@ -16,7 +16,8 @@ function openHowToRead(e: MouseEvent) {
   panel.querySelector('summary')?.focus();
 }
 
-/** Temperature (spec §10.4): a native slider with its value, presets, and the top-k approximation note when T ≠ 1. */
+/** Temperature (spec §10.4): a native slider with its value, and the top-k approximation note when T ≠ 1. The presets
+ * are {@link TemperaturePresets}, folded into More options (DESIGN §18.1). */
 export function TemperatureControl({ t, onChange }: { t: number; onChange(t: number): void }) {
   const id = useId();
   return (
@@ -42,11 +43,19 @@ export function TemperatureControl({ t, onChange }: { t: number; onChange(t: num
           ≈ approximate (top-k only)
         </a>
       )}
+    </div>
+  );
+}
+
+/** The temperature presets: 0 (greedy), 1.0 and 1.5, as pressed toggle buttons. */
+export function TemperaturePresets({ t, onChange }: { t: number; onChange(t: number): void }) {
+  return (
+    <>
       {PRESETS.map(([value, label]) => (
         <button key={value} type="button" className="view-toggle" aria-label={`Temperature ${label}`} aria-pressed={t === value} onClick={() => onChange(value)}>
           {label}
         </button>
       ))}
-    </div>
+    </>
   );
 }

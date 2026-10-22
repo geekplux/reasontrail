@@ -1,5 +1,5 @@
 // The zoom-in lens (PLAN phase 22, Z1–Z3; DESIGN §13.5, DM35): the existing garden, unchanged, framed by a breadcrumb
-// with "Back to the map", one line saying whose predictions these are (Z2), and the sentence with its source step.
+// whose "Map" goes back, one line saying whose predictions these are (Z2), and the sentence with its source step.
 // A recorded sentence grows from its recording with no network request; anything else grows live only after the
 // reader opts in. Plain garden links (`?sample=cat`) open here too. Loaded on demand, so the map never carries it.
 import { use, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
@@ -25,6 +25,8 @@ import type { LensTarget } from './lensTarget';
 export const Z2_TEXT = "An open model's predictions for this text, not what the session's model computed.";
 const OPT_IN = 'Grow live with an open model';
 const OPT_IN_NOTE = 'Sends this text to the Reasontrail Worker. Nothing is sent until you choose this.';
+/** The footer's privacy line once live growth is on (L6). */
+const LIVE_PRIVACY = 'Live: this sentence is sent to the Reasontrail Worker to predict tokens.';
 
 const loaded = new Map<string, Promise<SampleGarden | null>>();
 /** One promise per recorded garden, so `use` sees the same one on every render; a failed load resolves to null. */
@@ -125,8 +127,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       <p className="lens-sentence-text">{target.sentence}</p>
       <figcaption className="mono muted">
         Step {target.stepId}
-        {target.sampleTitle ? ` · ${target.sampleTitle}` : ''}
-        {rec ? ' · Recorded, works offline' : ''}
+        {target.where ? ` · ${target.where}` : ''}
       </figcaption>
     </LensHeader>
   );
@@ -172,7 +173,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     </div>
   );
   const options = rec && !live ? <p className="lens-offer lens-offer-options">{offer}</p> : null;
-  return <App key={mount} header={header} lens={source} bar={bar} options={options} />;
+  return <App key={mount} header={header} lens={source} bar={bar} options={options} recorded={Boolean(rec)} privacy={live ? LIVE_PRIVACY : undefined} />;
 }
 
 /** Breadcrumb with Back, the Z2 line and, in a sentence's lens, the sentence itself (`children`, in a figure). */
@@ -183,10 +184,8 @@ function LensHeader({ onBack, where, quote, children }: { onBack(): void; where?
       <h1 id="lens-title" className="visually-hidden" tabIndex={-1}>
         Zoom-in lens{where ? `: ${where}` : ''}
       </h1>
+      {/* The breadcrumb's "Map" is the way back (L2): it restores the map's selection and focus, as Back does. */}
       <div className="lens-crumbs">
-        <button type="button" className="lens-back" onClick={onBack}>
-          <span aria-hidden="true">← </span>Back to the map
-        </button>
         <nav aria-label="Breadcrumb">
           <ol className="mono lens-breadcrumb">
             <li>

@@ -15,6 +15,7 @@ async function open(page, baseURL, width, height) {
 
 /** Runs in the page: every spec rule that is visible in computed styles. Returns problem strings. */
 function audit() {
+  document.querySelector('.garden-key')?.setAttribute('open', ''); // the legend lives in the Key
   const problems = [];
   const fmt = (p) => (p > 0 && p < 0.0005 ? '<0.1%' : `${(p * 100).toFixed(1)}%`);
   const token = (name) => {
@@ -84,6 +85,11 @@ function audit() {
 export async function run({ page, baseURL, shot, log, fail }) {
   // Desktop, light.
   await open(page, baseURL, 1280, 800);
+  // L4 / GA4: the Key is a closed disclosure that opens by keyboard (the audits below read the legend inside it).
+  if (await page.locator('.garden-key').evaluate((d) => d.open)) fail('the Key is open on load');
+  await page.locator('.garden-key summary').focus();
+  await page.keyboard.press('Enter');
+  if (!(await page.locator('.garden-key [data-role="legend-sample"]').first().isVisible())) fail('L4: Enter did not open the Key');
   (await page.evaluate(audit)).forEach((p) => fail(`light: ${p}`));
   const fit = await page.evaluate(() => {
     const r = document.querySelector('[data-testid="garden"]').getBoundingClientRect();

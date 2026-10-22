@@ -75,7 +75,7 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   if (await page.locator('.plate .specimen').count()) fail('the specimen card is still beside the lens garden');
   const tops = await page.evaluate(() => [document.querySelector('[data-testid="garden"] .seed'), ...[...document.querySelectorAll('g.branch[data-state="expanded"]')].sort((a, b) => a.dataset.depth - b.dataset.depth).slice(0, 1).map((g) => g.querySelector('[data-role="hit"]'))].map((e) => e?.getBoundingClientRect().bottom ?? Infinity));
   if (tops.length < 2 || tops.some((b) => b > 900)) fail(`root and first two forks not inside 900 px: ${tops.join(', ')}`);
-  if (!(await page.locator('.lens-quote figcaption').textContent())?.includes('Recorded, works offline')) fail('the recorded sentence does not say it works offline');
+  // L3: "Recorded, works offline" waits in More options (checked there below).
   if (await page.locator('.lens-offer').isVisible()) fail('the recorded lens still shows the opt-in bar');
   if (await page.locator('.site').isVisible()) fail('the map is still visible under the lens');
   // Growing recorded branches makes no request at all (AC2).
@@ -96,14 +96,21 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   if (!(await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).isVisible())) fail('no live opt-in in More options');
   if (!(await page.locator('.lens-options').textContent())?.includes('Nothing is sent until you choose this.')) fail('opt-in: no "nothing is sent" note');
   if (!(await page.locator('.lens-options .specimen-fields').isVisible())) fail('no specimen fields in More options');
+  if (!(await page.locator('.lens-options').textContent())?.includes('Recorded, works offline')) fail('the recorded sentence does not say it works offline');
+  // L4: the Key opens by keyboard, on its sentence.
+  await page.locator('.garden-key summary').focus();
+  await page.keyboard.press('Enter');
+  if (!(await page.locator('.garden-key .legend-lead').isVisible())) fail('L4: Enter did not open the Key');
+  await page.keyboard.press('Enter');
   for (const p of await axeProblems(page, 'lens recorded')) fail(p);
   await page.locator('.lens-options summary').click();
   await page.locator('#lens-title').focus();
   await page.evaluate(() => window.scrollTo(0, 0));
   await webp('lens-recorded');
 
-  // Z3: "Back to the map" restores the selection and focus; so does the browser's Back.
-  await page.getByRole('button', { name: 'Back to the map' }).click();
+  // Z3: the breadcrumb's "Map" (L2: no separate Back button) restores the selection and focus; so does the browser's Back.
+  if (await page.getByRole('button', { name: 'Back to the map' }).count()) fail('L2: the bordered Back button is still there');
+  await page.locator('.lens-breadcrumb a').first().click();
   await panel(page).waitFor({ timeout: 5_000 });
   if ((await panel(page).getAttribute('data-target')) !== target || /[?&](sample|lens)=/.test(page.url()) || !/[?&]step=s12/.test(page.url())) fail(`Back: ${page.url()}, ${await panel(page).getAttribute('data-target')}`);
   if ((await focused(page)).text !== 'Zoom into this sentence') fail(`Back: focus on ${JSON.stringify(await focused(page))}`);
@@ -117,7 +124,7 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   await page.goto(`${baseURL}/?session=planner-pivot&step=s12&sample=lens-planner-pivot-1`, { waitUntil: 'load' });
   await ready(page);
   if (!(await page.locator('.lens-quote').textContent())?.includes('Now the planner')) fail('lens link: no sentence');
-  await page.getByRole('button', { name: 'Back to the map' }).click();
+  await page.locator('.lens-breadcrumb a').first().click();
   await panel(page).waitFor({ timeout: 5_000 });
 
   // Live growth: no call before the opt-in; after it, calls through /api/next-tokens; a repeated prefix is free.

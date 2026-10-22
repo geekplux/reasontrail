@@ -1,15 +1,16 @@
 /* Base layout and elements for the "specimen plate" identity (PLAN §3.3). Colours only via tokens.css. */
 @import './core.css';
 
-/* Control row (PLAN §3.3): the sample picker as native radios drawn as labelled tabs; the chosen one is bold with a filled dot. */
+/* Control row (PLAN §3.3, DESIGN §18.1 GA1): the sample picker as quiet text radios; the chosen one is 600, underlined. */
 .controls { padding: var(--tg-space-4) var(--tg-space-8) 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
 .picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--tg-ink-muted); }
-.picker-options { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); }
-.picker-option { display: inline-flex; align-items: center; gap: var(--tg-space-1); min-height: 24px; padding: var(--tg-space-1) var(--tg-space-2); font-size: var(--tg-text-sm); background: var(--tg-surface); border: var(--tg-hairline); border-radius: var(--tg-radius); cursor: pointer; }
-.picker-option input { margin: 0; accent-color: var(--tg-ink); cursor: pointer; }
-.picker-option:has(input:checked) { font-weight: 600; border-color: var(--tg-ink); }
-.controls-row, .temperature { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2); }
+.picker-options { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-5); }
+.picker-option { position: relative; display: inline-flex; align-items: center; min-height: 28px; font-size: 13.5px; color: var(--tg-ink-muted); white-space: nowrap; border-bottom: 2px solid transparent; cursor: pointer; }
+.picker-option input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.picker-option:has(input:checked) { font-weight: 600; color: var(--tg-ink); border-bottom-color: var(--tg-ink); }
+.picker-option:has(input:focus-visible) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
+.controls-row, .temperature { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); }
 .controls-row { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); }
 .temperature input { width: 9rem; margin: 0; accent-color: var(--tg-ink); }
 .temperature output { min-width: 7.5em; font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
@@ -26,13 +27,7 @@
   padding: var(--tg-space-5) var(--tg-space-8);
 }
 
-.specimen {
-  max-width: var(--tg-measure);
-  padding: var(--tg-space-4);
-  background: var(--tg-surface);
-  border: var(--tg-hairline);
-  border-radius: var(--tg-radius);
-}
+.specimen { max-width: var(--tg-measure); }
 
 .specimen-kicker {
   margin: 0;
@@ -48,7 +43,9 @@
 }
 .specimen-fields { margin: 0; }
 .specimen-fields dt { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-.specimen-fields dd { margin: 0; padding-bottom: var(--tg-space-1); border-bottom: var(--tg-hairline); }
+.specimen-fields dd { margin: 0; }
+.specimen > .specimen-prompt { margin: 0 0 var(--tg-space-2); overflow-wrap: anywhere; }
+.specimen-about summary { min-height: 24px; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); cursor: pointer; }
 .specimen-fields abbr { text-decoration: none; }
 .specimen-prompt { font-family: var(--tg-font-mono); font-weight: 500; }
 .specimen-num { font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
@@ -139,12 +136,12 @@
 .readout-token-sampled { border-bottom-color: var(--tg-accent); border-bottom-width: 2px; }
 .readout-note { margin: 0 0 0 var(--tg-space-2); font-family: var(--tg-font-ui); font-weight: 400; vertical-align: middle; }
 
-/* Table view (A3): the text alternative, toggled under the readout. */
-.view-toggle-row { margin: var(--tg-space-2) 0; }
-.view-toggle { min-height: 24px; padding: var(--tg-space-1) var(--tg-space-2); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); cursor: pointer; }
-.view-toggle[aria-pressed='true'] { color: var(--tg-paper); background: var(--tg-ink); }
-/* In the lens's More options the picked temperature chip is marked by weight and underline, not an ink fill. */
-.lens-options .view-toggle[aria-pressed='true'] { font-weight: 600; text-decoration: underline 2px; text-underline-offset: 4px; background: none; color: var(--tg-ink); }
+/* Table view (A3) and More options: one quiet text-button row under the readout (L5). Quiet text buttons (CL11): muted,
+   no border and no fill, underlined on hover and focus; a pressed one is 600 with a 2 px ink underline. */
+.view-toggle-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-2) 0; }
+.view-toggle { min-height: 24px; padding: 0 var(--tg-space-1); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); background: none; border: 0; border-radius: var(--tg-radius); text-underline-offset: 4px; cursor: pointer; }
+.view-toggle:is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline; }
+.view-toggle[aria-pressed='true'] { font-weight: 600; color: var(--tg-ink); text-decoration: underline 2px; }
 .table-scroll { overflow-x: auto; margin-bottom: var(--tg-space-2); }
 .garden-table { border-collapse: collapse; font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
 .garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--tg-ink-muted); }
@@ -154,6 +151,8 @@
 .garden-table [data-ws], .table-prefix { color: var(--tg-ink-muted); }
 
 .legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.garden-key summary { min-height: 24px; cursor: pointer; }
+.legend-lead { max-width: var(--tg-measure); margin: var(--tg-space-1) 0; }
 .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; padding: 0; list-style: none; }
 .legend-title { color: var(--tg-ink); }
 .legend-item { display: inline-flex; align-items: center; gap: var(--tg-space-2); font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
@@ -178,7 +177,9 @@
   /* The garden follows the controls directly, so the slider's effect is in view; the label has nothing focusable. */
   .specimen { order: 1; }
   .controls { padding: var(--tg-space-2) var(--tg-space-4) 0; }
-  .readout { position: sticky; bottom: 0; background: var(--tg-surface); border-top: var(--tg-hairline); }
+  .readout { position: sticky; bottom: 0; background: var(--tg-paper); border-top: var(--tg-hairline); }
+  /* GA1: one sideways-scrolling line of samples. */
+  .picker-options { flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px var(--tg-space-1); }
   html { scroll-padding-bottom: var(--tg-readout-h, 0px); }
   .garden-table th, .garden-table td { padding-inline: var(--tg-space-1); }
 }

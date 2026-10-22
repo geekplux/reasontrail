@@ -7,7 +7,7 @@ import { LiveRegion, useAnnouncer } from './components/LiveRegion';
 import { ShareButton } from './components/ShareButton';
 import { SamplePicker } from './components/SamplePicker';
 import { SpecimenFields, SpecimenLabel } from './components/SpecimenLabel';
-import { TemperatureControl } from './components/TemperatureControl';
+import { TemperatureControl, TemperaturePresets } from './components/TemperatureControl';
 import { InlineNote } from './components/states/InlineNote';
 import { useOverflows } from './components/useOverflows';
 import { buildTree, pathTo, type CanGrow } from './garden/buildTree';
@@ -62,7 +62,7 @@ const newSeed = () => 1 + Math.floor(Math.random() * 9999);
  * shows that sentence's garden instead, full width, with its specimen fields and the settings behind "More options"
  * (DESIGN §18.1); `header` and `bar` are the lens frame's (breadcrumb, Z2 line, live status), `options` its opt-in.
  */
-export function App({ header, lens, bar, options }: { header?: ReactNode; lens?: LensSource; bar?: ReactNode; options?: ReactNode } = {}) {
+export function App({ header, lens, bar, options, recorded, privacy }: { header?: ReactNode; lens?: LensSource; bar?: ReactNode; options?: ReactNode; recorded?: boolean; privacy?: string | undefined } = {}) {
   const [view, setView] = useState<View>(() => ({ ...boot(lens), n: 0, walk: 0 }));
   const [message, announce] = useAnnouncer();
   useEffect(() => {
@@ -78,19 +78,47 @@ export function App({ header, lens, bar, options }: { header?: ReactNode; lens?:
     setView((v) => ({ ...v, sample, urlId: sample.id, ranks: [], unknown: false, valid: true, provider: new RecordedProvider(sample), seed: null, n: v.n + 1, walk: 0 }));
   };
   const sampleWith = (seed: number) => setView((v) => ({ ...v, seed, walk: v.walk + 1 }));
+  const setT = (t: number) => setView((v) => ({ ...v, t, walk: 0 }));
+  // Visible: the slider and "Sample a path"; the presets and New seed wait in More options (DESIGN §18.1, GA2).
   const settings = (
     <div className="controls-row">
-      <TemperatureControl t={view.t} onChange={(t) => setView((v) => ({ ...v, t, walk: 0 }))} />
+      <TemperatureControl t={view.t} onChange={setT} />
       <button type="button" className="view-toggle" onClick={() => sampleWith(view.seed ?? newSeed())}>
         Sample a path
       </button>
+    </div>
+  );
+  const extra = (
+    <div className="controls-row">
+      <TemperaturePresets t={view.t} onChange={setT} />
       <button type="button" className="view-toggle" onClick={() => sampleWith(newSeed())}>
         New seed
       </button>
     </div>
   );
+  // More options: one quiet text button after the readout, beside Table view (L5). In the lens it also holds the
+  // specimen fields, whether it works offline, the live opt-in and the settings.
+  const more = (
+    <details className="lens-options">
+      <summary>
+        More options
+        <svg className="lens-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <path d="M4 2.5 7.5 6 4 9.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      </summary>
+      {lens ? (
+        <>
+          <SpecimenFields sample={view.sample} live={lens.liveOnly} />
+          {recorded ? <p className="muted fine">Recorded, works offline.</p> : null}
+          {options}
+          {settings}
+        </>
+      ) : null}
+      {extra}
+    </details>
+  );
   return (
-    <AppShell actions={<ShareButton announce={announce} />} footer={<HowToRead />}>
+    <AppShell actions={<ShareButton announce={announce} />} footer={<HowToRead />} privacy={privacy}>
       {header}
       {lens ? null : (
         <div className="controls">
@@ -99,26 +127,13 @@ export function App({ header, lens, bar, options }: { header?: ReactNode; lens?:
         </div>
       )}
       {bar}
-      <Garden key={view.n} view={view} lens={lens} heading={header ? 'h2' : 'h1'} announce={announce} />
-      {lens ? (
-        <details className="controls lens-options">
-          <summary>
-            More options
-            <svg className="lens-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M4 2.5 7.5 6 4 9.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-          </summary>
-          <SpecimenFields sample={view.sample} live={lens.liveOnly} />
-          {options}
-          {settings}
-        </details>
-      ) : null}
+      <Garden key={view.n} view={view} lens={lens} heading={header ? 'h2' : 'h1'} announce={announce} more={more} />
       <LiveRegion message={message} />
     </AppShell>
   );
 }
 
-function Garden({ view, lens, heading, announce }: { view: View; lens: LensSource | undefined; heading: 'h1' | 'h2'; announce(text: string): void }) {
+function Garden({ view, lens, heading, announce, more }: { view: View; lens: LensSource | undefined; heading: 'h1' | 'h2'; announce(text: string): void; more: ReactNode }) {
   const { sample, ranks, unknown, valid, provider, t, seed, walk } = view;
   const missingText = lens?.missingText ?? RECORDED_ONLY;
   const recorded = useCallback<CanGrow>((key) => Object.hasOwn(sample.nodes, key), [sample]);
@@ -248,14 +263,14 @@ function Garden({ view, lens, heading, announce }: { view: View; lens: LensSourc
           note={missing && !noteBox ? <InlineNote as="span" variant="not-recorded" className="readout-note" announced>{missingText}</InlineNote> : null}
         />
         {sampled && seed !== null ? <SampledReadout prompt={sample.prompt} sampled={sampled} t={t} seed={seed} k={sample.k} /> : null}
-        <p className="view-toggle-row">
+        <div className="view-toggle-row">
           <button type="button" className="view-toggle" aria-pressed={table} onClick={() => setTable((on) => !on)}>
             Table view
           </button>
-        </p>
+          {more}
+        </div>
         {table ? <TableView garden={shown} t={t} missingState={lens?.missingState} /> : null}
         <Legend missingState={lens?.missingState} />
-        <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
       </figure>
     </div>
   );
