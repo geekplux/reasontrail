@@ -898,6 +898,15 @@ Source: Sean's design direction of 2026-10-21. It refines §1–§17 and does no
 | Lens | The garden | Breadcrumb and the one Z2 line | Specimen-card details and settings, behind "More options" |
 | Chat import | The paste box | Import sources as quiet text links | Format help in `<details>` |
 | Share card | The mini route | Title, three glance rows | Nothing else: no legend, no meta |
+| Chat map | The trail map, as for the map glance | Task title, the chat honesty line | "Map another chat" and Save (placed after the map), legend, provenance |
+| Install | The `install-skill` command | The run-it-yourself command (smaller type) | Per-agent paths, more commands |
+| Share dialog | The redaction result and "Download HTML" | Included/Opens list, Download map card | Preview redacted |
+| Shared HTML and CLI viewer | The trail map, as for the map glance | Shared-copy line (muted, no fill) | "Generated on your machine" (in the footer), legend, session details |
+| Garden page | The garden | Sample choice (quiet text radios), temperature slider, Sample a path | Presets, New seed, specimen details ("About this garden"), Key |
+
+Header (all pages): the ink-filled "Map your own session" appears only on the showcase home. Every other page shows it as a text link, and the current page carries `aria-current="page"` with a 2 px underline.
+
+Chat sources (amends DM6 and the M5 copy for chat only): the honesty label reads "The replies are the model's own account, not a record of how it computed them." and ends with "How to read this map". A user correction is labelled "Correction:", not "Interrupted:". Coding-agent sessions keep M5 unchanged.
 
 ### 18.2 First-load caps and progressive disclosure
 
@@ -933,7 +942,7 @@ Source: Sean's design direction of 2026-10-21. It refines §1–§17 and does no
 - **Reading order** in every view and region: title → hero → supporting text → controls. A region's controls come after its content, except header items and close buttons.
 - **One large text element per view:** only the task title (or the showcase headline) is ≥ 25 px. Section labels stay mono 11.5–12.8 muted.
 - **The accent is `--tg-trouble` on unresolved blazes:** where it got stuck is the one thing that matters. `--tg-ok` and `--tg-lane` stay as small data marks (glyphs ≤ 16 px, 2 px strokes). `--tg-accent` appears only in the lens. No hue appears in chrome: buttons, links, chips, headings and borders are ink or muted. The focus ring is exempt.
-- **Ink fill is reserved** for the showcase's primary CTA, selected rows and items, blaze number badges and glyph interiors.
+- **Ink fill is reserved** for the one primary action of a view (the showcase's "Map your own session", "Map this conversation" when enabled, the share dialog's "Download HTML"), selected rows and items, blaze number badges and glyph interiors. The drop zone's "Choose a file" keeps its 1 px ink border. Every other button is a quiet text button (CL11).
 - **Quiet chips and badges:** chips, the fold chip and the "more" control have no border and no fill. They use muted text at 12.8 mono or 13.5 UI. "more" is an inline text button at the end of the title's last line.
 
 ### 18.5 Unchanged constraints
