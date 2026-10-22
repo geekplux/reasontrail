@@ -378,7 +378,7 @@ Everything **below** the route belongs to side trails.
 | `spawned` / `result-of` | The 45° leave and rejoin connectors |
 | `retry-of`, `reverts` | Inside a trouble blaze, listed as evidence in detail (no extra lines on the glance) |
 | `forks` (rewind) | A solid 1.5 px `--tg-ink-muted` spur from the fork point at `x(step)`, rising at 45° to 10 px above the route and running parallel, ending in a 10 px perpendicular bar ⊣: the abandoned branch. Its length is proportional to the abandoned steps (√, minimum 24 px) |
-| `supports` [21] | Only when an answer claim is selected: dashed 1 px `--tg-ink-muted` curves from the claim to the supporting waypoints. Never on the glance |
+| `supports` [21] | Only when a claim is selected (the selected step, or a claim in the selected step's episode or its subagents): dashed 1 px `--tg-ink-muted` quadratic arcs from the claim's waypoint to each supporting waypoint, peaking above the route. Arc height is proportional to span (the longest arc 12 px, the others `12 × span / longest`; a lone arc at least 3 px), so arcs from one origin nest and never cross, and they stay below the titles' count lines. Each supporting waypoint gets a dashed 1 px `--tg-ink-muted` ring (the same dash as the arcs), so the ends read without colour. Never on the glance. The detail panel lists the same supports as text links (§13.6) |
 
 ### 8.5 Trouble blazes [16]
 
@@ -631,8 +631,9 @@ Vertical layout (< 768 px, and whenever the vertical route is in use, for exampl
 | Map render error | `!` | "The map couldn't be drawn. The outline has everything:" + "Open outline" | `role="alert"` when it follows a user action (toggle, drop); static on first load |
 | Unknown `?session=` or `?step=` | ⓘ note at the top | "That map isn't here, so here is a sample." / "That step isn't in this map; showing the whole map." | On-load note: static text |
 | No JavaScript | `<noscript>` on paper | "Reasontrail needs JavaScript to draw the map. The session data is in this file; see the README." | — |
-| AI labels loading [21] | Dashed placeholder tags | "Asking <model> for labels… <k> of <n> batches" + "Cancel" | Polite: "Asking <model> for labels" at the start, "AI labels added" at the end |
-| AI labels failed or over budget [21] | ⓘ | "AI labels aren't available right now. The map is complete without them." | Polite, once |
+| AI labels loading [21] | Inline in the route header, in place of the toggle: a dashed swatch (the tag's outline, §13.6) + "Labelling <k> of <n>…" + "Cancel". No placeholder tags on the map, so nothing moves while it loads | "Labelling <k> of <n>…" (k counts batches of up to 200 steps; one batch reads "Labelling 1 of 1…") + "Cancel" | Polite: "Asking a model for AI labels" for one batch, "Labelling <k> of <n>" per batch for several, "AI labels added" at the end. Cancel: "AI labels cancelled; nothing was kept", and focus returns to "AI labels…" |
+| AI labels unavailable [21] (no Worker behind the site) | ⓘ inline note in the route header, muted, no button | "AI labels aren't available here; the map still works." | Focus moves to the note (`tabindex="-1"`), so it is read once and not also announced |
+| AI labels failed, rate-limited or over budget [21] | ⓘ inline note + "Try AI labels again" | Rate limit: "Too many requests right now. Try again in <n> s; the map still works." Budget: "Today's budget for AI labels is used up. Try again tomorrow; the map still works." Input: "This session couldn't be sent as it is, so no labels were added; the map still works." Other: "The model couldn't label this session. Try again; the map still works." | As above: focus on the note, read once. Every message ends in "the map still works" |
 
 - The ⓘ and `!` glyphs are `aria-hidden`; the text carries the meaning.
 - The polite live region and the alert container are present in the DOM, empty, from page load, so the first message is not lost.
@@ -694,8 +695,10 @@ Verified (pnpm check:browser passed) · 3 trouble spots, 1 resolved · 22 files 
 
 ### 13.6 AI labels overlay [21]
 
-- A toggle "AI labels (suggested)" sits in the route header. It is off by default and on only after the V3 consent dialog.
-- Labels are dashed-outline tags in italic serif 12.8 above waypoints: "hypothesis", "dead end", "decision", and so on. The legend adds "dashed = suggested by <model>".
+- Before consent the route header shows "AI labels…" (opens the V3 consent dialog). After the labels arrive it becomes one toggle button that carries its own key: a dashed swatch + "AI labels · suggested by <model>" (accessible name "AI labels, suggested by <model>", `aria-pressed`). There is no separate legend entry, so the header never gains a row and nothing shifts when it is switched; the label text is the same on and off, and "on" is shown by ink weight 600 and a 2 px underline. The model name truncates with an ellipsis at 18ch. On the website the toggle is on as soon as the labels arrive; with a recorded overlay (`--ai`) it starts off.
+- The toggle sits right-aligned at the end of the route header row. When the header is too narrow (mobile, or the route narrowed by the open detail panel) it wraps to its own right-aligned row under the legend. That is accepted until phase 25 reworks the header; it must never overlap the tags below it.
+- Labels are dashed-outline tags (1.5 px dashed `--tg-ink-muted` outline, no fill) in italic serif 12.8 / 16 above each episode title, `--tg-space-1` above it ("hypothesis", "dead end", "decision", and so on). One tag per episode: its most conclusive label, in the order answer > decision > dead end > hypothesis > evidence > sub-question, then "+<n> more" for the other labels. The episode's accessible name lists every label with its step count ("AI labels, suggested by <model>: decision (1 step), evidence (2 steps)"). In the vertical (mobile) route the tag sits at the end of the episode row, `--tg-space-2` from the counts.
+- In the detail panel the selected step shows its tag + "suggested by <model>" once; a claim's supports are listed as step links (the first 5, then "Show all <n> steps", `aria-expanded`).
 - The overlay is a separate SVG layer, so the base geometry is identical with it on or off.
 - In detail, a claim's supports are drawn as dashed curves (§8.4).
 
