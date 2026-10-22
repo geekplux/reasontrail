@@ -156,6 +156,15 @@
 .step-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* A long text shows 12 visual lines (wrapped lines count) until "Show full text". */
 .step-text.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 12; overflow: hidden; }
+/* Zoom into this sentence (DESIGN §13.5): each sentence is a chip with a dotted underline on hover and focus; the picked
+   one has a solid 2 px ink underline. Ink only: no hue outside the lens (CL10). */
+.lens-sentence { cursor: pointer; border-radius: 2px; }
+.lens-sentence:hover, .lens-sentence:focus-visible { text-decoration: underline dotted; text-underline-offset: 3px; }
+.lens-sentence[aria-pressed='true'] { text-decoration: underline solid 2px; text-underline-offset: 3px; }
+.lens-mark { width: 12px; height: 12px; margin-inline-start: 2px; vertical-align: -1px; }
+.lens-action { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-2); margin: var(--tg-space-2) 0 0; font-size: 12.8px; }
+.lens-link { display: inline-flex; align-items: center; gap: var(--tg-space-1); min-height: 28px; padding: 0 var(--tg-space-2); font: 500 13px var(--tg-font-ui); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); cursor: pointer; }
+.lens-link .lens-icon { width: 16px; height: 16px; }
 .step-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--tg-space-1) var(--tg-space-3); margin: 0; }
 .step-facts dt { color: var(--tg-ink-muted); }
 .step-facts dd { margin: 0; overflow-wrap: anywhere; }

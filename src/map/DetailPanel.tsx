@@ -4,6 +4,7 @@
 // Copy link, previous/next, and the rule note for patterns. Everything from the transcript is rendered as text.
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
+import { useLensSentences } from '../lens/LensLink';
 import { BlazeIcon, InfoGlyph, KindGlyph } from './Glyph';
 import { HONESTY_TEXT, HOW_TO_READ_URL } from './HonestyLabel';
 import { KIND_WORD } from './keyboard';
@@ -121,7 +122,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
           {row && ownWords(row) && (
             <p className="honesty agent-words" data-honesty="detail"><InfoGlyph /><span>{HONESTY_TEXT} <a href={HOW_TO_READ_URL}>How to read this map</a></span></p>
           )}
-          {row && <StepBlock key={row.id} g={g} row={row} index={at} count={nav.length} label={pattern ? 'Evidence' : 'Selected step'} onOpenLane={onOpenLane} />}
+          {row && <StepBlock key={row.id} g={g} row={row} index={at} count={nav.length} label={pattern ? 'Evidence' : 'Selected step'} where={[laneWord(g, target.lane), target.episode?.title].filter(Boolean).join(' › ')} onOpenLane={onOpenLane} />}
           {row && aiNote}
           {row && <ProvenanceBlock key={`${row.id}:${openRaw}`} g={g} row={row} openRaw={openRaw} link={linkFor(row.id)} announce={announce} />}
           <div className="panel-nav">
@@ -179,7 +180,7 @@ function Provenance({ g, row }: { g: SessionGraph; row: Row }) {
   );
 }
 
-function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGraph; row: Row; index: number; count: number; label: string; onOpenLane?: ((laneId: string) => void) | undefined }) {
+function StepBlock({ g, row, index, count, label, where, onOpenLane }: { g: SessionGraph; row: Row; index: number; count: number; label: string; where: string; onOpenLane?: ((laneId: string) => void) | undefined }) {
   const [more, setMore] = useState(false);
   const s = row.step;
   const tool = s.kind === 'tool-call' ? s.tool : undefined;
@@ -231,15 +232,16 @@ function StepBlock({ g, row, index, count, label, onOpenLane }: { g: SessionGrap
           {row.result?.text && <Box label="Result">{ex.head}</Box>}
         </>
       ) : (
-        <StepText row={row} more={more} onMore={() => setMore(!more)} />
+        <StepText row={row} more={more} where={where} onMore={() => setMore(!more)} />
       )}
     </section>
   );
 }
 
 /** A user or agent text, its first 12 visual lines and "Show full text" (DESIGN §10.1). In the browser CSS clamps it and
- * the button shows only when it overflows; without layout (tests, server render) it is cut by `textHead`. */
-function StepText({ row, more, onMore }: { row: Row; more: boolean; onMore(): void }) {
+ * the button shows only when it overflows; without layout (tests, server render) it is cut by `textHead`. An assistant's
+ * text offers the zoom-in lens on its sentences (phase 22); focusing a clamped-away sentence shows the full text. */
+function StepText({ row, more, where, onMore }: { row: Row; more: boolean; where: string; onMore(): void }) {
   const text = row.step.text ?? '';
   const ref = useRef<HTMLParagraphElement>(null);
   const [laidOut, setLaidOut] = useState(false);
@@ -262,10 +264,15 @@ function StepText({ row, more, onMore }: { row: Row; more: boolean; onMore(): vo
   const cut = text !== '' && (laidOut ? overflows : fallback.cut);
   const shown = more || laidOut || !fallback.cut ? text : fallback.head;
   const cls = `${ownWords(row) ? 'agent-words step-text' : 'step-text'}${laidOut && !more ? ' is-clamped' : ''}`;
+  const lens = useLensSentences(shown, row.step.kind === 'assistant' ? row.step.id : null, where, (chip) => {
+    const box = ref.current?.getBoundingClientRect();
+    if (cut && !more && box && chip.getBoundingClientRect().bottom > box.bottom + 1) onMore();
+  });
   return (
     <>
-      <p ref={ref} className={cls}>{shown}</p>
+      <p ref={ref} className={cls}>{lens?.content ?? shown}</p>
       {cut && <button type="button" className="link-button" aria-expanded={more} onClick={onMore}>{more ? 'Show less' : 'Show full text'}</button>}
+      {lens?.action}
     </>
   );
 }

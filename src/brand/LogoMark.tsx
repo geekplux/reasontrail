@@ -9,8 +9,8 @@ export const TRAIL_MARK = {
   bar: 'M21.5 16.5 V23.5',
 } as const;
 
-/** @deprecated The seed mark lives on as the lens icon; import it from `./LensIcon`. */
-export { MARK_BRANCHES } from './LensIcon';
+/** @deprecated The seed mark lives on as the lens icon; import it from `../lens/LensIcon`. */
+export { MARK_BRANCHES } from '../lens/LensIcon';
 
 export function LogoMark({ className = 'logo-mark', title }: { className?: string; title?: string }) {
   return (
