@@ -22,6 +22,7 @@ import { useGarden } from './garden/useGarden';
 import { RecordedProvider } from './llm/recordedProvider';
 import { defaultSample, samples } from './samples';
 import type { SampleGarden } from './samples/types';
+import './garden/garden.css';
 
 const RECORDED_ONLY = 'Not in this recording.';
 const SCROLL_CUE = { start: 'Scroll sideways for more →', middle: '← Scroll sideways →', end: '← Scroll sideways to the seed' };
