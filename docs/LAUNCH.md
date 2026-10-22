@@ -96,13 +96,13 @@ Researched on **2026-10-22** from each project's README or documentation (linked
 
 ## Pre-launch checklist
 
-- [ ] **Deploy approval:** Sean approves and runs the deploy (`docs/DEPLOY.md` from phase 28). Nothing is deployed before that.
-- [ ] **npm publish approval (D36):** Sean approves the package name and runs `npm publish`. Until then the README's "Not on npm yet" note and the from-a-clone commands stay.
-- [ ] **Replace `reasontrail.example`** with the deployed URL everywhere: README, `examples/README.md`, this file, and the files `docs/DEPLOY.md` lists. Run `pnpm check:docs` afterwards.
+- [ ] **Deploy approval:** Sean approves and runs the deploy ([DEPLOY.md](DEPLOY.md)). Nothing is deployed before that.
+- [ ] **npm publish approval (D36):** Sean approves the package name and runs `npm publish` ([PUBLISH.md](PUBLISH.md)). Until then the README's "Not on npm yet" note and the from-a-clone commands stay.
+- [ ] **Replace `reasontrail.example`** with the deployed URL everywhere: README, `examples/README.md`, this file, and the files [DEPLOY.md](DEPLOY.md#6-replace-the-placeholder-url-plan-d20) lists. Run `pnpm check:docs` afterwards.
 - [ ] **Upload the social preview:** GitHub repository Settings → General → Social preview → `docs/brand/social-preview.png` (the API cannot do this).
 - [ ] **Enable private vulnerability reporting:** Settings → Code security, so the route in `SECURITY.md` works.
 - [ ] Repository description and topics set (e.g. `claude-code`, `codex`, `ai-agents`, `visualization`, `developer-tools`).
-- [ ] `CHANGELOG.md`: move Unreleased to `0.1.0` with the release date.
+- [ ] `CHANGELOG.md`: add the release date to the `[0.1.0]` heading.
 - [ ] Move `ci/github-workflow.yml` to `.github/workflows/` (needs a token with the workflow scope).
 - [ ] Re-check the comparison table above against the linked pages on the day of posting.
 - [ ] Open each demo link in a fresh browser on the deployed site: the map loads and the panel opens on the linked step.

@@ -53,6 +53,7 @@ To point your own deployment at, for example, a vLLM server:
 1. In `wrangler.jsonc` `vars`, set `"UPSTREAM": "openai-compatible"`, `"OPENAI_BASE_URL": "https://your-host/v1"` and `"OPENAI_MODEL": "<model id>"`.
 2. Store the key as a secret: `wrangler secret put OPENAI_API_KEY`. Locally, copy `.dev.vars.example` to `.dev.vars` (gitignored) and fill it in. Never commit a key.
 3. Run `pnpm run check:deploy` (a dry run) to see the bindings and vars.
+4. Deploy your own copy with the runbook in [DEPLOY.md](DEPLOY.md) (headers, KV, post-deploy checks, rollback, cost).
 
 Thinking models must have thinking switched off on the server side: the Worker rejects an answer whose first token is `<think>`.
 

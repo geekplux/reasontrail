@@ -63,15 +63,17 @@ export function checkRefs(file, md, has) {
   return problems;
 }
 
-/** The placeholder demo origin (PLAN D20); replaced after Sean deploys. */
+/** The placeholder demo origin (PLAN D20); replaced after Sean deploys (docs/DEPLOY.md lists every file). */
 export const DEMO_ORIGIN = 'https://reasontrail.example';
+const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const DEMO_LINK = new RegExp(`${escapeRe(DEMO_ORIGIN)}/?(\\?[^\\s)"'<>\`]*)?`, 'g');
 
 /** Problems with demo links: each `?session=` must be a sample in `samples` (id → its step ids), each `?step=` one of
  * that sample's steps. Links in code count too, since they are meant to be copied. A template (`?session=<id>`) is skipped. */
 export function checkDemoLinks(file, md, samples) {
   const problems = [];
   const lineOf = (i) => md.slice(0, i).split('\n').length;
-  for (const m of md.matchAll(/https:\/\/reasontrail\.example\/?(\?[^\s)"'<>`]*)?/g)) {
+  for (const m of md.matchAll(DEMO_LINK)) {
     const url = m[0].replace(/[.,:;!?]+$/, ''); // trailing punctuation is prose, as in GitHub's autolinks
     const q = new URLSearchParams((url.split('?')[1] ?? '').replace(/&amp;/g, '&'));
     const session = q.get('session');
