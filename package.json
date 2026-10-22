@@ -22,6 +22,7 @@
     "check:size": "node scripts/check-size.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "check:browser": "node scripts/check-browser.mjs",
+    "brand:hero-gif": "node scripts/brand/hero-gif.mjs",
     "audit:samples": "node scripts/audit-samples.mjs",
     "skill:audit": "node skills/reasontrail/audit/audit.mjs",
     "skill:evals": "node skills/reasontrail/evals/run-evals.mjs",
