@@ -7,6 +7,7 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { lensSearch, mapSearch, readSiteState, writeView, type SiteView } from './app/urlState';
 import { loadDetailPanel } from './map/MapView';
+import { loadShareDialog } from './share/ShareAction';
 import { LensContext, type LensOpener, type LensTarget } from './lens/lensTarget';
 import { sessionSamples } from './sessions/samples';
 import { Install } from './site/Install';
@@ -19,11 +20,12 @@ const OpenSession = lazy(() => loadIntake().then((m) => ({ default: m.OpenSessio
 const GARDEN_PARAMS = /[?&](sample|path|t|seed)=/;
 const HOME_TITLE = document.title;
 
-/** Fetches the detail panel, the lazy samples, the drop zone and its parse worker in the background. */
+/** Fetches the detail panel, the share dialog, the lazy samples, the drop zone and its parse worker in the background. */
 function prefetch() {
   const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
   idle(() => {
     void loadDetailPanel();
+    void loadShareDialog().catch(() => {});
     for (const s of sessionSamples.slice(1)) void s.load();
     void loadIntake().then(() => import('./intake/intake')).then((m) => m.warmIntake());
   });

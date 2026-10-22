@@ -31,7 +31,34 @@ function strings(value, out = []) {
   return out;
 }
 
-export async function run({ page, context, baseURL, root, log, fail }) {
+/** Waits for the share dialog after a click (10 s; on failure `run` records why). */
+const opens = (dialog, label) => dialog.waitFor({ timeout: 10_000 }).catch((err) => {
+  throw new Error(`${label}: the share dialog did not open in 10 s`, { cause: err });
+});
+
+/** Runs the flow; on any failure, saves a screenshot and says whether the dialog's code failed to load. */
+export async function run(args) {
+  const { page, context, root } = args;
+  const pending = new Map();
+  context.on('request', (r) => pending.set(r, Date.now()));
+  for (const done of ['requestfinished', 'requestfailed']) context.on(done, (r) => pending.delete(r));
+  try {
+    await steps(args);
+  } catch (err) {
+    const path = join(root, '.tmp', 'share-fail.png');
+    await page.screenshot({ path }).catch(() => {});
+    const state = await page.evaluate(() => ({
+      url: location.href,
+      loadError: !!document.querySelector('.share-load-error'),
+      dialogs: [...document.querySelectorAll('dialog')].map((d) => `${d.className}:${d.open ? 'open' : 'closed'}`),
+    })).catch((e) => ({ evaluate: String(e) }));
+    const waiting = [...pending].map(([r, t]) => `${r.url()} (${Date.now() - t} ms)`);
+    const why = state.loadError ? 'the dialog\'s code failed to load (.share-load-error shown)' : JSON.stringify(state);
+    throw new Error(`${err instanceof Error ? err.message.split('\n')[0] : err}; ${why}; pending requests: ${waiting.join(', ') || 'none'}; screenshot ${path}`, { cause: err });
+  }
+}
+
+async function steps({ page, context, baseURL, root, log, fail }) {
   const tmp = join(root, '.tmp', 'share-flow');
   rmSync(tmp, { recursive: true, force: true });
   mkdirSync(tmp, { recursive: true });
@@ -75,7 +102,7 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   const button = page.getByRole('button', { name: 'Save shareable copy…' });
   await button.click();
   const dialog = page.getByRole('dialog', { name: 'Save a shareable copy' });
-  await dialog.waitFor();
+  await opens(dialog, 'dropped session');
   const summary = await dialog.locator('[data-share-summary]').textContent();
   if (!/^[1-9]\d* secrets?, [1-9]\d* emails?, [1-9]\d* paths? will be replaced\./.test(summary ?? '')) fail(`summary: "${summary}"`);
   if (!(await page.evaluate(() => document.querySelector('dialog[open]')?.contains(document.activeElement)))) fail('focus is not inside the dialog');
@@ -94,6 +121,7 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   // 2. The local viewer re-serializes itself: its own share writes a copy that opens offline too.
   if (opened) {
     await opened.p.getByRole('button', { name: 'Save shareable copy…' }).click();
+    await opens(opened.p.getByRole('dialog'), 'viewer re-share');
     const again = await save(opened.p, () => opened.p.getByRole('button', { name: 'Download HTML' }).click());
     await (await checkHtml(again.file, 'viewer re-share'))?.offline.close();
     await opened.offline.close();
@@ -125,6 +153,7 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   await page.goto(`${baseURL}/`, { waitUntil: 'load' });
   await ready(page);
   await page.getByRole('button', { name: 'Save shareable copy…' }).click();
+  await opens(page.getByRole('dialog'), 'website sample');
   const sample = await save(page, () => page.getByRole('dialog').getByRole('button', { name: 'Download HTML' }).click());
   await (await checkHtml(sample.file, 'website sample'))?.offline.close();
 }

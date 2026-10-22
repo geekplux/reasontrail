@@ -123,7 +123,7 @@
   .view-switch button { min-height: 44px; }
   /* Phone hit areas of at least 44 px (WCAG 2.5.5) without moving the layout. */
   .ai-button, .link-button, .panel-nav button, .panel-actions button, :is(.provenance-block, .key-help) > summary { position: relative; }
-  .ai-button::before, .link-button::before, .panel-nav button::before, .panel-actions button::before, :is(.provenance-block::before, .key-help) > summary::before { content: ''; position: absolute; inset: -10px -4px; }
+  .ai-button::before, .link-button::before, .panel-nav button::before, .panel-actions button::before, .provenance-block > summary::before, .key-help > summary::before { content: ''; position: absolute; inset: -10px -4px; }
 }
 
 /* Website page frame for the map (the viewer has its own, viewer.css). */
