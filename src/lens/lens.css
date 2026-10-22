@@ -54,4 +54,7 @@ html.tg-lens.tg-sheet-open body { padding-bottom: 0; }
 
 @media (max-width: 47.99rem) {
   .lens-head, .lens-bar { padding-inline: var(--tg-space-4); }
+  /* Phone hit areas of at least 44 px (WCAG 2.5.5) without moving the layout. */
+  .lens-options > summary, .lens-breadcrumb a { position: relative; }
+  .lens-options > summary::before, .lens-breadcrumb a::before { content: ''; position: absolute; inset: -10px -4px; }
 }

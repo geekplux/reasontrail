@@ -62,6 +62,8 @@
 
 /* Bottom band: where it got stuck (x 32–540) and the destination card (x 560–1248), joined to the terminus. */
 .bottom-band { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--tg-space-5); align-items: start; }
+/* The band's two columns share a top edge, also inside a page (site.css spaces its sections apart). */
+.bottom-band > .region + .region { margin-top: 0; }
 .stuck-rows { display: grid; gap: var(--tg-space-4); margin: 0; padding: 0; list-style: none; }
 .stuck-rows li { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; padding-top: 6px; }
 .stuck-rows li[hidden] { display: none; }
@@ -111,6 +113,7 @@
   .vslash::before, .vslash::after { content: ''; position: absolute; top: 0; left: 8px; width: 1.5px; height: 18px; background: var(--tg-ink); transform: skewX(-30deg); }
   .vslash::after { left: 15px; }
   .dest-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 20px minmax(0, 1fr) 16px; gap: var(--tg-space-2); align-items: center; min-height: 56px; margin: var(--tg-space-4) -16px 0; padding: var(--tg-space-2) 16px; color: var(--tg-ink); text-decoration: none; background: var(--tg-surface); border-top: 1px solid var(--tg-ink); }
+  .dest-bar + .bottom-band { margin-top: var(--tg-space-8); }
   .dest-bar .glyph { width: 20px; height: 20px; }
   .dest-bar-text { display: grid; font-size: 14px; }
   .dest-bar .section-label { margin: 0; }
@@ -118,6 +121,9 @@
   /* The destination appears once on a phone (T8): the sticky bar, which opens it in the sheet. */
   .map .bottom-band > .outcome { display: none; }
   .view-switch button { min-height: 44px; }
+  /* Phone hit areas of at least 44 px (WCAG 2.5.5) without moving the layout. */
+  .ai-button, .link-button, .panel-nav button, .panel-actions button, :is(.provenance-block, .key-help) > summary { position: relative; }
+  .ai-button::before, .link-button::before, .panel-nav button::before, .panel-actions button::before, :is(.provenance-block::before, .key-help) > summary::before { content: ''; position: absolute; inset: -10px -4px; }
 }
 
 /* Website page frame for the map (the viewer has its own, viewer.css). */
@@ -139,7 +145,11 @@
 .breadcrumb { flex: 1; min-width: 0; margin: 6px 0 0; overflow: hidden; font-size: 11.5px; color: var(--tg-ink-muted); white-space: nowrap; text-overflow: ellipsis; }
 /* Quiet text buttons (CL11, §18.4): muted, no border and no fill; underlined on hover and focus. */
 .panel-close, .sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button { min-height: 28px; padding: 0 var(--tg-space-1); font: 500 13px var(--tg-font-ui); color: var(--tg-ink-muted); background: none; border: 0; border-radius: var(--tg-radius); text-decoration: none; text-underline-offset: 0.2em; cursor: pointer; }
-:is(.sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button):is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline; }
+:is(.step-block > button, .link-button) { text-decoration: underline dotted 1px; }
+:is(.sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button):is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline solid; }
+/* A disclosure names its state by a chevron too (pointing right closed, down open); never colour alone. */
+.link-button[aria-expanded]::after { content: ''; display: inline-block; width: 5px; height: 5px; margin-inline-start: 6px; vertical-align: 0.15em; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform var(--tg-dur-panel) var(--tg-ease-out); }
+.link-button[aria-expanded='true']::after { transform: rotate(45deg); }
 .panel-close { display: grid; place-items: center; width: 36px; padding: 0; color: var(--tg-ink); }
 .panel-close path { stroke: currentColor; stroke-width: 1.6; }
 .sheet-size, .grabber { display: none; }
@@ -179,7 +189,8 @@
 .key-q { font-weight: 600; }
 .panel-actions, .panel-nav { display: flex; flex-wrap: wrap; gap: var(--tg-space-2) var(--tg-space-4); margin: var(--tg-space-2) 0; }
 .panel-nav { justify-content: space-between; margin-top: var(--tg-space-5); }
-.panel-nav button[aria-disabled='true'] { color: var(--tg-ink-muted); border-color: var(--tg-rule); cursor: default; }
+.panel-nav button:not([aria-disabled='true']) { color: var(--tg-ink); text-decoration: underline; }
+.panel-nav button[aria-disabled='true'] { color: var(--tg-ink-muted); border-color: var(--tg-rule); text-decoration: none; cursor: default; }
 .detail-panel .fine { margin: var(--tg-space-2) 0 0; font-size: 12.8px; }
 .raw { margin: var(--tg-space-2) 0; }
 .raw figcaption { font-size: 11.5px; }

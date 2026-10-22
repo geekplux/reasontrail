@@ -272,6 +272,7 @@ function Garden({ view, lens, heading, announce, more }: { view: View; lens: Len
         </div>
         {table ? <TableView garden={shown} t={t} missingState={lens?.missingState} /> : null}
         <Legend missingState={lens?.missingState} />
+        <figcaption className="visually-hidden">A garden of next-token branches: each branch is one possible next token, and the thicker the branch, the more likely the token.</figcaption>
       </figure>
     </div>
   );

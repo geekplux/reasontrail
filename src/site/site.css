@@ -103,6 +103,9 @@
   .view-switch.narrow-only { display: inline-flex; }
   .gallery-select { display: block; min-height: 36px; max-width: 100%; font: inherit; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
   .showcase-footer { padding: var(--tg-space-5) var(--tg-space-4); }
+  /* Phone hit areas of at least 44 px (WCAG 2.5.5) without moving the layout. */
+  .how-to-read-map summary { position: relative; }
+  .how-to-read-map summary::before { content: ''; position: absolute; inset: -10px -4px; }
 }
 
 /* Chat import (phase 23, DESIGN §13.8, §18.1): the paste box is the focal point; the export is a quiet text link. */

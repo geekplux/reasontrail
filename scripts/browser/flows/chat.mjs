@@ -56,6 +56,16 @@ export async function run({ page, baseURL, root, log, fail }) {
   for (const p of await axeProblems(page, 'chat map')) fail(p);
   await page.screenshot({ path: join(root, '.tmp', 'chat-map.webp'), type: 'webp', quality: 80 });
   log('pasted ChatGPT text mapped: 3 episodes, 1 detected pattern');
+  // Phase 25 review: the answer-only destination's label lines up with "Where it got stuck".
+  const tops = await page.evaluate(() => ['#h-stuck', '#h-outcome'].map((s) => document.querySelector(s)?.getBoundingClientRect().top ?? -1));
+  if (Math.abs(tops[0] - tops[1]) > 1) fail(`chat bottom band: stuck label at ${tops[0]}, destination label at ${tops[1]}`);
+  // On a phone the destination bar opens the final answer's step, not an empty "0 files changed".
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.dest-bar').click();
+  await page.locator('[data-testid="detail-panel"] .step-block').waitFor({ timeout: 5_000 }).catch(() => fail('chat dest bar: no step in the detail panel'));
+  if (/0 files changed/.test((await page.locator('[data-testid="detail-panel"]').textContent()) ?? '')) fail('chat dest bar opened "0 files changed"');
+  await page.keyboard.press('Escape');
+  await page.setViewportSize({ width: 1440, height: 900 });
 
   // Alternating fallback says so on the map.
   await page.getByRole('button', { name: 'Map another chat' }).click();

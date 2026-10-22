@@ -256,7 +256,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
         </div>
         {target && rows.length > 0 && <StepList g={g} rows={rows} selected={sel?.step} evidence={target.evidence} heading={heading} onPick={(id) => { setSel((s) => s && { ...s, step: id, focus: false }); url(id, false); }} onClose={close} announce={announce} />}
       </section>
-      <a className="dest-bar" href="#destination" onClick={(e) => selectOnClick(() => selector.select('files'))(e)}>
+      <a className="dest-bar" href="#destination" onClick={(e) => selectOnClick(() => (g.outcome.files.length === 0 && g.outcome.answerStepId ? selector.selectStep(g.outcome.answerStepId) : selector.select('files')))(e)}>
         <KindGlyph kind="answer" />
         <span className="dest-bar-text">
           <span className="section-label">Destination</span>
