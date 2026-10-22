@@ -71,11 +71,15 @@ export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Sh
   for (const e of L.episodes) s.push({ t: 'circle', cx: sx(e.x), cy: ROUTE_Y, r: 7, fill: c.paper, stroke: c.ink, width: 3 });
   s.push({ t: 'rect', x: CARD_W - M - 4, y: ROUTE_Y - 16, w: 8, h: 32, fill: c.ink });
   const badge: Font = { family: 'ui', size: 18, weight: 700 };
+  let prev = { x: -Infinity, up: 0 };
   for (const b of L.blazes) {
     const x = sx(b.x);
-    s.push({ t: 'line', x1: x, y1: ROUTE_Y - 4, x2: x, y2: ROUTE_Y - 26, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
-    s.push({ t: 'circle', cx: x, cy: ROUTE_Y - 46, r: 20, fill: b.resolved ? c.paper : c.trouble, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
-    s.push({ t: 'text', x, y: ROUTE_Y - 40, text: b.badge, font: badge, fill: b.resolved ? c.ink : c.paper, anchor: 'middle' });
+    // A badge that would touch the previous one goes one row up (never two rows: the title sits above).
+    const up = x - prev.x < 44 && prev.up === 0 ? 44 : 0;
+    prev = { x, up };
+    s.push({ t: 'line', x1: x, y1: ROUTE_Y - 4, x2: x, y2: ROUTE_Y - 26 - up, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
+    s.push({ t: 'circle', cx: x, cy: ROUTE_Y - 46 - up, r: 20, fill: b.resolved ? c.paper : c.trouble, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
+    s.push({ t: 'text', x, y: ROUTE_Y - 40 - up, text: b.badge, font: badge, fill: b.resolved ? c.ink : c.paper, anchor: 'middle' });
   }
 
   const lead: Font = { family: 'ui', size: 24, weight: 600 };

@@ -75,9 +75,10 @@ export function planShare(graph: SessionGraph): SharePlan {
   return { graph: red, counts: countsOf(summary), examples: redactedExcerpts(graph.steps, red.steps), rawExcerpts: red.steps.filter((s) => s.rawText).length };
 }
 
-/** The shared copy: the redacted graph in the viewer template, with the "Shared copy" ribbon. */
-export function shareHtml(template: string, plan: SharePlan, version = ''): string {
-  const payload: ViewerPayload = { graph: plan.graph, meta: { version, shared: { replaced: plan.counts.total } } };
+/** The shared copy: the redacted graph in the viewer template, with the "Shared copy" ribbon (`prior`: items an
+ * earlier shared copy already replaced). */
+export function shareHtml(template: string, plan: SharePlan, version = '', prior = 0): string {
+  const payload: ViewerPayload = { graph: plan.graph, meta: { version, shared: { replaced: plan.counts.total + prior } } };
   return renderHtml(template, payload);
 }
 
@@ -97,14 +98,15 @@ export async function fetchTemplate(url = `${import.meta.env.BASE_URL}viewer.htm
 
 /**
  * The local viewer's own template: this document without its payload, its rendered map and the inflated app script
- * (the loader adds it at run time; the gzip-packed copy and the loader stay). Throws outside a built viewer page.
+ * (`#reasontrail-run`, added by the loader at run time; the gzip-packed copy and the loader stay). Throws outside a
+ * built viewer page.
  */
 export function templateFromDocument(doc: Document): string {
   const html = doc.documentElement.cloneNode(true) as HTMLElement;
   const data = html.querySelector('#reasontrail-data');
   if (!data || !html.querySelector('#reasontrail-app')) throw new Error('This page is not a Reasontrail map file.');
   data.textContent = DATA_SLOT;
-  for (const s of html.querySelectorAll('script:not([id])')) if (!s.textContent?.includes('reasontrail-app')) s.remove();
+  html.querySelector('#reasontrail-run')?.remove();
   const root = html.querySelector('#root');
   if (root) root.textContent = '';
   const title = html.querySelector('title');

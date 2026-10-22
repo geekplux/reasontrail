@@ -21,7 +21,7 @@ function Marked({ text }: { text: string }) {
   return <>{parts}</>;
 }
 
-export default function ShareDialog({ graph, from, version = '', onClose }: { graph: SessionGraph; from: 'site' | 'page'; version?: string | undefined; onClose(): void }) {
+export default function ShareDialog({ graph, from, version = '', prior = 0, onClose }: { graph: SessionGraph; from: 'site' | 'page'; version?: string | undefined; prior?: number | undefined; onClose(): void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const descId = useId();
@@ -50,7 +50,7 @@ export default function ShareDialog({ graph, from, version = '', onClose }: { gr
   const saveHtml = () => run('HTML file', async () => {
     const name = shareFileName(plan.graph);
     const template = from === 'site' ? await fetchTemplate() : templateFromDocument(document);
-    download(shareHtml(template, plan, version), name, 'text/html');
+    download(shareHtml(template, plan, version, prior), name, 'text/html');
     return name;
   });
   const saveCard = (svg: boolean) => run('map card', async () => {
@@ -107,7 +107,7 @@ export default function ShareDialog({ graph, from, version = '', onClose }: { gr
       <div className="share-actions">
         <button type="button" className="share-primary" disabled={busy} onClick={() => void saveHtml()}>Download HTML</button>
         <button type="button" disabled={busy} onClick={() => void saveCard(false)}>Download map card (PNG)</button>
-        <button type="button" disabled={busy} aria-label="Download map card (SVG)" onClick={() => void saveCard(true)}>SVG</button>
+        <button type="button" disabled={busy} onClick={() => void saveCard(true)}>Download map card (SVG)</button>
         <button type="button" onClick={onClose}>Close</button>
       </div>
       <p className="share-status" role="status">{said}</p>

@@ -43,7 +43,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
       </main>
       <footer className="viewer-footer">
         Reasontrail {meta?.version ?? ''} · <a href={HOW_TO_READ_URL}>How to read this map</a> · <a href={SOURCE}>Source</a>
-        {loaded.ok && <> · <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} /></>}
+        {loaded.ok && <> · <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} prior={meta?.shared?.replaced} /></>}
       </footer>
     </>
   );

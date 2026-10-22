@@ -64,7 +64,7 @@ describe('templateFromDocument', () => {
     const doc = new DOMParser().parseFromString(
       `<!doctype html><html><head><title>My map · Reasontrail</title><style>.x{}</style></head><body><div id="root"><main>map</main></div>` +
         `<script id="reasontrail-data" type="application/json">{"graph":1}</script><script id="reasontrail-app" type="application/octet-stream">AAAA</script>` +
-        `<script>document.getElementById('reasontrail-app')</script><script>console.log("inflated app")</script></body></html>`,
+        `<script>document.getElementById('reasontrail-app')</script><script id="reasontrail-run">console.log("inflated app")</script></body></html>`,
       'text/html',
     );
     const t = templateFromDocument(doc);
