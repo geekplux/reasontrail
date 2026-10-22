@@ -1,5 +1,6 @@
 /* The website (DESIGN §13.3, §13.4, §18): calm chrome, one focal point per page, space instead of boxes. Tokens only. */
 .site { display: contents; }
+.site[hidden] { display: none; }
 
 .showcase-header { gap: var(--tg-space-5); padding: var(--tg-space-2) var(--tg-space-8); }
 .site-nav { display: flex; gap: var(--tg-space-5); margin-inline-start: auto; }

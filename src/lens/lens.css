@@ -1,0 +1,37 @@
+/* The zoom-in lens frame (DESIGN §13.5, §18.1): the garden is the focal point; the breadcrumb, the Z2 line and the
+   sentence are quieter, above it, and the settings sit behind "More options" after it. Colours only via tokens.css. */
+.lens-head, .lens-bar { padding: var(--tg-space-4) var(--tg-space-5) 0; animation: lens-in var(--tg-dur-lens) var(--tg-ease-out); }
+.lens-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); }
+.lens-back, .lens-optin, .lens-options summary {
+  min-height: 28px;
+  padding: 0 var(--tg-space-2);
+  font: 500 var(--tg-text-sm) var(--tg-font-ui);
+  color: var(--tg-ink);
+  background: var(--tg-surface);
+  border: 1px solid var(--tg-ink);
+  border-radius: var(--tg-radius);
+  cursor: pointer;
+}
+.lens-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; margin: 0; padding: 0; list-style: none; font-size: 11.5px; color: var(--tg-ink-muted); }
+.lens-breadcrumb li + li::before { content: '›'; padding-inline: var(--tg-space-1); }
+.lens-breadcrumb [aria-current] { color: var(--tg-ink); }
+.lens-breadcrumb .lens-icon { width: 16px; height: 16px; margin-inline-end: var(--tg-space-1); vertical-align: -3px; color: var(--tg-accent); }
+.lens-z2 { display: flex; align-items: baseline; gap: var(--tg-space-1); max-width: var(--tg-measure); margin: var(--tg-space-2) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.lens-z2 svg { flex: none; align-self: center; }
+.lens-quote { max-width: var(--tg-measure); margin: var(--tg-space-4) 0 0; padding-inline-start: var(--tg-space-4); border-inline-start: 2px solid var(--tg-ink); }
+.lens-sentence-text { margin: 0; font: italic 400 var(--tg-text-lg) / 1.35 var(--tg-font-serif); }
+.lens-quote figcaption { margin-top: var(--tg-space-1); font-size: 11.5px; }
+.lens-offer, .lens-live { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); margin: 0; font-size: var(--tg-text-sm); }
+.lens-status:empty { display: none; }
+.lens-status .inline-note { margin: var(--tg-space-2) 0 0; }
+.lens-options { padding: 0 var(--tg-space-5) var(--tg-space-5); }
+.lens-options summary { display: inline-flex; align-items: center; list-style-position: inside; }
+.lens-options[open] summary { margin-bottom: var(--tg-space-2); }
+
+/* The detail panel's bottom-sheet padding belongs to the hidden map, not to the lens. */
+html.tg-lens.tg-sheet-open body { padding-bottom: 0; }
+
+@keyframes lens-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

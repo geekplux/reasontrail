@@ -40,15 +40,16 @@ export interface GardenTree {
 
 /** The prompt and the next-token lists known so far, by continuation key ('' = root). */
 export type TreeSource = Pick<SampleGarden, 'prompt' | 'nodes'>;
-/** Whether a branch can be grown (recorded); decides `expandable` vs `not-recorded` before anyone clicks. */
-export type CanGrow = (key: string) => boolean;
+/** Whether a branch can be grown (recorded, or live in the lens within its depth); decides `expandable` vs
+ * `not-recorded` before anyone clicks. `depth` is the branch's (1 for the root's branches). */
+export type CanGrow = (key: string, depth: number) => boolean;
 
 function forkAt(src: TreeSource, canGrow: CanGrow, parentKey: string, parentP: number, depth: number, expanded: ReadonlySet<string>, t: number) {
   const choices = src.nodes[parentKey] ?? [];
   const { q, rest } = temperChoices(choices, t);
   const children = choices.map((choice, rank): GardenBranch => {
     const key = parentKey + choice.token;
-    const recorded = canGrow(key);
+    const recorded = canGrow(key, depth);
     const open = expanded.has(key) && Object.hasOwn(src.nodes, key);
     const p = q[rank]!;
     const sub = open ? forkAt(src, canGrow, key, parentP * p, depth + 1, expanded, t) : null;

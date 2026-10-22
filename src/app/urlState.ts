@@ -43,16 +43,36 @@ export function writeUrlState(search: string, s: UrlState): string {
 export type SiteView = 'map' | 'outline' | 'open' | 'install';
 const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'install'];
 
+const GARDEN_PARAMS = ['sample', 'path', 't', 'seed'];
+
 /** Which page the website shows: the garden lens when any garden param is set (`?sample=` links keep working), else
- * `?view=open|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`. */
-export function readSiteState(search: string): { garden: boolean; session: string | null; view: SiteView } {
+ * `?view=open|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`.
+ * `lens`: `?lens=live`, a sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
+export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; view: SiteView } {
   const q = new URLSearchParams(search);
   const view = q.get('view') as SiteView;
   return {
-    garden: ['sample', 'path', 't', 'seed'].some((p) => q.has(p)),
+    garden: GARDEN_PARAMS.some((p) => q.has(p)),
+    lens: q.has('lens'),
     session: q.get('session') || null,
     view: SITE_VIEWS.includes(view) ? view : 'map',
   };
+}
+
+/** `search` back on the map: the lens and garden params dropped, the map's own (`session`, `step`, `view`) kept. */
+export function mapSearch(search: string): string {
+  const q = new URLSearchParams(search);
+  for (const p of [...GARDEN_PARAMS, 'lens']) q.delete(p);
+  const out = q.toString();
+  return out ? `?${out}` : '';
+}
+
+/** `search` in the lens: a recorded lens garden is `sample=<id>` (a link that reopens it), a live-only one `lens=live`. */
+export function lensSearch(search: string, gardenId: string | null): string {
+  const q = new URLSearchParams(mapSearch(search));
+  if (gardenId) q.set('sample', gardenId);
+  else q.set('lens', 'live');
+  return `?${q.toString()}`;
 }
 
 /** `search` with the view written (`view=…`, or dropped for the default map), other params kept. */

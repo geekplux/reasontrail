@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readSiteState, readUrlState, writeUrlState, writeView } from './urlState';
+import { lensSearch, mapSearch, readSiteState, readUrlState, writeUrlState, writeView } from './urlState';
 
 describe('urlState', () => {
   it.each([
@@ -30,15 +30,27 @@ describe('urlState', () => {
 
 describe('site state (phase 16)', () => {
   it('opens the map by default, the garden for garden links, and reads the session and view', () => {
-    expect(readSiteState('')).toEqual({ garden: false, session: null, view: 'map' });
+    expect(readSiteState('')).toEqual({ garden: false, lens: false, session: null, view: 'map' });
     expect(readSiteState('?sample=robot&path=1')).toMatchObject({ garden: true });
     expect(readSiteState('?sample=')).toMatchObject({ garden: true });
-    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, session: 'planner-pivot', view: 'outline' });
+    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, lens: false, session: 'planner-pivot', view: 'outline' });
     expect(writeView('?session=x', 'outline')).toBe('?session=x&view=outline');
     expect(writeView('?view=outline', 'map')).toBe('');
     expect(readSiteState('?view=open').view).toBe('open');
-    expect(readSiteState('?view=install&session=x')).toEqual({ garden: false, session: 'x', view: 'install' });
+    expect(readSiteState('?view=install&session=x')).toEqual({ garden: false, lens: false, session: 'x', view: 'install' });
     expect(readSiteState('?view=nope').view).toBe('map');
     expect(writeView('?session=x&view=outline', 'open')).toBe('?session=x&view=open');
+  });
+});
+
+describe('lens links (phase 22)', () => {
+  it('opens a recorded sentence as a garden link and a live one as lens=live, keeping the map selection', () => {
+    const map = '?session=planner-pivot&step=s12';
+    expect(lensSearch(map, 'lens-planner-pivot-1')).toBe('?session=planner-pivot&step=s12&sample=lens-planner-pivot-1');
+    expect(lensSearch(map, null)).toBe('?session=planner-pivot&step=s12&lens=live');
+    expect(readSiteState(lensSearch(map, null))).toMatchObject({ garden: false, lens: true, session: 'planner-pivot' });
+    expect(mapSearch('?session=planner-pivot&step=s12&sample=lens-planner-pivot-1&path=0.1&t=0.5&seed=3')).toBe(map);
+    expect(mapSearch('?lens=live&path=0')).toBe('');
+    expect(lensSearch('?sample=cat&path=1', 'lens-x')).toBe('?sample=lens-x');
   });
 });

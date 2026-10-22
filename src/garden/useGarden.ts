@@ -30,7 +30,8 @@ export function useGarden(provider: LogprobProvider, prompt: string, k: number, 
     (key: string) => {
       dispatch({ type: 'select', key });
       if (state.expanded.has(key) || Object.hasOwn(state.nodes, key)) return dispatch({ type: 'toggle', key });
-      if (state.status[key]) return; // loading, or already known to be missing: no second request
+      // Loading, or known to be missing: no second request. A failed live call may be tried again.
+      if (state.status[key] && state.status[key] !== 'error') return;
       dispatch({ type: 'status', key, status: 'loading' });
       provider.nextTokens(prompt + key, k).then(
         (choices) => dispatch({ type: 'expand', key, choices }),
