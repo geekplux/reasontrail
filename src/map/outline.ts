@@ -64,7 +64,7 @@ export function taskCard(g: SessionGraph) {
 }
 
 export type GlanceStatus = 'ok' | 'error' | 'unknown';
-export interface GlanceRow { key: 'verify' | 'trouble' | 'files'; status: GlanceStatus; lead: string; rest: string }
+export interface GlanceRow { key: 'turns' | 'verify' | 'trouble' | 'files'; status: GlanceStatus; lead: string; rest: string }
 
 function finalStatus(g: SessionGraph): string | undefined {
   const ran = (re: RegExp) => g.steps.some((s) => s.tool?.command && re.test(s.tool.command) && g.steps.some((r) => r.kind === 'tool-result' && r.tool?.callId === s.tool?.callId && r.status === 'ok'));
@@ -73,18 +73,29 @@ function finalStatus(g: SessionGraph): string | undefined {
   return undefined;
 }
 
-/** The three At a glance rows (DESIGN §8.9). */
+/** A chat's first row: its prompts, and whether the last one got a reply. Neutral: a reply is not a verified answer. */
+function turnsRow(g: SessionGraph): GlanceRow {
+  const main = g.steps.filter((s) => s.laneId === (g.lanes[0]?.id ?? 'main'));
+  const prompts = main.filter((s) => s.kind === 'user').length;
+  const lastUser = main.map((s) => s.kind).lastIndexOf('user');
+  const replied = main.slice(lastUser + 1).some((s) => s.kind === 'assistant');
+  return { key: 'turns', status: 'unknown', lead: plural(prompts, 'prompt'), rest: replied || prompts === 0 ? ', all answered' : ', the last one has no reply' };
+}
+
+/** The At a glance rows (DESIGN §8.9): three for an agent session; for a chat, its prompts and its trouble. */
 export function glance(g: SessionGraph): GlanceRow[] {
   const v = g.outcome.lastVerification;
   const n = g.trouble.length;
   const k = g.trouble.filter((t) => t.resolved).length;
   const files = g.outcome.files.length;
   const final = finalStatus(g) ?? (files === 0 ? 'answer only' : undefined);
+  const trouble: GlanceRow = n > 0 ? { key: 'trouble', status: k === n ? 'ok' : 'error', lead: plural(n, 'trouble spot'), rest: `, ${k} resolved` }
+    : { key: 'trouble', status: 'ok', lead: 'No trouble detected', rest: '' };
+  if (g.source.kind === 'chat') return [turnsRow(g), trouble];
   return [
     v ? { key: 'verify', status: v.ok ? 'ok' : 'error', lead: v.ok ? 'Verified:' : 'Not verified:', rest: ` ${clip(v.command, 80)} ${v.ok ? 'passed' : 'failed'}` }
       : { key: 'verify', status: 'unknown', lead: 'No verification run found', rest: '' },
-    n > 0 ? { key: 'trouble', status: k === n ? 'ok' : 'error', lead: plural(n, 'trouble spot'), rest: `, ${k} resolved` }
-      : { key: 'trouble', status: 'ok', lead: 'No trouble detected', rest: '' },
+    trouble,
     { key: 'files', status: 'unknown', lead: `${plural(files, 'file')} changed`, rest: final ? `, ${final}` : '' },
   ];
 }

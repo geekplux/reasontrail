@@ -58,7 +58,8 @@ export function SiteShell({ children, onFile, home, view }: { children: ReactNod
         <nav className="site-nav" aria-label="Site">
           <a className="header-link" href="?view=install" aria-current={view === 'install' ? 'page' : undefined}>Install</a>
         </nav>
-        <a className="button primary" href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
+        {/* The paste page keeps one ink action (Map this conversation): here the way to a session file is a quiet link. */}
+        <a className={view === 'chat' ? 'header-link' : 'button primary'} href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
       </header>
       <main className="site-main">{children}</main>
       <footer className="site-footer showcase-footer">

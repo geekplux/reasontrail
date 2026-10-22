@@ -2,6 +2,7 @@
 // browser, with progress and Cancel for big files, and calm, specific messages for anything that cannot be mapped.
 // `?view=chat` (phase 23): the same page with the paste box as its focal point, and the picker for chat exports.
 import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { COMMANDS } from '../../shared/commands';
 import type { ChatSummary } from '../../shared/session/adapters/chatExports';
 import type { SessionGraph } from '../../shared/session/types';
@@ -96,7 +97,10 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
   useEffect(() => {
     if (state.at === 'done') title.current?.focus();
     if (state.at === 'pick') search.current?.focus();
-  }, [state.at]);
+    // A picked conversation unmounts the picker: keep focus on the page rather than losing it to the body.
+    if (state.at === 'reading' && document.activeElement === document.body) document.querySelector<HTMLElement>('main h1')?.focus();
+    if (state.at === 'error' && chat) paste.current?.focus();
+  }, [state.at, chat]);
   const name = state.at === 'done' ? state.name : null;
   useEffect(() => {
     document.title = pageTitle(name ?? (chat ? 'Map a chat' : 'Map your own session'));
@@ -111,7 +115,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
     job.current = null;
     setState({ at: 'idle' });
     setSaid('Reading cancelled');
-    requestAnimationFrame(() => input.current?.focus());
+    requestAnimationFrame(() => (chat ? paste.current : input.current)?.focus());
   };
   const error = state.at === 'error' ? state : null;
 
@@ -140,9 +144,10 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
           ) : state.at === 'reading' && state.big ? (
             <Progress lines={state.lines} total={state.total} onCancel={cancel} />
           ) : chat ? (
-            <PasteBox ref={paste} onText={(t) => onFile(new File([t], 'Pasted chat', { type: 'text/plain' }))} onFile={onFile} onShareLink={() => {
+            <PasteBox ref={paste} invalid={!!error} onText={(t) => onFile(new File([t], 'Pasted chat', { type: 'text/plain' }))} onFile={onFile} onShareLink={() => {
+              // Clear first so the alert's text is re-added, and a repeated share link is announced again.
+              flushSync(() => setState({ at: 'idle' }));
               setState({ at: 'error', error: 'share-link', mb: 0 });
-              paste.current?.focus();
             }} />
           ) : (
             <div className="drop-target" data-testid="drop-target" data-busy={state.at === 'reading' || undefined}>
@@ -161,7 +166,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
           {error?.error === 'empty' && <span className="trail-stub" aria-hidden="true" />}
           <div role="alert" className="intake-alert">
             {error && (
-              <p className="intake-error">
+              <p className="intake-error" id="intake-error">
                 <span className="bang" aria-hidden="true">!</span>
                 {error.error === 'too-large' ? `This file is ${error.mb} MB. The browser can map files up to 50 MB; the command line has no limit:` : chat && error.error === 'unsupported' ? CHAT_UNSUPPORTED : MESSAGE[error.error]}
                 {!chat && error.error === 'unsupported' && <a href="?view=chat">For a chat, paste the conversation text instead.</a>}

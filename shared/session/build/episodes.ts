@@ -110,14 +110,14 @@ function title(kind: Kind, steps: Step[], cwd: string | undefined): string {
   return web ? 'Search the web' : 'Explore';
 }
 
-/** Split one lane's steps into fine-grained episodes. */
-function splitLane(ls: Step[], cwd: string | undefined): Draft[] {
+/** Split one lane's steps into fine-grained episodes. `chat`: no separate answer episode (each turn ends in a reply). */
+function splitLane(ls: Step[], cwd: string | undefined, chat: boolean): Draft[] {
   const kinds = ls.map((s) => workKind(s, cwd));
   let lastWork = -1;
   ls.forEach((s, i) => {
     if (s.kind === 'tool-call' || s.kind === 'tool-result' || s.kind === 'user') lastWork = i;
   });
-  const answerAt = ls.findIndex((s, i) => i > lastWork && s.kind === 'assistant');
+  const answerAt = chat ? -1 : ls.findIndex((s, i) => i > lastWork && s.kind === 'assistant');
   /** The majority work kind of the next KIND_WINDOW tool calls from `i`, up to the next user turn. */
   const dominant = (i: number): Work | undefined => {
     const window: Work[] = [];
@@ -200,8 +200,9 @@ function cuts(drafts: Draft[], groups: number): number[] {
   return out;
 }
 
-/** Episodes for every lane: top-level ones (≤ MAX_TOP_EPISODES per lane), each followed by its children when grouped. */
-export function buildEpisodes(steps: Step[], lanes: Lane[], cwd?: string): Episode[] {
+/** Episodes for every lane: top-level ones (≤ MAX_TOP_EPISODES per lane), each followed by its children when grouped.
+ * `chat`: a chat's last reply stays in its turn; the route's terminus marks it. */
+export function buildEpisodes(steps: Step[], lanes: Lane[], cwd?: string, chat = false): Episode[] {
   const out: Episode[] = [];
   const emit = (d: Draft, laneId: string, parentId?: string): Episode => {
     const e: Episode = { id: `e${out.length}`, title: d.title, kind: d.kind, stepIds: d.steps.map((s) => s.id), laneId };
@@ -210,7 +211,7 @@ export function buildEpisodes(steps: Step[], lanes: Lane[], cwd?: string): Episo
     return e;
   };
   for (const lane of lanes) {
-    const drafts = splitLane(steps.filter((s) => s.laneId === lane.id), cwd);
+    const drafts = splitLane(steps.filter((s) => s.laneId === lane.id), cwd, chat);
     if (drafts.length <= MAX_TOP_EPISODES) {
       for (const d of drafts) emit(d, lane.id);
       continue;

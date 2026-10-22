@@ -79,6 +79,7 @@
 .files .path { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .files .edits { white-space: nowrap; }
 .excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; font-size: 13.5px; }
+.excerpt.is-clamped { -webkit-line-clamp: 2; }
 code.mono { overflow-wrap: anywhere; }
 
 /* Below 480 px the model name is dropped so the label stays one line and "Task" never sits alone (DESIGN §9.2). */

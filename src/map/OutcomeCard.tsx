@@ -22,6 +22,26 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
   const max = Math.max(1, ...top.map((f) => f.edits));
   const answer = g.steps.find((s) => s.id === answerStepId);
   const sel = useSelector();
+  const chat = g.source.kind === 'chat';
+  const finalAnswer = answer?.text ? (
+    <>
+      <p className={chat ? 'agent-words excerpt is-clamped' : 'agent-words excerpt'}>{answer.text}</p>
+      <p className="mono muted provenance">The {chat ? 'model' : 'agent'}&apos;s own words · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}{sel && <> · <a href={sel.href(answer.id)} onClick={selectOnClick(() => sel.selectStep(answer.id, true))}>Show raw<span className="visually-hidden"> and details of the final answer</span></a></>}</p>
+    </>
+  ) : (
+    <p className="muted">No final answer was recorded.</p>
+  );
+  if (chat) {
+    // A chat changes no files and runs no checks: the destination is the final answer alone, full width.
+    return (
+      <section className="region outcome is-chat" id="destination" data-region="outcome" aria-labelledby="h-outcome">
+        <h2 id="h-outcome" className="section-label">
+          <KindGlyph kind="answer" /> Destination <span>· final answer</span>
+        </h2>
+        {finalAnswer}
+      </section>
+    );
+  }
   return (
     <section className="region outcome" id="destination" data-region="outcome" aria-labelledby="h-outcome">
       <h2 id="h-outcome" className="section-label">
@@ -62,14 +82,7 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
             <p className="verification" data-status="unknown"><StatusGlyph status="unknown" /> <span>No test, build, lint or typecheck run found.</span></p>
           )}
           <h3 className="sub-label">Final answer</h3>
-          {answer?.text ? (
-            <>
-              <p className="agent-words excerpt">{answer.text}</p>
-              <p className="mono muted provenance">The agent&apos;s own words · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}{sel && <> · <a href={sel.href(answer.id)} onClick={selectOnClick(() => sel.selectStep(answer.id, true))}>Show raw<span className="visually-hidden"> and details of the final answer</span></a></>}</p>
-            </>
-          ) : (
-            <p className="muted">No final answer was recorded.</p>
-          )}
+          {finalAnswer}
         </div>
       </div>
     </section>

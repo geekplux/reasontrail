@@ -11,11 +11,13 @@ interface PasteProps {
   onFile(file: File): void;
   /** The pasted text is only a share link (T3). */
   onShareLink(): void;
+  /** A message about the last attempt is shown (it has `id="intake-error"`). */
+  invalid?: boolean;
   ref?: Ref<HTMLTextAreaElement>;
 }
 
 /** The paste box, "Map this conversation", and the export file link. */
-export function PasteBox({ onText, onFile, onShareLink, ref }: PasteProps) {
+export function PasteBox({ onText, onFile, onShareLink, invalid = false, ref }: PasteProps) {
   const [text, setText] = useState('');
   return (
     <form className="paste-box" onSubmit={(e) => {
@@ -24,8 +26,8 @@ export function PasteBox({ onText, onFile, onShareLink, ref }: PasteProps) {
       else if (text.trim()) onText(text);
     }}>
       <label htmlFor="chat-text" className="strong">Paste a conversation</label>
-      <p id="chat-text-hint" className="muted">Copy the whole chat from the page, with its “You said:” and “ChatGPT said:” lines (or “User:” and “Assistant:”).</p>
-      <textarea ref={ref} id="chat-text" aria-describedby="chat-text-hint" rows={10} spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} />
+      <p id="chat-text-hint" className="muted">Copy the whole chat from the page, with its “You said:” and “ChatGPT said:” lines (or “User:” and “Assistant:”, or Markdown headings).</p>
+      <textarea ref={ref} id="chat-text" aria-invalid={invalid || undefined} aria-describedby={invalid ? 'chat-text-hint intake-error' : 'chat-text-hint'} rows={10} spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} />
       <div className="paste-actions">
         <button type="submit" className="button primary" disabled={!text.trim()}>Map this conversation</button>
         <label className="text-button file-link">
@@ -50,9 +52,13 @@ export function ChatPicker({ chats, onPick, onCancel, ref }: { chats: ChatSummar
     <section className="chat-picker" aria-labelledby="chat-picker-title">
       <h2 id="chat-picker-title" className="strong">This export holds {chats.length} conversations. Pick one to map.</h2>
       <label htmlFor="chat-search">Search by title</label>
-      <input ref={ref} id="chat-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} aria-describedby="chat-count" />
+      <input ref={ref} id="chat-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => {
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        onCancel();
+      }} aria-describedby="chat-count" />
       <p id="chat-count" className="muted" aria-live="polite">
-        {found.length === 0 ? 'No conversation matches.' : found.length > shown.length ? `Showing ${shown.length} of ${found.length}; type to narrow the list.` : `${found.length} shown.`}
+        {found.length === 0 ? 'No conversation matches.' : found.length > shown.length ? `Showing ${shown.length} of ${found.length}; type to narrow the list.` : `${found.length === 1 ? '1 conversation' : `${found.length} conversations`} shown.`}
       </p>
       <ul className="chat-list">
         {shown.map((c) => (

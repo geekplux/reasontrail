@@ -113,9 +113,9 @@
 .chat-picker h2 { margin: 0; font-size: inherit; }
 .chat-picker p { margin: 0; }
 .chat-picker input[type='search'] { padding: var(--tg-space-2); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); background: var(--tg-paper); color: var(--tg-ink); font: inherit; }
-.chat-list { margin: 0; padding: 0; list-style: none; max-height: 24rem; overflow-y: auto; }
+.chat-list { margin: 0; padding: 4px; list-style: none; max-height: 24rem; overflow-y: auto; }
 .chat-choice { display: grid; gap: var(--tg-space-1); width: 100%; padding: var(--tg-space-2); border: 0; background: none; color: var(--tg-ink); font: inherit; text-align: start; cursor: pointer; }
 .chat-choice:hover { background: var(--tg-surface); }
-.chat-title { text-decoration: underline; text-underline-offset: 0.2em; }
+.chat-title { text-decoration: underline; text-underline-offset: 0.2em; overflow-wrap: anywhere; }
 .chat-choice .mono { font-size: var(--tg-text-sm); }
 .chat-picker > .text-button { justify-self: start; }

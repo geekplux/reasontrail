@@ -32,6 +32,14 @@ describe('outline model', () => {
     expect(glance(g).map((r) => [r.status, `${r.lead}${r.rest}`])).toEqual([['error', 'Not verified: pnpm test failed'], ['ok', 'No trouble detected'], ['unknown', '1 file changed']]);
   });
 
+  it('gives a chat two neutral rows: its prompts and its trouble, no files row', () => {
+    const chat = (steps: Step[]) => graph(steps, { source: { kind: 'chat', sessionId: 'x' } });
+    const answered = glance(chat([step('s0', 'user'), step('s1', 'assistant'), step('s2', 'user'), step('s3', 'assistant')]));
+    expect(answered.map((r) => [r.key, r.status, `${r.lead}${r.rest}`])).toEqual([['turns', 'unknown', '2 prompts, all answered'], ['trouble', 'ok', 'No trouble detected']]);
+    expect(glance(chat([step('s0', 'user'), step('s1', 'assistant'), step('s2', 'user')]))[0]).toMatchObject({ status: 'unknown', lead: '2 prompts', rest: ', the last one has no reply' });
+    expect(glance(chat([step('s0', 'user'), step('s1', 'assistant')]))[0]?.lead).toBe('1 prompt');
+  });
+
   it('folds results into calls and collapses unstored thinking into ×n', () => {
     const call = { name: 'Bash', category: 'run' as const, summary: 'Run pnpm test', files: [], callId: 'c1' };
     const g = graph([step('s0', 'thinking', { textStored: false }), step('s1', 'thinking', { text: '' }), step('s2', 'tool-call', { tool: call }), step('s3', 'tool-result', { tool: call, status: 'error' })]);

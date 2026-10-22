@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';
 
 const ready = (page) => page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 15_000 });
-const SHARE = "Share links can't be read from here; paste the conversation text instead.";
+const SHARE = "We couldn't read that link. Paste the conversation text instead.";
 
 export async function run({ page, baseURL, root, log, fail }) {
   const chats = join(root, 'fixtures', 'chats');
@@ -38,12 +38,20 @@ export async function run({ page, baseURL, root, log, fail }) {
   const label = await page.locator('[data-region="task"]').first().textContent();
   if (!/CHAT/i.test(label ?? '')) fail(`the task label does not say CHAT: ${label?.slice(0, 80)}`);
   const said = await page.locator('[data-role="intake-live"]').textContent();
-  if (!/^Map ready: 4 episodes, 1 detected pattern$/.test(said ?? '')) fail(`paste announce: "${said}"`);
+  if (!/^Map ready: 3 episodes, 1 detected pattern$/.test(said ?? '')) fail(`paste announce: "${said}"`);
+  // A chat's own wording: two neutral glance rows, a final-answer destination, and only the legend entries it uses.
+  const rows = await page.locator('[data-region="glance"] li').evaluateAll((els) => els.map((e) => `${e.getAttribute('data-glance')}:${e.getAttribute('data-status')}`));
+  if (rows.join() !== 'turns:unknown,trouble:ok') fail(`chat glance rows: ${rows}`);
+  const dest = await page.locator('#h-outcome').textContent();
+  if (!/Destination\s*· final answer/.test(dest ?? '')) fail(`chat destination heading: "${dest}"`);
+  if (await page.locator('[data-region="outcome"] .sub-label').count()) fail('chat destination still shows the files or verification columns');
+  const legend = await page.locator('.route-head .legend li').allTextContents();
+  if (legend.join() !== 'ask,answer,resolved') fail(`chat legend: ${legend}`);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(450);
   for (const p of await axeProblems(page, 'chat map')) fail(p);
   await page.screenshot({ path: join(root, '.tmp', 'chat-map.webp'), type: 'webp', quality: 80 });
-  log('pasted ChatGPT text mapped: 4 episodes, 1 detected pattern');
+  log('pasted ChatGPT text mapped: 3 episodes, 1 detected pattern');
 
   // Alternating fallback says so on the map.
   await page.getByRole('button', { name: 'Map another chat' }).click();
@@ -61,6 +69,14 @@ export async function run({ page, baseURL, root, log, fail }) {
   await page.waitForFunction((m) => document.querySelector('[role="alert"]')?.textContent?.includes(m), SHARE, { timeout: 5_000 }).catch(() => fail('T3: no share-link message'));
   if (!(await page.evaluate(() => document.activeElement?.id === 'chat-text'))) fail('T3: the paste box does not have focus');
   if (requests.length) fail(`T4: the share link caused ${requests.length} requests: ${requests.slice(0, 3)}`);
+  if ((await page.locator('#chat-text').getAttribute('aria-describedby')) !== 'chat-text-hint intake-error') fail('T3: the paste box is not described by the message');
+  // The same link again: the message is re-added (so it is announced again) and focus stays.
+  await page.evaluate(() => {
+    window.tgAlerts = 0;
+    new MutationObserver((records) => (window.tgAlerts += records.length)).observe(document.querySelector('[role="alert"]'), { childList: true, subtree: true });
+  });
+  await page.getByRole('button', { name: 'Map this conversation' }).click();
+  await page.waitForFunction(() => window.tgAlerts >= 2, null, { timeout: 3_000 }).catch(() => fail('T3: a repeated share link is not announced again'));
 
   // T2: exports open a searchable picker, then the picked map (zero requests).
   for (const [kind, pick, count] of [['chatgpt', 'Garden club name', 3], ['claude', 'Dense bread bottom', 2]]) {
@@ -71,6 +87,13 @@ export async function run({ page, baseURL, root, log, fail }) {
     if (!(await search.evaluate((el) => el === document.activeElement))) fail(`${kind}: the picker search is not focused`);
     if ((await page.locator('.chat-choice').count()) !== count) fail(`${kind}: the picker lists ${await page.locator('.chat-choice').count()}, not ${count}`);
     if (kind === 'chatgpt') for (const p of await axeProblems(page, 'chat picker')) fail(p);
+    if (kind === 'chatgpt') {
+      // Escape in the search goes back to the paste box; the export opens the picker again.
+      await search.press('Escape');
+      await page.waitForFunction(() => document.activeElement?.id === 'chat-text', null, { timeout: 3_000 }).catch(() => fail('Escape in the picker did not return to the paste box'));
+      await page.locator('.file-link input[type="file"]').setInputFiles(join(chats, kind, 'conversations.json'));
+      await search.waitFor({ timeout: 5_000 });
+    }
     await search.fill(pick.split(' ')[0].toLowerCase());
     if ((await page.locator('.chat-choice').count()) !== 1) fail(`${kind}: search did not narrow the list`);
     await page.locator('.chat-choice').first().click();

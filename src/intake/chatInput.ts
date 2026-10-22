@@ -2,7 +2,7 @@
 import type { ChatSummary } from '../../shared/session/adapters/chatExports';
 
 /** T3 (paste-text fallback only): share pages are not fetched, so the link itself cannot be mapped. */
-export const SHARE_LINK_MESSAGE = "Share links can't be read from here; paste the conversation text instead.";
+export const SHARE_LINK_MESSAGE = "We couldn't read that link. Paste the conversation text instead.";
 /** At most this many conversations are listed at once; the search narrows the rest. */
 export const PICKER_MAX = 50;
 

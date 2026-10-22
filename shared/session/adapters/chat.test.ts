@@ -53,7 +53,8 @@ describe('pasted chat text', () => {
     expect(kinds(g)).toBe('uauaua');
     expect(g.title).toBe('My sourdough starter smells like nail polish remover. Is it ruined?');
     expect(g.lanes).toHaveLength(1);
-    expect(g.episodes.map((e) => e.kind)).toEqual(['discuss', 'discuss', 'discuss', 'answer']);
+    expect(g.episodes.map((e) => e.kind)).toEqual(['discuss', 'discuss', 'discuss']); // no separate answer episode: the last turn ends at the terminus
+    expect(g.episodes[2]?.stepIds).toContain('s5');
     expect(g.stats.ignoredRecords).toBe(1); // the page chrome above the first turn
     expect(g.trouble).toMatchObject([{ kind: 'interrupt', label: 'detected pattern', stepIds: ['s1', 's2'], resolved: true, summary: 'User correction: “No, that\'s wrong, I already feed it twice a day.”' }]);
     expect(g.outcome.answerStepId).toBe('s5');

@@ -16,7 +16,7 @@ import { jumpPattern } from './keyboard';
 import { glanceLayout, laneLayout, troubleNumbers } from './layout';
 import { SelectContext, type Selector } from './SelectContext';
 import { StepList } from './StepList';
-import { MapLegend } from './MapLegend';
+import { MapLegend, legendKinds } from './MapLegend';
 import { OutcomeCard } from './OutcomeCard';
 import { glance } from './outline';
 import { RouteView } from './RouteView';
@@ -183,7 +183,8 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
   const pairs = overlay && claimEp && !vertical ? supportPairs(g, overlay, new Set([claimEp])) : [];
   const routeAi = overlay && tags ? { tags, model: overlay.model, links: pairs.length > 0 ? <SupportLinks L={L} pairs={pairs} /> : undefined } : undefined;
   const count = g.episodes.filter((e) => e.laneId === g.lanes[0]?.id && !e.parentId).length;
-  const [verify, , files] = glance(g);
+  const chat = g.source.kind === 'chat';
+  const [verify, , files] = chat ? [] : glance(g);
   const heading = target ? (target.kind === 'pattern' ? `Steps in pattern ${L.numbers.get(target.trouble?.[0]?.id ?? '') ?? ''} · evidence highlighted` : `Steps in “${target.title.length > 48 ? `${target.title.slice(0, 47)}…` : target.title}”`) : '';
   return (
     <SelectContext.Provider value={selector}>
@@ -196,7 +197,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
       <section className="region route-band" data-region="route" aria-labelledby="h-route">
         <div className="route-head">
           <h2 id="h-route" className="section-label">Route <span>· {count === 1 ? '1 episode' : `${count} episodes`} · in order</span></h2>
-          <MapLegend />
+          <MapLegend kinds={chat ? legendKinds(g) : undefined} />
           {ai && (aiLoaded ? (
             <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} /></Suspense>
           ) : (
@@ -236,7 +237,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
         <KindGlyph kind="answer" />
         <span className="dest-bar-text">
           <span className="section-label">Destination</span>
-          <span><strong>{g.outcome.files.length === 1 ? '1 file' : `${g.outcome.files.length} files`}</strong> · {verify?.status === 'ok' ? 'verified' : 'not verified'}{files?.rest ? ` · ${files.rest.replace(/^, /, '')}` : ''}</span>
+          {chat ? <span><strong>final answer</strong></span> : <span><strong>{g.outcome.files.length === 1 ? '1 file' : `${g.outcome.files.length} files`}</strong> · {verify?.status === 'ok' ? 'verified' : 'not verified'}{files?.rest ? ` · ${files.rest.replace(/^, /, '')}` : ''}</span>}
         </span>
         <span className="chevron" aria-hidden="true" />
       </a>

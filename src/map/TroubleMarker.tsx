@@ -28,6 +28,7 @@ export const blazeData = (b: Blaze) => ({
 
 export function StuckList({ g, L }: { g: SessionGraph; L: GlanceLayout }) {
   const sel = useSelector();
+  const chat = g.source.kind === 'chat';
   const laneName = (id: string) => {
     const l = g.lanes.find((x) => x.id === id);
     return !l || l.id === g.lanes[0]?.id ? 'main' : l.agentType ?? l.name;
@@ -37,7 +38,7 @@ export function StuckList({ g, L }: { g: SessionGraph; L: GlanceLayout }) {
     <section className="region stuck" data-region="trouble" aria-labelledby="h-stuck">
       <h2 id="h-stuck" className="section-label">Where it got stuck <span>· {L.order.length === 1 ? '1 detected pattern' : `${L.order.length} detected patterns`}</span></h2>
       {L.order.length === 0 ? (
-        <p className="stuck-none"><StatusGlyph status="ok" /><span>No trouble detected. No failed runs, retries, reverts or interruptions.<span className="visually-hidden"> Status: none.</span></span></p>
+        <p className="stuck-none"><StatusGlyph status="ok" /><span>No trouble detected. {chat ? 'No corrections or regenerated answers.' : 'No failed runs, retries, reverts or interruptions.'}<span className="visually-hidden"> Status: none.</span></span></p>
       ) : (
         // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics under list-style: none
         <ol className="stuck-rows" role="list">
@@ -51,7 +52,7 @@ export function StuckList({ g, L }: { g: SessionGraph; L: GlanceLayout }) {
                 <BlazeIcon kind={t.kind} resolved={t.resolved} badge={String(n)} />
                 <span>
                   <span className="stuck-text">{sel ? <a href={sel.href(t.stepIds[0])} onClick={selectOnClick(() => sel.select(`trouble:${t.id}`))}><strong>{lead}</strong> {rest}</a> : <><strong>{lead}</strong> {rest}</>}<span className="visually-hidden">. Detected pattern {n}, {t.resolved ? 'resolved' : 'unresolved'}.</span></span>
-                  <span className="mono muted stuck-where">{[laneName(step?.laneId ?? ''), ep.length > 40 ? `${ep.slice(0, 39)}…` : ep, `${fileLabel(t.raw.file)}:${t.raw.line}`].filter(Boolean).join(' · ')}</span>
+                  <span className="mono muted stuck-where">{[chat ? '' : laneName(step?.laneId ?? ''), ep.length > 40 ? `${ep.slice(0, 39)}…` : ep, `${fileLabel(t.raw.file)}:${t.raw.line}`].filter(Boolean).join(' · ')}</span>
                 </span>
               </li>
             );

@@ -105,7 +105,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
       </div>
       <p className="kind-line">
         {pattern && t0 ? <BlazeIcon kind={t0.kind} resolved={t0.resolved} badge={String(n ?? '')} /> : target.episode ? <KindGlyph kind={target.episode.kind} /> : <KindGlyph kind="answer" />}
-        <span>{pattern && target.trouble ? patternLine(target.trouble) : target.episode ? `Episode · ${KIND_WORD[target.episode.kind] ?? target.episode.kind}` : 'Destination · what changed'}</span>
+        <span>{pattern && target.trouble ? patternLine(target.trouble) : target.episode ? `Episode · ${KIND_WORD[target.episode.kind] ?? target.episode.kind}` : g.source.kind === 'chat' ? 'Destination · final answer' : 'Destination · what changed'}</span>
       </p>
       <h2 id={titleId} ref={title} tabIndex={-1} className="panel-title">{target.title}</h2>
       {target.kind === 'files' ? (

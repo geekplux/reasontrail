@@ -39,10 +39,11 @@ export function buildGraph(session: NormalizedSession): SessionGraph {
   if (startedAt) source.startedAt = startedAt;
   if (endedAt) source.endedAt = endedAt;
   const cwd = source.cwd;
-  const episodes = buildEpisodes(steps, lanes, cwd);
+  const chat = session.source.kind === 'chat';
+  const episodes = buildEpisodes(steps, lanes, cwd, chat);
   const history = fileHistory(steps, cwd);
   const checks = verifications(steps);
-  const found = session.source.kind === 'chat' ? { trouble: chatTrouble(steps, edges), edges: [] } : findTrouble(steps, edges, episodes, history, checks, cwd);
+  const found = chat ? { trouble: chatTrouble(steps, edges), edges: [] } : findTrouble(steps, edges, episodes, history, checks, cwd);
   const firstUser = steps.find((s) => s.kind === 'user' && s.laneId === (lanes[0]?.id ?? 'main') && s.text);
 
   const graph: SessionGraph = {
