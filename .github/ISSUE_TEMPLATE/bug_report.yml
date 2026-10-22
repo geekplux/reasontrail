@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in the map, the CLI, the skill or the website does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Never paste a real session transcript, secrets or private paths.** If the bug needs a session, make a redacted copy with `npx reasontrail --share` and check it first, or describe a small synthetic one.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options: [CLI, Skill, Local map (HTML file), Website, Zoom-in lens, Worker, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent whose session you mapped
+      options: [Claude Code, Codex, Grok Build, Chat transcript, Not relevant]
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact command (for example `npx reasontrail --list`) or the clicks and keys.
+      placeholder: "1. Run …\n2. Press …\n3. See …"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Versions
+      description: "`npx reasontrail --version`, Node version, OS, browser."
+  - type: textarea
+    id: output
+    attributes:
+      label: Error output or screenshot
+      description: Redact anything private first.
+      render: text
