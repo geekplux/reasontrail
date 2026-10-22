@@ -119,21 +119,24 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
     requestAnimationFrame(() => (chat ? paste.current : input.current)?.focus());
   };
   const error = state.at === 'error' ? state : null;
+  const toggle = <ViewSwitch view={view} onChange={setView} />;
+  const label = chat && state.at === 'done' ? (state.name === 'Pasted chat' ? 'pasted' : 'export') : undefined;
 
   return (
     <div className="page open-session">
       <p className="visually-hidden" role="status" data-role="intake-live">{said}</p>
       {state.at === 'done' ? (
         <>
-          <div className="open-head">
-            <h1 ref={title} tabIndex={-1} className="open-file"><span className="visually-hidden">Your session map: </span>{state.name}</h1>
-            <ViewSwitch view={view} onChange={setView} />
+          {/* A chat's source joins the TASK eyebrow (CM3); a session file keeps its name as a quiet line. */}
+          <h1 ref={title} tabIndex={-1} className={chat ? 'open-file visually-hidden' : 'open-file'}><span className="visually-hidden">Your session map: </span>{state.name}</h1>
+          <MapBoundary key={view} onOutline={() => setView('outline')}>
+            {view === 'map' ? <MapView graph={state.graph} ai={LIVE_AI} head={toggle} label={label} /> : <Outline graph={state.graph} head={toggle} label={label} />}
+          </MapBoundary>
+          {/* Controls after their content (CL9): another one, and the shareable copy. */}
+          <div className="open-after">
             <button type="button" className="text-button" onClick={again}>{chat ? 'Map another chat' : 'Open another file'}</button>
             <ShareAction graph={state.graph} from="site" />
           </div>
-          <MapBoundary key={view} onOutline={() => setView('outline')}>
-            {view === 'map' ? <MapView graph={state.graph} ai={LIVE_AI} /> : <Outline graph={state.graph} />}
-          </MapBoundary>
         </>
       ) : (
         <>
@@ -177,11 +180,12 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
           </div>
           {(error?.error === 'too-large' || error?.error === 'worker') && <CommandLine command={COMMANDS.file} label="the command line" />}
           <p className="muted">{PRIVACY}</p>
+          {!chat && <p className="muted quiet-links">Or <a href="?view=chat">map a chat</a> · <a href="./">try a sample</a></p>}
           {chat ? (
             <details className="quiet-details">
               <summary>Where to find a chat</summary>
               <ul className="plain-list">
-                <li>Copied text: select the whole conversation and paste it. Without speaker lines, turns are assumed to alternate, starting with you.</li>
+                <li>Copied text: select the whole conversation and paste it, with its “You said:” and “ChatGPT said:” lines (or “User:” and “Assistant:”, or Markdown headings). Without speaker lines, turns are assumed to alternate, starting with you.</li>
                 <li>ChatGPT: Settings › Data controls › Export data. Unzip the download and choose <code>conversations.json</code>.</li>
                 <li>Claude: Settings › Privacy › Export data. Unzip it and choose <code>conversations.json</code>.</li>
                 <li>Share links can&apos;t be read from here: open the link and copy the conversation text instead.</li>

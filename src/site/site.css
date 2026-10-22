@@ -36,7 +36,9 @@
 .gallery-select { display: none; }
 
 .command { display: inline-flex; align-items: center; gap: var(--tg-space-2); max-width: 100%; padding: var(--tg-space-2) var(--tg-space-2) var(--tg-space-2) var(--tg-space-4); background: var(--tg-surface); border-radius: var(--tg-radius); }
-.command code { font: 500 var(--tg-text-md) var(--tg-font-mono); overflow-wrap: anywhere; }
+.command code { font: 500 15px var(--tg-font-mono); overflow-wrap: anywhere; }
+/* The focal command (I1): mono 18 against 15 for the rest, so the two boxes do not read as equals. */
+.command.is-big code { font-size: 18px; }
 .install-line, .how-to-read-map { margin-top: var(--tg-space-8); max-width: var(--tg-measure); }
 .install-line p, .page p { margin: var(--tg-space-2) 0 0; }
 .how-to-read-map ol { margin: 0; padding-inline-start: var(--tg-space-5); display: grid; gap: var(--tg-space-2); }
@@ -78,8 +80,9 @@
 .progress-track { height: 4px; background: var(--tg-rule); }
 .progress-bar { height: 100%; background: var(--tg-ink); }
 .route-skeleton { width: 100%; height: 24px; fill: var(--tg-paper); stroke: var(--tg-rule); stroke-width: 2; }
-.open-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-4) var(--tg-space-5); margin: var(--tg-space-5) 0; }
-.open-file { margin: 0 auto 0 0; font: 500 var(--tg-text-sm) var(--tg-font-mono); color: var(--tg-ink-muted); overflow-wrap: anywhere; }
+.open-after { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-5); }
+.open-file { margin: var(--tg-space-5) 0 var(--tg-space-4); font: 500 var(--tg-text-sm) var(--tg-font-mono); color: var(--tg-ink-muted); overflow-wrap: anywhere; }
+.open-session > .quiet-links { margin-top: var(--tg-space-1); }
 .open-session .site-map, .open-session .map, .open-session .outline { padding: 0; }
 
 .drop-overlay {
@@ -105,7 +108,9 @@
 .paste-box p { margin: 0; }
 .paste-box textarea { width: 100%; min-height: 14rem; padding: var(--tg-space-2); border: 2px dashed var(--tg-ink-muted); border-radius: var(--tg-radius); background: var(--tg-paper); color: var(--tg-ink); font: 400 var(--tg-text-sm) / 1.5 var(--tg-font-mono); resize: vertical; }
 .paste-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); margin-top: var(--tg-space-2); }
-.paste-actions .button:disabled { opacity: 0.6; cursor: not-allowed; }
+/* CI4: the view's one ink action; disabled it is a muted outline, never a grey fill. */
+.paste-actions .button:disabled { border-color: var(--tg-ink-muted); background: transparent; color: var(--tg-ink-muted); cursor: not-allowed; }
+.paste-box .paste-label { margin: 0; font-size: 12.8px; }
 .file-link { position: relative; color: var(--tg-ink-muted); }
 .file-link input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .file-link:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }

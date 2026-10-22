@@ -8,7 +8,8 @@ const SAID_MS = 2500;
 
 /** A command in a mono box with a Copy button, and a visible status line after it ("Copied"). On failure the command
  * is selected so the keyboard copy works. */
-export function CommandLine({ command, label }: { command: string; label?: string }) {
+/** `big`: the page's focal command (the skill install), set larger than the rest (DESIGN §18.1). */
+export function CommandLine({ command, label, big = false }: { command: string; label?: string; big?: boolean }) {
   const [said, setSaid] = useState('');
   const code = useRef<HTMLElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -40,7 +41,7 @@ export function CommandLine({ command, label }: { command: string; label?: strin
       },
     );
   return (
-    <div className="command">
+    <div className={big ? 'command is-big' : 'command'}>
       <code ref={code} data-command="">{command}</code>
       <button type="button" className="text-button" onClick={copy} aria-label={`Copy ${label ?? 'command'}`}>
         Copy
@@ -62,7 +63,7 @@ export function InstallLine() {
   return (
     <section className="install-line" aria-labelledby="h-install-line">
       <h2 id="h-install-line" className="section-label">Install the skill</h2>
-      <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
+      <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
       <p className="muted">
         {callLine} <a href="?view=install">All install options</a>
       </p>
@@ -77,7 +78,7 @@ export function Install() {
       <h1 className="page-title" tabIndex={-1}>Install</h1>
       <section aria-labelledby="h-skill">
         <h2 id="h-skill" className="section-label">The skill</h2>
-        <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
+        <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
         <p>{callLine}</p>
         <details>
           <summary>Where it goes, per agent</summary>

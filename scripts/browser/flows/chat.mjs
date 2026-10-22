@@ -37,6 +37,10 @@ export async function run({ page, baseURL, root, log, fail }) {
   if (requests.length) fail(`V1 paste: ${requests.length} requests: ${requests.slice(0, 3)}`);
   const label = await page.locator('[data-region="task"]').first().textContent();
   if (!/CHAT/i.test(label ?? '')) fail(`the task label does not say CHAT: ${label?.slice(0, 80)}`);
+  // CM1 / CM3: the source joins the eyebrow; the chat's own honesty line; the controls come after the map.
+  if (!/^Task · Chat · pasted/.test((await page.locator('.task-label').textContent()) ?? '')) fail(`CM3: eyebrow "${await page.locator('.task-label').textContent()}"`);
+  if (!(label ?? '').includes("The replies are the model's own account, not a record of how it computed them.")) fail('CM1: no chat honesty line');
+  if (!(await page.locator('[data-testid="map"] ~ .open-after').count())) fail('CM3: Map another chat and Save are not after the map');
   const said = await page.locator('[data-role="intake-live"]').textContent();
   if (!/^Map ready: 3 episodes, 1 detected pattern$/.test(said ?? '')) fail(`paste announce: "${said}"`);
   // A chat's own wording: two neutral glance rows, a final-answer destination, and only the legend entries it uses.
