@@ -1,5 +1,6 @@
-// The destination (DESIGN §8.8, DM15): files changed with exact edit counts and linear bars, the last verification and
-// an excerpt of the final answer in the agent's own words.
+// The destination (DESIGN §8.8, DM15, §18.2): files changed with exact edit counts and linear bars, the last verification
+// and an excerpt of the final answer in the agent's own words. On the map: no frame, the top 3 files and a 2-line answer;
+// its record and Show raw are in the detail panel. The outline (`full`) keeps every file and the answer's location.
 import type { SessionGraph } from '../../shared/session/types';
 import { KindGlyph, StatusGlyph } from './Glyph';
 import { duration, fileLabel } from './outline';
@@ -16,17 +17,17 @@ function ranWhere(g: SessionGraph, stepId: string): string {
   return `in ${who}${Number.isFinite(at) ? ` · at ${duration(at)}` : ''}`;
 }
 
-export function OutcomeCard({ g }: { g: SessionGraph }) {
+export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boolean }) {
   const { files, revertedFiles, lastVerification: v, answerStepId } = g.outcome;
-  const top = files.slice(0, 5);
+  const top = full ? files : files.slice(0, 3);
   const max = Math.max(1, ...top.map((f) => f.edits));
   const answer = g.steps.find((s) => s.id === answerStepId);
   const sel = useSelector();
   const chat = g.source.kind === 'chat';
   const finalAnswer = answer?.text ? (
     <>
-      <p className={chat ? 'agent-words excerpt is-clamped' : 'agent-words excerpt'}>{answer.text}</p>
-      <p className="mono muted provenance">The {chat ? 'model' : 'agent'}&apos;s own words · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}{sel && <> · <a href={sel.href(answer.id)} onClick={selectOnClick(() => sel.selectStep(answer.id, true))}>Show raw<span className="visually-hidden"> and details of the final answer</span></a></>}</p>
+      <p className={full ? 'agent-words excerpt' : 'agent-words excerpt is-clamped'}>{answer.text}</p>
+      <p className="muted provenance">The {chat ? 'model' : 'agent'}&apos;s own words{full && <span className="mono"> · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}</span>}</p>
     </>
   ) : (
     <p className="muted">No final answer was recorded.</p>
@@ -52,11 +53,10 @@ export function OutcomeCard({ g }: { g: SessionGraph }) {
           <p className="strong outcome-count">{plural(files.length, 'file')} changed</p>
           {top.length > 0 && (
             <>
-              <p className="mono muted files-head" aria-hidden="true">edits</p>
               <ol className="files">
                 {top.map((f) => (
                   <li key={f.path}>
-                    <span className="mono path" title={f.path}>{f.path.split('/').map((part, i, all) => (i < all.length - 1 ? <span key={i}>{part}/<wbr /></span> : part))}{f.created && <span className="muted"> new</span>}</span>
+                    <span className="mono path" title={f.path}>{f.path.split('/').map((part, i, all) => (i < all.length - 1 ? <span key={i}>{part}/<wbr /></span> : <span key={i} className="file-name">{part}{f.created && <span className="muted new"> new</span>}</span>))}</span>
                     <span className="mono edits">{f.edits}<span className="visually-hidden"> {f.edits === 1 ? 'edit' : 'edits'}</span></span>
                     <span className="bar" style={{ width: `${Math.max(4, (48 * f.edits) / max)}px` }} aria-hidden="true" />
                   </li>

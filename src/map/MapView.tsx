@@ -1,6 +1,6 @@
 // The glance (DESIGN §9, PLAN M1): the task, the route with side trails and blazes, where it got stuck, and the
 // destination, all visible without a click. Pure layout in layout.ts; this component measures only the band width.
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import type { AiSource } from '../ai/AiControl';
 import { StepAiNote } from '../ai/LabelBadge';
@@ -14,7 +14,7 @@ import { itemForStep, readStepLink, stepRows, targetOf, writeStepLink, type Link
 import { KindGlyph } from './Glyph';
 import { jumpPattern } from './keyboard';
 import { glanceLayout, laneLayout, troubleNumbers } from './layout';
-import { SelectContext, type Selector } from './SelectContext';
+import { SelectContext, selectOnClick, type Selector } from './SelectContext';
 import { StepList } from './StepList';
 import { MapLegend, legendKinds } from './MapLegend';
 import { OutcomeCard } from './OutcomeCard';
@@ -48,8 +48,9 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 interface Sel { item: string; step: string | undefined; focus: boolean; raw?: boolean }
 
 /** `link`: how a step link is written: `?step=` on the website, `#step=` in a local file (PLAN M9). `ai`: the opt-in
- * AI labels (phase 21): live on the website, or the overlay the CLI's `--ai` embedded. */
-export function MapView({ graph: g, sample = false, link = 'search', ai }: { graph: SessionGraph; sample?: boolean; link?: LinkMode; ai?: AiSource | undefined }) {
+ * AI labels (phase 21): live on the website, or the overlay the CLI's `--ai` embedded. `head`: header items for the
+ * task's eyebrow row (the Map/Outline switch); `label`: one more eyebrow word ("pasted"). */
+export function MapView({ graph: g, sample = false, link = 'search', ai, head, label }: { graph: SessionGraph; sample?: boolean; link?: LinkMode; ai?: AiSource | undefined; head?: ReactNode; label?: string | undefined }) {
   const [message, announce] = useAnnouncer();
   const vertical = useSyncExternalStore(subscribe, narrow, () => false);
   const band = useRef<HTMLDivElement>(null);
@@ -57,6 +58,8 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [unfolded, setUnfolded] = useState(false);
   const [aiLoaded, setAiLoaded] = useState(() => Boolean(ai && 'overlay' in ai));
+  const [key, setKey] = useState(false);
+  const keyId = useId();
   const [overlay, setOverlay] = useState<LabelOverlay>();
   useLayoutEffect(() => {
     const el = band.current;
@@ -90,6 +93,11 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
   };
   const toggleLane = (id: string, on: boolean) => {
     setOpenLane(on ? id : undefined);
+    // One expansion at a time (T7): opening a side trail folds every other bundle back.
+    if (on) {
+      const home = L.lanes.find((l) => l.id === id)?.episodeId;
+      setExpanded((s) => new Set([...s].filter((b) => b === `bundle:${home}`)));
+    }
     const n = on ? g.episodes.filter((e) => e.laneId === id.slice('lane:'.length) && !e.parentId).length : 0;
     announce(on ? `Lane expanded, ${plural(n, 'episode')}` : 'Lane collapsed');
   };
@@ -191,18 +199,21 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
     <div ref={root} className={target ? 'map has-panel' : 'map'} data-testid="map" data-view="map" data-ready="true">
       <div className="map-body">
       <div className="trailhead">
-        <TaskCard g={g} sample={sample} title={sample ? g.displayTitle : undefined} />
+        <TaskCard g={g} sample={sample} title={g.displayTitle} label={label} head={head} />
         <GlanceRows g={g} />
       </div>
       <section className="region route-band" data-region="route" aria-labelledby="h-route">
         <div className="route-head">
           <h2 id="h-route" className="section-label">Route <span>· {count === 1 ? '1 episode' : `${count} episodes`} · in order</span></h2>
-          <MapLegend kinds={chat ? legendKinds(g) : undefined} />
-          {ai && (aiLoaded ? (
-            <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} /></Suspense>
-          ) : (
-            <button type="button" className="ai-button" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI labels…</button>
-          ))}
+          <div className="route-tools">
+            <button type="button" className="ai-button key-button" aria-expanded={key} aria-controls={keyId} onClick={() => setKey(!key)}>Key</button>
+            {ai && (aiLoaded ? (
+              <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} /></Suspense>
+            ) : (
+              <button type="button" className="ai-button" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI labels…</button>
+            ))}
+          </div>
+          <MapLegend id={keyId} open={key} kinds={chat ? legendKinds(g) : undefined} />
         </div>
         <div ref={band}>
           {g.steps.length === 0 ? (
@@ -233,7 +244,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
         </div>
         {target && rows.length > 0 && <StepList g={g} rows={rows} selected={sel?.step} evidence={target.evidence} heading={heading} onPick={(id) => { setSel((s) => s && { ...s, step: id, focus: false }); url(id, false); }} onClose={close} announce={announce} />}
       </section>
-      <a className="dest-bar" href="#destination">
+      <a className="dest-bar" href="#destination" onClick={(e) => selectOnClick(() => selector.select('files'))(e)}>
         <KindGlyph kind="answer" />
         <span className="dest-bar-text">
           <span className="section-label">Destination</span>
@@ -242,7 +253,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
         <span className="chevron" aria-hidden="true" />
       </a>
       <div className="bottom-band">
-        <StuckList g={g} L={L} />
+        <StuckList g={g} L={L} narrow={vertical} current={sel?.item} />
         <OutcomeCard g={g} />
       </div>
       </div>
@@ -273,12 +284,26 @@ export function MapView({ graph: g, sample = false, link = 'search', ai }: { gra
 
 export type View = 'map' | 'outline';
 
-/** Map / Outline (DESIGN §9.1): two toggle buttons; the outline is the equivalent text view (G1). */
+/** The view a switch click asked for: the switch moves with the view (into the task's eyebrow row of the map or the
+ * outline), so the new one takes focus back on mount. */
+let refocus: View | null = null;
+
+/** Map / Outline (DESIGN §9.1, §18.3): two toggle buttons; the outline is the equivalent text view (G1). */
 export function ViewSwitch({ view, onChange }: { view: View; onChange(view: View): void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (refocus !== view) return;
+    refocus = null;
+    ref.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
+  }, [view]);
+  const pick = (next: View) => {
+    if (next !== view) refocus = next;
+    onChange(next);
+  };
   return (
-    <div className="view-switch" role="group" aria-label="View">
-      <button type="button" aria-pressed={view === 'map'} onClick={() => onChange('map')}>Map</button>
-      <button type="button" aria-pressed={view === 'outline'} onClick={() => onChange('outline')}>Outline</button>
+    <div ref={ref} className="view-switch" role="group" aria-label="View">
+      <button type="button" aria-pressed={view === 'map'} onClick={() => pick('map')}>Map</button>
+      <button type="button" aria-pressed={view === 'outline'} onClick={() => pick('outline')}>Outline</button>
     </div>
   );
 }

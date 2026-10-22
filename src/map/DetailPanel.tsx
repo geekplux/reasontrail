@@ -1,7 +1,8 @@
 // The detail panel (DESIGN §10.1, DM17–DM21; PLAN M3): a non-modal region, 440 px on the right at ≥ 1024 px and a
 // bottom sheet below that. Focus goes to its title on open; Esc closes it and the map puts focus back. Breadcrumb,
-// kind line, title, the selected step by tool (Bash, Edit, Read/Grep, Agent, words), provenance with Show raw and
-// Copy link, previous/next, and the rule note for patterns. Everything from the transcript is rendered as text.
+// kind line, title, the selected step by tool (Bash, Edit, Read/Grep, Agent, words), then (CL12) the folded Source with
+// Show raw, Copy link and the rule note, previous/next at the foot and the Keyboard help. Everything from the transcript
+// is rendered as text.
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { useLensSentences } from '../lens/LensLink';
@@ -10,6 +11,7 @@ import { HONESTY_TEXT, HOW_TO_READ_URL } from './HonestyLabel';
 import { KIND_WORD } from './keyboard';
 import type { GlanceLayout } from './layout';
 import { duration, fileLabel, isUnstoredThinking } from './outline';
+import { KeyHelp } from './KeyHelp';
 import { RawRecord } from './RawRecord';
 import { excerpt, laneWord, textHead, lineDiff, ownWords, patternLine, rawRecords, rowCategory, rowLabel, RULE_WORDS, shortId, stepSay, type Row, type Target } from './details';
 import { RowGlyph, rowWords, since } from './StepList';
@@ -91,6 +93,9 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
   const first = g.steps.find((s) => s.id === target.steps[0]);
   const last = g.steps.find((s) => s.id === target.steps[target.steps.length - 1]);
   const ms = first?.t && last?.t ? Date.parse(last.t) - Date.parse(first.t) : Number.NaN;
+  // The session's opening ask carries the map's own title when it has one (D1); the panel clamps it to 2 lines.
+  const opening = target.kind === 'episode' && target.episode?.id === g.episodes.find((e) => e.laneId === g.lanes[0]?.id && !e.parentId)?.id;
+  const heading = opening && g.displayTitle ? g.displayTitle : target.title;
 
   return (
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the panel's keys (DESIGN §10.3): Esc, ← →, [ ]
@@ -107,7 +112,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
         {pattern && t0 ? <BlazeIcon kind={t0.kind} resolved={t0.resolved} badge={String(n ?? '')} /> : target.episode ? <KindGlyph kind={target.episode.kind} /> : <KindGlyph kind="answer" />}
         <span>{pattern && target.trouble ? patternLine(target.trouble) : target.episode ? `Episode · ${KIND_WORD[target.episode.kind] ?? target.episode.kind}` : g.source.kind === 'chat' ? 'Destination · final answer' : 'Destination · what changed'}</span>
       </p>
-      <h2 id={titleId} ref={title} tabIndex={-1} className="panel-title">{target.title}</h2>
+      <h2 id={titleId} ref={title} tabIndex={-1} className="panel-title" title={heading}>{heading}</h2>
       {target.kind === 'files' ? (
         <ol className="files panel-files">
           {g.outcome.files.map((f) => (
@@ -124,23 +129,25 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
           )}
           {row && <StepBlock key={row.id} g={g} row={row} index={at} count={nav.length} label={pattern ? 'Evidence' : 'Selected step'} where={[laneWord(g, target.lane), target.episode?.title].filter(Boolean).join(' › ')} onOpenLane={onOpenLane} />}
           {row && aiNote}
-          {row && <ProvenanceBlock key={`${row.id}:${openRaw}`} g={g} row={row} openRaw={openRaw} link={linkFor(row.id)} announce={announce} />}
+          {row && (
+            <ProvenanceBlock key={`${row.id}:${openRaw}`} g={g} row={row} openRaw={openRaw} link={linkFor(row.id)} announce={announce}>
+              {pattern && target.trouble && <p className="muted fine">Found by the rule “{target.trouble.map((t) => RULE_WORDS[t.kind]).join('”, “')}”. A rule, not AI.</p>}
+            </ProvenanceBlock>
+          )}
           <div className="panel-nav">
             <button type="button" data-panel-nav="" aria-disabled={at <= 0} onClick={() => stepBy(-1)}>← Previous {pattern ? 'evidence' : 'step'}</button>
             <button type="button" data-panel-nav="" aria-disabled={at >= nav.length - 1} onClick={() => stepBy(1)}>Next {pattern ? 'evidence' : 'step'} →</button>
           </div>
-          {pattern && target.trouble && (
-            <p className="muted fine">Found by the rule “{target.trouble.map((t) => RULE_WORDS[t.kind]).join('”, “')}”. A rule, not AI.</p>
-          )}
         </>
       )}
-      <p className="muted fine key-hints">Keys: {vertical ? '↑ ↓' : '← →'} steps · [ ] patterns · Esc closes.</p>
+      <KeyHelp vertical={vertical} />
     </aside>
   );
 }
 
-/** Provenance (§8.10), "Show raw" and "Copy link to step"; keyed by the row, so both reset when the step changes. */
-function ProvenanceBlock({ g, row, openRaw, link, announce }: { g: SessionGraph; row: Row; openRaw: boolean; link: string; announce(text: string): void }) {
+/** Provenance (§8.10, CL12): a closed "Source · <file>:<line>" holding the record ids, "Show raw", "Copy link to step"
+ * and the rule note; keyed by the row, so it resets when the step changes. The destination's raw link opens it. */
+function ProvenanceBlock({ g, row, openRaw, link, announce, children }: { g: SessionGraph; row: Row; openRaw: boolean; link: string; announce(text: string): void; children?: ReactNode }) {
   const [raw, setRaw] = useState(openRaw);
   const [copied, setCopied] = useState(false);
   const copy = () => {
@@ -151,8 +158,8 @@ function ProvenanceBlock({ g, row, openRaw, link, announce }: { g: SessionGraph;
     void (navigator.clipboard?.writeText(link) ?? Promise.reject(new Error('no clipboard'))).then(done, () => announce(`Could not copy. The link is ${link}`));
   };
   return (
-    <section className="provenance-block" aria-label="Provenance">
-      <h3 className="section-label">Provenance</h3>
+    <details className="provenance-block" open={openRaw || undefined}>
+      <summary><span className="mono" title={row.step.raw.file}>Source · {fileLabel(row.step.raw.file)}:{row.step.raw.line}</span></summary>
       <Provenance g={g} row={row} />
       <div className="panel-actions">
         <button type="button" aria-expanded={raw} onClick={() => setRaw(!raw)}>{raw ? 'Hide raw' : 'Show raw'}</button>
@@ -160,7 +167,8 @@ function ProvenanceBlock({ g, row, openRaw, link, announce }: { g: SessionGraph;
       </div>
       {raw && rawRecords(g, row).slice(0, 4).map((r) => <RawRecord key={`${r.file}:${r.line}`} {...r} />)}
       <p className="muted fine">Verbatim record; redacted in samples and shared copies. Dotted underline marks a redaction.</p>
-    </section>
+      {children}
+    </details>
   );
 }
 
@@ -238,7 +246,7 @@ function StepBlock({ g, row, index, count, label, where, onOpenLane }: { g: Sess
   );
 }
 
-/** A user or agent text, its first 12 visual lines and "Show full text" (DESIGN §10.1). In the browser CSS clamps it and
+/** A user or agent text, its first 8 visual lines and "Show full text" (DESIGN §10.1). In the browser CSS clamps it and
  * the button shows only when it overflows; without layout (tests, server render) it is cut by `textHead`. An assistant's
  * text offers the zoom-in lens on its sentences (phase 22); focusing a clamped-away sentence shows the full text. */
 function StepText({ row, more, where, onMore }: { row: Row; more: boolean; where: string; onMore(): void }) {
@@ -260,7 +268,7 @@ function StepText({ row, more, where, onMore }: { row: Row; more: boolean; where
     ro.observe(el);
     return () => ro.disconnect();
   }, [text, more, laidOut]);
-  const fallback = textHead(text);
+  const fallback = textHead(text, 8, 600);
   const cut = text !== '' && (laidOut ? overflows : fallback.cut);
   const shown = more || laidOut || !fallback.cut ? text : fallback.head;
   const cls = `${ownWords(row) ? 'agent-words step-text' : 'step-text'}${laidOut && !more ? ' is-clamped' : ''}`;

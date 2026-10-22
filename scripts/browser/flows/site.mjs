@@ -67,7 +67,28 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   if ((await page.title()) !== 'Reasontrail: see what your coding agent did') fail(`home title: ${await page.title()}`);
   if (home.controls.length > 6) fail(`CL2: ${home.controls.length} chrome controls in the first viewport at 1440×900`);
   if (home.large.length !== 1) fail(`CL9: ${home.large.length} text elements ≥ 25 px: ${home.large}`);
-  if (!(await page.getByText('Watch the agents that built this app').isVisible())) fail('no "Watch the agents that built this app" label');
+  // G1: one eyebrow (TASK · …); the showcase region keeps its name for screen readers.
+  if (!(await page.getByRole('region', { name: 'Watch the agents that built this app' }).count())) fail('no "Watch the agents that built this app" region');
+  // G9 / G10: Map/Outline sits in the task's eyebrow row; How to read a map is folded and opens by keyboard.
+  if (!(await page.locator('[data-region="task"] .task-eyebrow .view-switch').count())) fail('G9: the Map/Outline switch is not in the task eyebrow row');
+  const how = page.locator('#how-to-read summary');
+  await how.focus();
+  await page.keyboard.press('Enter');
+  if (!(await page.evaluate(() => document.getElementById('how-to-read')?.open))) fail('G10: Enter did not open How to read a map');
+  await page.keyboard.press('Enter');
+  // G2: Session details opens by keyboard and names the model.
+  const details = page.locator('[data-region="task"] .session-toggle');
+  await details.focus();
+  await page.keyboard.press('Enter');
+  if ((await details.getAttribute('aria-expanded')) !== 'true' || !(await page.locator('.session-details').isVisible())) fail('G2: Enter did not open Session details');
+  await page.keyboard.press('Enter');
+  // G3: the Key opens by keyboard.
+  const key = page.locator('[data-region="route"] .key-button');
+  await key.focus();
+  await page.keyboard.press('Space');
+  if (!(await page.locator('.route-head .legend').isVisible())) fail('G3: Space did not open the Key');
+  await page.keyboard.press('Space');
+  await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
   if (!(await page.locator('footer').textContent()).includes(PRIVACY)) fail('V2: the footer lacks the privacy line');
   for (const p of await axeProblems(page, 'home')) fail(p);
   await shot('site-home-desktop');

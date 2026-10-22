@@ -157,9 +157,22 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   if (!diff.del.some((t) => t.includes('<img src=x onerror=alert(1)>')) || !diff.add.some((t) => t.includes('</script>')) || diff.tags > 0) fail(`edit diff not rendered as text: ${JSON.stringify(diff)}`);
   if (!diff.del.every((t) => t.startsWith('−')) || !diff.add.every((t) => t.startsWith('+'))) fail('diff lines lack their − / + prefixes');
   if (!/#step=s\d+$/.test(page.url())) fail(`file map link is not #step=: ${page.url()}`);
+  // CL12: the Source is folded; Enter on its summary opens it, then Show raw (at most 240 px tall, scrolling inside).
+  const source = panel(page).locator('.provenance-block > summary');
+  if (await panel(page).getByRole('button', { name: 'Show raw' }).isVisible()) fail('CL12: Show raw is visible before the Source is opened');
+  await source.focus();
+  await page.keyboard.press('Enter');
+  if (!(await panel(page).locator('.provenance-block').evaluate((d) => d.open))) fail('CL12: Enter did not open the Source');
   await panel(page).getByRole('button', { name: 'Show raw' }).focus();
   await page.keyboard.press('Enter');
   const pre = panel(page).locator('.raw-pre').first();
+  const rawPx = await pre.evaluate((e) => e.getBoundingClientRect().height);
+  if (rawPx > 240.5) fail(`CL12: the raw record is ${rawPx}px tall (> 240)`);
+  // D4: the Keyboard help opens by keyboard.
+  const keys = panel(page).locator('.key-help > summary');
+  await keys.focus();
+  await page.keyboard.press('Enter');
+  if (!(await panel(page).locator('.key-help p').isVisible())) fail('D4: Enter did not open the Keyboard help');
   if (!((await pre.textContent()) ?? '').includes('"name":"Edit"')) fail('Show raw did not show the verbatim record');
   const stepBefore = await panel(page).locator('.step-block').getAttribute('data-step');
   await pre.focus();

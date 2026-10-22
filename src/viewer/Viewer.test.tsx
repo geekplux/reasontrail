@@ -80,7 +80,7 @@ describe('local viewer', () => {
   it('shows an episode\'s steps behind a disclosure button', () => {
     outline();
     const { container } = render(<Viewer loaded={loadGraph(fixture('basic'))} />);
-    const button = screen.getAllByRole('button', { name: /^Steps \(\d+\)$/ })[0] as HTMLElement;
+    const button = screen.getAllByRole('button', { name: /^\d+ steps? in / })[0] as HTMLElement;
     expect(button.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(button);
     expect(button.getAttribute('aria-expanded')).toBe('true');

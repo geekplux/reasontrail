@@ -6,7 +6,7 @@ import { LabelBadge } from '../ai/LabelBadge';
 import { tagName, type EpisodeTag } from '../ai/labels';
 import { KindMark, KindGlyph } from './Glyph';
 import { blazeName, countText, episodeName, epId, jumpPattern, laneAvailPx, laneName, lepId, move, navItems } from './keyboard';
-import { G, idleAtEnd, lepBox, lepCountOnly, lineY, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
+import { G, idleAtEnd, labelledEpisodes, lepBox, lepCountOnly, lineY, titleRoom, type Blaze, type IdleBreak, type GlanceLayout, type LaneItem, type RouteEpisode } from './layout';
 import { LaneLabel, LanePath } from './LaneView';
 import { BlazeMark, blazeData } from './TroubleMarker';
 
@@ -226,8 +226,9 @@ function OpenLane({ open, word, lepProps }: { open: NonNullable<ViewProps['open'
 
 function Horizontal({ L, ai, epProps, laneProps, blazeProps, foldProps, open, lepProps }: ViewProps) {
   const Y = G.routeY;
-  // The terminus (◉, 20 px) always ends the route with 44 px of room; it is labelled only when the last episode is an answer.
-  const answerRoom = 44;
+  // At most 8 titles (CL5); the other episodes show their glyph, and their title on hover or focus (and in their name).
+  const titled = labelledEpisodes(L);
+  const room = (r: RouteEpisode) => titleRoom(L, r, titled);
   return (
     <div className="route-scroll">
       <div className="route-canvas" style={{ width: L.width, height: L.height }}>
@@ -245,12 +246,14 @@ function Horizontal({ L, ai, epProps, laneProps, blazeProps, foldProps, open, le
           {L.routeEnd > L.width * 0.45 && <path className="connector" d={`M${L.routeEnd} ${Y + 11} V${L.height - 5}`} />}
         </svg>
         {L.breaks.map((b) => <span key={b.before} className="idle-label mono" style={idleStyle(L, b)} aria-hidden="true">{b.label.replace(' idle', '')}<br />idle</span>)}
-        {L.episodes.map((r, i) => {
-          const last = i === L.episodes.length - 1;
-          const w = Math.max(32, r.len - 14 - (last ? answerRoom : 0));
+        {L.episodes.map((r) => {
+          const shown = titled.has(r.episode.id);
+          const w = shown ? room(r) : Math.max(140, r.len - 14);
+          const tag = shown ? undefined : ai?.tags.get(r.episode.id);
           return (
-            <div key={r.episode.id} className="map-item ep" style={{ left: r.x - 12, width: r.len, height: Y + 12 }} {...epProps(r)}>
-              <span className="ep-text" style={{ width: w }}><EpisodeText r={r} width={w} /></span>
+            <div key={r.episode.id} className={shown ? 'map-item ep' : 'map-item ep is-quiet'} style={{ left: r.x - 12, width: r.len, height: Y + 12 }} {...epProps(r)}>
+              {/* An untitled episode's title (and AI tag) shows only on hover or focus: `ep-peek`, not `ep-text`. */}
+              <span className={shown ? 'ep-text' : 'ep-peek'} style={{ width: w }}>{tag && <LabelBadge tag={tag} />}<EpisodeText r={r} width={w} /></span>
             </div>
           );
         })}
@@ -259,7 +262,7 @@ function Horizontal({ L, ai, epProps, laneProps, blazeProps, foldProps, open, le
             <span className="ep-text"><EpisodeText r={L.answer} /></span>
           </div>
         )}
-        {ai && L.episodes.map((r, i) => <TagSlot key={r.episode.id} r={r} tag={ai.tags.get(r.episode.id)} style={{ left: r.x - 12, width: r.len, height: Y + 12 }} w={Math.max(32, r.len - 14 - (i === L.episodes.length - 1 ? answerRoom : 0))} />)}
+        {ai && L.episodes.filter((r) => titled.has(r.episode.id)).map((r) => <TagSlot key={r.episode.id} r={r} tag={ai.tags.get(r.episode.id)} style={{ left: r.x - 12, width: r.len, height: Y + 12 }} w={room(r)} />)}
         {ai && L.answer && <TagSlot r={L.answer} tag={ai.tags.get(L.answer.episode.id)} style={{ left: L.routeEnd - 52, width: 70, height: Y + 14 }} end />}
         {ai?.links}
         {L.fold && (

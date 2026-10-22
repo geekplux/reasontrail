@@ -1,5 +1,6 @@
-// The step strip (DESIGN §10.1): one row per step of the selected episode or pattern, under the map. Evidence rows
-// have the wash; the selected row an ink bar and 600 weight. One tab stop: ↑ ↓ Home End move, Enter or a click selects
+// The step strip (DESIGN §10.1, §18.3): one row per step of the selected episode or pattern, under the map, unboxed on
+// paper; each record's location is in the detail panel. Evidence rows have the wash; the selected row a 2 px ink bar
+// and 600 weight. One tab stop: ↑ ↓ Home End move, Enter or a click selects
 // (and announces "Step n of N"), Esc closes the details.
 import { useRef, type KeyboardEvent } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
@@ -63,8 +64,6 @@ export function StepList({ g, rows, selected, evidence, heading, onPick, onClose
         {rows.map((r, i) => {
           const ev = r.ids.some((id) => evidence.has(id));
           const t = since(g, r.step.t);
-          const lines = r.ids.map((id) => g.steps.find((s) => s.id === id)?.raw.line ?? 0);
-          const where = lines.length > 1 && lines[0] !== lines.at(-1) && isUnstoredThinking(r.step) ? `jsonl:${lines[0]}–${lines.at(-1)}` : `jsonl:${lines[0]}`;
           return (
             <li key={r.id} data-i={i} data-step={r.id} data-evidence={ev ? 'true' : undefined}>
               <button type="button" tabIndex={i === at ? 0 : -1} aria-current={r.id === selected ? 'true' : undefined} onClick={() => {
@@ -74,7 +73,7 @@ export function StepList({ g, rows, selected, evidence, heading, onPick, onClose
                 <RowGlyph row={r} />
                 <span className="mono step-label">{rowLabel(r)}</span>
                 <span className="step-word">{rowWords(r)}{ev ? <span className="visually-hidden">, evidence</span> : null}</span>
-                <span className="mono muted step-where">{[t, where].filter(Boolean).join(' · ')}</span>
+                <span className="mono muted step-where">{t}</span>
               </button>
             </li>
           );

@@ -1,12 +1,12 @@
 // The outline view (DESIGN §10.2, DM16): the map's four regions as plain document structure. No ARIA widget roles,
 // no custom keys: headings, ordered lists and one disclosure button per episode.
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import type { Episode, SessionGraph } from '../../shared/session/types';
 import './outline.css';
 import { KindGlyph, PlateGlyph, StatusGlyph, UnstoredGlyph } from './Glyph';
 import { troubleNumbers } from './layout';
 import { OutcomeCard } from './OutcomeCard';
-import { STATUS_WORD, TROUBLE_LABEL, episodeLinks, laneEpisodes, stepLines } from './outline';
+import { STATUS_WORD, TROUBLE_LABEL, episodeLinks, laneEpisodes, stepLines, troubleLabel } from './outline';
 import { GlanceRows, TaskCard } from './TaskCard';
 import { useMapReady } from './MapView';
 
@@ -32,7 +32,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
       <p className="episode-head">
         <KindGlyph kind={e.kind} />
         <span>
-          <span id={titleId} className="episode-title">{e.title}</span> <span className="mono muted">{e.kind} · {plural(e.stepIds.length, 'step')}</span>
+          <span id={titleId} className="episode-title">{e.title}</span> <span className="mono muted">{e.kind}</span>
         </span>
       </p>
       {trouble.length > 0 && (
@@ -42,7 +42,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
               <PlateGlyph kind={t.kind} resolved={t.resolved} />
               <span className="chip-n mono">{n}</span>
               <span className="chip-text">
-                <strong>{TROUBLE_LABEL[t.kind]}:</strong> {t.summary.replace(new RegExp(`^${TROUBLE_LABEL[t.kind]}:\\s*`), '')}
+                <strong>{troubleLabel(t.kind, g.source.kind === 'chat')}:</strong> {t.summary.replace(new RegExp(`^${TROUBLE_LABEL[t.kind]}:\\s*`), '')}
                 <span className="mono muted"> · detected pattern{t.resolved ? ' · resolved' : ''}</span>
               </span>
             </li>
@@ -68,8 +68,8 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
           })}
         </ol>
       )}
-      <button type="button" className="disclosure" aria-expanded={open} aria-controls={stepsId} aria-describedby={titleId} onClick={() => setOpen(!open)}>
-        Steps ({e.stepIds.length})
+      <button type="button" className="link-button disclosure" aria-expanded={open} aria-controls={stepsId} aria-label={`${plural(e.stepIds.length, 'step')} in ${e.title}`} onClick={() => setOpen(!open)}>
+        {plural(e.stepIds.length, 'step')}
       </button>
       {/* oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics under list-style: none */}
       <ol id={stepsId} className="steps" role="list" hidden={!open}>
@@ -87,11 +87,12 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
   );
 }
 
-export function Outline({ graph: g, sample = false }: { graph: SessionGraph; sample?: boolean }) {
+/** `head` and `label`: as for the map (the Map/Outline switch in the eyebrow row, one more eyebrow word). */
+export function Outline({ graph: g, sample = false, head, label }: { graph: SessionGraph; sample?: boolean; head?: ReactNode; label?: string | undefined }) {
   useMapReady();
   return (
     <div className="outline" data-testid="map" data-view="outline" data-ready="true">
-      <TaskCard g={g} sample={sample} />
+      <TaskCard g={g} sample={sample} title={g.displayTitle} label={label} head={head} />
       <GlanceRows g={g} />
       <section className="region route" data-region="route" aria-labelledby="h-route">
         <h2 id="h-route" className="section-label">Route</h2>
@@ -104,9 +105,9 @@ export function Outline({ graph: g, sample = false }: { graph: SessionGraph; sam
         ) : (
           <EpisodeList g={g} laneId={g.lanes[0]?.id ?? 'main'} />
         )}
-        <p className="mono muted footnote">Detected patterns are found by rules, not by AI.</p>
+        <p className="muted footnote">Detected patterns are found by rules, not by AI.</p>
       </section>
-      <OutcomeCard g={g} />
+      <OutcomeCard g={g} full />
     </div>
   );
 }

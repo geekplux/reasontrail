@@ -260,3 +260,20 @@ describe('lepBox (an expanded side trail)', () => {
   });
 });
 
+
+describe('labelledEpisodes (CL5)', () => {
+  it('titles at most min(8, width / 96) episodes, first and last always, each 96 px apart', async () => {
+    const { labelledEpisodes, titleRoom, glanceLayout: layout } = await import('./layout');
+    const { defaultSessionGraph } = await import('../sessions/samples');
+    for (const width of [1216, 736, 400]) {
+      const L = layout(defaultSessionGraph, width);
+      const set = labelledEpisodes(L, width);
+      const all = [...L.episodes, ...(L.answer ? [L.answer] : [])];
+      expect(set.size).toBeLessThanOrEqual(Math.min(8, Math.floor(width / 96)));
+      expect(set.has(all[0]!.episode.id) && set.has(all[all.length - 1]!.episode.id)).toBe(true);
+      const xs = L.episodes.filter((e) => set.has(e.episode.id)).map((e) => e.x);
+      for (let i = 1; i < xs.length; i++) expect(xs[i]! - xs[i - 1]!).toBeGreaterThanOrEqual(96);
+      for (const e of L.episodes.filter((x) => set.has(x.episode.id))) expect(titleRoom(L, e, set)).toBeGreaterThanOrEqual(32);
+    }
+  });
+});

@@ -40,7 +40,9 @@
 .install-line, .how-to-read-map { margin-top: var(--tg-space-8); max-width: var(--tg-measure); }
 .install-line p, .page p { margin: var(--tg-space-2) 0 0; }
 .how-to-read-map ol { margin: 0; padding-inline-start: var(--tg-space-5); display: grid; gap: var(--tg-space-2); }
-.how-to-read-map:focus { outline: none; }
+.how-to-read-map summary { min-height: 24px; cursor: pointer; color: var(--tg-ink-muted); }
+.how-to-read-map summary .section-label { display: inline; }
+.how-to-read-map[open] summary { margin-bottom: var(--tg-space-2); }
 .how-kinds { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; color: var(--tg-ink-muted); }
 .how-kinds > span { display: inline-flex; align-items: center; gap: var(--tg-space-1); }
 .how-kinds .glyph, .how-kinds svg { width: 16px; height: 16px; }

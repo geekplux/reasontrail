@@ -453,3 +453,34 @@ export function lepBox(open: GlanceLayout, r: RouteEpisode): { width: number; te
  * whole box (`width`): a title would wrap mid-word. Its accessible name and tooltip keep the full name. */
 export const lepCountOnly = (box: { text: number }) => box.text < 48;
 
+
+/** Px per visible episode title on the horizontal route (CL5): a title gets at least this much room. */
+export const TITLE_PITCH = 96;
+
+/** The episodes whose titles show on the horizontal route (DESIGN §18.2, CL5): at most min(8, ⌊width / 96⌋), chosen in
+ * the order first, last, with a blaze, delegate, verify, then the longest segments, each at least 96 px from the titles
+ * already chosen. The others show only their glyph; their title is in their accessible name and shows on hover or focus. */
+export function labelledEpisodes(L: GlanceLayout, width: number = L.width): Set<string> {
+  const all = [...L.episodes, ...(L.answer ? [L.answer] : [])];
+  const cap = Math.max(2, Math.min(8, Math.floor(width / TITLE_PITCH)));
+  const blazed = new Set(L.blazes.map((b) => b.episodeId));
+  const [first, last] = [all[0], all[all.length - 1]];
+  const rank = (r: RouteEpisode) => (r === first ? 0 : r === last ? 1 : blazed.has(r.episode.id) ? 2 : r.episode.kind === 'delegate' ? 3 : r.episode.kind === 'verify' ? 4 : 5);
+  const xOf = (r: RouteEpisode) => (r === L.answer ? L.routeEnd : r.x);
+  const picked: RouteEpisode[] = [];
+  for (const r of [...all].sort((a, b) => rank(a) - rank(b) || b.len - a.len || a.n - b.n)) {
+    if (picked.length >= cap) break;
+    if (rank(r) > 1 && picked.some((p) => Math.abs(xOf(p) - xOf(r)) < TITLE_PITCH)) continue;
+    picked.push(r);
+  }
+  return new Set(picked.map((r) => r.episode.id));
+}
+
+/** The text room of a titled episode on the horizontal route: from its glyph to the next title (or the fold chip, or the
+ * answer's label), in px. */
+export function titleRoom(L: GlanceLayout, r: RouteEpisode, titled: ReadonlySet<string>): number {
+  const next = L.episodes.find((e) => e.x > r.x && titled.has(e.episode.id));
+  let end = next ? next.x - 8 : L.routeEnd - 52;
+  if (L.fold && r.x < L.fold.x) end = Math.min(end, L.fold.x - 8);
+  return Math.max(32, end - (r.x + 6));
+}

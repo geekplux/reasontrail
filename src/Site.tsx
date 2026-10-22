@@ -132,7 +132,15 @@ export function Site() {
     const same = url.search === search;
     go(url.search);
     if (same) focusTitle(); // no re-render, so no effect: the heading is already drawn
-    requestAnimationFrame(() => (url.hash ? document.querySelector<HTMLElement>(url.hash)?.focus() : window.scrollTo(0, 0)));
+    requestAnimationFrame(() => {
+      const el = url.hash ? document.querySelector<HTMLElement>(url.hash) : null;
+      if (!url.hash) return window.scrollTo(0, 0);
+      // A folded section (How to read a map) opens, with focus on its summary.
+      if (el instanceof HTMLDetailsElement) {
+        el.open = true;
+        el.querySelector('summary')?.focus();
+      } else el?.focus();
+    });
   };
   const setView = (v: SiteView) => go(writeView(window.location.search, v), false);
   const page =

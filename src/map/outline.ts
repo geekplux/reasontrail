@@ -12,6 +12,9 @@ export const TROUBLE_LABEL: Record<Trouble['kind'], string> = {
   'error-streak': 'Error streak', retry: 'Retry', revert: 'Revert', rewind: 'Rewound', interrupt: 'Interrupted', churn: 'Churn',
 };
 
+/** The bold kind phrase of a pattern; in a chat a user's interruption is a correction (DESIGN §18.1). */
+export const troubleLabel = (kind: Trouble['kind'], chat = false) => (chat && kind === 'interrupt' ? 'Correction' : TROUBLE_LABEL[kind]);
+
 export const STATUS_WORD: Record<StepStatus, string> = { ok: 'ok', error: 'failed', interrupted: 'interrupted' };
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -46,21 +49,25 @@ export function isUnstoredThinking(s: Step): boolean {
   return s.kind === 'thinking' && (s.textStored === false || !s.text?.trim());
 }
 
-/** The trailhead card: source and model (after "Task · "), the first user request and the meta row (zero counts omitted). */
+/** The trailhead card (DESIGN §18.2): source and model, the first user request, the meta row of at most 3 items (active
+ * time, tool calls, then subagents or idle time; zero counts omitted), and the rest for "Session details" (wall time,
+ * unstored thinking, the model). */
 export function taskCard(g: SessionGraph) {
   const main = g.lanes[0]?.id ?? 'main';
   const request = g.steps.find((s) => s.laneId === main && s.kind === 'user' && s.text?.trim())?.text?.trim() || g.title;
-  // Set in capitals by CSS ("TASK · CLAUDE CODE · <MODEL>"); the DOM keeps normal case for screen readers.
   const meta: string[] = [];
+  const details: string[] = [];
   const tm = times(g.steps);
-  if (tm && tm.wall - tm.active > IDLE_MS) meta.push(`${duration(tm.wall)} wall`);
+  const idle = tm && tm.wall - tm.active > IDLE_MS ? tm.wall - tm.active : 0;
   if (tm) meta.push(`${duration(tm.active)} active`);
   const count = (n: number, one: string, many?: string) => n > 0 && meta.push(plural(n, one, many));
   count(g.steps.filter((s) => s.kind === 'tool-call').length, 'tool call');
-  count(g.lanes.length - 1, 'subagent');
+  if (!count(g.lanes.length - 1, 'subagent') && idle) meta.push(`${duration(idle)} idle`);
+  if (tm && idle) details.push(`${duration(tm.wall)} wall`);
   const unstored = g.steps.filter(isUnstoredThinking).length;
-  if (unstored > 0) meta.push(`${unstored} thinking (text not stored)`);
-  return { source: SOURCE_LABEL[g.source.kind], model: g.source.model, request, meta };
+  if (unstored > 0) details.push(`${unstored} thinking (text not stored)`);
+  if (g.source.model) details.push(`model ${g.source.model}`);
+  return { source: SOURCE_LABEL[g.source.kind], model: g.source.model, request, meta, details };
 }
 
 export type GlanceStatus = 'ok' | 'error' | 'unknown';

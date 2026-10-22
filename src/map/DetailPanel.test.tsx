@@ -109,14 +109,14 @@ describe('detail panel (M3, M9, G1)', () => {
 });
 
 describe('long step text', () => {
-  it('without layout, cuts at 12 source lines with "Show full text" / "Show less" and aria-expanded', () => {
+  it('without layout, cuts at 8 source lines with "Show full text" / "Show less" and aria-expanded', () => {
     const long = Array.from({ length: 30 }, (_, i) => `line ${i + 1}`).join('\\n');
     const text = details.replace('"content":"Escape note previews so pasted HTML shows as text"', `"content":"${long}"`);
     const fs = [{ path: 'details.jsonl', text }];
     render(<MapView graph={attachRaw(parseSession({ files: fs })!, fs)} />);
     openFirst();
     const p = screen.getByTestId('detail-panel').querySelector('.step-text') as HTMLElement;
-    expect(p.textContent).toBe(`${Array.from({ length: 12 }, (_, i) => `line ${i + 1}`).join('\n')}…`);
+    expect(p.textContent).toBe(`${Array.from({ length: 8 }, (_, i) => `line ${i + 1}`).join('\n')}…`);
     const more = screen.getByRole('button', { name: 'Show full text' });
     expect(more.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(more);

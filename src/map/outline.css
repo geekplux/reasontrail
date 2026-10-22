@@ -16,7 +16,12 @@
 .task-raw { margin: var(--tg-space-2) 0 var(--tg-space-4); max-width: 72ch; white-space: pre-line; overflow-wrap: anywhere; }
 .task-raw .sub-label { margin-bottom: var(--tg-space-1); }
 .task-meta { margin: 0 0 var(--tg-space-2); }
-.task-meta span + span::before { content: ' · '; }
+.meta-item + .meta-item::before { content: ' · '; }
+/* The eyebrow row: the TASK label, and the header items (Map/Outline) at its right end. */
+.task-eyebrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-4); margin-bottom: var(--tg-space-2); }
+.task-eyebrow .section-label { margin: 0; }
+.task-meta .session-toggle { margin-inline-start: var(--tg-space-4); font-size: 12.8px; }
+.session-details > p { margin: 0 0 var(--tg-space-2); }
 .link-button { min-height: 24px; padding: 0; border: 0; background: none; color: inherit; font: 400 var(--tg-text-sm) var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .note, .honesty, .glance-rows li, .episode-head { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-2); margin: 0; }
 .note, .honesty { margin: 0 0 var(--tg-space-2); font-size: 13.5px; }
@@ -63,7 +68,8 @@
 .chip-n { display: inline-grid; place-items: center; min-width: 16px; height: 16px; border-radius: 2px; color: var(--tg-paper); background: var(--tg-ink); font-size: 10.5px; font-weight: 600; }
 .lanes { margin: var(--tg-space-2) 0; padding-left: var(--tg-space-4); border-left: 2px solid var(--tg-branch-lo); }
 .lane .episodes { margin-top: var(--tg-space-2); }
-.disclosure { min-height: 24px; margin-top: var(--tg-space-1); padding: 0 var(--tg-space-2); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); background: var(--tg-surface); color: var(--tg-ink); font: 500 0.8rem var(--tg-font-mono); cursor: pointer; }
+/* The step list's quiet text disclosure (O2, CL11): "4 steps", no border and no fill. */
+.disclosure { margin-top: var(--tg-space-1); font-size: 12.8px; }
 .steps { display: grid; gap: 2px; margin-top: var(--tg-space-2); padding-left: var(--tg-space-4); border-left: var(--tg-hairline); font-size: 13.5px; }
 .steps li { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--tg-space-2); overflow-wrap: anywhere; }
 .agent-words { padding-left: var(--tg-space-2); border-left: 2px dotted var(--tg-ink-muted); }
@@ -82,10 +88,6 @@
 .excerpt.is-clamped { -webkit-line-clamp: 2; }
 code.mono { overflow-wrap: anywhere; }
 
-/* Below 480 px the model name is dropped so the label stays one line and "Task" never sits alone (DESIGN §9.2). */
-@media (max-width: 479px) {
-  .task-label .task-model { display: none; }
-}
 
 @media (max-width: 767px) {
   .task-title { font-size: 25px; }

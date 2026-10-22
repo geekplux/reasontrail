@@ -1,6 +1,6 @@
 // The trailhead (DESIGN §8.9): the task card with the honesty label, and the three At a glance rows. Shared by the map
 // and the outline.
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { InfoGlyph, KindGlyph, NeutralPlateGlyph, StatusGlyph } from './Glyph';
 import { HonestyLabel } from './HonestyLabel';
@@ -8,14 +8,15 @@ import { selectOnClick, useSelector } from './SelectContext';
 import { REQUEST_MAX, glance, parseNotes, skippedWhere, taskCard } from './outline';
 
 /** The first request in serif: at most 280 chars and 2 lines until "more" (M1a, DM5). With an authored `title`
- * (website samples), the title is shown instead and "more" adds the raw first request below it. */
+ * (samples and shared copies that carry one) the title is shown instead, and the raw first request waits in Session
+ * details, so the trailhead keeps one control fewer (CL2). */
 function Request({ text, title }: { text: string; title?: string | undefined }) {
   const [more, setMore] = useState(false);
   const [clamped, setClamped] = useState(false);
   const ref = useRef<HTMLParagraphElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || more) return;
+    if (!el || more || title !== undefined) return;
     let live = true;
     // Half a line of tolerance: serif ascenders and sub-pixel line boxes must not count as a third line.
     const check = () => {
@@ -29,35 +30,48 @@ function Request({ text, title }: { text: string; title?: string | undefined }) 
       live = false;
       observer?.disconnect();
     };
-  }, [more]);
+  }, [more, title]);
   const long = text.length > REQUEST_MAX;
   const shown = title ?? (long && !more ? `${text.slice(0, REQUEST_MAX - 1)}…` : text);
   return (
-    <>
-      <div className="task-request">
-        <p ref={ref} className={more ? 'task-title' : 'task-title is-clamped'}>{shown}</p>
-        {(title !== undefined || long || clamped || more) && (
-          <button type="button" className="link-button" aria-expanded={more} onClick={() => setMore(!more)}>
-            {more ? 'less' : 'more'}
-          </button>
-        )}
-      </div>
-      {title !== undefined && more && <p className="task-raw"><span className="sub-label">First request</span>{text}</p>}
-    </>
+    <div className="task-request">
+      <p ref={ref} className={more || title !== undefined ? 'task-title' : 'task-title is-clamped'}>{shown}</p>
+      {title === undefined && (long || clamped || more) && (
+        <button type="button" className="link-button" aria-expanded={more} onClick={() => setMore(!more)}>
+          {more ? 'less' : 'more'}
+        </button>
+      )}
+    </div>
   );
 }
 
-/** `title`: the sample's authored heading (the showcase map), shown in place of the first request until "more". */
-export function TaskCard({ g, sample = false, title }: { g: SessionGraph; sample?: boolean; title?: string | undefined }) {
+/** `title`: an authored heading (a sample's or a shared copy's), shown in place of the first request. `label`: one more
+ * word for the TASK eyebrow ("pasted"). `head`: header items at the eyebrow row's right end (the Map/Outline switch). */
+export function TaskCard({ g, sample = false, title, label, head }: { g: SessionGraph; sample?: boolean; title?: string | undefined; label?: string | undefined; head?: ReactNode }) {
   const card = taskCard(g);
   const where = skippedWhere(g);
+  const [details, setDetails] = useState(false);
+  const detailsId = useId();
+  const request = card.request.replace(/\*\*|`/g, '');
+  const folded = card.details.length > 0 || title !== undefined;
   return (
     <section className="region task-card" data-region="task" aria-labelledby="h-task">
-      <h2 id="h-task" className="section-label task-label">
-        Task <span>· {card.source}{card.model && <span className="task-model"> · {card.model}</span>}{sample ? ' · sample' : ''}</span>
-      </h2>
-      <Request text={card.request.replace(/\*\*|`/g, '')} title={title} />
-      <p className="mono muted task-meta">{card.meta.map((m) => <span key={m} className={/ wall$|^\d+ thinking/.test(m) ? 'meta-extra' : undefined}>{m}</span>)}</p>
+      <div className="task-eyebrow">
+        <h2 id="h-task" className="section-label task-label">
+          Task <span>· {card.source}{sample ? ' · sample' : ''}{label ? ` · ${label}` : ''}</span>
+        </h2>
+        {head}
+      </div>
+      <Request text={request} title={title} />
+      <p className="mono muted task-meta">
+        {card.meta.map((m) => <span key={m} className="meta-item">{m}</span>)}
+        {folded && <button type="button" className="link-button session-toggle" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails(!details)}>Session details</button>}
+      </p>
+      {/* Folded, never deleted (CL4): the rest of the meta, the model and an authored title's first request. */}
+      {folded && <div id={detailsId} className="session-details" hidden={!details}>
+        {card.details.length > 0 && <p className="mono muted">{card.details.map((m) => <span key={m} className="meta-item">{m}</span>)}</p>}
+        {title !== undefined && <p className="task-raw"><span className="sub-label">First request</span>{request}</p>}
+      </div>}
       {parseNotes(g).map((n) => (
         <p key={n} className="note"><InfoGlyph /><span>{n}</span></p>
       ))}
@@ -67,7 +81,7 @@ export function TaskCard({ g, sample = false, title }: { g: SessionGraph; sample
           <p className="mono">{where.join(', ')}</p>
         </details>
       )}
-      <HonestyLabel />
+      <HonestyLabel chat={g.source.kind === 'chat'} />
     </section>
   );
 }

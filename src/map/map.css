@@ -13,8 +13,11 @@
 .route-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-5); }
 .route-head .section-label { margin: 0; }
 .ai-button { min-height: 24px; padding: 0; border: none; background: transparent; color: var(--tg-ink-muted); font: 400 12.8px var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
-.legend { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-4); margin: 0; padding: 0; list-style: none; font-size: 11.5px; color: var(--tg-ink-muted); }
-.legend li { display: inline-flex; align-items: center; gap: 5px; }
+.route-tools { display: flex; align-items: center; gap: var(--tg-space-4); margin-inline-start: auto; }
+/* The Key (CL3): folded behind its button; open, it is one row under the route header. */
+.route-head .legend { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-4); margin: 0; padding: 0; list-style: none; font-size: 11.5px; color: var(--tg-ink-muted); }
+.route-head .legend[hidden] { display: none; }
+.route-head .legend li { display: inline-flex; align-items: center; gap: var(--tg-space-1); }
 .legend .glyph { width: 12px; height: 12px; }
 .legend .blaze-icon { width: 14px; height: 14px; }
 .route-app { position: relative; }
@@ -29,6 +32,10 @@
 
 .map-item { position: absolute; top: 0; cursor: pointer; border-radius: var(--tg-radius); }
 .ep-text { position: absolute; left: 18px; bottom: 31px; display: flex; flex-direction: column; }
+/* An untitled episode (CL5): its title shows only on hover or keyboard focus, on paper over its neighbours. */
+.ep-peek { position: absolute; left: 18px; bottom: 31px; display: none; flex-direction: column; padding: 0 var(--tg-space-1); background: var(--tg-paper); }
+.map-item.is-quiet:is(:hover, :focus-visible, [aria-current='true']) { z-index: 2; }
+.map-item.is-quiet:is(:hover, :focus-visible, [aria-current='true']) .ep-peek { display: flex; }
 .ep-title { hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: break-word; font: 600 13px / 16px var(--tg-font-ui); }
 .ep-count { font-size: 11.5px; line-height: 16px; white-space: nowrap; color: var(--tg-ink-muted); }
 .ep-answer .ep-text { left: auto; right: 4px; align-items: flex-end; text-align: right; }
@@ -61,11 +68,10 @@
 .stuck-text { display: block; font-size: 13.5px; overflow-wrap: anywhere; }
 .stuck-where { display: block; font-size: 11.5px; overflow-wrap: anywhere; }
 .stuck-none { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: var(--tg-space-2); align-items: baseline; margin: 0; font-size: 13.5px; }
-.map .footnote { font-size: 12.8px; }
-.map .outcome { padding: var(--tg-space-4) var(--tg-space-5); background: var(--tg-surface); border: 1px solid var(--tg-rule); border-radius: var(--tg-radius); }
-.map .outcome-cols { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
-.map .outcome-cols > div + div { padding-left: var(--tg-space-5); border-left: var(--tg-hairline); }
-.outcome-cols .files-head { margin: 0; text-align: right; padding-right: 56px; font-size: 11.5px; }
+.footnote { font-size: 13.5px; }
+/* The destination (CL8, T4): no frame, no fill and no inner rule; its two columns are apart by the 24 px gutter. */
+.map .outcome-cols { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--tg-space-5); }
+.files .file-name { white-space: nowrap; }
 .files li { display: grid; grid-template-columns: minmax(0, 1fr) auto 52px; gap: var(--tg-space-2); align-items: center; border-bottom: 0; }
 .files .path { font-size: 12.5px; overflow-wrap: normal; }
 .files .bar { height: 10px; background: var(--tg-ink); }
@@ -79,9 +85,6 @@
 
 /* Mobile 390×844 (§9.2): the vertical route, rows of at least 44 px, and the sticky destination bar. */
 @media (max-width: 767px) {
-  .legend { display: none; }
-  .task-meta .meta-extra { display: none; }
-  .task-meta .meta-extra + span::before { content: none; }
   .vroute { padding-top: var(--tg-space-2); }
   .vrow { position: relative; display: flex; align-items: center; min-height: 44px; }
   .vrow::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 4px; background: var(--tg-ink); }
@@ -109,8 +112,8 @@
   .dest-bar-text { display: grid; font-size: 14px; }
   .dest-bar .section-label { margin: 0; }
   .chevron { width: 10px; height: 10px; border-right: 2px solid var(--tg-ink); border-bottom: 2px solid var(--tg-ink); transform: rotate(45deg); }
-  .map .outcome-cols { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); }
-  .map .outcome-cols > div + div { padding-left: 0; border-left: 0; border-top: var(--tg-hairline); padding-top: var(--tg-space-4); }
+  /* The destination appears once on a phone (T8): the sticky bar, which opens it in the sheet. */
+  .map .bottom-band > .outcome { display: none; }
   .view-switch button { min-height: 44px; }
 }
 
@@ -130,15 +133,15 @@
 .detail-panel { position: sticky; top: 0; min-height: calc(100vh - 57px); max-height: 100vh; overflow-y: auto; padding: var(--tg-space-4) var(--tg-space-5) var(--tg-space-5); font-size: 13.5px; background: var(--tg-surface); border-left: 1px solid var(--tg-ink); animation: tg-panel-in var(--tg-dur-panel) var(--tg-ease-out); }
 @keyframes tg-panel-in { from { opacity: 0; transform: translateX(16px); } }
 .panel-top { display: flex; align-items: flex-start; gap: var(--tg-space-2); }
-.breadcrumb { flex: 1; min-width: 0; margin: 6px 0 0; font-size: 11.5px; color: var(--tg-ink-muted); overflow-wrap: anywhere; }
+.breadcrumb { flex: 1; min-width: 0; margin: 6px 0 0; overflow: hidden; font-size: 11.5px; color: var(--tg-ink-muted); white-space: nowrap; text-overflow: ellipsis; }
 /* Quiet text buttons (CL11, §18.4): muted, no border and no fill; underlined on hover and focus. */
 .panel-close, .sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button { min-height: 28px; padding: 0 var(--tg-space-1); font: 500 13px var(--tg-font-ui); color: var(--tg-ink-muted); background: none; border: 0; border-radius: var(--tg-radius); text-decoration: none; text-underline-offset: 0.2em; cursor: pointer; }
 :is(.sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button):is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline; }
-.panel-close { display: grid; place-items: center; width: 36px; padding: 0; }
+.panel-close { display: grid; place-items: center; width: 36px; padding: 0; color: var(--tg-ink); }
 .panel-close path { stroke: currentColor; stroke-width: 1.6; }
 .sheet-size, .grabber { display: none; }
 .kind-line { display: flex; align-items: center; gap: var(--tg-space-2); margin: var(--tg-space-4) 0 0; color: var(--tg-ink-muted); }
-.panel-title { margin: var(--tg-space-2) 0 var(--tg-space-1); font: 600 20px / 1.3 var(--tg-font-ui); overflow-wrap: anywhere; }
+.panel-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin: var(--tg-space-2) 0 var(--tg-space-1); font: 600 20px / 1.3 var(--tg-font-ui); overflow-wrap: anywhere; }
 .panel-summary { margin: 0 0 var(--tg-space-4); }
 .detail-panel .section-label { margin: var(--tg-space-4) 0 var(--tg-space-2); }
 .detail-panel .honesty.agent-words { margin-top: var(--tg-space-2); }
@@ -152,8 +155,8 @@
 .diff .d-same { color: var(--tg-ink-muted); }
 .step-path, .prov-file, .prov-ids { margin: 0 0 var(--tg-space-1); font-size: 12px; overflow-wrap: anywhere; }
 .step-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-/* A long text shows 12 visual lines (wrapped lines count) until "Show full text". */
-.step-text.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 12; overflow: hidden; }
+/* A long text shows 8 visual lines (wrapped lines count) until "Show full text". */
+.step-text.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 8; overflow: hidden; }
 /* Zoom into this sentence (DESIGN §13.5): each sentence is a chip with a dotted underline on hover and focus; the picked
    one has a solid 2 px ink underline. Ink only: no hue outside the lens (CL10). */
 .lens-sentence { cursor: pointer; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
@@ -166,22 +169,28 @@
 .step-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--tg-space-1) var(--tg-space-4); margin: 0; }
 .step-facts dt { color: var(--tg-ink-muted); }
 .step-facts dd { margin: 0; overflow-wrap: anywhere; }
-.provenance-block { margin-top: var(--tg-space-4); padding-top: var(--tg-space-1); border-top: var(--tg-hairline); }
+/* Source (CL12): folded, no hairline; its summary names the record. */
+.provenance-block, .key-help { margin-top: var(--tg-space-5); }
+:is(.provenance-block, .key-help) > summary { min-height: 24px; color: var(--tg-ink-muted); font-size: 12.8px; cursor: pointer; }
+.provenance-block > summary .mono { font-size: 12px; }
+.provenance-block[open] > summary { margin-bottom: var(--tg-space-2); }
+.key-help { margin-top: var(--tg-space-2); }
+.key-q { display: inline-grid; place-items: center; width: 16px; height: 16px; border: 1px solid currentColor; border-radius: 50%; font: 600 11.5px var(--tg-font-ui); }
 .panel-actions, .panel-nav { display: flex; flex-wrap: wrap; gap: var(--tg-space-2) var(--tg-space-4); margin: var(--tg-space-2) 0; }
 .panel-nav { justify-content: space-between; margin-top: var(--tg-space-5); }
 .panel-nav button[aria-disabled='true'] { color: var(--tg-ink-muted); border-color: var(--tg-rule); cursor: default; }
 .detail-panel .fine { margin: var(--tg-space-2) 0 0; font-size: 12.8px; }
 .raw { margin: var(--tg-space-2) 0; }
 .raw figcaption { font-size: 11.5px; }
-.raw-pre { max-height: 50vh; margin: var(--tg-space-1) 0 0; padding: var(--tg-space-2); overflow: auto; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--tg-paper); border: 1px solid var(--tg-rule); }
+.raw-pre { max-height: 240px; margin: var(--tg-space-1) 0 0; padding: var(--tg-space-2); overflow: auto; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--tg-paper); border: 1px solid var(--tg-rule); }
 .redacted { text-decoration: underline dotted; text-underline-offset: 2px; }
 .panel-files li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--tg-space-2); }
 
 /* The step strip under the map. */
 .step-strip { margin-top: var(--tg-space-4); }
 .step-strip .section-label { margin: 0 0 var(--tg-space-2); }
-.step-rows { max-height: 360px; margin: 0; padding: 0; overflow-y: auto; list-style: none; background: var(--tg-surface); border: 1px solid var(--tg-rule); }
-.step-rows button { display: grid; grid-template-columns: 14px minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: var(--tg-space-2); align-items: center; width: 100%; min-height: 27px; padding: 2px var(--tg-space-2); font: 13px var(--tg-font-ui); color: var(--tg-ink); text-align: left; background: transparent; border: 0; border-left: 4px solid transparent; cursor: pointer; }
+.step-rows { max-height: 360px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.step-rows button { display: grid; grid-template-columns: 14px minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: var(--tg-space-2); align-items: center; width: 100%; min-height: 27px; padding: 2px var(--tg-space-2); font: 13px var(--tg-font-ui); color: var(--tg-ink); text-align: left; background: transparent; border: 0; border-left: 2px solid transparent; cursor: pointer; }
 .step-rows li[data-evidence] button { background: var(--tg-wash); }
 .step-rows button[aria-current='true'] { font-weight: 600; border-left-color: var(--tg-ink); }
 .step-label { overflow: hidden; font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }
@@ -213,7 +222,7 @@
   .detail-panel.is-full { height: 90vh; }
   .sheet-size { display: inline-block; }
   .grabber { position: absolute; top: 6px; left: calc(50% - 16px); display: block; width: 32px; height: 4px; background: var(--tg-ink-muted); border-radius: 2px; }
-  .panel-close, .sheet-size { min-height: 36px; }
+  .panel-close, .sheet-size { min-height: 44px; min-width: 44px; }
   html.tg-sheet-open { scroll-padding-bottom: 60vh; }
   html.tg-sheet-full { scroll-padding-bottom: 90vh; }
 }

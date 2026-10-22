@@ -1,4 +1,5 @@
-// The inline legend (DESIGN §9.1): the real glyphs with their words. Shape is the code; there is no colour key.
+// The Key (DESIGN §9.1, §18.2 CL3): the real glyphs with their words, folded behind the Key button at the right end of
+// the route header and shown as a row under it. Shape is the code; there is no colour key. Each glyph also says its kind in its own accessible name.
 import { BlazeIcon, KindGlyph } from './Glyph';
 import type { Episode, SessionGraph } from '../../shared/session/types';
 
@@ -14,11 +15,11 @@ export function legendKinds(g: SessionGraph): Set<string> {
 }
 
 /** `kinds`: show only these entries (by kind, or "trouble" / "resolved"); all of them when omitted. */
-export function MapLegend({ kinds }: { kinds?: Set<string> | undefined } = {}) {
+export function MapLegend({ kinds, id, open = true }: { kinds?: Set<string> | undefined; id?: string; open?: boolean } = {}) {
   const has = (k: string) => !kinds || kinds.has(k);
   return (
     // oxlint-disable-next-line jsx-a11y/no-redundant-roles -- Safari drops list semantics under list-style: none
-    <ul className="legend" role="list" aria-label="Legend">
+    <ul id={id} className="legend" role="list" aria-label="Legend" hidden={!open}>
       {KINDS.filter(([kind]) => has(kind)).map(([kind, word]) => <li key={kind}><KindGlyph kind={kind} />{word}</li>)}
       {has('trouble') && <li className="legend-plate"><BlazeIcon kind="error-streak" resolved={false} badge="" />trouble</li>}
       {has('resolved') && <li className="legend-plate"><BlazeIcon kind="error-streak" resolved badge="" />resolved</li>}
