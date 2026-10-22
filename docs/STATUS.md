@@ -36,7 +36,7 @@ STATE: IN-PROGRESS
 | 25 | `phase-25-polish` | [#26](https://github.com/geekplux/reasontrail/pull/26) | PASS, PR open | 2 |
 | 26 | `phase-26-readme-community` | [#27](https://github.com/geekplux/reasontrail/pull/27) | PASS, PR open | 2 |
 | 27 | `phase-27-gallery-launch` | [#28](https://github.com/geekplux/reasontrail/pull/28) | PASS, PR open | 2 |
-| 28 | `phase-28-deploy-prep` | - | PASS, PR open | 1 |
+| 28 | `phase-28-deploy-prep` | [#29](https://github.com/geekplux/reasontrail/pull/29) | PASS, PR open | 1 |
 
 ## Follow-ups
 
@@ -48,4 +48,4 @@ STATE: IN-PROGRESS
 - Polish backlog for phase 25: `--list` mixes two time formats; Grok fixture delegate episode shows 2 steps in Outline vs 8 on the Map; Map/Outline toggle looks clipped at 390 px; AI wording with one request/link ("1 request, one after another", "1 claim links"); AI tags crowd at 12 episodes; flaky `src/App.test.tsx` copy-link test under load; lens footer still says nothing leaves the browser after live opt-in; initial JS at 150 KB (lazy-load lens chips if the first view grows); chat maps say "the agent's own account" and label a user correction "Interrupted:" (chat-specific wording).
 - Go-public checklist (Sean): enable private vulnerability reporting (SECURITY.md / issue config link); upload the social preview image in repo settings (phase 27); review CLAUDE.md and docs/ for internal notes before making the repo public; replace the `https://reasontrail.example` placeholders after deploy (docs/DEPLOY.md lists them).
 
-Last updated: 2026-10-22 12:47 UTC (phase 28 verified)
+Last updated: 2026-10-22 12:48 UTC (phase 28 PR opened)
