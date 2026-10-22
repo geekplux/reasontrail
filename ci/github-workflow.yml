@@ -30,8 +30,14 @@ jobs:
       - run: pnpm build
       - run: pnpm check:size
       - run: pnpm check:docs
+      - run: pnpm build:cli
+      # The published tarball holds only the built CLI, the viewer template, package.json, README and LICENSE.
+      - run: pnpm check:pack
+      # Dry run only: bundles the Worker and lists its bindings; needs no Cloudflare account and deploys nothing.
+      - run: pnpm run check:deploy
+      # --headers serves dist/ with public/_headers applied, so every flow runs under the production CSP.
       - name: Headless browser check (system Chrome on the runner)
-        run: pnpm check:browser --no-build --out .tmp/screenshots
+        run: pnpm check:browser --no-build --headers --out .tmp/screenshots
         env:
           CHROME_PATH: /usr/bin/google-chrome
       - uses: actions/upload-artifact@v4

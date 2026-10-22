@@ -1,18 +1,21 @@
-// token-garden: one Worker serves the SPA (static assets from ./dist) and /api/* (docs/PLAN.md §5.3).
-// Deployment is the final phase and needs Sean's approval; locally only `pnpm run check:deploy` (a dry run) is used.
+// Reasontrail: one Worker serves the showcase site (static assets from ./dist, headers from public/_headers) and the
+// two optional AI endpoints, POST /api/next-tokens (the lens) and POST /api/structure (AI labels), in worker/handler.ts.
+// Deploying needs Sean's approval: locally only `pnpm run check:deploy` (a dry run) is used. Runbook: docs/DEPLOY.md.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "token-garden",
+  "name": "reasontrail",
   "main": "worker/index.ts",
   "compatibility_date": "2026-04-26",
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
+    // Only /api/* reaches the Worker; every other path is a static asset (or index.html) with no Worker invocation.
     "run_worker_first": ["/api/*"]
   },
   "ai": { "binding": "AI" },
-  // No id (PLAN D10): wrangler provisions the namespace on the first real deploy; see docs/DEPLOY.md (phase 13).
+  // No id (PLAN D10): the first real deploy provisions the namespace, so the dry run needs no account. To pin it,
+  // `wrangler kv namespace create TG_CACHE` and add its "id" here (docs/DEPLOY.md).
   "kv_namespaces": [{ "binding": "TG_CACHE" }],
   // Per-IP limits keyed by CF-Connecting-IP (worker/limits.ts): RL_MISS before an upstream call, RL_ALL on every request.
   "ratelimits": [
@@ -20,10 +23,11 @@
     { "name": "RL_ALL", "namespace_id": "1002", "simple": { "limit": 120, "period": 60 } }
   ],
   // UPSTREAM "openai-compatible" also needs OPENAI_BASE_URL and OPENAI_MODEL here and the secret OPENAI_API_KEY
-  // (`wrangler secret put OPENAI_API_KEY`); see docs/EXTENDING.md.
+  // (`wrangler secret put OPENAI_API_KEY`); see docs/EXTENDING.md and docs/DEPLOY.md.
   "vars": {
     "MODEL_ID": "@cf/zai-org/glm-4.7-flash",
     "UPSTREAM": "workers-ai",
     "DAILY_UPSTREAM_CAP": "1000"
-  }
+  },
+  "observability": { "enabled": true }
 }
