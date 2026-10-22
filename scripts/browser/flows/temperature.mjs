@@ -32,6 +32,7 @@ async function open(page, url, w = 1280, h = 800) {
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="garden"][data-ready="true"]', { timeout: 10_000 });
   await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
 }
 
 /** Every drawn number against the recording at temperature t; returns problems and the tip positions. */
