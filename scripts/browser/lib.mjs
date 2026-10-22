@@ -7,9 +7,9 @@ import { dirname, join } from 'node:path';
 const require = createRequire(import.meta.url);
 export const viteBin = join(dirname(require.resolve('vite/package.json')), 'bin', 'vite.js');
 
-/** Parses `[--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>]`. */
+/** Parses `[--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>] [--before]`. */
 export function parseArgs(argv) {
-  const opts = { flows: 'all', out: '.tmp/screenshots', build: true, failAfterLaunch: false, file: undefined };
+  const opts = { flows: 'all', out: '.tmp/screenshots', build: true, failAfterLaunch: false, file: undefined, before: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const value = () => {
@@ -22,6 +22,7 @@ export function parseArgs(argv) {
     else if (arg === '--file') opts.file = value();
     else if (arg === '--no-build') opts.build = false;
     else if (arg === '--fail-after-launch') opts.failAfterLaunch = true;
+    else if (arg === '--before') opts.before = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
   return opts;

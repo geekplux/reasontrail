@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Headless-browser check: build, start `vite preview` in its own process group, run flows in ONE system
 // Chrome, fail on console errors / non-same-origin requests / axe serious+critical, and ALWAYS clean up.
-// Usage: pnpm check:browser [--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>]
+// Usage: pnpm check:browser [--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>] [--before]
 // --file opens one local HTML file (e.g. a CLI map) instead: no build, no server; flow "file" checks it.
+// --before tells the polish flow to write <out>/before/ instead of <out>/after/.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -12,7 +13,7 @@ import { killGroup, killGroupSync, parseArgs, startPreview, viteBin, waitForHttp
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const flowsDir = join(root, 'scripts', 'browser', 'flows');
-const BRAND_FLOWS = new Set(['hero', 'gallery', 'brand']); // write to committed paths; never part of "all"
+const BRAND_FLOWS = new Set(['hero', 'gallery', 'brand', 'polish']); // write to committed paths; never part of "all"
 
 const opts = parseArgs(process.argv.slice(2));
 const port = Number(process.env.TG_PORT ?? 4317);
@@ -46,7 +47,7 @@ try {
   if (opts.build && !opts.file) {
     const build = spawnSync(process.execPath, [viteBin, 'build'], { cwd: root, stdio: 'inherit' });
     if (build.status !== 0) throw new Error(`build failed (exit ${build.status})`);
-    if (flows.includes('cli')) {
+    if (flows.includes('cli') || flows.includes('polish')) {
       const cli = spawnSync('pnpm', ['run', 'build:cli'], { cwd: root, stdio: 'inherit' });
       if (cli.status !== 0) throw new Error(`build:cli failed (exit ${cli.status})`);
     }
@@ -85,7 +86,7 @@ try {
     };
     try {
       const flow = await import(pathToFileURL(join(flowsDir, `${name}.mjs`)).href);
-      await flow.run({ page, context, baseURL, fileURL, root, shot, log, fail });
+      await flow.run({ page, context, baseURL, fileURL, root, outDir, before: opts.before, shot, log, fail });
       log('done');
     } catch (err) {
       fail(`threw: ${err instanceof Error ? err.stack : err}`);
