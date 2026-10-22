@@ -1,0 +1,22 @@
+Skip to content
+Chat history
+
+You said:
+My sourdough starter smells like nail polish remover. Is it ruined?
+ChatGPT said:
+Thought for 4 seconds
+It is not ruined. An acetone smell means the yeast and bacteria are hungry: they have eaten the flour and are producing acetic compounds.
+
+Feed it more often, for example twice a day at a 1:2:2 ratio (starter, flour, water by weight), and keep it somewhere around 24 °C.
+You said:
+No, that's wrong, I already feed it twice a day.
+ChatGPT said:
+Thanks, that changes things. If it is fed twice a day and still smells of acetone, try:
+
+1. A larger feed (1:5:5) so it takes longer to run out of food.
+2. Some whole-grain rye in the flour mix.
+3. A slightly cooler spot, so it rises more slowly.
+You said:
+Rye helped. How do I know when it is ready to bake with?
+ChatGPT said:
+It is ready when it doubles within 4 to 6 hours of a feed, has a domed top and smells pleasantly sour. A spoonful that floats in water is a useful extra check.

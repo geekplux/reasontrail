@@ -1,0 +1,165 @@
+[
+  {
+    "uuid": "5ca1ab1e-0000-4000-8000-000000000001",
+    "name": "Dense bread bottom",
+    "created_at": "2026-10-12T09:00:00.000Z",
+    "updated_at": "2026-10-12T09:10:05.000Z",
+    "account": {
+      "uuid": "acc-fixture"
+    },
+    "current_leaf_message_uuid": "m6",
+    "chat_messages": [
+      {
+        "uuid": "m1",
+        "text": "",
+        "content": [
+          {
+            "type": "text",
+            "text": "Why does my bread loaf have a dense bottom layer?"
+          }
+        ],
+        "sender": "human",
+        "created_at": "2026-10-12T09:00:00.000Z",
+        "updated_at": "2026-10-12T09:00:00.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "uuid": "m2",
+        "text": "",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "Dense bottom: under-proofed dough, too much water, or the oven floor not hot enough. Ask about the bake."
+          },
+          {
+            "type": "text",
+            "text": "Usually the dough was under-proofed or the oven floor was not hot enough. How long did it rise, and do you bake on a stone?"
+          }
+        ],
+        "sender": "assistant",
+        "created_at": "2026-10-12T09:00:20.000Z",
+        "updated_at": "2026-10-12T09:00:20.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "m1"
+      },
+      {
+        "uuid": "m3",
+        "text": "",
+        "content": [
+          {
+            "type": "text",
+            "text": "Two hours, no stone."
+          }
+        ],
+        "sender": "human",
+        "created_at": "2026-10-12T09:02:00.000Z",
+        "updated_at": "2026-10-12T09:02:00.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "m2"
+      },
+      {
+        "uuid": "m4a",
+        "text": "",
+        "content": [
+          {
+            "type": "text",
+            "text": "Then let it rise longer."
+          }
+        ],
+        "sender": "assistant",
+        "created_at": "2026-10-12T09:02:10.000Z",
+        "updated_at": "2026-10-12T09:02:10.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "m3"
+      },
+      {
+        "uuid": "m4",
+        "text": "",
+        "content": [
+          {
+            "type": "thinking",
+            "thinking": "Two hours may be enough in a warm kitchen; the missing stone is the stronger clue."
+          },
+          {
+            "type": "text",
+            "text": "Preheat a heavy tray or a cast-iron pan for 30 minutes and bake the loaf on it; the bottom gets the heat it needs."
+          }
+        ],
+        "sender": "assistant",
+        "created_at": "2026-10-12T09:03:00.000Z",
+        "updated_at": "2026-10-12T09:03:00.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "m3"
+      },
+      {
+        "uuid": "m5",
+        "text": "",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thanks, I will try the cast-iron pan."
+          }
+        ],
+        "sender": "human",
+        "created_at": "2026-10-12T09:10:00.000Z",
+        "updated_at": "2026-10-12T09:10:00.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "m4"
+      },
+      {
+        "uuid": "m6",
+        "text": "",
+        "content": [
+          {
+            "type": "text",
+            "text": "Good luck. Let it cool for an hour before slicing."
+          }
+        ],
+        "sender": "assistant",
+        "created_at": "2026-10-12T09:10:05.000Z",
+        "updated_at": "2026-10-12T09:10:05.000Z",
+        "attachments": [],
+        "files": [],
+        "parent_message_uuid": "m5"
+      }
+    ]
+  },
+  {
+    "uuid": "5ca1ab1e-0000-4000-8000-000000000002",
+    "name": "",
+    "created_at": "2026-10-13T18:00:00.000Z",
+    "updated_at": "2026-10-13T18:00:04.000Z",
+    "account": {
+      "uuid": "acc-fixture"
+    },
+    "chat_messages": [
+      {
+        "uuid": "n1",
+        "text": "List three easy houseplants.",
+        "content": [],
+        "sender": "human",
+        "created_at": "2026-10-13T18:00:00.000Z",
+        "updated_at": "2026-10-13T18:00:00.000Z",
+        "attachments": [],
+        "files": []
+      },
+      {
+        "uuid": "n2",
+        "text": "Pothos, snake plant and ZZ plant.",
+        "content": [],
+        "sender": "assistant",
+        "created_at": "2026-10-13T18:00:04.000Z",
+        "updated_at": "2026-10-13T18:00:04.000Z",
+        "attachments": [],
+        "files": []
+      }
+    ]
+  }
+]

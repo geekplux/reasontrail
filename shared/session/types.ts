@@ -190,6 +190,8 @@ export interface SessionGraph {
   trouble: Trouble[];
   outcome: Outcome;
   stats: SessionStats;
+  /** Plain-language notes on how the source was read, when the adapter had to guess (e.g. a chat without speaker names). */
+  notes?: string[];
   /** Samples only: a short authored title (tools/session-samples.json) for the showcase heading; the raw first request
    * stays in the task card's "more" and in the outline. */
   displayTitle?: string;
@@ -241,4 +243,6 @@ export interface NormalizedSession {
   /** Records of all lanes, in file order per lane. Chained records without content keep `items: []`. */
   records: NormalizedRecord[];
   stats: Omit<SessionStats, 'steps' | 'durationMs'>;
+  /** Copied to {@link SessionGraph.notes}. */
+  notes?: string[];
 }

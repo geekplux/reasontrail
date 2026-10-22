@@ -1,5 +1,6 @@
 // buildGraph: the one entry point from a normalized session to a SessionGraph. No AI, no clock, no randomness.
 import { SCHEMA_VERSION, type Lane, type NormalizedSession, type SessionGraph } from '../types';
+import { chatTrouble } from './chatTrouble';
 import { buildEpisodes, plainText } from './episodes';
 import { buildOutcome, fileHistory, verifications } from './outcome';
 import { buildSteps, sortEdges } from './steps';
@@ -41,7 +42,7 @@ export function buildGraph(session: NormalizedSession): SessionGraph {
   const episodes = buildEpisodes(steps, lanes, cwd);
   const history = fileHistory(steps, cwd);
   const checks = verifications(steps);
-  const found = findTrouble(steps, edges, episodes, history, checks, cwd);
+  const found = session.source.kind === 'chat' ? { trouble: chatTrouble(steps, edges), edges: [] } : findTrouble(steps, edges, episodes, history, checks, cwd);
   const firstUser = steps.find((s) => s.kind === 'user' && s.laneId === (lanes[0]?.id ?? 'main') && s.text);
 
   const graph: SessionGraph = {
@@ -56,6 +57,7 @@ export function buildGraph(session: NormalizedSession): SessionGraph {
     outcome: buildOutcome(steps, history, checks, lanes[0]?.id ?? 'main', cwd),
     stats: { steps: steps.length, ...session.stats },
   };
+  if (session.notes?.length) graph.notes = [...session.notes];
   const duration = startedAt && endedAt ? Date.parse(endedAt) - Date.parse(startedAt) : Number.NaN;
   if (Number.isFinite(duration)) graph.stats.durationMs = duration;
   return graph;

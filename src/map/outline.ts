@@ -135,6 +135,7 @@ export function parseNotes(g: SessionGraph): string[] {
   const bad = g.stats.skippedLines - g.stats.partialLines;
   if (bad > 0) notes.push(`${plural(bad, 'line')} could not be read and ${bad === 1 ? 'was' : 'were'} skipped.`);
   if (g.stats.partialLines > 0) notes.push('This session is still being written; the last line was incomplete and was skipped. Run the command again to update.');
+  notes.push(...(g.notes ?? []));
   return notes;
 }
 

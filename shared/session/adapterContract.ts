@@ -4,8 +4,16 @@ import { buildGraph } from './build/graph';
 import { firstLines } from './jsonl';
 import type { SessionGraph, SessionInput } from './types';
 
-/** Appended to the main file to prove the adapter counts what it cannot read. */
-const PROBE = 'this is not json\n{"type":"tg-contract-unknown-record"}\n{"type":"user","mess';
+/** How the contract proves an adapter counts what it cannot read: text appended to the main file (cut at its last
+ * newline) and the stat deltas it must cause. */
+export interface ContractProbe {
+  append: string;
+  skippedLines: number;
+  partialLines: number;
+  unknownRecords: number;
+}
+/** The JSONL probe: a malformed line, an unknown record and a partial last line. */
+export const JSONL_PROBE: ContractProbe = { append: 'this is not json\n{"type":"tg-contract-unknown-record"}\n{"type":"user","mess', skippedLines: 2, partialLines: 1, unknownRecords: 1 };
 
 function build(adapter: SessionAdapter, input: SessionInput): SessionGraph | string {
   try {
@@ -15,10 +23,11 @@ function build(adapter: SessionAdapter, input: SessionInput): SessionGraph | str
   }
 }
 
-/** Check one adapter against one input. Each returned string names one broken rule. */
-export function checkAdapterContract(adapter: SessionAdapter, input: SessionInput): string[] {
+/** Check one adapter against one input. Each returned string names one broken rule. The main file is the first
+ * `.jsonl` (else the first file, for text sources, which pass their own `probe`). */
+export function checkAdapterContract(adapter: SessionAdapter, input: SessionInput, probe: ContractProbe = JSONL_PROBE): string[] {
   const out: string[] = [];
-  const main = input.files.find((f) => f.path.endsWith('.jsonl'));
+  const main = input.files.find((f) => f.path.endsWith('.jsonl')) ?? (probe === JSONL_PROBE ? undefined : input.files[0]);
   if (!main) return ['input has no .jsonl file'];
   if (!adapter.sniff(firstLines(main.text))) out.push('sniff rejects its own input');
 
@@ -53,11 +62,11 @@ export function checkAdapterContract(adapter: SessionAdapter, input: SessionInpu
   const cut = main.text.slice(0, main.text.lastIndexOf('\n') + 1);
   const withMain = (text: string): SessionInput => ({ files: input.files.map((f) => (f === main ? { path: f.path, text } : f)) });
   const base = build(adapter, withMain(cut));
-  const probed = build(adapter, withMain(cut + PROBE));
+  const probed = build(adapter, withMain(cut + probe.append));
   if (typeof probed === 'string' || typeof base === 'string') out.push(`probe ${String(probed)}`);
   else {
     const d = (k: 'skippedLines' | 'partialLines' | 'unknownRecords') => probed.stats[k] - base.stats[k];
-    if (d('skippedLines') !== 2 || d('partialLines') !== 1 || d('unknownRecords') !== 1) {
+    if (d('skippedLines') !== probe.skippedLines || d('partialLines') !== probe.partialLines || d('unknownRecords') !== probe.unknownRecords) {
       out.push(`probe not counted: skipped +${d('skippedLines')}, partial +${d('partialLines')}, unknown +${d('unknownRecords')}`);
     }
   }

@@ -1,4 +1,6 @@
 // Adapter interface, registry and the one-call entry point: files in, SessionGraph out.
+import { chatTextAdapter, maybeChatText, parseChatText } from './adapters/chat';
+import { chatExportAdapter } from './adapters/chatExports';
 import { claudeCodeAdapter } from './adapters/claudeCode';
 import { codexAdapter } from './adapters/codex';
 import { grokBuildAdapter } from './adapters/grokBuild';
@@ -16,8 +18,8 @@ export interface SessionAdapter {
   parse(input: SessionInput): NormalizedSession;
 }
 
-/** All adapters, in sniffing order (their record shapes do not overlap). Chat transcripts join in a later phase. */
-export const adapters: readonly SessionAdapter[] = [claudeCodeAdapter, grokBuildAdapter, codexAdapter];
+/** All adapters, in sniffing order (their record shapes do not overlap; plain-text chats last). */
+export const adapters: readonly SessionAdapter[] = [claudeCodeAdapter, grokBuildAdapter, codexAdapter, chatExportAdapter, chatTextAdapter];
 
 /** The adapter whose `sniff` accepts these lines, if any. */
 export function sniff(lines: string[]): SessionAdapter | undefined {
@@ -35,4 +37,11 @@ export function normalizeSession(input: SessionInput): NormalizedSession | undef
 export function parseSession(input: SessionInput): SessionGraph | undefined {
   const session = normalizeSession(input);
   return session ? buildGraph(session) : undefined;
+}
+
+/** As {@link parseSession}, but text that no adapter recognises and that is not JSON is read as a pasted chat (turns
+ * assumed to alternate, with a note on the map). For the website's paste box and dropped `.txt` files. */
+export function parseChat(input: SessionInput): SessionGraph | undefined {
+  const text = input.files[0]?.text ?? '';
+  return parseSession(input) ?? (maybeChatText(text) ? buildGraph(parseChatText(input)) : undefined);
 }
