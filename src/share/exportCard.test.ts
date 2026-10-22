@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSessionGraph } from '../sessions/samples';
-import { CARD_H, CARD_W, cardLabel, cardShapes, cardSvg, cardTitle, fit, pathSegments, wrap, type Measure, type Shape } from './exportCard';
+import { CARD_H, CARD_W, balance, cardLabel, cardShapes, cardSvg, cardTitle, fit, pathSegments, wrap, type Measure, type Shape } from './exportCard';
 
 const measure: Measure = (text, font) => text.length * font.size * 0.5;
 const colors = { paper: 'var(--p)', ink: 'var(--i)', muted: 'var(--m)', trouble: 'var(--t)', ok: 'var(--o)' };
@@ -40,7 +40,7 @@ describe('cardShapes', () => {
     expect(title.length).toBeGreaterThan(0);
     expect(title.length).toBeLessThanOrEqual(2);
     expect(t.filter((x) => x.font.size === 24 && x.font.weight === 600 && x.x > 64 + 20)).toHaveLength(3);
-    expect(t.at(-1)?.text).toBe('Redacted copy · reasontrail');
+    expect(t.at(-1)?.text).toBe('Redacted copy');
   });
 
   it('numbers each blaze, and marks open ones by fill shape as well as colour', () => {
@@ -70,13 +70,14 @@ describe('cardShapes', () => {
     expect(at(64 + 8).map((x) => x.t === 'circle' && x.r)).toContain(8);
   });
 
-  it('starts each glance row with a status glyph that is a shape, not only a colour', () => {
+  it('starts each glance row with a glyph that is a shape, not only a colour, as on the map', () => {
+    // The verify row: a status disc or ring; the trouble row: a "!" plate; the files row: a filled square.
     const glyphs = shapes.filter((x): x is Extract<Shape, { t: 'circle' }> => x.t === 'circle' && x.r === 11);
-    expect(glyphs).toHaveLength(3);
-    // A hollow glyph has a stroke; a filled one carries a paper ✓ or ✕ (two lines each).
+    expect(glyphs).toHaveLength(1);
     expect(glyphs.every((g) => g.fill !== 'var(--p)' || g.width > 0)).toBe(true);
+    const open = defaultSessionGraph.trouble.some((t) => !t.resolved);
     const marks = shapes.filter((x) => x.t === 'line' && x.stroke === 'var(--p)');
-    expect(marks).toHaveLength(2 * glyphs.filter((g) => g.fill !== 'var(--p)').length);
+    expect(marks).toHaveLength(2 * glyphs.filter((g) => g.fill !== 'var(--p)').length + (open ? 1 : 0));
   });
 });
 
@@ -98,5 +99,24 @@ describe('pathSegments and cardTitle', () => {
     const k = g.trouble.filter((t) => t.resolved).length;
     expect(g.trouble.length).toBeGreaterThan(0);
     expect(cardLabel(g)).toContain(`${g.trouble.length - k} open, ${k} resolved`);
+  });
+});
+
+describe('card polish (phase 25)', () => {
+  const font = { family: 'serif' as const, size: 20 };
+  it('never leaves one lone word on the last title line (SC1)', () => {
+    expect(balance(['one two three', 'four'], 200, font, measure)).toEqual(['one two', 'three four']);
+    expect(balance(['one two', 'three four'], 200, font, measure)).toEqual(['one two', 'three four']);
+    expect(balance(['one', 'two'], 200, font, measure)).toEqual(['one', 'two']);
+  });
+  it('writes alt text without doubled stops (SD4)', () => {
+    const label = cardLabel({ ...defaultSessionGraph, displayTitle: 'A title…' });
+    expect(label).not.toMatch(/…\.|\.\./);
+    expect(label).toMatch(/^Reasontrail map card: A title\. /);
+  });
+  it('draws the trouble and files rows with the map\'s square glyphs (SC2)', () => {
+    const shapes = cardShapes(defaultSessionGraph, colors, measure);
+    expect(shapes.filter((x) => x.t === 'rect' && x.w === 14 && x.fill === 'var(--i)')).toHaveLength(1);
+    expect(shapes.some((x) => x.t === 'rect' && x.w === 20)).toBe(true);
   });
 });

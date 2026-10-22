@@ -1,5 +1,5 @@
-// The local viewer's chrome (DESIGN §13.1): wordmark, Map/Outline, the privacy line, an optional shared-copy ribbon,
-// the map (or the outline, `#view=outline`) and a one-line footer. No website navigation.
+// The local viewer's chrome (DESIGN §13.1, §18.1): wordmark and Map/Outline, an optional quiet shared-copy line, the map
+// (or the outline, `#view=outline`) and a one-line footer that says where the page was made. No website navigation.
 import { useEffect, useState } from 'react';
 import { Wordmark } from '../brand/Wordmark';
 import { HOW_TO_READ_URL } from '../map/HonestyLabel';
@@ -27,8 +27,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
     <>
       <header className="site-header viewer-header">
         <Wordmark />
-        {loaded.ok ? <ViewSwitch view={view} onChange={change} /> : <span />}
-        <p className="viewer-privacy">Generated on your machine · nothing was uploaded</p>
+        {loaded.ok ? <ViewSwitch view={view} onChange={change} /> : null}
       </header>
       {meta?.shared && (
         <section className="shared-ribbon" aria-label="Shared copy">Shared copy · redacted ({meta.shared.replaced} items replaced)</section>
@@ -42,7 +41,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
         )}
       </main>
       <footer className="viewer-footer">
-        Reasontrail {meta?.version ?? ''} · <a href={HOW_TO_READ_URL}>How to read this map</a> · <a href={SOURCE}>Source</a>
+        <span className="viewer-privacy">Generated on your machine · nothing was uploaded</span> · Reasontrail {meta?.version ?? ''} · <a href={HOW_TO_READ_URL}>How to read this map</a> · <a href={SOURCE}>Source</a>
         {loaded.ok && <> · <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} prior={meta?.shared?.replaced} /></>}
       </footer>
     </>

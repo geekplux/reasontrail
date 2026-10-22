@@ -98,11 +98,17 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
       }}
     >
       <h2 id={titleId} className="share-title">Save a shareable copy</h2>
-      <p id={descId} className="share-summary" data-share-summary>
-        {c.total - c.cut > 0 ? `${n(c.secrets, 'secret')}, ${n(c.emails, 'email')}, ${n(c.paths, 'path')} will be replaced.` : 'No secrets, emails or home paths were found to replace.'}
-        {c.cut > 0 && ` ${n(c.cut, 'cut-off string')} that might start a secret will be replaced too.`}
-        {c.dropped > 0 && ` ${n(c.dropped, 'non-conversation record')} will be left out.`}
-      </p>
+      {/* The redaction result (SD1): what was found, then (muted) what else is replaced or left out. */}
+      <div id={descId} className="share-summary" data-share-summary>
+        <p>{c.total - c.cut > 0 ? `${n(c.secrets, 'secret')}, ${n(c.emails, 'email')}, ${n(c.paths, 'path')} will be replaced.` : 'No secrets, emails or home paths found.'}</p>
+        {(c.cut > 0 || c.dropped > 0) && (
+          <p className="muted">
+            {c.cut > 0 && `${n(c.cut, 'cut-off string')} will be replaced too.`}
+            {c.cut > 0 && c.dropped > 0 && ' '}
+            {c.dropped > 0 && `${n(c.dropped, 'non-conversation record')} will be left out.`}
+          </p>
+        )}
+      </div>
       <dl className="share-facts">
         <dt>Included</dt>
         <dd>The map: {n(plan.graph.episodes.length, 'episode')}, {n(plan.graph.steps.length, 'step')}{plan.rawExcerpts > 0 && `, and ${n(plan.rawExcerpts, 'raw excerpt')} (each at most ${RAW_TEXT_MAX.toLocaleString('en')} characters)`}</dd>
@@ -123,7 +129,7 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
       </div>
       <div className="share-actions">
         <button type="button" className="share-primary" aria-disabled={busy || undefined} onClick={() => void saveHtml()}>Download HTML</button>
-        <button type="button" aria-disabled={busy || undefined} onClick={() => void saveCard()}>Download map card (PNG)</button>
+        <button type="button" className="share-secondary" aria-disabled={busy || undefined} onClick={() => void saveCard()}>Download map card (PNG)</button>
         <button type="button" className="text-button share-close" onClick={onClose}>Close</button>
       </div>
       {alt && (

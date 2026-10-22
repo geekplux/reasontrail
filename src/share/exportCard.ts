@@ -1,6 +1,6 @@
 // The map card (DESIGN §13.9, DM37): the glance view as a 1200×630 picture for a PR or a post. Paper background,
 // wordmark top-left, the task title in serif 48 (2 lines at most), the route alone with numbered blazes at y = 360,
-// the three At a glance rows in UI 24, and "Redacted copy · reasontrail" in mono at the bottom right. Colours come
+// the three At a glance rows in UI 24 (with the map's glyphs), and "Redacted copy" in mono at the bottom right. Colours come
 // from the theme tokens (light or night); meaning never rests on colour: open blazes are filled, resolved ones hollow,
 // and each glance row starts with a symbol and says its status in words. One list of shapes feeds both the SVG and the
 // canvas (the canvas uses the page's loaded fonts, which an SVG drawn as an image cannot).
@@ -73,6 +73,16 @@ function markShapes(x: number, y: number, k: number, ink: string, paper: string)
   return [dot(4.5, 20, 3.5, ink), ...lines(TRAIL_MARK.route, 3.5), ...lines(TRAIL_MARK.spur, 2), ...lines(TRAIL_MARK.bar, 2), dot(26.5, 12, 4, paper, 2.5), dot(26.5, 12, 1.5, ink)];
 }
 
+/** The map's square glance glyphs (SC2), centred at (`x`, `y`): "!" on a plate (trouble-filled while a pattern is open,
+ * else paper in an ink frame), or a filled ink square for the files row. */
+function square(kind: 'open' | 'neutral' | 'files', x: number, y: number, c: CardColors): Shape[] {
+  const h = 10;
+  if (kind === 'files') return [{ t: 'rect', x: x - 7, y: y - 7, w: 14, h: 14, fill: c.ink }];
+  const [fill, mark] = kind === 'open' ? [c.trouble, c.paper] : [c.paper, c.ink];
+  const frame: Shape[] = kind === 'open' ? [{ t: 'rect', x: x - h, y: y - h, w: 2 * h, h: 2 * h, fill }] : [{ t: 'rect', x: x - h, y: y - h, w: 2 * h, h: 2 * h, fill: c.ink }, { t: 'rect', x: x - h + 2, y: y - h + 2, w: 2 * h - 4, h: 2 * h - 4, fill }];
+  return [...frame, { t: 'line', x1: x, y1: y - 5.5, x2: x, y2: y + 1.5, stroke: mark, width: 2.5 }, { t: 'circle', cx: x, cy: y + 5.5, r: 1.6, fill: mark, stroke: mark, width: 0 }];
+}
+
 /** A glance row's status glyph, centred at (`x`, `y`): ✕ on a trouble disc, ✓ on an ok disc, or a hollow circle. */
 function glyph(status: 'ok' | 'error' | 'unknown', x: number, y: number, c: CardColors): Shape[] {
   const r = 11;
@@ -82,9 +92,23 @@ function glyph(status: 'ok' | 'error' | 'unknown', x: number, y: number, c: Card
   return status === 'ok' ? [disc, ln(-5, 0.5, -1.5, 4), ln(-1.5, 4, 5, -4)] : [disc, ln(-4.5, -4.5, 4.5, 4.5), ln(-4.5, 4.5, 4.5, -4.5)];
 }
 
+/** Two uncut lines whose last holds one lone word take one more word down from the line above, when it fits (SC1). */
+export function balance(lines: string[], width: number, font: Font, measure: Measure): string[] {
+  const [a, b] = lines;
+  if (lines.length !== 2 || a === undefined || b === undefined || /\s/.test(b) || b.endsWith('…')) return lines;
+  const cut = a.lastIndexOf(' ');
+  if (cut <= 0) return lines;
+  const next = `${a.slice(cut + 1)} ${b}`;
+  return measure(next, font) <= width ? [a.slice(0, cut), next] : lines;
+}
+
 /** The card's title: the first sentence alone when the title opens with a redaction placeholder and that sentence
- * fits the two lines uncut; otherwise the whole title, wrapped and cut. */
+ * fits the two lines uncut; otherwise the whole title, wrapped and cut; a last line never holds a lone word. */
 export function cardTitle(text: string, width: number, font: Font, measure: Measure): string[] {
+  return balance(titleLines(text, width, font, measure), width, font, measure);
+}
+
+function titleLines(text: string, width: number, font: Font, measure: Measure): string[] {
   const lines = wrap(text, width, font, measure);
   const re = new RegExp(PLACEHOLDER.source, 'y');
   if (!re.test(lines[0] ?? '')) return lines;
@@ -136,14 +160,15 @@ export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Sh
   const rest: Font = { family: 'ui', size: 24 };
   glance(g).forEach((r, i) => {
     const y = 456 + i * 44;
-    s.push(...glyph(r.status, M + 12, y - 8, c));
+    const open = g.trouble.some((t) => !t.resolved);
+    s.push(...(r.key === 'trouble' && g.trouble.length > 0 ? square(open ? 'open' : 'neutral', M + 12, y - 8, c) : r.key === 'files' ? square('files', M + 12, y - 8, c) : glyph(r.status, M + 12, y - 8, c)));
     const x = M + 40;
     const leadText = fit(r.lead, W - 40, lead, measure);
     s.push({ t: 'text', x, y, text: leadText, font: lead, fill: c.ink });
     const w = measure(leadText, lead);
     if (r.rest && w < W - 80) s.push({ t: 'text', x: x + w, y, text: fit(r.rest, W - 40 - w, rest, measure), font: rest, fill: c.muted });
   });
-  s.push({ t: 'text', x: CARD_W - M, y: CARD_H - 36, text: 'Redacted copy · reasontrail', font: { family: 'mono', size: 18 }, fill: c.muted, anchor: 'end' });
+  s.push({ t: 'text', x: CARD_W - M, y: CARD_H - 36, text: 'Redacted copy', font: { family: 'mono', size: 18 }, fill: c.muted, anchor: 'end' });
   return s;
 }
 
@@ -211,7 +236,9 @@ export function cardLabel(g: SessionGraph): string {
   const n = g.trouble.length;
   const k = g.trouble.filter((t) => t.resolved).length;
   const rows = glance(g).map((r) => (r.key === 'trouble' && n > 0 ? `${n} trouble ${n === 1 ? 'spot' : 'spots'}: ${n - k} open, ${k} resolved` : `${r.lead}${r.rest}`));
-  return `Reasontrail map card: ${g.displayTitle ?? g.title}. ${rows.join('. ')}.`;
+  // Each part ends in exactly one full stop, never "…." or ".." (SD4).
+  const part = (t: string) => t.trim().replace(/[.…]+$/, '');
+  return `Reasontrail map card: ${[g.displayTitle ?? g.title, ...rows].map(part).join('. ')}.`;
 }
 
 /** Render the card in the current theme: the PNG (via a canvas) and the SVG text. */
