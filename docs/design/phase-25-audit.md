@@ -1,3 +1,5 @@
+DESIGN: APPROVED (2026-10-22)
+
 # Phase 25 calm-layout audit
 
 Source: `docs/screenshots/phase-25/before/*` (1440 and 390, plus full-page shots and the dark map). Rules: DESIGN.md §18 (CL1–CL14, T1–T8). Each item is a checkable change. The file hints are where to start. **Status: before audit, sign-off pending.** `lead-designer` adds `DESIGN: APPROVED` here after reviewing the `after/` set.
