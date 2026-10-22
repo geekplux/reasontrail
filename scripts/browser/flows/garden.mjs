@@ -89,7 +89,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   if (await page.locator('.garden-key').evaluate((d) => d.open)) fail('the Key is open on load');
   await page.locator('.garden-key summary').focus();
   await page.keyboard.press('Enter');
-  if (!(await page.locator('.garden-key [data-role="legend-sample"]').first().isVisible())) fail('L4: Enter did not open the Key');
+  if (!(await page.locator('.garden-key .legend-lead').isVisible())) fail('L4: Enter did not open the Key');
   (await page.evaluate(audit)).forEach((p) => fail(`light: ${p}`));
   const fit = await page.evaluate(() => {
     const r = document.querySelector('[data-testid="garden"]').getBoundingClientRect();

@@ -29,7 +29,9 @@ export function Showcase({ session, view, onView, onSession }: { session: string
       live = false;
     };
   }, [graph, sample]);
-  const toggle = <ViewSwitch view={view} onChange={onView} />;
+  // Map/Outline heads the map on wide screens (G9); on a phone it follows the map, keeping the first screen to 4
+  // controls (CL2). Only one of the two is ever shown.
+  const toggle = <ViewSwitch view={view} onChange={onView} className="wide-only" />;
   return (
     <div className="showcase">
       <div className="hero">
@@ -42,6 +44,7 @@ export function Showcase({ session, view, onView, onSession }: { session: string
         {!graph ? <p className="muted">Loading the sample map…</p> : view === 'map' ? <MapView key={sample?.id} graph={graph} sample ai={LIVE_AI} head={toggle} /> : <Outline key={sample?.id} graph={graph} sample head={toggle} />}
         <div className="showcase-controls">
           <Gallery samples={sessionSamples} current={sample?.id ?? ''} onChoose={onSession} />
+          <ViewSwitch view={view} onChange={onView} className="narrow-only" />
           {graph && <ShareAction graph={graph} from="site" />}
         </div>
       </section>

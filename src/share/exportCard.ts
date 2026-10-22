@@ -236,8 +236,8 @@ export function cardLabel(g: SessionGraph): string {
   const n = g.trouble.length;
   const k = g.trouble.filter((t) => t.resolved).length;
   const rows = glance(g).map((r) => (r.key === 'trouble' && n > 0 ? `${n} trouble ${n === 1 ? 'spot' : 'spots'}: ${n - k} open, ${k} resolved` : `${r.lead}${r.rest}`));
-  // Each part ends in exactly one full stop, never "…." or ".." (SD4).
-  const part = (t: string) => t.trim().replace(/[.…]+$/, '');
+  // Each part ends in exactly one full stop, never "….", ".." or ",." (SD4).
+  const part = (t: string) => t.trim().replace(/[\s.,;:…]+$/, '');
   return `Reasontrail map card: ${[g.displayTitle ?? g.title, ...rows].map(part).join('. ')}.`;
 }
 

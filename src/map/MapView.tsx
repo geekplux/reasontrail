@@ -295,19 +295,21 @@ export type View = 'map' | 'outline';
 let refocus: View | null = null;
 
 /** Map / Outline (DESIGN §9.1, §18.3): two toggle buttons; the outline is the equivalent text view (G1). */
-export function ViewSwitch({ view, onChange }: { view: View; onChange(view: View): void }) {
+/** `className`: "wide-only" or "narrow-only" where a page shows the switch in a different place per width. */
+export function ViewSwitch({ view, onChange, className }: { view: View; onChange(view: View): void; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    if (refocus !== view) return;
+    // A switch hidden at this width leaves the focus to the one that is shown.
+    if (refocus !== view || !ref.current?.offsetParent) return;
     refocus = null;
-    ref.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
+    ref.current.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus();
   }, [view]);
   const pick = (next: View) => {
     if (next !== view) refocus = next;
     onChange(next);
   };
   return (
-    <div ref={ref} className="view-switch" role="group" aria-label="View">
+    <div ref={ref} className={className ? `view-switch ${className}` : 'view-switch'} role="group" aria-label="View">
       <button type="button" aria-pressed={view === 'map'} onClick={() => pick('map')}>Map</button>
       <button type="button" aria-pressed={view === 'outline'} onClick={() => pick('outline')}>Outline</button>
     </div>

@@ -21,7 +21,7 @@
 /* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point; the headline is the one large text */
 .showcase .task-request { display: flex; align-items: baseline; gap: var(--tg-space-2); }
 .showcase .task-title { min-width: 0; font-size: var(--tg-text-lg); }
-.showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-5); }
+.showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-8); }
 
 .gallery { margin: 0; padding: 0; border: 0; min-width: 0; }
 .gallery legend { padding: 0; }
@@ -32,6 +32,7 @@
 .gallery-segments label:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
 .gallery-segments label:not(:has(input:checked)) { color: var(--tg-ink-muted); }
 .gallery-select { display: none; }
+.view-switch.narrow-only { display: none; }
 
 .command { display: inline-flex; align-items: center; gap: var(--tg-space-2); max-width: 100%; padding: var(--tg-space-2) var(--tg-space-2) var(--tg-space-2) var(--tg-space-4); background: var(--tg-surface); border-radius: var(--tg-radius); }
 .command code { font: 500 15px var(--tg-font-mono); overflow-wrap: anywhere; }
@@ -98,6 +99,8 @@
   .hero { padding: var(--tg-space-5) 0 var(--tg-space-4); }
   .headline { font-size: var(--tg-text-xl); }
   .gallery-segments { display: none; }
+  .view-switch.wide-only { display: none; }
+  .view-switch.narrow-only { display: inline-flex; }
   .gallery-select { display: block; min-height: 36px; max-width: 100%; font: inherit; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
   .showcase-footer { padding: var(--tg-space-5) var(--tg-space-4); }
 }

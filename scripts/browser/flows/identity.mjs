@@ -111,8 +111,10 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   const mobile = await page.evaluate(() => {
     const vw = window.innerWidth;
     const scroller = document.querySelector('.garden-scroll');
+    // GA1: the sample picker is one sideways-scrolling line of its own on a phone.
+    const picker = document.querySelector('.picker-options');
     const outside = [...document.body.querySelectorAll('*')]
-      .filter((el) => !scroller?.contains(el) && el.getBoundingClientRect().right > vw + 0.5)
+      .filter((el) => !scroller?.contains(el) && !picker?.contains(el) && el.getBoundingClientRect().right > vw + 0.5)
       .map((el) => el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? `.${el.className}` : ''));
     const svg = document.querySelector('[data-testid="garden"]');
     const scale = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;

@@ -4,7 +4,6 @@
 import type { SessionGraph } from '../../shared/session/types';
 import { KindGlyph, StatusGlyph } from './Glyph';
 import { duration, fileLabel } from './outline';
-import { selectOnClick, useSelector } from './SelectContext';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -22,7 +21,6 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
   const top = full ? files : files.slice(0, 3);
   const max = Math.max(1, ...top.map((f) => f.edits));
   const answer = g.steps.find((s) => s.id === answerStepId);
-  const sel = useSelector();
   const chat = g.source.kind === 'chat';
   const finalAnswer = answer?.text ? (
     <>
@@ -66,7 +64,8 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
           )}
           {files.length > top.length && (
             <p className="muted more-files">
-              {sel ? <a href="#destination" onClick={selectOnClick(() => sel.select('files'))}>+{plural(files.length - top.length, 'more file', 'more files')}</a> : `+${plural(files.length - top.length, 'more file', 'more files')}`}
+              {/* Text, not a link: the glance's files row already opens every file (one control fewer, CL2). */}
+              +{plural(files.length - top.length, 'more file', 'more files')}
             </p>
           )}
           {revertedFiles ? <p className="muted">({plural(revertedFiles, 'reverted file')} not counted)</p> : null}
