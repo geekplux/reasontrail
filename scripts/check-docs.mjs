@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Docs check (PLAN S7, phase 26): every relative link and image in the top-level docs resolves to a committed file,
 // every image has descriptive alt text, and every `npx reasontrail …` command the README shows is one of `shared/commands.ts`
-// (the single source the CLI's --help, the skill installer and the website use).
+// (the single source the CLI's --help, the skill installer and the website use). Demo links
+// (`https://reasontrail.example/?session=<id>&step=<id>`, PLAN D20) must name a bundled sample and one of its steps.
 // Usage: pnpm check:docs
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -57,6 +58,35 @@ export function checkRefs(file, md, has) {
   return problems;
 }
 
+/** The placeholder demo origin (PLAN D20); replaced after Sean deploys. */
+export const DEMO_ORIGIN = 'https://reasontrail.example';
+
+/** Problems with demo links: each `?session=` must be a sample in `samples` (id → its step ids), each `?step=` one of
+ * that sample's steps. Links in code count too, since they are meant to be copied. */
+export function checkDemoLinks(file, md, samples) {
+  const problems = [];
+  const lineOf = (i) => md.slice(0, i).split('\n').length;
+  for (const m of md.matchAll(/https:\/\/reasontrail\.example\/?(\?[^\s)"'<>`]*)?/g)) {
+    const q = new URLSearchParams((m[1] ?? '').replace(/&amp;/g, '&'));
+    const session = q.get('session');
+    const step = q.get('step');
+    const where = `${file}:${lineOf(m.index)}`;
+    if (session === null) {
+      if (step !== null) problems.push(`${where}: demo link has a step but no session: ${m[0]}`);
+      continue;
+    }
+    const steps = samples.get(session);
+    if (!steps) problems.push(`${where}: demo link names an unknown sample "${session}": ${m[0]}`);
+    else if (step !== null && !steps.has(step)) problems.push(`${where}: demo link names a step "${step}" that ${session} does not have: ${m[0]}`);
+  }
+  return problems;
+}
+
+/** The bundled samples: id → the set of its step ids, read from `src/sessions/samples/<id>.graph.json`. */
+export function readSamples(dir) {
+  return new Map(readdirSync(dir).filter((f) => f.endsWith('.graph.json')).map((f) => [f.slice(0, -'.graph.json'.length), new Set(JSON.parse(readFileSync(join(dir, f), 'utf8')).steps.map((s) => s.id))]));
+}
+
 /** The command strings in `shared/commands.ts`, read from its source (Node 20 cannot import TypeScript). */
 export function readCommands(source) {
   const pkg = source.match(/PKG_NAME\s*=\s*'([^']+)'/)?.[1];
@@ -103,7 +133,11 @@ function main() {
     const rel = relative(root, resolve(root, p)).split('\\').join('/');
     return tracked ? tracked.has(rel) || dirs.has(rel) || rel === '' : existsSync(join(root, rel));
   };
-  const problems = files.flatMap((f) => checkRefs(f, readFileSync(join(root, f), 'utf8'), has));
+  const samples = readSamples(join(root, 'src', 'sessions', 'samples'));
+  const problems = files.flatMap((f) => {
+    const md = readFileSync(join(root, f), 'utf8');
+    return [...checkRefs(f, md, has), ...checkDemoLinks(f, md, samples)];
+  });
   problems.push(...checkCommands(readFileSync(join(root, 'README.md'), 'utf8'), readCommands(readFileSync(join(root, 'shared', 'commands.ts'), 'utf8'))));
   console.log(`check:docs: ${files.length} files checked`);
   if (problems.length) {

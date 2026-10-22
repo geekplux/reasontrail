@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { COMMANDS, NPX } from '../shared/commands';
-import { checkCommands, checkRefs, extractRefs, readCommands } from './check-docs.mjs';
+import { checkCommands, checkDemoLinks, checkRefs, extractRefs, readCommands, readSamples } from './check-docs.mjs';
 
 const source = readFileSync(new URL('../shared/commands.ts', import.meta.url), 'utf8');
 
@@ -52,5 +52,26 @@ describe('checkCommands', () => {
       'README.md: missing the command npx reasontrail install-skill',
       'README.md: missing the command npx reasontrail',
     ]);
+  });
+});
+
+describe('checkDemoLinks', () => {
+  const samples = new Map([['planner-pivot', new Set(['s12', 's13'])]]);
+  it('accepts the bare origin and links to a sample step, in Markdown, HTML and code', () => {
+    const md = '[demo](https://reasontrail.example)\n<a href="https://reasontrail.example/?session=planner-pivot&amp;step=s13">x</a>\n`https://reasontrail.example/?session=planner-pivot&step=s12`';
+    expect(checkDemoLinks('examples/README.md', md, samples)).toEqual([]);
+  });
+  it('rejects unknown samples and steps', () => {
+    const md = 'https://reasontrail.example/?session=nope\n\n(https://reasontrail.example/?session=planner-pivot&step=s99) https://reasontrail.example/?step=s1';
+    expect(checkDemoLinks('docs/LAUNCH.md', md, samples)).toEqual([
+      'docs/LAUNCH.md:1: demo link names an unknown sample "nope": https://reasontrail.example/?session=nope',
+      'docs/LAUNCH.md:3: demo link names a step "s99" that planner-pivot does not have: https://reasontrail.example/?session=planner-pivot&step=s99',
+      'docs/LAUNCH.md:3: demo link has a step but no session: https://reasontrail.example/?step=s1',
+    ]);
+  });
+  it('reads the bundled samples and their step ids', () => {
+    const real = readSamples(new URL('../src/sessions/samples/', import.meta.url).pathname);
+    expect([...real.keys()].sort()).toEqual(['implementer-checks', 'planner-pivot', 'verify-fail-fix']);
+    expect(real.get('implementer-checks')?.has('s53')).toBe(true);
   });
 });
