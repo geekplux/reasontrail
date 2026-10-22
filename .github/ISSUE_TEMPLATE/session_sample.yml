@@ -32,5 +32,5 @@ body:
       options:
         - label: I own this session and agree to publish a redacted copy under the MIT License.
           required: true
-        - label: It contains nothing finance-related, no personal data of others and no private code.
+        - label: It contains no personal data of others and no private code.
           required: true
