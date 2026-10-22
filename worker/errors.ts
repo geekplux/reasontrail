@@ -7,6 +7,7 @@ const STATUS: Record<ProviderErrorCode, number> = {
   input_too_large: 413,
   rate_limited: 429,
   budget_exhausted: 503,
+  session_limit: 429,
   unavailable: 503,
   upstream_error: 502,
   not_recorded: 500,

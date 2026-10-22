@@ -23,6 +23,8 @@ export type ProviderErrorCode =
   | 'rate_limited'
   /** The daily upstream budget is spent. */
   | 'budget_exhausted'
+  /** This tab's cap on live calls is reached (client-side, `CachedProvider`); never sent by the Worker. */
+  | 'session_limit'
   /** The model call failed or returned no logprobs. */
   | 'upstream_error'
   /** Live mode is not configured, or the browser is offline. */

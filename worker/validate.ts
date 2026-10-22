@@ -1,13 +1,9 @@
 // Request validation for POST /api/next-tokens (docs/llm-provider.md §5 limits).
+import { BAD_CHARS, MAX_BODY_BYTES, MAX_PREFIX_CHARS } from '../shared/llm/prefix';
 import { K_MAX, ProviderError } from '../shared/llm/types';
 
-export const MAX_BODY_BYTES = 4096;
-export const MAX_PREFIX_CHARS = 1000;
+export { BAD_CHARS, MAX_BODY_BYTES, MAX_PREFIX_CHARS };
 export const DEFAULT_K = 5;
-
-// C0/C1 controls except \t and \n, plus lone surrogates (they would hash and display as U+FFFD).
-// oxlint-disable-next-line no-control-regex -- matching control characters is the point
-export const BAD_CHARS = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F]|\p{Cs}/u;
 
 export interface NextTokensRequest {
   prefix: string;

@@ -1,0 +1,8 @@
+[
+  { "id": "lens-implementer-checks-1", "title": "Without a fix", "prompt": "Without a fix, Chrome would read branches in" },
+  { "id": "lens-implementer-checks-2", "title": "Moving focus", "prompt": "Moving focus selects the branch, so its" },
+  { "id": "lens-planner-pivot-1", "title": "The planner rewrites the plan", "prompt": "Now the planner rewrites the plan for the" },
+  { "id": "lens-planner-pivot-2", "title": "The old garden criteria", "prompt": "The old garden criteria are kept, with the" },
+  { "id": "lens-verify-fail-fix-1", "title": "The stash", "prompt": "The stash also removed the new test, so I'll" },
+  { "id": "lens-verify-fail-fix-2", "title": "Both counts", "prompt": "The old script fails the new test on both" }
+]

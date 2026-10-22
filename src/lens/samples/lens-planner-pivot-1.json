@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "lens-planner-pivot-1",
+  "title": "The planner rewrites the plan",
+  "prompt": "Now the planner rewrites the plan for the",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-21",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " day", "logprob": -2.653 },
+      { "token": " future", "logprob": -2.724 },
+      { "token": " next", "logprob": -2.818 },
+      { "token": " week", "logprob": -3.011 },
+      { "token": " year", "logprob": -3.218 }
+    ],
+    " day": [
+      { "token": "\n", "logprob": -1.666 },
+      { "token": ",", "logprob": -1.897 },
+      { "token": ".", "logprob": -2.229 },
+      { "token": ":", "logprob": -2.819 },
+      { "token": " and", "logprob": -3.339 }
+    ],
+    " day\n": [
+      { "token": "\n", "logprob": -0.289 },
+      { "token": "1", "logprob": -4.248 },
+      { "token": "The", "logprob": -4.291 },
+      { "token": "2", "logprob": -4.414 },
+      { "token": "-", "logprob": -4.566 }
+    ],
+    " day\n\n": [
+      { "token": "\n", "logprob": -0.526 },
+      { "token": "1", "logprob": -2.021 },
+      { "token": " ", "logprob": -3.164 },
+      { "token": "2", "logprob": -3.42 },
+      { "token": "3", "logprob": -3.512 }
+    ],
+    " day\n\n\n": [
+      { "token": "\n", "logprob": -0.133 },
+      { "token": "1", "logprob": -3.123 },
+      { "token": " ", "logprob": -3.778 },
+      { "token": "2", "logprob": -4.648 },
+      { "token": "3", "logprob": -4.67 }
+    ],
+    " day\n\n\n\n": [
+      { "token": "\n", "logprob": -0.795 },
+      { "token": "\n\n", "logprob": -1.801 },
+      { "token": "\n\n\n\n", "logprob": -1.859 },
+      { "token": "\n\n\n", "logprob": -3.046 },
+      { "token": "  ", "logprob": -3.117 }
+    ],
+    " day\n\n\n\n\n": [
+      { "token": "\n", "logprob": -0.073 },
+      { "token": "1", "logprob": -3.762 },
+      { "token": " ", "logprob": -4.798 },
+      { "token": "3", "logprob": -5.408 },
+      { "token": "2", "logprob": -5.419 }
+    ],
+    " day,": [
+      { "token": " and", "logprob": -2.008 },
+      { "token": "\n", "logprob": -2.349 },
+      { "token": " the", "logprob": -2.796 },
+      { "token": " but", "logprob": -3.383 },
+      { "token": " then", "logprob": -3.761 }
+    ],
+    " day.": [
+      { "token": "\n", "logprob": -1.385 },
+      { "token": " The", "logprob": -2.648 },
+      { "token": " He", "logprob": -2.962 },
+      { "token": " It", "logprob": -2.978 },
+      { "token": " They", "logprob": -3.468 }
+    ],
+    " day:": [
+      { "token": "\n", "logprob": -0.919 },
+      { "token": " the", "logprob": -3.289 },
+      { "token": " \"", "logprob": -3.328 },
+      { "token": " “", "logprob": -3.429 },
+      { "token": " ", "logprob": -3.496 }
+    ],
+    " day and": [
+      { "token": " the", "logprob": -2.967 },
+      { "token": " it", "logprob": -3.733 },
+      { "token": " then", "logprob": -3.867 },
+      { "token": " says", "logprob": -4.02 },
+      { "token": " starts", "logprob": -4.176 }
+    ],
+    " future": [
+      { "token": "\n", "logprob": -1.065 },
+      { "token": ",", "logprob": -2.886 },
+      { "token": ":", "logprob": -3.28 },
+      { "token": ".", "logprob": -3.335 },
+      { "token": "\"", "logprob": -3.589 }
+    ],
+    " future\n": [
+      { "token": "\n", "logprob": -0.476 },
+      { "token": "The", "logprob": -3.144 },
+      { "token": "1", "logprob": -4.349 },
+      { "token": "-", "logprob": -4.542 },
+      { "token": "A", "logprob": -4.83 }
+    ],
+    " future\n\n": [
+      { "token": "\n", "logprob": -0.465 },
+      { "token": "1", "logprob": -1.976 },
+      { "token": "3", "logprob": -3.383 },
+      { "token": " ", "logprob": -3.42 },
+      { "token": "2", "logprob": -3.477 }
+    ],
+    " future\n\n\n": [
+      { "token": "\n", "logprob": -0.038 },
+      { "token": " ", "logprob": -4.493 },
+      { "token": "1", "logprob": -4.748 },
+      { "token": "3", "logprob": -6.306 },
+      { "token": "2", "logprob": -6.308 }
+    ],
+    " future\n\n\n\n": [
+      { "token": "\n", "logprob": -0.554 },
+      { "token": "\n\n", "logprob": -1.668 },
+      { "token": "\n\n\n\n", "logprob": -2.665 },
+      { "token": "\n\n\n", "logprob": -3.342 },
+      { "token": "  ", "logprob": -3.616 }
+    ],
+    " future\n\n\n\n\n": [
+      { "token": "\n", "logprob": -0.07 },
+      { "token": "1", "logprob": -4.042 },
+      { "token": "4", "logprob": -5.371 },
+      { "token": "2", "logprob": -5.782 },
+      { "token": "3", "logprob": -5.9 }
+    ],
+    " future,": [
+      { "token": " and", "logprob": -1.799 },
+      { "token": "\n", "logprob": -2.511 },
+      { "token": " but", "logprob": -2.796 },
+      { "token": " so", "logprob": -2.998 },
+      { "token": " the", "logprob": -3.043 }
+    ],
+    " future:": [
+      { "token": "\n", "logprob": -1.229 },
+      { "token": "\n\n", "logprob": -3.171 },
+      { "token": " the", "logprob": -3.404 },
+      { "token": " The", "logprob": -3.712 },
+      { "token": " ", "logprob": -3.751 }
+    ],
+    " future.": [
+      { "token": "\n", "logprob": -0.88 },
+      { "token": " The", "logprob": -2.815 },
+      { "token": " ", "logprob": -3.43 },
+      { "token": "\n\n", "logprob": -3.641 },
+      { "token": " He", "logprob": -3.708 }
+    ],
+    " future\"": [
+      { "token": "\n", "logprob": -1.612 },
+      { "token": " (", "logprob": -2.305 },
+      { "token": " -", "logprob": -2.758 },
+      { "token": " and", "logprob": -3.145 },
+      { "token": " by", "logprob": -3.16 }
+    ],
+    " next": [
+      { "token": " day", "logprob": -2.199 },
+      { "token": " time", "logprob": -2.861 },
+      { "token": " year", "logprob": -3.274 },
+      { "token": "\n", "logprob": -3.366 },
+      { "token": " few", "logprob": -3.398 }
+    ],
+    " next day": [
+      { "token": ",", "logprob": -1.782 },
+      { "token": ".", "logprob": -2.269 },
+      { "token": "\n", "logprob": -2.302 },
+      { "token": " and", "logprob": -2.686 },
+      { "token": ".\"", "logprob": -2.962 }
+    ],
+    " next time": [
+      { "token": " you", "logprob": -2.298 },
+      { "token": " we", "logprob": -2.398 },
+      { "token": " they", "logprob": -2.509 },
+      { "token": "\n", "logprob": -2.665 },
+      { "token": ",", "logprob": -2.807 }
+    ],
+    " next year": [
+      { "token": ".", "logprob": -1.935 },
+      { "token": ",", "logprob": -2.043 },
+      { "token": "\n", "logprob": -2.251 },
+      { "token": " and", "logprob": -2.532 },
+      { "token": ":", "logprob": -2.686 }
+    ],
+    " next\n": [
+      { "token": "\n", "logprob": -2.026 },
+      { "token": "time", "logprob": -4.329 },
+      { "token": "P", "logprob": -4.382 },
+      { "token": "*", "logprob": -4.823 },
+      { "token": "Qu", "logprob": -4.831 }
+    ],
+    " next few": [
+      { "token": " weeks", "logprob": -1.39 },
+      { "token": " days", "logprob": -1.593 },
+      { "token": " months", "logprob": -1.768 },
+      { "token": " years", "logprob": -1.849 },
+      { "token": " minutes", "logprob": -3.947 }
+    ],
+    " week": [
+      { "token": ",", "logprob": -2.297 },
+      { "token": ".", "logprob": -2.437 },
+      { "token": " and", "logprob": -2.471 },
+      { "token": " ahead", "logprob": -2.484 },
+      { "token": " after", "logprob": -2.802 }
+    ],
+    " week,": [
+      { "token": " and", "logprob": -1.568 },
+      { "token": " but", "logprob": -2.893 },
+      { "token": "\n", "logprob": -3.002 },
+      { "token": " the", "logprob": -3.308 },
+      { "token": " so", "logprob": -3.334 }
+    ],
+    " week.": [
+      { "token": "\n", "logprob": -1.071 },
+      { "token": " The", "logprob": -3.081 },
+      { "token": " This", "logprob": -3.195 },
+      { "token": " I", "logprob": -3.571 },
+      { "token": " ", "logprob": -3.726 }
+    ],
+    " week and": [
+      { "token": " then", "logprob": -3.076 },
+      { "token": " the", "logprob": -3.133 },
+      { "token": " it", "logprob": -3.523 },
+      { "token": " we", "logprob": -3.674 },
+      { "token": " has", "logprob": -4.011 }
+    ],
+    " week ahead": [
+      { "token": ".", "logprob": -1.277 },
+      { "token": ",", "logprob": -2.267 },
+      { "token": " and", "logprob": -2.405 },
+      { "token": "\n", "logprob": -2.427 },
+      { "token": " to", "logprob": -3.012 }
+    ],
+    " week after": [
+      { "token": " the", "logprob": -1.419 },
+      { "token": "\n", "logprob": -2.621 },
+      { "token": " a", "logprob": -2.804 },
+      { "token": " ", "logprob": -3.518 },
+      { "token": " work", "logprob": -3.759 }
+    ],
+    " year": [
+      { "token": "\n", "logprob": -2.152 },
+      { "token": ",", "logprob": -2.593 },
+      { "token": ":", "logprob": -3.09 },
+      { "token": ",\"", "logprob": -3.136 },
+      { "token": " and", "logprob": -3.216 }
+    ],
+    " year\n": [
+      { "token": "\n", "logprob": -0.717 },
+      { "token": "The", "logprob": -3.406 },
+      { "token": "-", "logprob": -3.708 },
+      { "token": "1", "logprob": -4.493 },
+      { "token": "2", "logprob": -4.619 }
+    ],
+    " year,": [
+      { "token": " and", "logprob": -1.851 },
+      { "token": "\n", "logprob": -2.957 },
+      { "token": " but", "logprob": -3.225 },
+      { "token": " with", "logprob": -3.249 },
+      { "token": " the", "logprob": -3.787 }
+    ],
+    " year:": [
+      { "token": "\n", "logprob": -1.542 },
+      { "token": " the", "logprob": -3.059 },
+      { "token": " The", "logprob": -3.244 },
+      { "token": " ", "logprob": -3.564 },
+      { "token": "\n\n", "logprob": -3.651 }
+    ],
+    " year,\"": [
+      { "token": " said", "logprob": -1.697 },
+      { "token": " he", "logprob": -1.869 },
+      { "token": " says", "logprob": -1.941 },
+      { "token": " she", "logprob": -2.553 },
+      { "token": " the", "logprob": -4.163 }
+    ],
+    " year and": [
+      { "token": " the", "logprob": -3.024 },
+      { "token": " makes", "logprob": -3.552 },
+      { "token": " then", "logprob": -3.644 },
+      { "token": " starts", "logprob": -3.944 },
+      { "token": " puts", "logprob": -4.025 }
+    ]
+  }
+}

@@ -13,6 +13,8 @@ From the repo root:
 ```sh
 pnpm samples:record                     # all prompts in prompts.json -> src/samples/
 pnpm samples:record --only cat          # one garden
+pnpm samples:record --prompts tools/record-samples/lens-prompts.json --out src/lens/samples --date 2026-10-21
+                                        # the zoom-in lens gardens (src/lens/lensSamples.ts)
 ```
 
 `samples:record` installs this folder's dependencies on first use (about 490 MB, mostly onnxruntime), then runs `record.mjs`. The model download is about 134 MB and lands in `tools/record-samples/.cache/` (gitignored). The full run of six gardens took 12 s on an 8-core Linux box, with a peak RSS of about 590 MB.

@@ -37,4 +37,16 @@ describe('audit:samples (R3)', () => {
       rmSync(r, { recursive: true, force: true });
     }
   });
+
+  it('scans recorded lens gardens by decoded string, so the "token" key is not a secret name', async () => {
+    const r = mkdtempSync(join(tmpdir(), 'tg-audit-'));
+    try {
+      mkdirSync(join(r, 'src/lens/samples'), { recursive: true });
+      const planted = `${['gh', 'p_'].join('')}${'aZ09'.repeat(9)}`;
+      writeFileSync(join(r, 'src/lens/samples/g.json'), `{\n  "nodes": {\n    "": [\n      { "token": " the", "logprob": -1.5 },\n      { "token": " ${planted}", "logprob": -2 }\n    ]\n  }\n}\n`);
+      expect(await audit(r)).toEqual([{ file: 'src/lens/samples/g.json', line: 5, rule: 'secret:github-token' }]);
+    } finally {
+      rmSync(r, { recursive: true, force: true });
+    }
+  });
 });

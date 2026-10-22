@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "lens-verify-fail-fix-2",
+  "title": "Both counts",
+  "prompt": "The old script fails the new test on both",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-21",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " platforms", "logprob": -3.198 },
+      { "token": " sides", "logprob": -3.285 },
+      { "token": " the", "logprob": -3.296 },
+      { "token": " cases", "logprob": -3.316 },
+      { "token": "\n", "logprob": -3.422 }
+    ],
+    " platforms": [
+      { "token": ".", "logprob": -1.22 },
+      { "token": ",", "logprob": -2.14 },
+      { "token": "\n", "logprob": -2.559 },
+      { "token": "!", "logprob": -2.659 },
+      { "token": ".\"", "logprob": -2.919 }
+    ],
+    " platforms.": [
+      { "token": "\n", "logprob": -1.835 },
+      { "token": " The", "logprob": -2.777 },
+      { "token": " I", "logprob": -2.934 },
+      { "token": " This", "logprob": -3.178 },
+      { "token": "\n\n", "logprob": -3.417 }
+    ],
+    " platforms,": [
+      { "token": " so", "logprob": -1.585 },
+      { "token": " but", "logprob": -1.862 },
+      { "token": " and", "logprob": -2.735 },
+      { "token": " which", "logprob": -2.895 },
+      { "token": " the", "logprob": -3.406 }
+    ],
+    " platforms\n": [
+      { "token": "\n", "logprob": -0.41 },
+      { "token": "-", "logprob": -4.069 },
+      { "token": "*", "logprob": -4.076 },
+      { "token": "1", "logprob": -4.327 },
+      { "token": "[", "logprob": -4.456 }
+    ],
+    " platforms!": [
+      { "token": "\n", "logprob": -0.94 },
+      { "token": "\n\n", "logprob": -3.185 },
+      { "token": " I", "logprob": -3.489 },
+      { "token": "\n\n  ", "logprob": -3.863 },
+      { "token": " It", "logprob": -4.074 }
+    ],
+    " platforms.\"": [
+      { "token": "\n", "logprob": -0.373 },
+      { "token": ";", "logprob": -3.546 },
+      { "token": "\n\n", "logprob": -3.843 },
+      { "token": " -", "logprob": -4.173 },
+      { "token": " This", "logprob": -4.38 }
+    ],
+    " sides": [
+      { "token": " of", "logprob": -1.505 },
+      { "token": ".", "logprob": -1.643 },
+      { "token": "\n", "logprob": -2.039 },
+      { "token": ",", "logprob": -2.357 },
+      { "token": ":", "logprob": -2.929 }
+    ],
+    " sides of": [
+      { "token": " the", "logprob": -0.372 },
+      { "token": " its", "logprob": -1.893 },
+      { "token": " my", "logprob": -4.07 },
+      { "token": " it", "logprob": -4.361 },
+      { "token": " a", "logprob": -4.493 }
+    ],
+    " sides of the": [
+      { "token": " argument", "logprob": -2.074 },
+      { "token": " board", "logprob": -2.085 },
+      { "token": " test", "logprob": -2.602 },
+      { "token": " body", "logprob": -3.595 },
+      { "token": " line", "logprob": -3.699 }
+    ],
+    " sides of the argument": [
+      { "token": ".", "logprob": -1.13 },
+      { "token": ",", "logprob": -2.264 },
+      { "token": "\n", "logprob": -2.272 },
+      { "token": ":", "logprob": -2.423 },
+      { "token": ".\"", "logprob": -3.02 }
+    ],
+    " sides of the argument.": [
+      { "token": "\n", "logprob": -1.039 },
+      { "token": " The", "logprob": -2.144 },
+      { "token": " It", "logprob": -3.513 },
+      { "token": " I", "logprob": -3.565 },
+      { "token": " This", "logprob": -3.748 }
+    ],
+    " sides of the argument.\n": [
+      { "token": "\n", "logprob": -0.271 },
+      { "token": "-", "logprob": -3.102 },
+      { "token": "The", "logprob": -3.816 },
+      { "token": "#", "logprob": -4.653 },
+      { "token": "//", "logprob": -4.737 }
+    ],
+    " sides.": [
+      { "token": "\n", "logprob": -1.409 },
+      { "token": " The", "logprob": -3.054 },
+      { "token": " I", "logprob": -3.398 },
+      { "token": " This", "logprob": -3.495 },
+      { "token": " It", "logprob": -3.499 }
+    ],
+    " sides\n": [
+      { "token": "\n", "logprob": -0.484 },
+      { "token": "1", "logprob": -4.617 },
+      { "token": "#", "logprob": -4.811 },
+      { "token": "The", "logprob": -4.866 },
+      { "token": "*", "logprob": -5.087 }
+    ],
+    " sides,": [
+      { "token": " but", "logprob": -1.798 },
+      { "token": " so", "logprob": -2.084 },
+      { "token": " and", "logprob": -2.743 },
+      { "token": "\n", "logprob": -3.214 },
+      { "token": " the", "logprob": -3.314 }
+    ],
+    " sides:": [
+      { "token": "\n", "logprob": -1.368 },
+      { "token": "\n\n", "logprob": -3.092 },
+      { "token": " the", "logprob": -3.475 },
+      { "token": "\n\n   ", "logprob": -3.881 },
+      { "token": "\n\n  ", "logprob": -3.942 }
+    ],
+    " the": [
+      { "token": " old", "logprob": -3.05 },
+      { "token": " new", "logprob": -3.113 },
+      { "token": "\n", "logprob": -3.438 },
+      { "token": " first", "logprob": -3.863 },
+      { "token": " original", "logprob": -4.227 }
+    ],
+    " the old": [
+      { "token": " script", "logprob": -1.657 },
+      { "token": " and", "logprob": -1.683 },
+      { "token": " text", "logprob": -3.18 },
+      { "token": "\n", "logprob": -3.952 },
+      { "token": " scripts", "logprob": -4.201 }
+    ],
+    " the new": [
+      { "token": " and", "logprob": -1.588 },
+      { "token": " test", "logprob": -3.379 },
+      { "token": " text", "logprob": -3.518 },
+      { "token": " script", "logprob": -3.84 },
+      { "token": " version", "logprob": -4.002 }
+    ],
+    " the\n": [
+      { "token": "\n", "logprob": -3.107 },
+      { "token": "new", "logprob": -3.143 },
+      { "token": "#", "logprob": -3.499 },
+      { "token": "old", "logprob": -3.681 },
+      { "token": "first", "logprob": -4.073 }
+    ],
+    " the first": [
+      { "token": " and", "logprob": -1.282 },
+      { "token": " two", "logprob": -2.539 },
+      { "token": " line", "logprob": -2.627 },
+      { "token": " character", "logprob": -3.393 },
+      { "token": ",", "logprob": -3.518 }
+    ],
+    " the original": [
+      { "token": " and", "logprob": -1.441 },
+      { "token": " script", "logprob": -2.923 },
+      { "token": " test", "logprob": -3.559 },
+      { "token": " text", "logprob": -3.634 },
+      { "token": " code", "logprob": -3.802 }
+    ],
+    " cases": [
+      { "token": "\n", "logprob": -1.664 },
+      { "token": ".", "logprob": -2.012 },
+      { "token": ":", "logprob": -2.752 },
+      { "token": ",", "logprob": -2.773 },
+      { "token": "\"", "logprob": -3.155 }
+    ],
+    " cases\n": [
+      { "token": "\n", "logprob": -0.586 },
+      { "token": "-", "logprob": -4.416 },
+      { "token": "1", "logprob": -4.469 },
+      { "token": "$", "logprob": -4.609 },
+      { "token": "```", "logprob": -4.619 }
+    ],
+    " cases\n\n": [
+      { "token": "\n", "logprob": -0.286 },
+      { "token": "1", "logprob": -2.715 },
+      { "token": "2", "logprob": -3.707 },
+      { "token": "4", "logprob": -4.207 },
+      { "token": "      ", "logprob": -4.253 }
+    ],
+    " cases\n\n\n": [
+      { "token": "\n", "logprob": -0.203 },
+      { "token": "1", "logprob": -2.875 },
+      { "token": "2", "logprob": -4.014 },
+      { "token": "0", "logprob": -4.44 },
+      { "token": "4", "logprob": -4.47 }
+    ],
+    " cases\n\n\n\n": [
+      { "token": "\n", "logprob": -0.689 },
+      { "token": "\n\n", "logprob": -2.108 },
+      { "token": "\n\n\n\n", "logprob": -2.381 },
+      { "token": "\n\n\n", "logprob": -3.207 },
+      { "token": "1", "logprob": -3.746 }
+    ],
+    " cases\n\n\n\n\n": [
+      { "token": "\n", "logprob": -0.183 },
+      { "token": "1", "logprob": -2.852 },
+      { "token": "4", "logprob": -4.389 },
+      { "token": "3", "logprob": -4.533 },
+      { "token": "2", "logprob": -4.637 }
+    ],
+    " cases.": [
+      { "token": "\n", "logprob": -1.506 },
+      { "token": " The", "logprob": -2.82 },
+      { "token": " This", "logprob": -3.091 },
+      { "token": " I", "logprob": -3.294 },
+      { "token": " It", "logprob": -3.461 }
+    ],
+    " cases:": [
+      { "token": "\n", "logprob": -0.547 },
+      { "token": "\n\n", "logprob": -2.739 },
+      { "token": "\n\n   ", "logprob": -4.233 },
+      { "token": " \"", "logprob": -4.263 },
+      { "token": "\n\n  ", "logprob": -4.303 }
+    ],
+    " cases,": [
+      { "token": " so", "logprob": -1.889 },
+      { "token": " but", "logprob": -2.47 },
+      { "token": " and", "logprob": -2.973 },
+      { "token": " the", "logprob": -3.04 },
+      { "token": "\n", "logprob": -3.353 }
+    ],
+    " cases\"": [
+      { "token": "\n", "logprob": -1.476 },
+      { "token": " -", "logprob": -2.635 },
+      { "token": " (", "logprob": -2.848 },
+      { "token": " is", "logprob": -3.469 },
+      { "token": " and", "logprob": -3.549 }
+    ],
+    "\n": [
+      { "token": "\n", "logprob": -2.278 },
+      { "token": "the", "logprob": -3.607 },
+      { "token": "#", "logprob": -4.189 },
+      { "token": "`", "logprob": -4.362 },
+      { "token": "arguments", "logprob": -4.364 }
+    ],
+    "\n\n": [
+      { "token": "\n", "logprob": -0.695 },
+      { "token": "1", "logprob": -2.105 },
+      { "token": "2", "logprob": -3.441 },
+      { "token": "0", "logprob": -3.669 },
+      { "token": "\n\n\n", "logprob": -3.958 }
+    ],
+    "\nthe": [
+      { "token": " first", "logprob": -2.761 },
+      { "token": " old", "logprob": -2.846 },
+      { "token": " new", "logprob": -3.348 },
+      { "token": " \"", "logprob": -4.124 },
+      { "token": "ms", "logprob": -4.246 }
+    ],
+    "\n#": [
+      { "token": " ", "logprob": -2.484 },
+      { "token": " versions", "logprob": -2.918 },
+      { "token": " arguments", "logprob": -2.97 },
+      { "token": " the", "logprob": -3.591 },
+      { "token": " tests", "logprob": -4.213 }
+    ],
+    "\n`": [
+      { "token": "new", "logprob": -3.819 },
+      { "token": "$", "logprob": -4.593 },
+      { "token": "a", "logprob": -4.609 },
+      { "token": "name", "logprob": -4.966 },
+      { "token": "A", "logprob": -5.026 }
+    ],
+    "\narguments": [
+      { "token": "\n", "logprob": -1.198 },
+      { "token": ":", "logprob": -2.446 },
+      { "token": " arguments", "logprob": -3.165 },
+      { "token": "!", "logprob": -3.226 },
+      { "token": ",", "logprob": -3.362 }
+    ]
+  }
+}

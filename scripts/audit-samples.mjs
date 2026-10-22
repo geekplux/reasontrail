@@ -9,8 +9,10 @@ import { transformWithOxc } from 'vite';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
 /** Directories scanned, relative to the root; `skills` only below an `evals/` folder. */
-export const SCAN_DIRS = ['src/sessions/samples', 'fixtures', 'skills'];
+export const SCAN_DIRS = ['src/sessions/samples', 'src/lens/samples', 'fixtures', 'skills'];
 const TEXT = /\.(jsonl?|md|txt|ya?ml|html|csv|mjs|js|ts)$/;
+/** Recorded gardens: every choice is `"token": "<model text>"` by design, so only their decoded strings are scanned. */
+const GARDEN_DIRS = ['src/lens/samples'];
 
 /** Load the redaction rules straight from the TypeScript source (type-only imports, so a plain transform is enough). */
 export async function loadRules() {
@@ -59,9 +61,9 @@ function decodedStrings(text) {
 
 /** Rules matched on one line. JSON(L) lines are also scanned decoded, and their raw form with escaped
  * whitespace turned back into whitespace, so `NAME=\\n…` is not read as a secret value. */
-function lineRules(findSecrets, text, json) {
+function lineRules(findSecrets, text, json, garden = false) {
   if (!json) return findSecrets(text);
-  const rules = new Set(findSecrets(text.replace(JSON_ESCAPE, ' ')));
+  const rules = new Set(garden ? [] : findSecrets(text.replace(JSON_ESCAPE, ' ')));
   for (const s of decodedStrings(text)) for (const rule of findSecrets(s)) rules.add(rule);
   return [...rules];
 }
@@ -88,8 +90,9 @@ export async function audit(root) {
       const rel = relative(root, file);
       if (!TEXT.test(file) || (rel.startsWith('skills') && !rel.includes('/evals/'))) continue;
       const json = /\.jsonl?$/.test(file);
+      const garden = GARDEN_DIRS.some((d) => rel.startsWith(`${d}/`));
       readFileSync(file, 'utf8').split('\n').forEach((text, i) => {
-        for (const rule of lineRules(findSecrets, text, json)) findings.push({ file: rel, line: i + 1, rule });
+        for (const rule of lineRules(findSecrets, text, json, garden)) findings.push({ file: rel, line: i + 1, rule });
         const lower = text.toLowerCase();
         deny.forEach((term, n) => lower.includes(term) && findings.push({ file: rel, line: i + 1, rule: `denylist term #${n + 1}` }));
       });

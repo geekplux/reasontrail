@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "lens-verify-fail-fix-1",
+  "title": "The stash",
+  "prompt": "The stash also removed the new test, so I'll",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-21",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " use", "logprob": -2.455 },
+      { "token": " have", "logprob": -2.482 },
+      { "token": " continue", "logprob": -2.726 },
+      { "token": " be", "logprob": -3.191 },
+      { "token": " do", "logprob": -3.223 }
+    ],
+    " use": [
+      { "token": " it", "logprob": -1.342 },
+      { "token": " the", "logprob": -1.49 },
+      { "token": " this", "logprob": -2.403 },
+      { "token": " that", "logprob": -2.406 },
+      { "token": " a", "logprob": -3.3 }
+    ],
+    " use it": [
+      { "token": " again", "logprob": -1.922 },
+      { "token": " to", "logprob": -2.365 },
+      { "token": " for", "logprob": -2.376 },
+      { "token": " as", "logprob": -2.416 },
+      { "token": ".", "logprob": -2.591 }
+    ],
+    " use the": [
+      { "token": " new", "logprob": -1.689 },
+      { "token": " old", "logprob": -2.822 },
+      { "token": " same", "logprob": -3.182 },
+      { "token": " test", "logprob": -3.828 },
+      { "token": " original", "logprob": -4.215 }
+    ],
+    " use this": [
+      { "token": " one", "logprob": -2.32 },
+      { "token": " new", "logprob": -2.322 },
+      { "token": " as", "logprob": -2.561 },
+      { "token": " to", "logprob": -3.397 },
+      { "token": " instead", "logprob": -3.615 }
+    ],
+    " use that": [
+      { "token": " as", "logprob": -2.244 },
+      { "token": " instead", "logprob": -2.419 },
+      { "token": " to", "logprob": -2.928 },
+      { "token": " again", "logprob": -3.185 },
+      { "token": " for", "logprob": -3.277 }
+    ],
+    " use a": [
+      { "token": " new", "logprob": -2.299 },
+      { "token": " different", "logprob": -3.075 },
+      { "token": " test", "logprob": -3.62 },
+      { "token": " similar", "logprob": -3.917 },
+      { "token": " few", "logprob": -4.226 }
+    ],
+    " have": [
+      { "token": " to", "logprob": -1.064 },
+      { "token": " a", "logprob": -1.881 },
+      { "token": " another", "logprob": -2.431 },
+      { "token": " no", "logprob": -2.822 },
+      { "token": " the", "logprob": -3.245 }
+    ],
+    " have to": [
+      { "token": " use", "logprob": -2.29 },
+      { "token": " do", "logprob": -2.735 },
+      { "token": " make", "logprob": -3.415 },
+      { "token": " run", "logprob": -3.462 },
+      { "token": " keep", "logprob": -3.503 }
+    ],
+    " have a": [
+      { "token": " look", "logprob": -1.303 },
+      { "token": " chance", "logprob": -2.168 },
+      { "token": " new", "logprob": -2.474 },
+      { "token": " go", "logprob": -3.663 },
+      { "token": " second", "logprob": -4.127 }
+    ],
+    " have another": [
+      { "token": " post", "logprob": -2.647 },
+      { "token": " test", "logprob": -2.724 },
+      { "token": " one", "logprob": -3.043 },
+      { "token": " run", "logprob": -3.899 },
+      { "token": " version", "logprob": -3.989 }
+    ],
+    " have no": [
+      { "token": " problem", "logprob": -1.325 },
+      { "token": " trouble", "logprob": -2.01 },
+      { "token": " problems", "logprob": -2.635 },
+      { "token": " need", "logprob": -2.78 },
+      { "token": " time", "logprob": -3.048 }
+    ],
+    " have the": [
+      { "token": " new", "logprob": -1.394 },
+      { "token": " test", "logprob": -3.05 },
+      { "token": " same", "logprob": -3.137 },
+      { "token": " final", "logprob": -3.684 },
+      { "token": " option", "logprob": -3.847 }
+    ],
+    " continue": [
+      { "token": " with", "logprob": -1.606 },
+      { "token": " to", "logprob": -1.73 },
+      { "token": " on", "logprob": -2.691 },
+      { "token": " the", "logprob": -2.725 },
+      { "token": " my", "logprob": -3.21 }
+    ],
+    " continue with": [
+      { "token": " the", "logprob": -0.736 },
+      { "token": " it", "logprob": -2.523 },
+      { "token": " this", "logprob": -2.818 },
+      { "token": " that", "logprob": -3.128 },
+      { "token": " a", "logprob": -3.366 }
+    ],
+    " continue with the": [
+      { "token": " new", "logprob": -2.217 },
+      { "token": " old", "logprob": -2.901 },
+      { "token": " other", "logprob": -3.472 },
+      { "token": " original", "logprob": -3.932 },
+      { "token": " rest", "logprob": -3.953 }
+    ],
+    " continue with the new": [
+      { "token": " test", "logprob": -1.646 },
+      { "token": " one", "logprob": -2.975 },
+      { "token": " version", "logprob": -3.17 },
+      { "token": " code", "logprob": -3.962 },
+      { "token": " tests", "logprob": -4.223 }
+    ],
+    " continue with the new test": [
+      { "token": ".", "logprob": -1.221 },
+      { "token": ",", "logprob": -2.604 },
+      { "token": " and", "logprob": -3.368 },
+      { "token": ":", "logprob": -3.474 },
+      { "token": " here", "logprob": -3.648 }
+    ],
+    " continue with the new test.": [
+      { "token": "\n", "logprob": -1.465 },
+      { "token": " I", "logprob": -1.943 },
+      { "token": " This", "logprob": -3.007 },
+      { "token": " The", "logprob": -3.14 },
+      { "token": " But", "logprob": -3.54 }
+    ],
+    " continue to": [
+      { "token": " use", "logprob": -0.849 },
+      { "token": " do", "logprob": -2.864 },
+      { "token": " run", "logprob": -3.262 },
+      { "token": " work", "logprob": -3.573 },
+      { "token": " keep", "logprob": -3.819 }
+    ],
+    " continue to use": [
+      { "token": " it", "logprob": -0.842 },
+      { "token": " the", "logprob": -1.867 },
+      { "token": " this", "logprob": -2.613 },
+      { "token": " them", "logprob": -3.26 },
+      { "token": " that", "logprob": -3.271 }
+    ],
+    " continue to use it": [
+      { "token": ".", "logprob": -1.653 },
+      { "token": " until", "logprob": -2.268 },
+      { "token": " for", "logprob": -2.507 },
+      { "token": ",", "logprob": -2.697 },
+      { "token": " to", "logprob": -2.974 }
+    ],
+    " continue to use it.": [
+      { "token": "\n", "logprob": -0.866 },
+      { "token": " But", "logprob": -2.846 },
+      { "token": "\n\n", "logprob": -3.125 },
+      { "token": " The", "logprob": -3.716 },
+      { "token": " If", "logprob": -3.732 }
+    ],
+    " continue to use it.\n": [
+      { "token": "\n", "logprob": -0.111 },
+      { "token": "The", "logprob": -4.356 },
+      { "token": "-", "logprob": -4.714 },
+      { "token": "I", "logprob": -4.907 },
+      { "token": "You", "logprob": -5.692 }
+    ],
+    " continue on": [
+      { "token": " with", "logprob": -1.388 },
+      { "token": " my", "logprob": -1.699 },
+      { "token": " the", "logprob": -2.198 },
+      { "token": " there", "logprob": -2.771 },
+      { "token": " this", "logprob": -2.792 }
+    ],
+    " continue the": [
+      { "token": " test", "logprob": -3.207 },
+      { "token": " experiment", "logprob": -3.546 },
+      { "token": " testing", "logprob": -3.74 },
+      { "token": " rest", "logprob": -3.914 },
+      { "token": " program", "logprob": -4.101 }
+    ],
+    " continue my": [
+      { "token": " work", "logprob": -2.452 },
+      { "token": " experiment", "logprob": -3.028 },
+      { "token": " project", "logprob": -3.085 },
+      { "token": " search", "logprob": -3.599 },
+      { "token": " story", "logprob": -3.652 }
+    ],
+    " be": [
+      { "token": " able", "logprob": -2.135 },
+      { "token": " taking", "logprob": -3.209 },
+      { "token": " using", "logprob": -3.458 },
+      { "token": " posting", "logprob": -3.562 },
+      { "token": " back", "logprob": -3.66 }
+    ],
+    " be able": [
+      { "token": " to", "logprob": -0.014 },
+      { "token": " use", "logprob": -6.463 },
+      { "token": "\n", "logprob": -6.641 },
+      { "token": ",", "logprob": -7.243 },
+      { "token": " only", "logprob": -7.651 }
+    ],
+    " be taking": [
+      { "token": " care", "logprob": -1.249 },
+      { "token": " the", "logprob": -1.879 },
+      { "token": " a", "logprob": -2.471 },
+      { "token": " it", "logprob": -2.677 },
+      { "token": " advantage", "logprob": -2.887 }
+    ],
+    " be using": [
+      { "token": " the", "logprob": -1.509 },
+      { "token": " it", "logprob": -2.31 },
+      { "token": " this", "logprob": -2.498 },
+      { "token": " a", "logprob": -2.943 },
+      { "token": " that", "logprob": -3.067 }
+    ],
+    " be posting": [
+      { "token": " the", "logprob": -1.46 },
+      { "token": " it", "logprob": -1.57 },
+      { "token": " a", "logprob": -2.876 },
+      { "token": " that", "logprob": -2.985 },
+      { "token": " them", "logprob": -3.21 }
+    ],
+    " be back": [
+      { "token": " to", "logprob": -1.54 },
+      { "token": " in", "logprob": -2.189 },
+      { "token": " with", "logprob": -2.331 },
+      { "token": " on", "logprob": -2.469 },
+      { "token": " at", "logprob": -2.723 }
+    ],
+    " do": [
+      { "token": " the", "logprob": -1.625 },
+      { "token": " it", "logprob": -1.731 },
+      { "token": " a", "logprob": -2.218 },
+      { "token": " that", "logprob": -2.231 },
+      { "token": " some", "logprob": -2.802 }
+    ],
+    " do the": [
+      { "token": " same", "logprob": -1.243 },
+      { "token": " old", "logprob": -3.357 },
+      { "token": " test", "logprob": -3.611 },
+      { "token": " next", "logprob": -3.73 },
+      { "token": " new", "logprob": -3.765 }
+    ],
+    " do it": [
+      { "token": ".", "logprob": -2.172 },
+      { "token": " again", "logprob": -2.654 },
+      { "token": " now", "logprob": -2.832 },
+      { "token": ",", "logprob": -3.016 },
+      { "token": " with", "logprob": -3.103 }
+    ],
+    " do a": [
+      { "token": " test", "logprob": -2.411 },
+      { "token": " quick", "logprob": -2.813 },
+      { "token": " new", "logprob": -3.172 },
+      { "token": " second", "logprob": -3.482 },
+      { "token": " similar", "logprob": -3.724 }
+    ],
+    " do that": [
+      { "token": " now", "logprob": -1.827 },
+      { "token": " again", "logprob": -2.24 },
+      { "token": ".", "logprob": -2.616 },
+      { "token": " next", "logprob": -2.918 },
+      { "token": ",", "logprob": -3.198 }
+    ],
+    " do some": [
+      { "token": " more", "logprob": -2.438 },
+      { "token": " work", "logprob": -3.047 },
+      { "token": " tests", "logprob": -3.151 },
+      { "token": " testing", "logprob": -3.524 },
+      { "token": " quick", "logprob": -4.04 }
+    ]
+  }
+}
