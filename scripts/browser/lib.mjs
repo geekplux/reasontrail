@@ -93,8 +93,9 @@ export function killGroupSync(pgid) {
 
 /** Collects console errors, page errors, failed and non-same-origin requests on a browser context. A `file://` page
  * must be self-contained: any request other than the document itself is a problem (PLAN §6.0a, C3). */
-/** `vite preview` has no Worker: a 404 from the AI labels endpoint is the expected "unavailable" path (phase 21 AC3). */
-const noWorker = (url) => /^https?:\/\/[^/]+\/api\/structure$/.test(url ?? '');
+/** `vite preview` has no Worker: a 404 from the AI labels or the lens endpoint is the expected "unavailable" path
+ * (phase 21 AC3, phase 22). */
+const noWorker = (url) => /^https?:\/\/[^/]+\/api\/(structure|next-tokens)$/.test(url ?? '');
 
 export function watchContext(context, origin, problems) {
   context.on('request', (req) => {
