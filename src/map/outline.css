@@ -15,12 +15,12 @@
 .task-request .task-title { margin: 0; }
 .task-raw { margin: var(--tg-space-2) 0 var(--tg-space-4); max-width: 72ch; white-space: pre-line; overflow-wrap: anywhere; }
 .task-raw .sub-label { margin-bottom: var(--tg-space-1); }
-.task-meta { margin: 0 0 var(--tg-space-2); }
+.task-meta { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--tg-space-4); margin: 0 0 var(--tg-space-2); }
 .meta-item + .meta-item::before { content: ' · '; }
 /* The eyebrow row: the TASK label, and the header items (Map/Outline) at its right end. */
 .task-eyebrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-4); margin-bottom: var(--tg-space-2); }
 .task-eyebrow .section-label { margin: 0; }
-.task-meta .session-toggle { margin-inline-start: var(--tg-space-4); font-size: 12.8px; }
+.task-meta .session-toggle { font-size: 12.8px; }
 .session-details > p { margin: 0 0 var(--tg-space-2); }
 .note, .honesty, .glance-rows li, .episode-head { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-2); margin: 0; }
 .note, .honesty { margin: 0 0 var(--tg-space-2); font-size: 13.5px; }

@@ -82,6 +82,7 @@
 .open-file { margin: var(--tg-space-5) 0 var(--tg-space-4); font: 500 var(--tg-text-sm) var(--tg-font-mono); color: var(--tg-ink-muted); overflow-wrap: anywhere; }
 .open-session > .quiet-links { margin-top: var(--tg-space-1); }
 .open-session .site-map, .open-session .map, .open-session .outline { padding: 0; }
+.open-session > .visually-hidden + [data-testid='map'] { margin-top: var(--tg-space-5); }
 
 .drop-overlay {
   position: fixed; inset: 0; z-index: 10; display: grid; place-content: center; justify-items: center; gap: var(--tg-space-2);

@@ -64,6 +64,9 @@
 .bottom-band { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--tg-space-5); align-items: start; }
 .stuck-rows { display: grid; gap: var(--tg-space-4); margin: 0; padding: 0; list-style: none; }
 .stuck-rows li { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; padding-top: 6px; }
+.stuck-rows li[hidden] { display: none; }
+.outcome-cols > div > .sub-label:first-child { margin-top: 0; }
+.outcome .provenance { font-size: 12.8px; }
 .stuck-rows .blaze-icon { margin: 0 0 0 4px; }
 .stuck-text { display: block; font-size: 13.5px; overflow-wrap: anywhere; }
 .stuck-where { display: block; font-size: 11.5px; overflow-wrap: anywhere; }

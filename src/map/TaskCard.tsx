@@ -64,7 +64,7 @@ export function TaskCard({ g, sample = false, title, label, head }: { g: Session
       </div>
       <Request text={request} title={title} />
       <p className="mono muted task-meta">
-        {card.meta.map((m) => <span key={m} className="meta-item">{m}</span>)}
+        <span>{card.meta.map((m) => <span key={m} className="meta-item">{m}</span>)}</span>
         {folded && <button type="button" className="link-button session-toggle" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails(!details)}>Session details</button>}
       </p>
       {/* Folded, never deleted (CL4): the rest of the meta, the model and an authored title's first request. */}
