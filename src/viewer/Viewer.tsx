@@ -6,6 +6,7 @@ import { HOW_TO_READ_URL } from '../map/HonestyLabel';
 import type { Loaded } from '../map/loadGraph';
 import { MapView, ViewSwitch, useMapReady, type View } from '../map/MapView';
 import { Outline } from '../map/Outline';
+import { ShareAction } from '../share/ShareAction';
 
 const SOURCE = 'https://github.com/geekplux/reasontrail';
 const readView = (): View => (/(^#|&)view=outline(&|$)/.test(window.location.hash) ? 'outline' : 'map');
@@ -42,6 +43,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
       </main>
       <footer className="viewer-footer">
         Reasontrail {meta?.version ?? ''} · <a href={HOW_TO_READ_URL}>How to read this map</a> · <a href={SOURCE}>Source</a>
+        {loaded.ok && <> · <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} /></>}
       </footer>
     </>
   );

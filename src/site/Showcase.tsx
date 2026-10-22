@@ -7,6 +7,7 @@ import { HowToReadMap } from '../map/HowToReadMap';
 import { LIVE_AI, MapView, ViewSwitch, type View } from '../map/MapView';
 import { Outline } from '../map/Outline';
 import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
+import { ShareAction } from '../share/ShareAction';
 import { Gallery } from './Gallery';
 import { InstallLine } from './Install';
 
@@ -40,6 +41,7 @@ export function Showcase({ session, view, onView, onSession }: { session: string
         <div className="showcase-controls">
           <Gallery samples={sessionSamples} current={sample?.id ?? ''} onChoose={onSession} />
           <ViewSwitch view={view} onChange={onView} />
+          {graph && <ShareAction graph={graph} from="site" />}
         </div>
       </section>
       <InstallLine />

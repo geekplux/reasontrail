@@ -9,6 +9,7 @@ import type { SessionGraph } from '../../shared/session/types';
 import { LogoMark } from '../brand/LogoMark';
 import { LIVE_AI, MapView, ViewSwitch, type View } from '../map/MapView';
 import { Outline } from '../map/Outline';
+import { ShareAction } from '../share/ShareAction';
 import { CommandLine } from '../site/Install';
 import { PRIVACY, pageTitle } from '../site/SiteShell';
 import { ChatPicker, PasteBox } from './ChatImport';
@@ -128,6 +129,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
             <h1 ref={title} tabIndex={-1} className="open-file"><span className="visually-hidden">Your session map: </span>{state.name}</h1>
             <ViewSwitch view={view} onChange={setView} />
             <button type="button" className="text-button" onClick={again}>{chat ? 'Map another chat' : 'Open another file'}</button>
+            <ShareAction graph={state.graph} from="site" />
           </div>
           <MapBoundary key={view} onOutline={() => setView('outline')}>
             {view === 'map' ? <MapView graph={state.graph} ai={LIVE_AI} /> : <Outline graph={state.graph} />}

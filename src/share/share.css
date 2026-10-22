@@ -1,0 +1,21 @@
+/* The share dialog (DESIGN §13.1, V4): one of the allowed frames (§18.3); ink and muted only, no hue in chrome. */
+.share-dialog { max-width: min(38rem, calc(100vw - 2 * var(--tg-space-4))); padding: var(--tg-space-5); color: var(--tg-ink); background: var(--tg-paper); border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); font: 400 14px / 1.5 var(--tg-font-ui); }
+.share-dialog::backdrop { background: color-mix(in srgb, var(--tg-ink) 35%, transparent); }
+.share-title { margin: 0 0 var(--tg-space-2); font: 600 17px / 1.3 var(--tg-font-ui); }
+.share-summary { margin: 0 0 var(--tg-space-4); font-weight: 600; }
+.share-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--tg-space-2) var(--tg-space-4); margin: 0 0 var(--tg-space-4); font-size: 13.5px; }
+.share-facts dt { color: var(--tg-ink-muted); }
+.share-facts dd { margin: 0; }
+.share-toggle { display: inline-flex; gap: var(--tg-space-2); align-items: center; min-height: 28px; font-size: 13.5px; cursor: pointer; }
+.share-examples { margin: var(--tg-space-2) 0 0; padding: 0; list-style: none; font-size: 12.8px; }
+.share-examples li { margin: 0 0 var(--tg-space-2); padding: var(--tg-space-2); overflow-wrap: anywhere; background: var(--tg-surface); }
+.share-examples mark { padding: 0 2px; font-weight: 600; color: var(--tg-ink); background: var(--tg-wash); outline: 1px dashed var(--tg-ink-muted); }
+.share-actions { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); margin-top: var(--tg-space-5); }
+.share-actions button { min-height: 32px; padding: 0 var(--tg-space-4); font: 500 13.5px var(--tg-font-ui); color: var(--tg-ink); background: transparent; border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); cursor: pointer; }
+.share-actions .share-primary { font-weight: 600; border-width: 2px; }
+.share-actions button:disabled { cursor: progress; opacity: 0.6; }
+.share-status { min-height: 1.5em; margin: var(--tg-space-2) 0 0; font-size: 13.5px; color: var(--tg-ink-muted); }
+@media (max-width: 767px) {
+  .share-facts { grid-template-columns: 1fr; gap: 0; }
+  .share-facts dd { margin-bottom: var(--tg-space-2); }
+}

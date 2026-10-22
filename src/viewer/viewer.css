@@ -29,3 +29,4 @@
   .viewer-main { padding: var(--tg-space-4); }
   .viewer-footer, .shared-ribbon { padding-inline: var(--tg-space-4); }
 }
+.viewer-footer .share-button { padding: 0; border: 0; font: inherit; color: var(--tg-ink); background: none; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
