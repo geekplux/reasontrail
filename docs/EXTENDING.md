@@ -94,7 +94,7 @@ Colour is never the only signal in Reasontrail: thickness, markers, dash pattern
 
 ## 5. A session adapter
 
-An adapter turns one agent's raw session files into the source-neutral `NormalizedSession` (`shared/session/types.ts`); `buildGraph` does the rest (steps, edges, episodes, trouble, outcome). Adapters are pure: text in, data out, no Node APIs, no throwing. Claude Code (`claudeCode.ts`), Grok Build (`grokBuild.ts`) and Codex (`codex.ts`) are the three in `shared/session/adapters/`.
+An adapter turns one agent's raw session files into the source-neutral `NormalizedSession` (`shared/session/types.ts`); `buildGraph` does the rest (steps, edges, episodes, trouble, outcome). Adapters are pure: text in, data out, no Node APIs, no throwing. Claude Code (`claudeCode.ts`), Grok Build (`grokBuild.ts`) and Codex (`codex.ts`) are the agent adapters in `shared/session/adapters/`; `chat.ts` (pasted text) and `chatExports.ts` (ChatGPT and Claude exports, turned into one JSONL file per picked conversation) read chats. A text source passes its own probe to `checkAdapterContract(adapter, input, probe)`, since a malformed or partial JSONL line means nothing in plain text.
 
 1. **Add the source name.** Extend `SourceKind` in `shared/session/types.ts` and `SourceName` in `cli/src/args.ts`.
 2. **Write the adapter** in `shared/session/adapters/<name>.ts`, exporting a `SessionAdapter`:
