@@ -23,7 +23,8 @@ export function speakerOf(line: string): { role: 'user' | 'assistant'; name: str
   return { role, name, rest: (m[2] ?? '').replace(/(?:\*\*|__)\s*$/, '').trim() };
 }
 
-const looksLikeText = (first: string) => first !== '' && !/^[[{]/.test(first) && !/[\u0000�]/.test(first);
+/** Not JSON and not binary (no NUL, no undecodable bytes). */
+const looksLikeText = (first: string) => first !== '' && !/^[[{]/.test(first) && !first.includes('\u0000') && !first.includes('\uFFFD');
 
 /** Parse pasted chat text into turns. Pure; never throws. */
 export function parseChatText(input: SessionInput): NormalizedSession {
