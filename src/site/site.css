@@ -19,12 +19,10 @@
 .sub-line { margin: 0; max-width: 64rem; color: var(--tg-ink-muted); }
 .showcase .site-map { padding: 0; max-width: none; }
 /* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point; the headline is the one large text */
-/* DESIGN §18.3: 40 px between the route band and the bands below it, so the route reads as the largest region (CL1). */
-.showcase .route-band { padding-bottom: var(--tg-space-8); }
 .showcase .task-request { display: flex; align-items: baseline; gap: var(--tg-space-2); }
 .showcase .task-title { min-width: 0; font-size: var(--tg-text-lg); }
 .showcase .task-title.is-clamped { -webkit-line-clamp: 1; line-clamp: 1; }
-.showcase .task-request .link-button { flex: none; border: 0; background: none; padding: 0; color: var(--tg-ink-muted); font-size: var(--tg-text-sm); text-decoration: underline; text-underline-offset: 0.2em; }
+.showcase .task-request .link-button { flex: none; font-size: var(--tg-text-sm); }
 .showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-5); }
 
 .gallery { margin: 0; padding: 0; border: 0; min-width: 0; }
@@ -53,8 +51,8 @@
 .page summary { cursor: pointer; }
 .plain-list { margin: var(--tg-space-2) 0; padding-inline-start: var(--tg-space-5); }
 
-/* The footer sits in the same 1280 px column as the page. */
-.showcase-footer { justify-content: flex-start; flex-direction: column; padding: var(--tg-space-5) max(var(--tg-space-8), calc((100% - 1280px) / 2 + var(--tg-space-8))); }
+/* The footer sits in the same 1280 px column as the page, on one line at 1440 (X6). */
+.showcase-footer { justify-content: flex-start; padding: var(--tg-space-5) max(var(--tg-space-8), calc((100% - 1280px) / 2 + var(--tg-space-8))); }
 
 /* Drop zone */
 .drop-target { display: grid; justify-items: center; gap: var(--tg-space-4); max-width: 40rem; padding: var(--tg-space-8) var(--tg-space-5); border: 2px dashed var(--tg-ink-muted); border-radius: var(--tg-radius); text-align: center; }

@@ -32,7 +32,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   justify-content: space-between;
   gap: var(--tg-space-4);
   min-height: 56px;
-  padding: 0 var(--tg-space-6);
+  padding: 0 var(--tg-space-8);
   border-bottom: var(--tg-hairline);
 }
 .brand { text-decoration: none; border-radius: var(--tg-radius); }
@@ -59,6 +59,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   color: var(--tg-ink-muted);
 }
 .header-link { font-size: var(--tg-text-sm); }
+/* The current page's header link (DESIGN §18.1): ink, with a 2 px underline. */
+.header-link[aria-current='page'] { color: var(--tg-ink); text-decoration-thickness: 2px; }
 /* Wordmark (DESIGN §4.2): mono 20 / serif 25 (16 / 20 on mobile), shared baseline, no space; mark 1.6x the mono cap height. */
 .wordmark { display: inline-flex; align-items: center; gap: 0.4em; font-size: 20px; line-height: 1; }
 .logo-mark { width: 1.12em; height: 1.12em; flex: none; color: var(--tg-ink); }

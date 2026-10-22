@@ -137,7 +137,9 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   if (!(await page.locator('main').textContent()).includes(PRIVACY)) fail('V2: the drop zone lacks the privacy line');
   await page.waitForFunction(() => document.activeElement?.matches('main h1')).catch(() => fail('open: focus did not move to the page heading'));
   if ((await page.title()) !== 'Map your own session · Reasontrail') fail(`open title: ${await page.title()}`);
-  if ((await page.locator('header .button.primary').getAttribute('aria-current')) !== 'page') fail('open: the header button is not aria-current="page"');
+  // X1: only the showcase home fills "Map your own session"; on its own page it is the current text link.
+  if ((await page.locator('header a[href="?view=open"]').getAttribute('aria-current')) !== 'page') fail('open: the header link is not aria-current="page"');
+  if (await page.locator('header .button.primary').count()) fail('open: the header still has an ink-filled button');
   if ((await page.locator('footer').textContent()).includes(PRIVACY)) fail('open: the footer repeats the privacy line');
   const input = page.locator('input[type="file"]');
   await input.focus();

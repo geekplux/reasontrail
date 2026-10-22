@@ -37,15 +37,12 @@
   --tg-text-xl: 1.5625rem;
   --tg-text-2xl: 1.953rem;
 
-  /* Spacing 4/8/12/16/24/32/48; paper corners; hairlines instead of shadows */
+  /* Spacing (DESIGN §18.3): 4/8/16/24/40/64 only; paper corners; hairlines instead of shadows */
   --tg-space-1: 4px;
   --tg-space-2: 8px;
-  --tg-space-3: 12px;
   --tg-space-4: 16px;
   --tg-space-5: 24px;
-  --tg-space-6: 32px;
-  --tg-space-7: 48px;
-  --tg-space-8: 40px; /* DESIGN §18.3: between bands; outer margins at >= 1280 */
+  --tg-space-8: 40px; /* between bands; outer margins at >= 1280 */
   --tg-space-9: 64px; /* hero room */
   --tg-radius: 2px;
   --tg-hairline: 1px solid var(--tg-rule);

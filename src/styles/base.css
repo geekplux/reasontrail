@@ -2,7 +2,7 @@
 @import './core.css';
 
 /* Control row (PLAN §3.3): the sample picker as native radios drawn as labelled tabs; the chosen one is bold with a filled dot. */
-.controls { padding: var(--tg-space-4) var(--tg-space-6) 0; }
+.controls { padding: var(--tg-space-4) var(--tg-space-8) 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
 .picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--tg-ink-muted); }
 .picker-options { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); }
@@ -21,9 +21,9 @@
 .plate {
   display: grid;
   grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
-  gap: var(--tg-space-6);
+  gap: var(--tg-space-5);
   align-items: start;
-  padding: var(--tg-space-5) var(--tg-space-6);
+  padding: var(--tg-space-5) var(--tg-space-8);
 }
 
 .specimen {
@@ -43,7 +43,7 @@
 }
 
 .specimen-title {
-  margin: var(--tg-space-1) 0 var(--tg-space-3);
+  margin: var(--tg-space-1) 0 var(--tg-space-2);
   font: italic 400 var(--tg-text-2xl) / 1.1 var(--tg-font-serif);
 }
 .specimen-fields { margin: 0; }
@@ -52,7 +52,7 @@
 .specimen-fields abbr { text-decoration: none; }
 .specimen-prompt { font-family: var(--tg-font-mono); font-weight: 500; }
 .specimen-num { font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
-.specimen-note { margin: var(--tg-space-3) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.specimen-note { margin: var(--tg-space-2) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .garden-figure { margin: 0; min-width: 0; }
 
 /* Narrow screens scroll the drawing sideways; labels are never shrunk below their size. */
@@ -163,7 +163,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--tg-space-2) var(--tg-space-5);
-  padding: var(--tg-space-4) var(--tg-space-6);
+  padding: var(--tg-space-4) var(--tg-space-8);
   border-top: var(--tg-hairline);
   font-size: var(--tg-text-sm);
   color: var(--tg-ink-muted);
@@ -177,7 +177,7 @@
   .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
   /* The garden follows the controls directly, so the slider's effect is in view; the label has nothing focusable. */
   .specimen { order: 1; }
-  .controls { padding: var(--tg-space-3) var(--tg-space-4) 0; }
+  .controls { padding: var(--tg-space-2) var(--tg-space-4) 0; }
   .readout { position: sticky; bottom: 0; background: var(--tg-surface); border-top: var(--tg-hairline); }
   html { scroll-padding-bottom: var(--tg-readout-h, 0px); }
   .garden-table th, .garden-table td { padding-inline: var(--tg-space-1); }

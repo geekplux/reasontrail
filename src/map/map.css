@@ -1,18 +1,15 @@
 /* The map glance (DESIGN §7, §8, §9). Colours only via tokens.css; --tg-lane is a stroke, never text. */
 
-/* Map / Outline: a segmented control with an ink border; the selected segment is ink-filled (§7). */
-.view-switch { display: inline-flex; border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); }
-.view-switch button { min-width: 84px; min-height: 30px; padding: 0 var(--tg-space-4); border: 0; background: var(--tg-surface); color: var(--tg-ink); font: 500 13px var(--tg-font-ui); cursor: pointer; }
-.view-switch button[aria-pressed='true'] { background: var(--tg-ink); color: var(--tg-paper); font-weight: 600; }
+/* Map / Outline (§18.3, CL10): no border and no fill; the selected segment is 600 with a 2 px ink underline. */
+.view-switch { display: inline-flex; gap: var(--tg-space-4); }
+.view-switch button { min-height: 28px; padding: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--tg-ink-muted); font: 500 13.5px var(--tg-font-ui); white-space: nowrap; cursor: pointer; }
+.view-switch button[aria-pressed='true'] { color: var(--tg-ink); font-weight: 600; border-bottom-color: var(--tg-ink); }
 
-/* Trailhead: task in columns 1–8, At a glance in 9–12 under an ink rule. */
+/* Trailhead: task in columns 1–8, At a glance in 9–12, aligned by its label (no rule above it). */
 .trailhead { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--tg-space-5); align-items: start; }
-.map .region.glance { margin-top: var(--tg-space-1); padding-top: var(--tg-space-2); }
-.map .task-card { padding-bottom: var(--tg-space-4); }
 .map .glance-rows li { font-size: 13.5px; }
 
 /* Route band */
-.map .route-band { padding: var(--tg-space-4) 0 0; border-top: var(--tg-hairline); }
 .route-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-5); }
 .route-head .section-label { margin: 0; }
 .ai-button { min-height: 24px; padding: 0; border: none; background: transparent; color: var(--tg-ink-muted); font: 400 12.8px var(--tg-font-ui); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
@@ -58,8 +55,7 @@
 
 /* Bottom band: where it got stuck (x 32–540) and the destination card (x 560–1248), joined to the terminus. */
 .bottom-band { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--tg-space-5); align-items: start; }
-.map .stuck { margin-top: var(--tg-space-5); padding-top: var(--tg-space-4); border-top: var(--tg-hairline); }
-.stuck-rows { display: grid; gap: var(--tg-space-3); margin: 0; padding: 0; list-style: none; }
+.stuck-rows { display: grid; gap: var(--tg-space-4); margin: 0; padding: 0; list-style: none; }
 .stuck-rows li { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; padding-top: 6px; }
 .stuck-rows .blaze-icon { margin: 0 0 0 4px; }
 .stuck-text { display: block; font-size: 13.5px; overflow-wrap: anywhere; }
@@ -92,7 +88,7 @@
   .vrow.is-end::before { bottom: 50%; }
   .vroute > .vrow:first-child::before { top: 50%; }
   .vrow .map-item { position: relative; }
-  .vitem { display: flex; flex: 1; align-items: center; gap: var(--tg-space-3); min-width: 0; min-height: 44px; padding: 0 4px; }
+  .vitem { display: flex; flex: 1; align-items: center; gap: var(--tg-space-2); min-width: 0; min-height: 44px; padding: 0 4px; }
   .vitem.ep .glyph { width: 16px; height: 16px; border-radius: 50%; background: var(--tg-paper); box-shadow: 0 0 0 2px var(--tg-paper); }
   .vitem .ep-title { flex: 1; font-size: 14px; line-height: 18px; }
   .vitem .ep-count { flex: none; width: 9ch; font-size: 12px; text-align: right; }
@@ -104,23 +100,23 @@
   .vlane .lane-name, .vlane .lane-facts { font-size: 12px; white-space: nowrap; }
   .vlane .lane-name { overflow: hidden; text-overflow: ellipsis; }
   .vrow .blaze { width: 44px; height: 44px; }
-  .vbreak { display: flex; align-items: center; gap: var(--tg-space-3); min-height: 44px; font-size: 12px; color: var(--tg-ink-muted); }
+  .vbreak { display: flex; align-items: center; gap: var(--tg-space-2); min-height: 44px; font-size: 12px; color: var(--tg-ink-muted); }
   .vslash { position: relative; flex: none; width: 24px; height: 18px; }
   .vslash::before, .vslash::after { content: ''; position: absolute; top: 0; left: 8px; width: 1.5px; height: 18px; background: var(--tg-ink); transform: skewX(-30deg); }
   .vslash::after { left: 15px; }
-  .dest-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 20px minmax(0, 1fr) 16px; gap: var(--tg-space-3); align-items: center; min-height: 56px; margin: var(--tg-space-4) -16px 0; padding: var(--tg-space-2) 16px; color: var(--tg-ink); text-decoration: none; background: var(--tg-surface); border-top: 1px solid var(--tg-ink); }
+  .dest-bar { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 20px minmax(0, 1fr) 16px; gap: var(--tg-space-2); align-items: center; min-height: 56px; margin: var(--tg-space-4) -16px 0; padding: var(--tg-space-2) 16px; color: var(--tg-ink); text-decoration: none; background: var(--tg-surface); border-top: 1px solid var(--tg-ink); }
   .dest-bar .glyph { width: 20px; height: 20px; }
   .dest-bar-text { display: grid; font-size: 14px; }
   .dest-bar .section-label { margin: 0; }
   .chevron { width: 10px; height: 10px; border-right: 2px solid var(--tg-ink); border-bottom: 2px solid var(--tg-ink); transform: rotate(45deg); }
   .map .outcome-cols { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); }
   .map .outcome-cols > div + div { padding-left: 0; border-left: 0; border-top: var(--tg-hairline); padding-top: var(--tg-space-4); }
-  .view-switch button { min-height: 42px; min-width: 64px; padding: 0 var(--tg-space-3); }
+  .view-switch button { min-height: 44px; }
 }
 
 /* Website page frame for the map (the viewer has its own, viewer.css). */
-.site-map { --tg-frame-top: var(--tg-space-4); width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-4) var(--tg-space-6) var(--tg-space-7); }
-@media (max-width: 767px) { .site-map { padding: var(--tg-space-3) var(--tg-space-4) 0; } }
+.site-map { --tg-frame-top: var(--tg-space-4); width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-4) var(--tg-space-8) var(--tg-space-8); }
+@media (max-width: 767px) { .site-map { padding: var(--tg-space-2) var(--tg-space-4) 0; } }
 
 /* The sticky destination bar must never cover the focused item: tall phones scroll past it, short ones unstick it. */
 @media (max-width: 767px) and (min-height: 481px) { html { scroll-padding-bottom: 64px; } }
@@ -135,19 +131,21 @@
 @keyframes tg-panel-in { from { opacity: 0; transform: translateX(16px); } }
 .panel-top { display: flex; align-items: flex-start; gap: var(--tg-space-2); }
 .breadcrumb { flex: 1; min-width: 0; margin: 6px 0 0; font-size: 11.5px; color: var(--tg-ink-muted); overflow-wrap: anywhere; }
-.panel-close, .sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button { min-height: 28px; padding: 0 var(--tg-space-3); font: 500 13px var(--tg-font-ui); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); cursor: pointer; }
+/* Quiet text buttons (CL11, §18.4): muted, no border and no fill; underlined on hover and focus. */
+.panel-close, .sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button { min-height: 28px; padding: 0 var(--tg-space-1); font: 500 13px var(--tg-font-ui); color: var(--tg-ink-muted); background: none; border: 0; border-radius: var(--tg-radius); text-decoration: none; text-underline-offset: 0.2em; cursor: pointer; }
+:is(.sheet-size, .panel-actions button, .panel-nav button, .step-block > button, .link-button):is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline; }
 .panel-close { display: grid; place-items: center; width: 36px; padding: 0; }
 .panel-close path { stroke: currentColor; stroke-width: 1.6; }
 .sheet-size, .grabber { display: none; }
-.kind-line { display: flex; align-items: center; gap: var(--tg-space-2); margin: var(--tg-space-3) 0 0; color: var(--tg-ink-muted); }
+.kind-line { display: flex; align-items: center; gap: var(--tg-space-2); margin: var(--tg-space-4) 0 0; color: var(--tg-ink-muted); }
 .panel-title { margin: var(--tg-space-2) 0 var(--tg-space-1); font: 600 20px / 1.3 var(--tg-font-ui); overflow-wrap: anywhere; }
-.panel-summary { margin: 0 0 var(--tg-space-3); }
+.panel-summary { margin: 0 0 var(--tg-space-4); }
 .detail-panel .section-label { margin: var(--tg-space-4) 0 var(--tg-space-2); }
 .detail-panel .honesty.agent-words { margin-top: var(--tg-space-2); }
 .step-status { display: flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); }
 .step-status .mono { margin-left: auto; font-size: 11.5px; }
 .glyph-space { display: inline-block; width: 14px; }
-.box { max-height: 50vh; margin: 0 0 var(--tg-space-2); padding: var(--tg-space-2) var(--tg-space-3); overflow: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--tg-paper); border: 1px solid var(--tg-rule); }
+.box { max-height: 50vh; margin: 0 0 var(--tg-space-2); padding: var(--tg-space-2); overflow: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--tg-paper); border: 1px solid var(--tg-rule); }
 .box.cmd { max-height: calc(8 * 1.5em + 2 * var(--tg-space-2)); }
 .diff > span { display: block; }
 .diff .d-del { color: var(--tg-error); background: var(--tg-wash); }
@@ -165,25 +163,25 @@
 .lens-action { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-2); margin: var(--tg-space-2) 0 0; font-size: 12.8px; }
 .lens-link { display: inline-flex; align-items: center; gap: var(--tg-space-1); min-height: 28px; padding: 0 var(--tg-space-2); font: 500 13px var(--tg-font-ui); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); cursor: pointer; }
 .lens-link .lens-icon { width: 16px; height: 16px; }
-.step-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--tg-space-1) var(--tg-space-3); margin: 0; }
+.step-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--tg-space-1) var(--tg-space-4); margin: 0; }
 .step-facts dt { color: var(--tg-ink-muted); }
 .step-facts dd { margin: 0; overflow-wrap: anywhere; }
 .provenance-block { margin-top: var(--tg-space-4); padding-top: var(--tg-space-1); border-top: var(--tg-hairline); }
-.panel-actions, .panel-nav { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); margin: var(--tg-space-3) 0 var(--tg-space-2); }
-.panel-nav { justify-content: space-between; padding-top: var(--tg-space-3); border-top: var(--tg-hairline); }
+.panel-actions, .panel-nav { display: flex; flex-wrap: wrap; gap: var(--tg-space-2) var(--tg-space-4); margin: var(--tg-space-2) 0; }
+.panel-nav { justify-content: space-between; margin-top: var(--tg-space-5); }
 .panel-nav button[aria-disabled='true'] { color: var(--tg-ink-muted); border-color: var(--tg-rule); cursor: default; }
 .detail-panel .fine { margin: var(--tg-space-2) 0 0; font-size: 12.8px; }
 .raw { margin: var(--tg-space-2) 0; }
 .raw figcaption { font-size: 11.5px; }
 .raw-pre { max-height: 50vh; margin: var(--tg-space-1) 0 0; padding: var(--tg-space-2); overflow: auto; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--tg-paper); border: 1px solid var(--tg-rule); }
 .redacted { text-decoration: underline dotted; text-underline-offset: 2px; }
-.panel-files li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--tg-space-3); }
+.panel-files li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--tg-space-2); }
 
 /* The step strip under the map. */
 .step-strip { margin-top: var(--tg-space-4); }
 .step-strip .section-label { margin: 0 0 var(--tg-space-2); }
 .step-rows { max-height: 360px; margin: 0; padding: 0; overflow-y: auto; list-style: none; background: var(--tg-surface); border: 1px solid var(--tg-rule); }
-.step-rows button { display: grid; grid-template-columns: 14px minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: var(--tg-space-3); align-items: center; width: 100%; min-height: 27px; padding: 2px var(--tg-space-3) 2px var(--tg-space-2); font: 13px var(--tg-font-ui); color: var(--tg-ink); text-align: left; background: transparent; border: 0; border-left: 4px solid transparent; cursor: pointer; }
+.step-rows button { display: grid; grid-template-columns: 14px minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: var(--tg-space-2); align-items: center; width: 100%; min-height: 27px; padding: 2px var(--tg-space-2); font: 13px var(--tg-font-ui); color: var(--tg-ink); text-align: left; background: transparent; border: 0; border-left: 4px solid transparent; cursor: pointer; }
 .step-rows li[data-evidence] button { background: var(--tg-wash); }
 .step-rows button[aria-current='true'] { font-weight: 600; border-left-color: var(--tg-ink); }
 .step-label { overflow: hidden; font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }

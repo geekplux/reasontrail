@@ -1,6 +1,7 @@
-// The website's chrome (DESIGN §13.3, §13.4, §18): wordmark, one quiet link and one primary button (How to read and
-// GitHub live in the footer, and How to read in the map's honesty label too, keeping CL2's six first-view controls); a left-aligned
-// footer with the privacy line; and the drop overlay shown while a file is dragged anywhere over the page.
+// The website's chrome (DESIGN §13.3, §13.4, §18): wordmark and two header links; only the showcase home shows "Map your
+// own session" as its one ink-filled action, every other page as a text link, and the current page's link carries
+// aria-current with a 2 px underline (§18.1). How to read and GitHub live in the one-line footer, which says the
+// privacy line once per page; and the drop overlay shown while a file is dragged anywhere over the page.
 import { useEffect, useState, type ReactNode } from 'react';
 import './site.css';
 import { LogoMark } from '../brand/LogoMark';
@@ -50,6 +51,7 @@ function useFileDrop(onFile: (file: File) => void) {
 
 export function SiteShell({ children, onFile, home, view }: { children: ReactNode; onFile(file: File): void; home: boolean; view: SiteView }) {
   const open = view === 'open';
+  const showcase = view === 'map' || view === 'outline';
   const dragging = useFileDrop(onFile);
   return (
     <>
@@ -58,13 +60,12 @@ export function SiteShell({ children, onFile, home, view }: { children: ReactNod
         <nav className="site-nav" aria-label="Site">
           <a className="header-link" href="?view=install" aria-current={view === 'install' ? 'page' : undefined}>Install</a>
         </nav>
-        {/* The paste page keeps one ink action (Map this conversation): here the way to a session file is a quiet link. */}
-        <a className={view === 'chat' ? 'header-link' : 'button primary'} href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
+        <a className={showcase ? 'button primary' : 'header-link'} href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
       </header>
       <main className="site-main">{children}</main>
       <footer className="site-footer showcase-footer">
-        {/* The drop zone and the paste page say the privacy line beside their input, so the footer does not repeat it. */}
-        <p>{open || view === 'chat' ? '' : `${PRIVACY} · `}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
+        {/* The drop zone, the paste page and install say the privacy line in the page, so the footer does not repeat it. */}
+        <p>{showcase ? `${PRIVACY} · ` : ''}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
         <p>
           <a className="footer-link" href="./#how-to-read">How to read a map</a> ·{' '}
           <a className="footer-link" href="?view=install">Install</a> · Zoom into the words:{' '}
