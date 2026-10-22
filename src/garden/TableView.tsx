@@ -9,7 +9,8 @@ import { formatPct, spokenToken, STATE_TEXT, visibleWs } from './scales';
 const uncertainty = (f: Fork) => `${f.entropy.toFixed(1)} bits · ${entropyBand(f.entropy)} · ≈ ${(2 ** f.entropy).toFixed(1)} choices`;
 
 /** The text alternative to the drawing (A3): every visible branch, in tree order, with the same numbers. */
-export function TableView({ garden, t }: { garden: GardenTree; t: number }) {
+/** `missingState`: the State cell of a branch that can't grow (default "not recorded"). */
+export function TableView({ garden, t, missingState = STATE_TEXT['not-recorded'] }: { garden: GardenTree; t: number; missingState?: string | undefined }) {
   const [ref, position] = useOverflows<HTMLDivElement>();
   const items = visibleItems(garden);
   const said = new Map<string, string>();
@@ -51,7 +52,7 @@ export function TableView({ garden, t }: { garden: GardenTree; t: number }) {
                 <td data-role="p">{formatPct(b.p)}</td>
                 <td>{formatPct(b.pathP)}</td>
                 <td>{b.next ? uncertainty(b.next) : ''}</td>
-                <td>{STATE_TEXT[b.state]}</td>
+                <td>{b.state === 'not-recorded' ? missingState : STATE_TEXT[b.state]}</td>
               </tr>
             );
           })}

@@ -3,10 +3,10 @@ import { LEGEND_P } from './metrics';
 import { band, branchWidth, dashArray, formatPct, STATE_TEXT, type MarkerKind } from './scales';
 
 const SAMPLE_W = 32;
-const KEYS: [MarkerKind, string, string][] = [
+const keys = (missing: string): [MarkerKind, string, string][] => [
   ['bud', 'filled dot', STATE_TEXT.expandable],
   ['knot', 'dot in a ring', STATE_TEXT.expanded],
-  ['ring', 'hollow ring, dashed branch', STATE_TEXT['not-recorded']],
+  ['ring', 'hollow ring, dashed branch', missing],
   ['diamond', 'diamond, outlined branch', 'on the sampled path'],
 ];
 
@@ -33,7 +33,8 @@ function Sample({ p, kind = 'legend-sample' }: { p: number; kind?: SampleKind })
 }
 
 /** How to read the drawing: thickness samples with direct labels, then the marker shapes. */
-export function Legend() {
+/** `missingState`: the hollow ring's meaning (default "not recorded"; the live lens names its depth limit). */
+export function Legend({ missingState = STATE_TEXT['not-recorded'] }: { missingState?: string | undefined } = {}) {
   return (
     <div className="legend">
       <p className="legend-row">
@@ -52,7 +53,7 @@ export function Legend() {
       {/* Safari drops list semantics under list-style: none, so the role is not redundant here. */}
       {/* oxlint-disable-next-line jsx-a11y/no-redundant-roles */}
       <ul className="legend-row" role="list" aria-label="Branch tips">
-        {KEYS.map(([kind, shape, text]) => (
+        {keys(missingState).map(([kind, shape, text]) => (
           <li key={kind} className="legend-item" data-marker={kind}>
             <svg width={20} height={20} viewBox="-10 -10 20 20" aria-hidden="true" data-band="hi">
               <Marker kind={kind} />

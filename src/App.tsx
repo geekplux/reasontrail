@@ -6,7 +6,7 @@ import { HowToRead } from './components/HowToRead';
 import { LiveRegion, useAnnouncer } from './components/LiveRegion';
 import { ShareButton } from './components/ShareButton';
 import { SamplePicker } from './components/SamplePicker';
-import { SpecimenLabel } from './components/SpecimenLabel';
+import { SpecimenFields, SpecimenLabel } from './components/SpecimenLabel';
 import { TemperatureControl } from './components/TemperatureControl';
 import { InlineNote } from './components/states/InlineNote';
 import { useOverflows } from './components/useOverflows';
@@ -36,6 +36,9 @@ export interface LensSource {
   canGrow: CanGrow;
   /** Said for a branch that can't grow, in place of "Not in this recording." */
   missingText: string;
+  /** Its accessible-name part ("not in this recording", or the live depth limit) and its table/legend state. */
+  missingName: string;
+  missingState: string;
   /** Grown live only (no recording): the specimen card names the live model and no date. */
   liveOnly: boolean;
 }
@@ -56,10 +59,10 @@ const newSeed = () => 1 + Math.floor(Math.random() * 9999);
 /**
  * The picker and the garden it shows. Choosing a garden, or going back/forward to a share link (no network needed),
  * mounts a fresh garden: default expansion (D11) or the link's path, and the URL follows it. In the lens (`lens`) it
- * shows that sentence's garden instead, with the settings behind "More options" (DESIGN §18.1); `header` and `bar`
- * are the lens frame's (breadcrumb, Z2 line, live opt-in).
+ * shows that sentence's garden instead, full width, with its specimen fields and the settings behind "More options"
+ * (DESIGN §18.1); `header` and `bar` are the lens frame's (breadcrumb, Z2 line, live status), `options` its opt-in.
  */
-export function App({ header, lens, bar }: { header?: ReactNode; lens?: LensSource; bar?: ReactNode } = {}) {
+export function App({ header, lens, bar, options }: { header?: ReactNode; lens?: LensSource; bar?: ReactNode; options?: ReactNode } = {}) {
   const [view, setView] = useState<View>(() => ({ ...boot(lens), n: 0, walk: 0 }));
   const [message, announce] = useAnnouncer();
   useEffect(() => {
@@ -96,10 +99,17 @@ export function App({ header, lens, bar }: { header?: ReactNode; lens?: LensSour
         </div>
       )}
       {bar}
-      <Garden key={view.n} view={view} lens={lens} announce={announce} />
+      <Garden key={view.n} view={view} lens={lens} heading={header ? 'h2' : 'h1'} announce={announce} />
       {lens ? (
         <details className="controls lens-options">
-          <summary>More options</summary>
+          <summary>
+            More options
+            <svg className="lens-chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M4 2.5 7.5 6 4 9.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </summary>
+          <SpecimenFields sample={view.sample} live={lens.liveOnly} />
+          {options}
           {settings}
         </details>
       ) : null}
@@ -108,7 +118,7 @@ export function App({ header, lens, bar }: { header?: ReactNode; lens?: LensSour
   );
 }
 
-function Garden({ view, lens, announce }: { view: View; lens: LensSource | undefined; announce(text: string): void }) {
+function Garden({ view, lens, heading, announce }: { view: View; lens: LensSource | undefined; heading: 'h1' | 'h2'; announce(text: string): void }) {
   const { sample, ranks, unknown, valid, provider, t, seed, walk } = view;
   const missingText = lens?.missingText ?? RECORDED_ONLY;
   const recorded = useCallback<CanGrow>((key) => Object.hasOwn(sample.nodes, key), [sample]);
@@ -202,8 +212,9 @@ function Garden({ view, lens, announce }: { view: View; lens: LensSource | undef
   }, [opened, selectedKey, garden, view.urlId, t, seed]);
 
   return (
-    <div className="plate">
-      <SpecimenLabel sample={sample} live={lens?.liveOnly ?? false} />
+    // In the lens the specimen fields sit in More options and the garden takes the full width (DESIGN D1).
+    <div className={lens ? 'plate plate-wide' : 'plate'}>
+      {lens ? null : <SpecimenLabel sample={sample} level={heading} />}
       <figure className="garden-figure">
         {notice ? <InlineNote variant="info">{notice}</InlineNote> : null}
         {position ? (
@@ -225,6 +236,7 @@ function Garden({ view, lens, announce }: { view: View; lens: LensSource | undef
                 onHover={setHoverKey}
                 onActivate={onActivate}
                 onSelect={select}
+                missingName={lens?.missingName}
                 note={noteBox ? { box: noteBox, content: <InlineNote variant="not-recorded" announced>{missingText}</InlineNote> } : null}
               />
             ) : null}
@@ -241,8 +253,8 @@ function Garden({ view, lens, announce }: { view: View; lens: LensSource | undef
             Table view
           </button>
         </p>
-        {table ? <TableView garden={shown} t={t} /> : null}
-        <Legend />
+        {table ? <TableView garden={shown} t={t} missingState={lens?.missingState} /> : null}
+        <Legend missingState={lens?.missingState} />
         <figcaption>Each branch is one possible next token; the thicker the branch, the more likely the token.</figcaption>
       </figure>
     </div>

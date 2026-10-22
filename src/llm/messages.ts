@@ -5,7 +5,7 @@ import { LIVE_MAX_CALLS } from './cachedProvider';
 export function providerMessage(code: ProviderErrorCode, retryAfterSec?: number): string {
   switch (code) {
     case 'not_recorded':
-      return 'Not in this recording. Turn on live growth to grow this branch.';
+      return 'Not in this recording. Choose "Grow live with an open model" to grow this branch.';
     case 'invalid_input':
       return "This text can't be sent to the model as it is. The recorded branches still work.";
     case 'prefix_too_long':

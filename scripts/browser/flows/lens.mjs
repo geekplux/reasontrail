@@ -3,7 +3,7 @@
 // are (Z2), and "Back to the map" and the browser's Back both restore the selection and focus (Z3). A sentence with no
 // recording calls `/api/next-tokens` only after the opt-in (faked with page.route), a repeated prefix costs nothing, and
 // on `vite preview` (no Worker) the opt-in ends in the calm "unavailable" message with the garden still shown.
-// Two 1440 light WebP screenshots go to .tmp/ (lens-entry, lens-recorded).
+// Two 1440 light WebP screenshots go to .tmp/ (lens-recorded, lens-live-optin).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';
@@ -46,9 +46,18 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   if (!(await panel(page).getByText('Recorded · works offline').isVisible())) fail('the recorded sentence is not marked as working offline');
   const chip = panel(page).locator('.lens-sentence[aria-pressed="true"]');
   if (!(await chip.textContent())?.includes('Now the planner rewrites the plan')) fail(`picked sentence: ${await chip.textContent()}`);
+  // The chips are one tab stop (A5): arrows pick and focus another sentence, Home goes back to the first.
+  const chips = panel(page).locator('.lens-sentence');
+  if ((await panel(page).locator('.lens-sentence[tabindex="0"]').count()) !== 1) fail('sentence chips are not one tab stop');
   await chip.focus();
+  if ((await chips.count()) > 1) {
+    await page.keyboard.press('ArrowRight');
+    const moved = await page.evaluate(() => document.activeElement?.getAttribute('aria-pressed'));
+    if (moved !== 'true' || (await chips.first().getAttribute('aria-pressed')) !== 'false') fail('ArrowRight did not pick the next sentence');
+    await page.keyboard.press('Home');
+  }
   await page.keyboard.press('Enter');
-  await webp('lens-entry');
+  if ((await chips.first().getAttribute('aria-pressed')) !== 'true') fail('Home did not pick the first sentence');
 
   // The recorded lens: no API request, the Z2 line, the sentence and its step, focus on the garden's title.
   await zoom.focus();
@@ -59,7 +68,15 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   const quote = (await page.locator('.lens-quote').textContent()) ?? '';
   if (!quote.includes('Now the planner rewrites the plan for the reasoning map') || !quote.includes('Step s12')) fail(`sentence and provenance: ${quote}`);
   if (!/Map.*›.*Sentence/s.test((await page.locator('.lens-breadcrumb').textContent()) ?? '')) fail('breadcrumb');
-  if ((await focused(page)).id !== 'specimen-title') fail(`focus after opening the lens: ${JSON.stringify(await focused(page))}`);
+  if ((await focused(page)).id !== 'lens-title') fail(`focus after opening the lens: ${JSON.stringify(await focused(page))}`);
+  const h1s = await page.evaluate(() => [...document.querySelectorAll('h1')].filter((h) => !h.closest('[hidden]')).map((h) => h.textContent));
+  if (h1s.length !== 1 || !h1s[0].startsWith('Zoom-in lens')) fail(`the lens's h1s: ${JSON.stringify(h1s)}`);
+  // De-crowded (D1): no specimen card beside the garden; the first two forks (the seed's and the first grown branch's) fit in a 1440×900 view.
+  if (await page.locator('.plate .specimen').count()) fail('the specimen card is still beside the lens garden');
+  const tops = await page.evaluate(() => [document.querySelector('[data-testid="garden"] .seed'), ...[...document.querySelectorAll('g.branch[data-state="expanded"]')].sort((a, b) => a.dataset.depth - b.dataset.depth).slice(0, 1).map((g) => g.querySelector('[data-role="hit"]'))].map((e) => e?.getBoundingClientRect().bottom ?? Infinity));
+  if (tops.length < 2 || tops.some((b) => b > 900)) fail(`root and first two forks not inside 900 px: ${tops.join(', ')}`);
+  if (!(await page.locator('.lens-quote figcaption').textContent())?.includes('Recorded, works offline')) fail('the recorded sentence does not say it works offline');
+  if (await page.locator('.lens-offer').isVisible()) fail('the recorded lens still shows the opt-in bar');
   if (await page.locator('.site').isVisible()) fail('the map is still visible under the lens');
   // Growing recorded branches makes no request at all (AC2).
   const before = requests.length;
@@ -72,11 +89,16 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   if (await missing.count()) {
     await missing.click();
     const note = (await page.locator('.garden-note .inline-note, .readout .inline-note').allTextContents()).join(' ');
-    if (!note.includes('Turn on live growth')) fail(`not-recorded note in the lens: ${note}`);
+    if (!note.includes('Choose "Grow live with an open model"')) fail(`not-recorded note in the lens: ${note}`);
   }
-  if (!(await page.getByRole('button', { name: /^Grow live with an open model — sends this text to the Reasontrail Worker$/ }).isVisible())) fail('no live opt-in');
+  // The opt-in and the specimen fields wait in More options.
+  await page.locator('.lens-options summary').click();
+  if (!(await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).isVisible())) fail('no live opt-in in More options');
+  if (!(await page.locator('.lens-options').textContent())?.includes('Nothing is sent until you choose this.')) fail('opt-in: no "nothing is sent" note');
+  if (!(await page.locator('.lens-options .specimen-fields').isVisible())) fail('no specimen fields in More options');
   for (const p of await axeProblems(page, 'lens recorded')) fail(p);
-  await page.locator('#specimen-title').focus();
+  await page.locator('.lens-options summary').click();
+  await page.locator('#lens-title').focus();
   await page.evaluate(() => window.scrollTo(0, 0));
   await webp('lens-recorded');
 
@@ -112,11 +134,15 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   await page.waitForTimeout(300);
   if (sent.length) fail(`live calls before the opt-in: ${sent.length}`);
   if (!/[?&]lens=live/.test(page.url())) fail(`live lens URL: ${page.url()}`);
-  await page.getByRole('button', { name: /^Grow live with an open model/ }).click();
+  if (!(await page.locator('.lens-bar .lens-offer').textContent())?.includes('Nothing is sent until you choose this.')) fail('live-only bar: no "nothing is sent" note');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await webp('lens-live-optin');
+  await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).click();
   await page.locator('g.branch[data-state="expanded"]').first().waitFor({ timeout: 5_000 });
   const opened = sent.length;
   if (opened < 1 || opened > 2 || sent.some((b) => b.k !== 5)) fail(`opt-in calls: ${JSON.stringify(sent)}`);
   if (!(await page.locator('.lens-live').textContent())?.includes('fake-open-model')) fail(`live status: ${await page.locator('.lens-live').textContent()}`);
+  if ((await focused(page)).id !== 'lens-live') fail(`focus after the opt-in: ${JSON.stringify(await focused(page))}`);
   const grown = await page.locator('g.branch[data-state="expanded"]').first().getAttribute('data-key');
   await page.locator(hit(grown)).click(); // collapse
   await page.locator(hit(grown)).click(); // open again: from the cache
@@ -131,7 +157,7 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   await openMap(page, `${baseURL}/?session=planner-pivot&step=s108`);
   await panel(page).getByRole('button', { name: 'Zoom into this sentence' }).click();
   await ready(page);
-  await page.getByRole('button', { name: /^Grow live with an open model/ }).click();
+  await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).click();
   await page.locator('.lens-status .inline-note').waitFor({ timeout: 10_000 });
   const msg = (await page.locator('.lens-status').textContent()) ?? '';
   if (!msg.includes("Live growth isn't available here")) fail(`no-Worker message: ${msg}`);

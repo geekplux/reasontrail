@@ -83,6 +83,8 @@
 .garden .on-path > [data-role='branch-stroke'] { stroke: var(--tg-ink); }
 .garden .on-path > [data-role='casing'] { stroke: var(--tg-paper); }
 .garden [data-role='remainder'] path { stroke: var(--tg-ink-muted); }
+/* The "other tokens" remainder is a light, short-dashed band (capped at its fork's widest branch); its label says the number. */
+.garden [data-role='remainder-stroke'], .legend [data-role='legend-other'] { stroke-opacity: 0.55; }
 /* Sampled path (spec §3, §10.3): ink underlay + accent stroke + diamond tips, so it reads without colour. */
 .garden path[data-role='sampled-underlay'] { stroke: var(--tg-ink); }
 .garden path[data-role='sampled-stroke'] { stroke: var(--tg-accent); }
@@ -141,6 +143,8 @@
 .view-toggle-row { margin: var(--tg-space-2) 0; }
 .view-toggle { min-height: 24px; padding: var(--tg-space-1) var(--tg-space-2); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); cursor: pointer; }
 .view-toggle[aria-pressed='true'] { color: var(--tg-paper); background: var(--tg-ink); }
+/* In the lens's More options the picked temperature chip is marked by weight and underline, not an ink fill. */
+.lens-options .view-toggle[aria-pressed='true'] { font-weight: 600; text-decoration: underline 2px; text-underline-offset: 4px; background: none; color: var(--tg-ink); }
 .table-scroll { overflow-x: auto; margin-bottom: var(--tg-space-2); }
 .garden-table { border-collapse: collapse; font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
 .garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--tg-ink-muted); }

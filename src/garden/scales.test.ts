@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { band, branchWidth, dashArray, formatPct, formatToken, formatValue, grewMessage, spokenBranch, spokenToken, wsRuns } from './scales';
+import { band, branchWidth, dashArray, formatPct, formatToken, formatValue, grewMessage, remainderWidth, spokenBranch, spokenToken, wsRuns } from './scales';
 
 describe('scales', () => {
   it.each([
@@ -59,14 +59,14 @@ describe('scales', () => {
 describe('dashArray', () => {
   it.each([
     ['not-recorded', 1.5, '4 3'],
-    ['other', 8, '6 4'],
+    ['other', 8, '2 3'],
     ['not-recorded', 20, '10 7.5'],
-    ['other', 16, '12 8'],
+    ['other', 16, '4 6'],
   ] as const)('%s at %s px is %s', (kind, w, dash) => expect(dashArray(kind, w)).toBe(dash));
 
   it('stretches the gap so a stroke of known length ends on a whole dash', () => {
     const [dash, gap] = dashArray('other', 16, 150).split(' ').map(Number) as [number, number];
-    expect(dash).toBe(12);
+    expect(dash).toBe(4);
     const periods = (150 - dash) / (dash + gap);
     expect(Math.abs(periods - Math.round(periods))).toBeLessThan(0.01);
   });
@@ -101,8 +101,19 @@ describe('dashArray', () => {
     expect(spokenBranch(b)).toBe('looked, 8.9 percent');
     expect(spokenBranch({ ...b, next: { rest: 0, entropy: 1.44 } })).toBe('looked, 8.9 percent, uncertainty after it: medium, 1.4 bits');
     expect(spokenBranch({ ...b, depth: 2, pathP: 0.0002, state: 'not-recorded' })).toBe('looked, 8.9 percent, path less than 0.1 percent, not in this recording');
+    expect(spokenBranch({ ...b, state: 'not-recorded' }, 'grows no deeper, 4-token limit')).toBe('looked, 8.9 percent, grows no deeper, 4-token limit');
     const out = { ...b, token: ' out', p: 0.301 };
     expect(grewMessage({ token: ' looked', children: [out, out] as never })).toBe('Grew ‘looked’: 2 branches, top ‘out’ 30.1 percent');
     expect(grewMessage({ token: ' a', children: [] })).toBe('Grew ‘a’: 0 branches');
+  });
+});
+
+describe('remainderWidth', () => {
+  it('is never wider than the widest real sibling at the fork', () => {
+    expect(remainderWidth(0.7, [0.1, 0.2])).toBe(branchWidth(0.2));
+    expect(remainderWidth(0.7, [0.1, 0.2])).toBeLessThan(branchWidth(0.7));
+    expect(remainderWidth(0.05, [0.5, 0.45])).toBe(branchWidth(0.05));
+    for (const [rest, ps] of [[0.9, [0.05]], [0.3, [0.3, 0.2]], [0.01, [0.9]]] as const) expect(remainderWidth(rest, ps)).toBeLessThanOrEqual(Math.max(...ps.map(branchWidth)));
+    expect(remainderWidth(0.4, [])).toBe(branchWidth(0.4));
   });
 });

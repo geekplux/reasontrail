@@ -160,7 +160,7 @@ export function Site() {
         </div>
       ) : null}
       {lensView ? (
-        <Suspense fallback={null}>
+        <Suspense fallback={<p className="page muted" role="status">Opening the lens…</p>}>
           <Lens target={lensTarget} focusOnOpen={lensTarget !== null} onBack={back} />
         </Suspense>
       ) : null}

@@ -4,7 +4,7 @@ import { treeKeyAction, visibleItems } from './keyboard';
 import { EMPTY_TEXT, forkLinks, remainderLabel, valueWidth, type Box, type GardenLayout } from './layout';
 import * as M from './metrics';
 import type { SampledPath } from './samplePath';
-import { band, branchWidth, dashArray, formatPct, formatToken, formatValue, MARKER, spokenBranch, wsRuns, type MarkerKind } from './scales';
+import { band, branchWidth, dashArray, remainderWidth, formatPct, formatToken, formatValue, MARKER, spokenBranch, wsRuns, type MarkerKind } from './scales';
 
 /** The remainder stub is hidden below this shown chance (so it vanishes at T = 0). */
 const MIN_REST = 0.0005;
@@ -70,6 +70,8 @@ interface GardenViewProps {
   onSelect?(key: string): void;
   /** A note placed by `placeNote` next to one branch (e.g. "Not in this recording."), in drawing coordinates. */
   note?: { box: Box; content: ReactNode } | null;
+  /** Said on a branch that can't grow (default "not in this recording"; the live lens names its depth limit). */
+  missingName?: string | undefined;
 }
 
 /** The branch group with `key`, and its hit rect (keys are arbitrary text, so no attribute selector). */
@@ -78,7 +80,7 @@ const groupOf = (svg: SVGSVGElement | null, key: string | undefined) =>
 const hitOf = (svg: SVGSVGElement | null, key: string | undefined) => groupOf(svg, key)?.querySelector('[data-role="hit"]');
 const TREE_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ']);
 
-export function GardenView({ garden, layout, sampled = null, selectedKey, hoverKey = null, onHover, onActivate, onSelect, note = null }: GardenViewProps) {
+export function GardenView({ garden, layout, sampled = null, selectedKey, hoverKey = null, onHover, onActivate, onSelect, note = null, missingName }: GardenViewProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const anchor = useRef<{ key: string; top: number; open: boolean } | null>(null);
   const dropSlack = useRef<(() => void) | null>(null);
@@ -87,11 +89,13 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
   const restOf = (parentKey: string) => (parentKey ? byKey.get(parentKey)?.branch.next : garden.next)?.rest ?? 0;
   // Shown widths restack each fork's bundle; tips never move (spec §10.1).
   const links = useMemo(() => {
-    const out = new Map<string, { link: string; length: number }>();
+    const out = new Map<string, { link: string; length: number; w: number }>();
     for (const f of layout.forks) {
       const rest = (f.parentKey ? byKey.get(f.parentKey)?.branch.next : garden.next)?.rest ?? 0;
-      const ws = f.tips.map((tip) => (tip.key === null ? (rest >= MIN_REST ? branchWidth(rest) : 0) : branchWidth(byKey.get(tip.key)?.branch.p ?? 0)));
-      forkLinks(f, ws).forEach((l, i) => out.set(f.tips[i]!.key ?? `\0${f.parentKey}`, l));
+      const ps = f.tips.flatMap((tip) => (tip.key === null ? [] : [byKey.get(tip.key)?.branch.p ?? 0]));
+      // The "other" band is capped at the widest real branch of its fork (it summarises, never dominates).
+      const ws = f.tips.map((tip) => (tip.key === null ? (rest >= MIN_REST ? remainderWidth(rest, ps) : 0) : branchWidth(byKey.get(tip.key)?.branch.p ?? 0)));
+      forkLinks(f, ws).forEach((l, i) => out.set(f.tips[i]!.key ?? `\0${f.parentKey}`, { ...l, w: ws[i]! }));
     }
     return out;
   }, [layout, byKey, garden]);
@@ -208,8 +212,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
         {layout.remainders.map((r) => {
           const p = restOf(r.parentKey);
           if (p < MIN_REST) return null;
-          const w = branchWidth(p);
-          const { link, length } = links.get(`\0${r.parentKey}`)!;
+          const { link, length, w } = links.get(`\0${r.parentKey}`)!;
           const dash = dashArray('other', w, length);
           const drew = otherAt === r.parentKey;
           return (
@@ -244,7 +247,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
               role="treeitem"
               id={`${uid}b${byKey.get(b.key)?.i}`}
               tabIndex={b.key === tabKey ? 0 : -1}
-              aria-label={`${spokenBranch(b)}${step === undefined ? '' : ', sampled'}`}
+              aria-label={`${spokenBranch(b, missingName)}${step === undefined ? '' : ', sampled'}`}
               aria-level={b.depth}
               aria-setsize={byKey.get(b.key)?.setSize}
               aria-posinset={b.rank + 1}

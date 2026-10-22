@@ -1,5 +1,5 @@
 // "Zoom into this sentence" (DESIGN §13.5, PLAN Z1): on an assistant's text in the detail panel, each sentence worth
-// zooming into is a focusable chip (dotted underline on hover and focus, Enter or a click selects it), and one quiet
+// zooming into is a focusable chip (dotted underline on hover and focus; one tab stop, arrows, Home and End move, Enter or a click selects), and one quiet
 // button with the lens icon opens the lens on the selected one. Recorded sentences carry the lens mark and say they
 // work offline; the others say they grow live after an opt-in. Nothing is fetched here.
 import { useContext, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
@@ -19,11 +19,19 @@ export function useLensSentences(text: string, stepId: string | null, where: str
   const [picked, setPicked] = useState<number | null>(null);
   const chips = useRef(new Map<number, HTMLElement>());
   const noteId = useId();
+  const pickedId = useId();
+  const hintId = useId();
   if (!lens || !stepId || !sentences.some((s) => s.zoomable)) return null;
   // The first sentence is picked until the reader picks another: always one they can see, even in a clamped text.
   const at = picked ?? sentences.findIndex((s) => s.zoomable);
   const sentence = sentences[at]!;
   const rec = recorded[at];
+  // Roving tabindex (A5): the chips are one tab stop, on the picked sentence; arrows, Home and End pick another.
+  const zoomable = sentences.flatMap((s, i) => (s.zoomable ? [i] : []));
+  const pick = (i: number) => {
+    setPicked(i);
+    chips.current.get(i)?.focus();
+  };
 
   const parts: ReactNode[] = [];
   let pos = 0;
@@ -32,9 +40,18 @@ export function useLensSentences(text: string, stepId: string | null, where: str
     pos = s.end;
     if (!s.zoomable) return parts.push(s.text);
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const n = zoomable.indexOf(i);
+      const to =
+        e.key === 'Enter' || e.key === ' ' ? i
+        : e.key === 'ArrowRight' || e.key === 'ArrowDown' ? zoomable[Math.min(n + 1, zoomable.length - 1)]
+        : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? zoomable[Math.max(n - 1, 0)]
+        : e.key === 'Home' ? zoomable[0]
+        : e.key === 'End' ? zoomable.at(-1)
+        : undefined;
+      if (to === undefined) return;
       e.preventDefault();
-      setPicked(i);
+      if (to === i) setPicked(i);
+      else pick(to);
     };
     parts.push(
       <span
@@ -42,8 +59,9 @@ export function useLensSentences(text: string, stepId: string | null, where: str
         ref={(el) => void (el ? chips.current.set(i, el) : chips.current.delete(i))}
         className="lens-sentence"
         role="button"
-        tabIndex={0}
+        tabIndex={i === at ? 0 : -1}
         aria-pressed={i === at}
+        aria-describedby={zoomable.length > 1 ? hintId : undefined}
         onClick={() => setPicked(i)}
         onKeyDown={onKeyDown}
         onFocus={(e) => onReveal(e.currentTarget)}
@@ -74,11 +92,19 @@ export function useLensSentences(text: string, stepId: string | null, where: str
     content: parts,
     action: (
       <p className="lens-action">
-        <button type="button" className="lens-link" aria-describedby={noteId} onClick={zoom}>
+        <button type="button" className="lens-link" aria-describedby={`${pickedId} ${noteId}`} onClick={zoom}>
           <LensIcon />
           Zoom into this sentence
         </button>
+        <span id={pickedId} className="visually-hidden">
+          {sentence.text}
+        </span>
         <span id={noteId} className="muted">{rec ? 'Recorded · works offline' : 'Not recorded · grows live if you opt in'}</span>
+        {zoomable.length > 1 ? (
+          <span id={hintId} className="visually-hidden">
+            Arrow keys pick another sentence.
+          </span>
+        ) : null}
       </p>
     ),
   };

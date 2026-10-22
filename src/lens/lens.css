@@ -1,6 +1,9 @@
 /* The zoom-in lens frame (DESIGN §13.5, §18.1): the garden is the focal point; the breadcrumb, the Z2 line and the
    sentence are quieter, above it, and the settings sit behind "More options" after it. Colours only via tokens.css. */
 .lens-head, .lens-bar { padding: var(--tg-space-4) var(--tg-space-5) 0; animation: lens-in var(--tg-dur-lens) var(--tg-ease-out); }
+/* The bar's spacing comes from what it shows: with only the (empty) status region it takes no room. */
+.lens-bar { padding-top: 0; }
+.lens-bar > .lens-offer, .lens-bar > .lens-live { margin-top: var(--tg-space-4); }
 .lens-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); }
 .lens-back, .lens-optin, .lens-options summary {
   min-height: 28px;
@@ -15,17 +18,27 @@
 .lens-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; margin: 0; padding: 0; list-style: none; font-size: 11.5px; color: var(--tg-ink-muted); }
 .lens-breadcrumb li + li::before { content: '›'; padding-inline: var(--tg-space-1); }
 .lens-breadcrumb [aria-current] { color: var(--tg-ink); }
+.lens-breadcrumb a { color: inherit; text-underline-offset: 3px; }
+.lens-breadcrumb a:hover { color: var(--tg-ink); }
 .lens-breadcrumb .lens-icon { width: 16px; height: 16px; margin-inline-end: var(--tg-space-1); vertical-align: -3px; color: var(--tg-accent); }
 .lens-z2 { display: flex; align-items: baseline; gap: var(--tg-space-1); max-width: var(--tg-measure); margin: var(--tg-space-2) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .lens-z2 svg { flex: none; align-self: center; }
 .lens-quote { max-width: var(--tg-measure); margin: var(--tg-space-4) 0 0; padding-inline-start: var(--tg-space-4); border-inline-start: 2px solid var(--tg-ink); }
 .lens-sentence-text { margin: 0; font: italic 400 var(--tg-text-lg) / 1.35 var(--tg-font-serif); }
 .lens-quote figcaption { margin-top: var(--tg-space-1); font-size: 11.5px; }
+.plate-wide { grid-template-columns: minmax(0, 1fr); }
 .lens-offer, .lens-live { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); margin: 0; font-size: var(--tg-text-sm); }
-.lens-status:empty { display: none; }
 .lens-status .inline-note { margin: var(--tg-space-2) 0 0; }
 .lens-options { padding: 0 var(--tg-space-5) var(--tg-space-5); }
-.lens-options summary { display: inline-flex; align-items: center; list-style-position: inside; }
+.lens-options summary { display: inline-flex; align-items: center; gap: var(--tg-space-1); list-style: none; }
+.lens-options summary::-webkit-details-marker { display: none; }
+.lens-chevron { transition: transform var(--tg-dur-lens) var(--tg-ease-out); }
+.lens-options[open] .lens-chevron { transform: rotate(90deg); }
+.lens-options .specimen-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0 var(--tg-space-4); max-width: var(--tg-measure); margin-bottom: var(--tg-space-4); }
+.lens-options .specimen-fields dt { margin-top: 0; padding-top: var(--tg-space-1); border-bottom: var(--tg-hairline); }
+.lens-options .specimen-fields dd { padding-top: var(--tg-space-1); }
+.lens-offer-options { margin-bottom: var(--tg-space-4); }
+.lens-live:focus-visible { outline: 2px solid var(--tg-ink); outline-offset: 2px; }
 .lens-options[open] summary { margin-bottom: var(--tg-space-2); }
 
 /* The detail panel's bottom-sheet padding belongs to the hidden map, not to the lens. */

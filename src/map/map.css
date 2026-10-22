@@ -158,7 +158,7 @@
 .step-text.is-clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 12; overflow: hidden; }
 /* Zoom into this sentence (DESIGN §13.5): each sentence is a chip with a dotted underline on hover and focus; the picked
    one has a solid 2 px ink underline. Ink only: no hue outside the lens (CL10). */
-.lens-sentence { cursor: pointer; border-radius: 2px; }
+.lens-sentence { cursor: pointer; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .lens-sentence:hover, .lens-sentence:focus-visible { text-decoration: underline dotted; text-underline-offset: 3px; }
 .lens-sentence[aria-pressed='true'] { text-decoration: underline solid 2px; text-underline-offset: 3px; }
 .lens-mark { width: 12px; height: 12px; margin-inline-start: 2px; vertical-align: -1px; }

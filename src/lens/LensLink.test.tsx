@@ -49,6 +49,28 @@ describe('Zoom into this sentence (Z1)', () => {
     expect(target.sentence.replace(/[`*]/g, '').startsWith(target.prompt)).toBe(true);
   });
 
+  it('is one tab stop: arrow keys, Home and End pick and focus another sentence (A5, A6)', async () => {
+    const panel = await panelAt('s108', { sampleId: 'planner-pivot', sampleTitle: 'Plan', open: () => {} });
+    const chips = [...panel.querySelectorAll<HTMLElement>('.lens-sentence')];
+    expect(chips.map((c) => c.getAttribute('tabindex'))).toEqual(chips.map((_, i) => (i === 0 ? '0' : '-1')));
+    fireEvent.keyDown(chips[0]!, { key: 'ArrowRight' });
+    expect(chips[1]!.getAttribute('aria-pressed')).toBe('true');
+    expect(chips[1]!.getAttribute('tabindex')).toBe('0');
+    expect(document.activeElement).toBe(chips[1]);
+    fireEvent.keyDown(chips[1]!, { key: 'End' });
+    expect(document.activeElement).toBe(chips.at(-1));
+    fireEvent.keyDown(chips.at(-1)!, { key: 'ArrowDown' });
+    expect(chips.at(-1)!.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.keyDown(chips.at(-1)!, { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(chips.at(-2));
+    fireEvent.keyDown(chips.at(-2)!, { key: 'Home' });
+    expect(document.activeElement).toBe(chips[0]);
+    expect(document.getElementById(chips[0]!.getAttribute('aria-describedby')!)?.textContent).toBe('Arrow keys pick another sentence.');
+    const zoom = screen.getByRole('button', { name: 'Zoom into this sentence' });
+    const described = zoom.getAttribute('aria-describedby')!.split(' ').map((id) => document.getElementById(id)?.textContent);
+    expect(described).toEqual([chips[0]!.textContent, 'Not recorded · grows live if you opt in']);
+  });
+
   it('is not offered without the website lens, nor on a tool step', async () => {
     let panel = await panelAt('s108', null);
     expect(panel.querySelector('.lens-sentence')).toBeNull();

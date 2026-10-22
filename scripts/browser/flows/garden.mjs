@@ -59,7 +59,9 @@ function audit() {
       if (r.textContent !== `other ${fmt(p)}`) problems.push(`remainder ${parent.key}: label ${r.textContent}`);
       const inert = [r, r.querySelector('path'), r.querySelector('text')].every((e) => getComputedStyle(e).pointerEvents === 'none');
       if (!inert || r.querySelector('[tabindex]') || r.hasAttribute('tabindex')) problems.push(`remainder ${parent.key}: interactive`);
-      if (!dashOk(getComputedStyle(r.querySelector('path')), [6, 4])) problems.push(`remainder ${parent.key}: not dashed 6 4 (scaled)`);
+      const widest = Math.max(...kids.map((g) => parseFloat(getComputedStyle(g.querySelector('[data-role="branch-stroke"]')).strokeWidth)));
+      if (parseFloat(getComputedStyle(r.querySelector('path')).strokeWidth) > widest + 0.01) problems.push(`remainder ${parent.key}: wider than its widest sibling ${widest}`);
+      if (!dashOk(getComputedStyle(r.querySelector('path')), [2, 3])) problems.push(`remainder ${parent.key}: not dashed 2 3 (scaled)`);
     }
   }
   const samples = [...document.querySelectorAll('.legend [data-role="legend-sample"]')];
@@ -70,7 +72,7 @@ function audit() {
     if (!l.closest('.legend-item').textContent.includes(fmt(Number(l.dataset.p)))) problems.push(`legend sample ${l.dataset.p}: no direct label`);
   }
   const other = document.querySelector('.legend [data-role="legend-other"]');
-  if (!other || !getComputedStyle(other).strokeDasharray.startsWith('6px, ') /* gap fitted to the 32 px sample */ || !other.closest('.legend-item').textContent.includes('other tokens'))
+  if (!other || !getComputedStyle(other).strokeDasharray.startsWith('2px, ') /* gap fitted to the 32 px sample */ || !other.closest('.legend-item').textContent.includes('other tokens'))
     problems.push('legend has no dashed "other tokens" sample');
   const unrec = document.querySelector('.legend [data-marker="ring"] [data-role="legend-not-recorded"]');
   if (!unrec || getComputedStyle(unrec).strokeDasharray !== '4px, 3px') problems.push('legend "not recorded" key has no 4 3 dashed sample');

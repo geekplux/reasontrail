@@ -8,6 +8,7 @@ import { App, type LensSource } from '../App';
 import { AppShell } from '../components/AppShell';
 import { InlineNote } from '../components/states/InlineNote';
 import type { CanGrow } from '../garden/buildTree';
+import { mapSearch } from '../app/urlState';
 import { LIVE_K, LIVE_MAX_CALLS, LIVE_MAX_DEPTH, liveProvider } from '../llm/cachedProvider';
 import { providerMessage } from '../llm/messages';
 import { InfoGlyph } from '../map/Glyph';
@@ -22,6 +23,8 @@ import { LensProvider } from './lensProvider';
 import type { LensTarget } from './lensTarget';
 
 export const Z2_TEXT = "An open model's predictions for this text, not what the session's model computed.";
+const OPT_IN = 'Grow live with an open model';
+const OPT_IN_NOTE = 'Sends this text to the Reasontrail Worker. Nothing is sent until you choose this.';
 
 const loaded = new Map<string, Promise<SampleGarden | null>>();
 /** One promise per recorded garden, so `use` sees the same one on every render; a failed load resolves to null. */
@@ -81,6 +84,8 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
         urlId: rec?.gardenId ?? null,
         canGrow,
         missingText: live ? `Live growth stops ${LIVE_MAX_DEPTH} tokens past the opening words.` : providerMessage('not_recorded'),
+        missingName: live ? `grows no deeper, ${LIVE_MAX_DEPTH}-token limit` : 'not in this recording',
+        missingState: live ? `${LIVE_MAX_DEPTH}-token limit` : 'not recorded',
         liveOnly: !rec,
       },
     [garden, provider, rec, canGrow, live],
@@ -103,11 +108,16 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     if (!el || !from || typeof el.animate !== 'function') return;
     const ms = parseFloat(getComputedStyle(el).getPropertyValue('--tg-dur-lens')) || 0;
     const to = el.getBoundingClientRect();
-    if (ms > 0) el.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)` }, { transform: 'none' }], { duration: ms, easing: 'cubic-bezier(0.2, 0, 0, 1)' });
+    const easing = getComputedStyle(el).getPropertyValue('--tg-ease-out').trim() || 'cubic-bezier(0.2, 0, 0, 1)';
+    if (ms > 0) el.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)` }, { transform: 'none' }], { duration: ms, easing });
   }, [target]);
   useEffect(() => {
-    if (focusOnOpen) document.getElementById('specimen-title')?.focus({ preventScroll: true });
+    if (focusOnOpen) document.getElementById('lens-title')?.focus({ preventScroll: true });
   }, [focusOnOpen]);
+  // After the opt-in, focus moves to the live status line, which says what is now on (A2).
+  useEffect(() => {
+    if (live) document.getElementById('lens-live')?.focus({ preventScroll: true });
+  }, [live]); // set in the same batch as a new mount, so the new garden's bar is already drawn
 
   const where = target.where;
   const header = (
@@ -116,6 +126,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       <figcaption className="mono muted">
         Step {target.stepId}
         {target.sampleTitle ? ` · ${target.sampleTitle}` : ''}
+        {rec ? ' · Recorded, works offline' : ''}
       </figcaption>
     </LensHeader>
   );
@@ -129,33 +140,49 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       </AppShell>
     );
   }
+  const status = (
+    <div role="status" className="lens-status">
+      {error ? <InlineNote variant="error">{providerMessage(error.code, error.retryAfterSec)}</InlineNote> : null}
+    </div>
+  );
+  const offer = (
+    <>
+      <button type="button" className="lens-optin" onClick={optIn}>
+        {OPT_IN}
+      </button>
+      <span className="muted">{OPT_IN_NOTE}</span>
+    </>
+  );
+  // A recorded sentence needs no bar until live growth is on: the figcaption says it works offline and the opt-in waits
+  // in More options. A sentence with no recording offers it right here.
   const bar = (
     <div className="lens-bar">
       {live ? (
-        <p className="lens-live muted">
+        <p id="lens-live" className="lens-live muted" tabIndex={-1}>
           Live growth on · {modelLabel({ provider: '', name: provider!.model })} · {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep ·{' '}
           {provider!.callsLeft} of {LIVE_MAX_CALLS} live calls left in this tab
         </p>
-      ) : (
+      ) : rec ? null : (
         <p className="lens-offer">
-          <span className="muted">{rec ? 'Recorded · works offline.' : 'No recording for this sentence.'}</span>
-          <button type="button" className="lens-optin" onClick={optIn}>
-            Grow live with an open model — sends this text to the Reasontrail Worker
-          </button>
+          <span className="muted">No recording for this sentence.</span>
+          {offer}
         </p>
       )}
-      <div role="status" className="lens-status">
-        {error ? <InlineNote variant="error">{providerMessage(error.code, error.retryAfterSec)}</InlineNote> : null}
-      </div>
+      {status}
     </div>
   );
-  return <App key={mount} header={header} lens={source} bar={bar} />;
+  const options = rec && !live ? <p className="lens-offer lens-offer-options">{offer}</p> : null;
+  return <App key={mount} header={header} lens={source} bar={bar} options={options} />;
 }
 
 /** Breadcrumb with Back, the Z2 line and, in a sentence's lens, the sentence itself (`children`, in a figure). */
 function LensHeader({ onBack, where, quote, children }: { onBack(): void; where?: string; quote?: RefObject<HTMLElement | null>; children?: ReactNode }) {
   return (
     <div className="lens-head">
+      {/* The page's one h1, focused when the lens opens from the map (A1); the visible title is the breadcrumb. */}
+      <h1 id="lens-title" className="visually-hidden" tabIndex={-1}>
+        Zoom-in lens{where ? `: ${where}` : ''}
+      </h1>
       <div className="lens-crumbs">
         <button type="button" className="lens-back" onClick={onBack}>
           <span aria-hidden="true">← </span>Back to the map
@@ -163,8 +190,14 @@ function LensHeader({ onBack, where, quote, children }: { onBack(): void; where?
         <nav aria-label="Breadcrumb">
           <ol className="mono lens-breadcrumb">
             <li>
-              <LensIcon />
-              Map
+              <a href={`${window.location.pathname}${mapSearch(window.location.search)}`} onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; // a new tab still opens the map
+                  e.preventDefault();
+                  onBack();
+                }}>
+                <LensIcon />
+                Map
+              </a>
             </li>
             {where ? <li>{where}</li> : null}
             <li aria-current="page">{children ? 'Sentence' : 'Next-token garden'}</li>

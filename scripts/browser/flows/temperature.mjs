@@ -51,7 +51,9 @@ async function audit(page, nodes, t) {
       if (Math.abs(b.w - width(b.p)) > 0.01) problems.push(`${b.key}: stroke-width ${b.w} != ${width(b.p)}`);
     });
     const rest = drawn.rests.find((r) => r.parent === parent);
-    if (rest && (Math.abs(rest.p - q.at(-1)) > 0.00051 || Math.abs(rest.w - width(rest.p)) > 0.01)) problems.push(`remainder ${parent}: ${rest.p} w ${rest.w} != ${q.at(-1)}`);
+    // The "other" band is capped at the widest real branch of its fork (phase 22, D3).
+    const restW = rest && Math.min(width(rest.p), Math.max(...q.slice(0, -1).map(width)));
+    if (rest && (Math.abs(rest.p - q.at(-1)) > 0.00051 || Math.abs(rest.w - restW) > 0.01)) problems.push(`remainder ${parent}: ${rest.p} w ${rest.w} != ${q.at(-1)} w ${restW}`);
     if (!rest && q.at(-1) >= 0.0005 && 1 - ps.reduce((s, p) => s + p, 0) >= 0.0005) problems.push(`remainder ${parent}: missing`);
   }
   return { problems, tips: drawn.branches.map((b) => `${b.key}@${b.tip}`).sort().join('|') };

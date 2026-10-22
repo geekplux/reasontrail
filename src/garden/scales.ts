@@ -8,10 +8,10 @@ export function branchWidth(p: number): number {
   return 1.5 + 18.5 * clamped;
 }
 
-const DASH = { 'not-recorded': [4, 3], other: [6, 4] } as const;
+const DASH = { 'not-recorded': [4, 3], other: [2, 3] } as const;
 
 /**
- * Dash pattern for a dashed stroke: `4 3` (not recorded) or `6 4` (other tokens), scaled by `w / 8` on thick strokes.
+ * Dash pattern for a dashed stroke: `4 3` (not recorded) or `2 3` (other tokens: a short-dashed light band), scaled by `w / 8` on thick strokes.
  * Given the path length, the gap is stretched slightly so the stroke ends on a whole dash, never a sliver.
  */
 export function dashArray(kind: keyof typeof DASH, w: number, length = 0): string {
@@ -20,6 +20,13 @@ export function dashArray(kind: keyof typeof DASH, w: number, length = 0): strin
   const n = Math.round((length - dash) / (dash + gap));
   const fitted = n >= 1 ? (length - dash) / n - dash : gap;
   return [dash, fitted >= gap / 2 ? fitted : gap].map((d) => Number(d.toFixed(2))).join(' ');
+}
+
+/** The "other tokens" band at a fork: its own width, but never wider than the widest real branch beside it, so a
+ *  long tail never outweighs the choices it summarises (it keeps its "other n %" label). */
+export function remainderWidth(rest: number, siblingPs: readonly number[]): number {
+  const widest = Math.max(0, ...siblingPs.map(branchWidth));
+  return siblingPs.length ? Math.min(branchWidth(rest), widest) : branchWidth(rest);
 }
 
 export type Band = 'lo' | 'mid' | 'hi';
@@ -99,11 +106,12 @@ export function spokenToken(token: string): string {
 /** A percentage in words: 0.0892 -> "8.9 percent", tiny -> "less than 0.1 percent". */
 export const spokenPct = (p: number) => formatPct(p).replace('<', 'less than ').replace('%', ' percent');
 
-/** A branch's accessible name: "looked, 8.9 percent" (+ path chance below the first fork, + "not in this recording"). */
-export function spokenBranch(b: Pick<GardenBranch, 'token' | 'p' | 'pathP' | 'depth' | 'state' | 'next'>): string {
+/** A branch's accessible name: "looked, 8.9 percent" (+ path chance below the first fork, + why it can't grow:
+ *  `missing`, "not in this recording" by default; the live lens says its depth limit instead). */
+export function spokenBranch(b: Pick<GardenBranch, 'token' | 'p' | 'pathP' | 'depth' | 'state' | 'next'>, missing = 'not in this recording'): string {
   const path = b.depth > 1 ? `, path ${spokenPct(b.pathP)}` : '';
   const next = b.next ? `, uncertainty after it: ${entropyBand(b.next.entropy)}, ${b.next.entropy.toFixed(1)} bits` : '';
-  return `${spokenToken(b.token)}, ${spokenPct(b.p)}${path}${b.state === 'not-recorded' ? ', not in this recording' : ''}${next}`;
+  return `${spokenToken(b.token)}, ${spokenPct(b.p)}${path}${b.state === 'not-recorded' ? `, ${missing}` : ''}${next}`;
 }
 
 /** The polite announcement after a branch grows: "Grew ‘looked’: 5 branches, top ‘out’ 30.1 percent". */
