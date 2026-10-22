@@ -1,6 +1,6 @@
 // The glance (DESIGN §9, PLAN M1): the task, the route with side trails and blazes, where it got stuck, and the
 // destination, all visible without a click. Pure layout in layout.ts; this component measures only the band width.
-import { lazy, Suspense, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import type { AiSource } from '../ai/AiControl';
 import { StepAiNote } from '../ai/LabelBadge';
@@ -24,9 +24,17 @@ import { StuckList } from './TroubleMarker';
 
 // The AI labels control, its dialog and client load only when first used (or with a CLI overlay in the page).
 const AiControl = lazy(() => import('../ai/AiControl'));
-/** The detail panel loads after the first view (it is fetched once the map is drawn, so a click opens it at once). */
-export const loadDetailPanel = () => import('./DetailPanel');
-const DetailPanel = lazy(() => loadDetailPanel().then((m) => ({ default: m.DetailPanel })));
+/** The detail panel loads after the first view (it is fetched once the map is drawn). Once its code is here it renders
+ * in the same commit as the click, with no suspended frame; before that, through React.lazy. */
+type PanelType = typeof import('./DetailPanel').DetailPanel;
+let LoadedPanel: PanelType | null = null;
+export const loadDetailPanel = () => import('./DetailPanel').then((m) => (LoadedPanel = m.DetailPanel));
+const LazyPanel = lazy(() => loadDetailPanel().then((c) => ({ default: c })));
+/** Picks the panel component once per opening, so it never remounts when the code arrives while it is open. */
+function DetailPanel(props: ComponentProps<PanelType>) {
+  const [Panel] = useState<PanelType>(() => LoadedPanel ?? (LazyPanel as unknown as PanelType));
+  return <Panel {...props} />;
+}
 /** The website's AI labels: asked for live through `/api/structure`, after consent. */
 export const LIVE_AI: AiSource = { live: true };
 
