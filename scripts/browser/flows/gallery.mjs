@@ -12,7 +12,7 @@ export function demoLinks(md) {
   const seen = new Set();
   const out = [];
   for (const m of md.matchAll(/https:\/\/reasontrail\.example\/?(\?[^\s)"'<>`]*)/g)) {
-    const q = new URLSearchParams(m[1].replace(/&amp;/g, '&'));
+    const q = new URLSearchParams(m[1].replace(/[.,:;!?]+$/, '').replace(/&amp;/g, '&'));
     const session = q.get('session');
     const step = q.get('step');
     if (!session || !step || seen.has(`${session} ${step}`)) continue;

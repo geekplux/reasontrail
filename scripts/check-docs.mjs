@@ -72,18 +72,19 @@ export function checkDemoLinks(file, md, samples) {
   const problems = [];
   const lineOf = (i) => md.slice(0, i).split('\n').length;
   for (const m of md.matchAll(/https:\/\/reasontrail\.example\/?(\?[^\s)"'<>`]*)?/g)) {
-    const q = new URLSearchParams((m[1] ?? '').replace(/&amp;/g, '&'));
+    const url = m[0].replace(/[.,:;!?]+$/, ''); // trailing punctuation is prose, as in GitHub's autolinks
+    const q = new URLSearchParams((url.split('?')[1] ?? '').replace(/&amp;/g, '&'));
     const session = q.get('session');
     const step = q.get('step');
     const where = `${file}:${lineOf(m.index)}`;
     if (session === '') continue; // a template such as `?session=<id>`
     if (session === null) {
-      if (step !== null) problems.push(`${where}: demo link has a step but no session: ${m[0]}`);
+      if (step !== null) problems.push(`${where}: demo link has a step but no session: ${url}`);
       continue;
     }
     const steps = samples.get(session);
-    if (!steps) problems.push(`${where}: demo link names an unknown sample "${session}": ${m[0]}`);
-    else if (step !== null && !steps.has(step)) problems.push(`${where}: demo link names a step "${step}" that ${session} does not have: ${m[0]}`);
+    if (!steps) problems.push(`${where}: demo link names an unknown sample "${session}": ${url}`);
+    else if (step !== null && !steps.has(step)) problems.push(`${where}: demo link names a step "${step}" that ${session} does not have: ${url}`);
   }
   return problems;
 }
