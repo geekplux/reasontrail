@@ -3,7 +3,7 @@
 // Loaded on first use only (ShareAction).
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { RAW_TEXT_MAX, type SessionGraph } from '../../shared/session/types';
-import { renderCard } from './exportCard';
+import { cardLabel, renderCard } from './exportCard';
 import { PLACEHOLDER, download, fetchTemplate, planShare, shareFileName, shareHtml, templateFromDocument } from './exportHtml';
 import './share.css';
 
@@ -14,7 +14,7 @@ function Marked({ text }: { text: string }) {
   const parts: ReactNode[] = [];
   let at = 0;
   for (const m of text.matchAll(PLACEHOLDER)) {
-    parts.push(text.slice(at, m.index), <mark key={m.index}>{m[0]}</mark>);
+    parts.push(text.slice(at, m.index), <mark key={m.index}><span className="visually-hidden">replaced: </span>{m[0]}</mark>);
     at = m.index + m[0].length;
   }
   parts.push(text.slice(at));
@@ -29,7 +29,9 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
   const plan = useMemo(() => planShare(graph), [graph]);
   const [preview, setPreview] = useState(false);
   const [said, setSaid] = useState('');
+  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [alt, setAlt] = useState(false);
   useEffect(() => {
     const d = ref.current;
     if (d && !d.open) d.showModal?.();
@@ -37,12 +39,15 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
   }, []);
   const c = plan.counts;
   const run = async (what: string, job: () => Promise<string>) => {
+    if (busy) return;
     setBusy(true);
-    setSaid(`Saving ${what}…`);
+    setError('');
+    setSaid('Saving…');
     try {
       setSaid(`Saved ${await job()}`);
     } catch (err) {
-      setSaid(`Could not save the ${what}: ${err instanceof Error ? err.message : 'unknown error'}`);
+      setSaid('');
+      setError(`Could not save the ${what}: ${err instanceof Error ? err.message : 'unknown error'}`);
     } finally {
       setBusy(false);
     }
@@ -53,12 +58,24 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
     download(shareHtml(template, plan, version, prior), name, 'text/html');
     return name;
   });
-  const saveCard = (svg: boolean) => run('map card', async () => {
+  const saveCard = () => run('map card', async () => {
     const card = await renderCard(plan.graph);
-    const name = shareFileName(plan.graph, svg ? 'svg' : 'png');
-    download(svg ? card.svg : card.png, name, svg ? 'image/svg+xml' : 'image/png');
+    const name = shareFileName(plan.graph, 'png');
+    download(card.png, name, 'image/png');
+    setAlt(true);
     return name;
   });
+  const label = alt ? cardLabel(plan.graph) : '';
+  const copyAlt = async () => {
+    setError('');
+    try {
+      await navigator.clipboard.writeText(label);
+      setSaid('Alt text copied');
+    } catch {
+      setSaid('');
+      setError('Could not copy the alt text: select it and copy it by hand.');
+    }
+  };
   return (
     <dialog
       ref={ref}
@@ -105,12 +122,18 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
         )}
       </div>
       <div className="share-actions">
-        <button type="button" className="share-primary" disabled={busy} onClick={() => void saveHtml()}>Download HTML</button>
-        <button type="button" disabled={busy} onClick={() => void saveCard(false)}>Download map card (PNG)</button>
-        <button type="button" disabled={busy} onClick={() => void saveCard(true)}>Download map card (SVG)</button>
-        <button type="button" onClick={onClose}>Close</button>
+        <button type="button" className="share-primary" aria-disabled={busy || undefined} onClick={() => void saveHtml()}>Download HTML</button>
+        <button type="button" aria-disabled={busy || undefined} onClick={() => void saveCard()}>Download map card (PNG)</button>
+        <button type="button" className="text-button share-close" onClick={onClose}>Close</button>
       </div>
+      {alt && (
+        <div className="share-alt-box">
+          <p className="share-alt"><span className="share-alt-label">Alt text for the card:</span> {label}</p>
+          <button type="button" className="text-button" onClick={() => void copyAlt()}>Copy alt text</button>
+        </div>
+      )}
       <p className="share-status" role="status">{said}</p>
+      <p className="share-error" role="alert">{error}</p>
     </dialog>
   );
 }

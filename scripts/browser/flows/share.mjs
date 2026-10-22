@@ -2,7 +2,7 @@
 // path (written at runtime, never committed) and on the default website sample. The dialog says what is replaced and
 // previews the redacted text; the downloaded HTML has none of the originals and passes the audit:samples rules on its
 // decoded graph; it opens offline with zero requests, and its own "Save shareable copy…" writes a copy that opens too
-// (the local viewer path). The map card is a 1200×630 PNG (and an SVG). Writes .tmp/share-dialog.webp and
+// (the local viewer path). The map card is a 1200×630 PNG, with its alt text shown after the save. Writes .tmp/share-dialog.webp and
 // .tmp/share-card.webp.
 import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -85,7 +85,6 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   if (preview?.includes(TOKEN) || preview?.includes(MAIL)) fail('the preview shows an original');
   for (const p of await axeProblems(page, 'share dialog')) fail(p);
   await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: join(root, '.tmp', 'share-dialog.webp'), type: 'webp', quality: 80 });
   log(`dialog: ${summary}`);
 
   const html = await save(page, () => dialog.getByRole('button', { name: 'Download HTML' }).click());
@@ -100,19 +99,23 @@ export async function run({ page, context, baseURL, root, log, fail }) {
     await opened.offline.close();
   }
 
-  // 3. The map card: a 1200×630 PNG, and an SVG.
+  // 3. The map card: a 1200×630 PNG, then its alt text in the dialog.
   const card = await save(page, () => dialog.getByRole('button', { name: 'Download map card (PNG)' }).click());
   const png = readFileSync(card.file);
   const [w, h] = [png.readUInt32BE(16), png.readUInt32BE(20)];
   if (png.toString('latin1', 1, 4) !== 'PNG' || w !== 1200 || h !== 630) fail(`card: ${card.name} is ${w}×${h}`);
-  const svg = readFileSync((await save(page, () => dialog.getByRole('button', { name: 'Download map card (SVG)' }).click())).file, 'utf8');
-  if (!/^<svg [^>]*width="1200" height="630"/.test(svg) || svg.includes(TOKEN)) fail('card SVG is not a clean 1200×630 SVG');
+  const alt = await dialog.locator('.share-alt').textContent({ timeout: 2_000 }).catch(() => '');
+  if (!/^Alt text for the card: Reasontrail map card: /.test(alt ?? '') || alt?.includes(TOKEN)) fail(`card alt text: "${alt}"`);
+  if ((await dialog.getByRole('button', { name: 'Copy alt text' }).count()) !== 1) fail('no "Copy alt text" button');
+  if ((await dialog.getByRole('button', { name: /SVG/ }).count()) > 0) fail('the dialog still offers an SVG card');
+  for (const p of await axeProblems(page, 'share dialog with alt text')) fail(p);
+  await page.screenshot({ path: join(root, '.tmp', 'share-dialog.webp'), type: 'webp', quality: 80 });
   const view = await context.newPage();
   await view.setViewportSize({ width: 1200, height: 630 });
   await view.setContent(`<body style="margin:0"><img alt="map card" src="data:image/png;base64,${png.toString('base64')}"></body>`);
   await view.screenshot({ path: join(root, '.tmp', 'share-card.webp'), type: 'webp', quality: 85 });
   await view.close();
-  log(`card: ${card.name} ${w}×${h}, ${Math.round(png.length / 1024)} KB; SVG ${Math.round(svg.length / 1024)} KB`);
+  log(`card: ${card.name} ${w}×${h}, ${Math.round(png.length / 1024)} KB; alt: ${alt}`);
 
   await page.keyboard.press('Escape');
   if ((await dialog.count()) > 0) fail('Esc did not close the dialog');

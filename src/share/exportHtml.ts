@@ -35,19 +35,46 @@ export function countsOf(summary: RedactionSummary): ShareCounts {
   return { secrets: n((k) => k.startsWith('secret:') && k !== 'secret:cut'), cut: n((k) => k === 'secret:cut'), emails: n((k) => k === 'email'), paths: n((k) => k === 'home-path'), total: n(() => true), dropped: summary.dropped };
 }
 
-/** Strings that redaction changed, as an excerpt of the redacted text around the first change (never the original). */
-export function redactedExcerpts(before: unknown, after: unknown, max = 4, out: string[] = []): string[] {
+/** The JSON string literal of `s` around index `i` (raw transcript lines are JSON): its bounds, or the whole string. */
+function literalAround(s: string, i: number): [number, number] {
+  if (!/^\s*[[{]/.test(s)) return [0, s.length];
+  const quote = (j: number) => s[j] === '"' && s[j - 1] !== '\\';
+  let a = Math.min(i, s.length - 1);
+  while (a > 0 && !quote(a)) a--;
+  let b = i;
+  while (b < s.length && !quote(b)) b++;
+  return a > 0 || quote(0) ? [a + 1, b] : [0, s.length];
+}
+
+const unjson = (s: string) => s.replace(/\\[nrt]/g, ' ').replace(/\\(["\\/])/g, '$1');
+
+/** Placeholder sequence plus the 40 characters around the first one: excerpts that agree on it say the same thing. */
+function excerptKey(text: string): string {
+  const all = [...text.matchAll(PLACEHOLDER)];
+  const at = all[0]?.index ?? 0;
+  return `${all.map((m) => m[0]).join(' ')}|${text.slice(Math.max(0, at - 20), at + (all[0]?.[0].length ?? 0) + 20)}`;
+}
+
+/** Strings that redaction changed, as an excerpt of the redacted text around the first change (never the original);
+ * an excerpt of a raw JSON line is cut to the string value that changed. Near-duplicates are skipped. */
+export function redactedExcerpts(before: unknown, after: unknown, max = 3, out: string[] = [], keys = new Set<string>()): string[] {
   if (out.length >= max) return out;
   if (typeof before === 'string' && typeof after === 'string') {
     if (before === after) return out;
     let i = 0;
     while (i < before.length && before[i] === after[i]) i++;
-    const start = Math.max(0, i - 40);
-    const text = after.slice(start, start + 120).replace(/\s+/g, ' ').trim();
-    if (!out.includes(text)) out.push(`${start > 0 ? '…' : ''}${text}${start + 120 < after.length ? '…' : ''}`);
+    const [lo, hi] = literalAround(after, i);
+    const start = Math.max(lo, i - 40);
+    const end = Math.min(hi, start + 120);
+    const text = unjson(after.slice(start, end)).replace(/\s+/g, ' ').trim();
+    const key = excerptKey(text);
+    if (!keys.has(key)) {
+      keys.add(key);
+      out.push(`${start > lo ? '…' : ''}${text}${end < hi ? '…' : ''}`);
+    }
   } else if (before && after && typeof before === 'object' && typeof after === 'object') {
     const b = before as Record<string, unknown>;
-    for (const [k, v] of Object.entries(after)) redactedExcerpts(b[k], v, max, out);
+    for (const [k, v] of Object.entries(after)) redactedExcerpts(b[k], v, max, out, keys);
   }
   return out;
 }

@@ -7,18 +7,21 @@
 import type { SessionGraph } from '../../shared/session/types';
 import { glanceLayout } from '../map/layout';
 import { glance } from '../map/outline';
+import { TRAIL_MARK } from '../brand/LogoMark';
+import { PLACEHOLDER } from './exportHtml';
 
 export const CARD_W = 1200;
 export const CARD_H = 630;
 const M = 64;
 const ROUTE_Y = 360;
 
-export interface CardColors { paper: string; ink: string; muted: string; trouble: string }
+export interface CardColors { paper: string; ink: string; muted: string; trouble: string; ok: string }
 export interface CardFonts { serif: string; ui: string; mono: string }
 export interface Font { family: keyof CardFonts; size: number; weight?: number; italic?: boolean }
 export type Shape =
   | { t: 'rect'; x: number; y: number; w: number; h: number; fill: string }
   | { t: 'line'; x1: number; y1: number; x2: number; y2: number; stroke: string; width: number }
+  /** `width` 0: no stroke. */
   | { t: 'circle'; cx: number; cy: number; r: number; fill: string; stroke: string; width: number }
   | { t: 'text'; x: number; y: number; text: string; font: Font; fill: string; anchor?: 'start' | 'middle' | 'end' };
 /** Width of `text` in `font`, in px (the canvas's measureText, or an estimate in tests). */
@@ -50,26 +53,73 @@ export function fit(text: string, width: number, font: Font, measure: Measure): 
   return `${s.trimEnd()}…`;
 }
 
-const SYMBOL = { ok: '✓', error: '!', unknown: '–' } as const;
+/** The line segments of an absolute M/H/V/L path (the {@link TRAIL_MARK} paths). */
+export function pathSegments(d: string): [number, number, number, number][] {
+  const out: [number, number, number, number][] = [];
+  let [x, y] = [0, 0];
+  for (const [, cmd, args] of d.matchAll(/([MHVL])\s*([-\d.\s]*)/g)) {
+    const v = (args ?? '').trim().split(/\s+/).map(Number);
+    const [nx, ny] = cmd === 'H' ? [v[0]!, y] : cmd === 'V' ? [x, v[0]!] : [v[0]!, v[1]!];
+    if (cmd !== 'M') out.push([x, y, nx, ny]);
+    [x, y] = [nx, ny];
+  }
+  return out;
+}
+
+/** The brand mark (src/brand/LogoMark.tsx, 32-unit box) as shapes with its top-left at (`x`, `y`), scaled by `k`. */
+function markShapes(x: number, y: number, k: number, ink: string, paper: string): Shape[] {
+  const lines = (d: string, w: number): Shape[] => pathSegments(d).map(([x1, y1, x2, y2]) => ({ t: 'line', x1: x + x1 * k, y1: y + y1 * k, x2: x + x2 * k, y2: y + y2 * k, stroke: ink, width: w * k }));
+  const dot = (cx: number, cy: number, r: number, fill: string, width = 0): Shape => ({ t: 'circle', cx: x + cx * k, cy: y + cy * k, r: r * k, fill, stroke: ink, width: width * k });
+  return [dot(4.5, 20, 3.5, ink), ...lines(TRAIL_MARK.route, 3.5), ...lines(TRAIL_MARK.spur, 2), ...lines(TRAIL_MARK.bar, 2), dot(26.5, 12, 4, paper, 2.5), dot(26.5, 12, 1.5, ink)];
+}
+
+/** A glance row's status glyph, centred at (`x`, `y`): ✕ on a trouble disc, ✓ on an ok disc, or a hollow circle. */
+function glyph(status: 'ok' | 'error' | 'unknown', x: number, y: number, c: CardColors): Shape[] {
+  const r = 11;
+  if (status === 'unknown') return [{ t: 'circle', cx: x, cy: y, r, fill: c.paper, stroke: c.muted, width: 2 }];
+  const ln = (x1: number, y1: number, x2: number, y2: number): Shape => ({ t: 'line', x1: x + x1, y1: y + y1, x2: x + x2, y2: y + y2, stroke: c.paper, width: 2.5 });
+  const disc: Shape = { t: 'circle', cx: x, cy: y, r, fill: status === 'ok' ? c.ok : c.trouble, stroke: c.paper, width: 0 };
+  return status === 'ok' ? [disc, ln(-5, 0.5, -1.5, 4), ln(-1.5, 4, 5, -4)] : [disc, ln(-4.5, -4.5, 4.5, 4.5), ln(-4.5, 4.5, 4.5, -4.5)];
+}
+
+/** The card's title: the first sentence alone when the title opens with a redaction placeholder and that sentence
+ * fits the two lines uncut; otherwise the whole title, wrapped and cut. */
+export function cardTitle(text: string, width: number, font: Font, measure: Measure): string[] {
+  const lines = wrap(text, width, font, measure);
+  const re = new RegExp(PLACEHOLDER.source, 'y');
+  if (!re.test(lines[0] ?? '')) return lines;
+  const first = /^.*?[.!?](?=\s|$)/.exec(text)?.[0];
+  if (!first || first === text) return lines;
+  const short = wrap(first, width, font, measure);
+  return short.some((l) => l.endsWith('…')) ? lines : short;
+}
 
 /** The card as shapes, in drawing order. */
 export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Shape[] {
   const W = CARD_W - 2 * M;
   const s: Shape[] = [{ t: 'rect', x: 0, y: 0, w: CARD_W, h: CARD_H, fill: c.paper }];
-  // Wordmark: "reason" in mono 500, "trail" in serif italic, baseline-aligned with no space.
+  // Wordmark: the mark (30 px, its route on the text baseline), then "reason" in mono 500 and "trail" in serif italic,
+  // baseline-aligned with no space.
   const reason: Font = { family: 'mono', size: 26, weight: 500 };
-  s.push({ t: 'text', x: M, y: 84, text: 'reason', font: reason, fill: c.ink });
-  s.push({ t: 'text', x: M + measure('reason', reason), y: 84, text: 'trail', font: { family: 'serif', size: 30, italic: true }, fill: c.ink });
+  const k = 30 / 32;
+  const base = 72;
+  s.push(...markShapes(M, base - 20 * k, k, c.ink, c.paper));
+  const rx = M + 32 * k + 0.4 * reason.size;
+  s.push({ t: 'text', x: rx, y: base, text: 'reason', font: reason, fill: c.ink });
+  s.push({ t: 'text', x: rx + measure('reason', reason), y: base, text: 'trail', font: TRAIL_FONT, fill: c.ink });
 
   const title: Font = { family: 'serif', size: 48 };
-  wrap(g.displayTitle ?? g.title, W, title, measure).forEach((text, i) => s.push({ t: 'text', x: M, y: 176 + i * 56, text, font: title, fill: c.ink }));
+  cardTitle(g.displayTitle ?? g.title, W, title, measure).forEach((text, i) => s.push({ t: 'text', x: M, y: 148 + i * 56, text, font: title, fill: c.ink }));
 
-  // The route: the main line, a dot per episode, a terminus bar, and the numbered blazes above their episodes.
+  // The route: the trailhead dot, the main line, a dot per episode, the answer mark (ring and centre dot) at the end,
+  // and the numbered blazes above their episodes.
   const L = glanceLayout(g, W, {});
   const sx = (x: number) => M + (L.width > 0 ? (x / L.width) * W : 0);
-  s.push({ t: 'line', x1: M, y1: ROUTE_Y, x2: CARD_W - M, y2: ROUTE_Y, stroke: c.ink, width: 4 });
-  for (const e of L.episodes) s.push({ t: 'circle', cx: sx(e.x), cy: ROUTE_Y, r: 7, fill: c.paper, stroke: c.ink, width: 3 });
-  s.push({ t: 'rect', x: CARD_W - M - 4, y: ROUTE_Y - 16, w: 8, h: 32, fill: c.ink });
+  s.push({ t: 'line', x1: M + 8, y1: ROUTE_Y, x2: CARD_W - M - 20, y2: ROUTE_Y, stroke: c.ink, width: 5 });
+  s.push({ t: 'circle', cx: M + 8, cy: ROUTE_Y, r: 8, fill: c.ink, stroke: c.ink, width: 0 });
+  for (const e of L.episodes) s.push({ t: 'circle', cx: sx(e.x), cy: ROUTE_Y, r: 4, fill: c.ink, stroke: c.ink, width: 0 });
+  s.push({ t: 'circle', cx: CARD_W - M - 10, cy: ROUTE_Y, r: 10, fill: c.paper, stroke: c.ink, width: 3 });
+  s.push({ t: 'circle', cx: CARD_W - M - 10, cy: ROUTE_Y, r: 4, fill: c.ink, stroke: c.ink, width: 0 });
   const badge: Font = { family: 'ui', size: 18, weight: 700 };
   let prev = { x: -Infinity, up: 0 };
   for (const b of L.blazes) {
@@ -77,7 +127,7 @@ export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Sh
     // A badge that would touch the previous one goes one row up (never two rows: the title sits above).
     const up = x - prev.x < 44 && prev.up === 0 ? 44 : 0;
     prev = { x, up };
-    s.push({ t: 'line', x1: x, y1: ROUTE_Y - 4, x2: x, y2: ROUTE_Y - 26 - up, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
+    s.push({ t: 'line', x1: x, y1: ROUTE_Y - 4, x2: x, y2: ROUTE_Y - 26 - up, stroke: b.resolved ? c.ink : c.trouble, width: 4 });
     s.push({ t: 'circle', cx: x, cy: ROUTE_Y - 46 - up, r: 20, fill: b.resolved ? c.paper : c.trouble, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
     s.push({ t: 'text', x, y: ROUTE_Y - 40 - up, text: b.badge, font: badge, fill: b.resolved ? c.ink : c.paper, anchor: 'middle' });
   }
@@ -86,8 +136,7 @@ export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Sh
   const rest: Font = { family: 'ui', size: 24 };
   glance(g).forEach((r, i) => {
     const y = 456 + i * 44;
-    const sym = SYMBOL[r.status];
-    s.push({ t: 'text', x: M + 12, y, text: sym, font: lead, fill: sym === '!' ? c.trouble : c.ink, anchor: 'middle' });
+    s.push(...glyph(r.status, M + 12, y - 8, c));
     const x = M + 40;
     const leadText = fit(r.lead, W - 40, lead, measure);
     s.push({ t: 'text', x, y, text: leadText, font: lead, fill: c.ink });
@@ -98,6 +147,7 @@ export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Sh
   return s;
 }
 
+const TRAIL_FONT: Font = { family: 'serif', size: 32.5, italic: true };
 const cssFont = (f: Font, fonts: CardFonts) => `${f.italic ? 'italic ' : ''}${f.weight ?? 400} ${f.size}px ${fonts[f.family]}`;
 const esc = (v: string | number) => String(v).replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
 
@@ -106,10 +156,10 @@ export function cardSvg(shapes: Shape[], fonts: CardFonts, label: string): strin
   const body = shapes.map((s) => {
     if (s.t === 'rect') return `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="${esc(s.fill)}"/>`;
     if (s.t === 'line') return `<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" stroke="${esc(s.stroke)}" stroke-width="${s.width}" stroke-linecap="round"/>`;
-    if (s.t === 'circle') return `<circle cx="${s.cx}" cy="${s.cy}" r="${s.r}" fill="${esc(s.fill)}" stroke="${esc(s.stroke)}" stroke-width="${s.width}"/>`;
+    if (s.t === 'circle') return `<circle cx="${s.cx}" cy="${s.cy}" r="${s.r}" fill="${esc(s.fill)}"${s.width > 0 ? ` stroke="${esc(s.stroke)}" stroke-width="${s.width}"` : ''}/>`;
     return `<text x="${s.x}" y="${s.y}" fill="${esc(s.fill)}" text-anchor="${s.anchor ?? 'start'}" style="font: ${esc(cssFont(s.font, fonts))}">${esc(s.text)}</text>`;
   });
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_W}" height="${CARD_H}" viewBox="0 0 ${CARD_W} ${CARD_H}" role="img" aria-label="${esc(label)}">\n${body.join('\n')}\n</svg>\n`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_W}" height="${CARD_H}" viewBox="0 0 ${CARD_W} ${CARD_H}" role="img" aria-labelledby="card-title"><title id="card-title">${esc(label)}</title>\n${body.join('\n')}\n</svg>\n`;
 }
 
 /** Draw the shapes on a 2D canvas context. */
@@ -131,9 +181,11 @@ export function drawCard(ctx: CanvasRenderingContext2D, shapes: Shape[], fonts: 
       ctx.arc(s.cx, s.cy, s.r, 0, Math.PI * 2);
       ctx.fillStyle = s.fill;
       ctx.fill();
-      ctx.strokeStyle = s.stroke;
-      ctx.lineWidth = s.width;
-      ctx.stroke();
+      if (s.width > 0) {
+        ctx.strokeStyle = s.stroke;
+        ctx.lineWidth = s.width;
+        ctx.stroke();
+      }
     } else {
       ctx.font = cssFont(s.font, fonts);
       ctx.fillStyle = s.fill;
@@ -149,14 +201,17 @@ export function themeOf(el: Element = document.documentElement): { colors: CardC
   const css = getComputedStyle(el);
   const v = (name: string) => css.getPropertyValue(`--tg-${name}`).trim();
   return {
-    colors: { paper: v('paper'), ink: v('ink'), muted: v('ink-muted'), trouble: v('trouble') },
+    colors: { paper: v('paper'), ink: v('ink'), muted: v('ink-muted'), trouble: v('trouble'), ok: v('ok') },
     fonts: { serif: v('font-serif'), ui: v('font-ui'), mono: v('font-mono') },
   };
 }
 
 /** A one-line description of the card for its SVG label and alt text. */
 export function cardLabel(g: SessionGraph): string {
-  return `Reasontrail map card: ${g.displayTitle ?? g.title}. ${glance(g).map((r) => `${r.lead}${r.rest}`).join('. ')}.`;
+  const n = g.trouble.length;
+  const k = g.trouble.filter((t) => t.resolved).length;
+  const rows = glance(g).map((r) => (r.key === 'trouble' && n > 0 ? `${n} trouble ${n === 1 ? 'spot' : 'spots'}: ${n - k} open, ${k} resolved` : `${r.lead}${r.rest}`));
+  return `Reasontrail map card: ${g.displayTitle ?? g.title}. ${rows.join('. ')}.`;
 }
 
 /** Render the card in the current theme: the PNG (via a canvas) and the SVG text. */
@@ -167,7 +222,7 @@ export async function renderCard(g: SessionGraph): Promise<{ png: Blob; svg: str
   canvas.height = CARD_H;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('This browser cannot draw the card.');
-  const used: Font[] = [{ family: 'serif', size: 48 }, { family: 'serif', size: 30, italic: true }, { family: 'mono', size: 26, weight: 500 }, { family: 'mono', size: 18 }];
+  const used: Font[] = [{ family: 'serif', size: 48 }, TRAIL_FONT, { family: 'mono', size: 26, weight: 500 }, { family: 'mono', size: 18 }];
   await Promise.all(used.map((f) => document.fonts?.load(cssFont(f, fonts)).catch(() => [])));
   const measure: Measure = (text, f) => {
     ctx.font = cssFont(f, fonts);

@@ -5,7 +5,7 @@ import { findSecrets } from '../../shared/session/redact';
 import type { SessionGraph } from '../../shared/session/types';
 import { loadGraph } from '../map/loadGraph';
 import { defaultSessionGraph } from '../sessions/samples';
-import { PLACEHOLDER, planShare, redactCutTails, shareFileName, shareHtml, templateFromDocument } from './exportHtml';
+import { PLACEHOLDER, planShare, redactCutTails, redactedExcerpts, shareFileName, shareHtml, templateFromDocument } from './exportHtml';
 
 // Built at runtime so the repo never holds a token, an address or a home path.
 const TOKEN = ['gh', 'p_', 'Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2'].join('');
@@ -88,5 +88,17 @@ describe('redactCutTails', () => {
     const out = redactCutTails({ a: `Use ${TOKEN.slice(0, 12)}…`, b: `mail ${MAIL.slice(0, 7)}…\n[cut 9 characters]`, c: 'Build keyboard…', d: 'no clip ghp_' }, counts);
     expect(out).toEqual({ a: 'Use [secret:cut]…', b: 'mail [secret:cut]…\n[cut 9 characters]', c: 'Build keyboard…', d: 'no clip ghp_' });
     expect(counts).toEqual({ 'secret:cut': 2 });
+  });
+});
+
+describe('redactedExcerpts', () => {
+  it('cuts a raw JSON line to the changed string value, skips near-duplicates and keeps at most 3', () => {
+    const raw = (v: string) => JSON.stringify({ type: 'user', message: { content: v } });
+    const before = [raw(`mail ${MAIL} now`), raw(`mail ${MAIL} now`), 'a x', 'b x', 'c x', 'd x'];
+    const after = [raw('mail [email] now'), raw('mail [email] now'), 'a [email] one', 'b [secret:cut] two', 'c ~ three', 'd ~ four'];
+    const out = redactedExcerpts(before, after);
+    expect(out[0]).toBe('mail [email] now');
+    expect(out).toHaveLength(3);
+    expect(out.join('')).not.toMatch(/"\}/);
   });
 });
