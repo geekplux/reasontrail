@@ -99,3 +99,23 @@
   .gallery-select { display: block; min-height: 36px; max-width: 100%; font: inherit; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
   .showcase-footer { padding: var(--tg-space-5) var(--tg-space-4); }
 }
+
+/* Chat import (phase 23, DESIGN §13.8, §18.1): the paste box is the focal point; the export is a quiet text link. */
+.paste-box { display: grid; gap: var(--tg-space-2); max-width: 40rem; }
+.paste-box p { margin: 0; }
+.paste-box textarea { width: 100%; min-height: 14rem; padding: var(--tg-space-2); border: 2px dashed var(--tg-ink-muted); border-radius: var(--tg-radius); background: var(--tg-paper); color: var(--tg-ink); font: 400 var(--tg-text-sm) / 1.5 var(--tg-font-mono); resize: vertical; }
+.paste-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); margin-top: var(--tg-space-2); }
+.paste-actions .button:disabled { opacity: 0.6; cursor: not-allowed; }
+.file-link { position: relative; color: var(--tg-ink-muted); }
+.file-link input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.file-link:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
+.chat-picker { display: grid; gap: var(--tg-space-2); max-width: 40rem; }
+.chat-picker h2 { margin: 0; font-size: inherit; }
+.chat-picker p { margin: 0; }
+.chat-picker input[type='search'] { padding: var(--tg-space-2); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); background: var(--tg-paper); color: var(--tg-ink); font: inherit; }
+.chat-list { margin: 0; padding: 0; list-style: none; max-height: 24rem; overflow-y: auto; }
+.chat-choice { display: grid; gap: var(--tg-space-1); width: 100%; padding: var(--tg-space-2); border: 0; background: none; color: var(--tg-ink); font: inherit; text-align: start; cursor: pointer; }
+.chat-choice:hover { background: var(--tg-surface); }
+.chat-title { text-decoration: underline; text-underline-offset: 0.2em; }
+.chat-choice .mono { font-size: var(--tg-text-sm); }
+.chat-picker > .text-button { justify-self: start; }

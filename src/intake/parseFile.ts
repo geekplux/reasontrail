@@ -1,6 +1,7 @@
 // Read a dropped session file and build its map, in the parse worker (or on the main thread as a fallback). Pure: no
 // DOM, no network. Two streaming passes over `file.stream()`: count lines (for "n of N"), then decode and read.
-import { parseSession } from '../../shared/session/adapter';
+import { parseChat, parseSession } from '../../shared/session/adapter';
+import { chatFile, listChats, looksLikeChatExport, readChatExport, type ChatExport } from '../../shared/session/adapters/chatExports';
 import { attachRaw } from '../../shared/session/raw';
 import type { IntakeResult } from './messages';
 
@@ -12,7 +13,12 @@ export interface ParseOptions {
   onProgress?(lines: number, total: number): void;
   /** Checked between chunks; when it returns true the read stops and the result is `null`. */
   cancelled?(): boolean;
+  /** For a chat export: the id of the conversation to map (else a single conversation maps, several ask to pick). */
+  pick?: string | undefined;
 }
+
+/** The last export read, so picking a conversation does not parse a large file twice. */
+let lastExport: { file: Blob; exp: ChatExport | undefined } | undefined;
 
 async function eachChunk(blob: Blob, fn: (bytes: Uint8Array) => void, cancelled: () => boolean): Promise<boolean> {
   const reader = blob.stream().getReader();
@@ -68,8 +74,20 @@ export async function parseFile(file: Blob, name: string, opts: ParseOptions = {
   opts.onProgress?.(total, total);
   const text = parts.join('');
   if (text.trim() === '') return { ok: false, error: 'empty' };
-  const files = [{ path: name, text }];
-  const graph = parseSession({ files });
+  let files = [{ path: name, text }];
+  if (looksLikeChatExport(text)) {
+    if (lastExport?.file !== file) lastExport = { file, exp: readChatExport(text) };
+    const exp = lastExport.exp;
+    if (!exp) return { ok: false, error: 'unsupported' };
+    const chats = listChats(exp);
+    const id = opts.pick ?? (chats.length === 1 ? chats[0]?.id : undefined);
+    if (chats.length === 0) return { ok: false, error: 'empty' };
+    const one = id ? chatFile(exp, id, name) : undefined;
+    if (!one) return { ok: 'pick', chats };
+    files = [one];
+  }
+  // Text without speaker lines is read as a chat only when it is not named as a session or JSON file.
+  const graph = /\.(?:jsonl|ndjson|json)$/i.test(name) ? parseSession({ files }) : parseChat({ files });
   if (!graph) return { ok: false, error: 'unsupported' };
   if (graph.steps.length === 0) return { ok: false, error: 'empty' };
   try {

@@ -39,14 +39,15 @@ export function writeUrlState(search: string, s: UrlState): string {
   return out ? `?${out}` : '';
 }
 
-/** The website's pages (PLAN phases 16, 19): the showcase with a sample's map or outline, the drop zone, install. */
-export type SiteView = 'map' | 'outline' | 'open' | 'install';
-const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'install'];
+/** The website's pages (PLAN phases 16, 19, 23): the showcase with a sample's map or outline, the drop zone, the chat
+ * paste page, install. */
+export type SiteView = 'map' | 'outline' | 'open' | 'chat' | 'install';
+const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'chat', 'install'];
 
 const GARDEN_PARAMS = ['sample', 'path', 't', 'seed'];
 
 /** Which page the website shows: the garden lens when any garden param is set (`?sample=` links keep working), else
- * `?view=open|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`.
+ * `?view=open|chat|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`.
  * `lens`: `?lens=live`, a sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
 export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; view: SiteView } {
   const q = new URLSearchParams(search);

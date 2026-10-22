@@ -8,11 +8,12 @@ let current = 0;
 const send = (m: FromWorker) => postMessage(m);
 
 addEventListener('message', (e: MessageEvent<ToWorker>) => {
-  const { id, file } = e.data;
+  const { id, file, pick } = e.data;
   current = id;
   void parseFile(file, file.name, {
     onProgress: (lines, total) => send({ type: 'progress', id, lines, total }),
     cancelled: () => current !== id,
+    pick,
   })
     .catch(() => ({ ok: false as const, error: 'unreadable' as const }))
     .then((result) => {

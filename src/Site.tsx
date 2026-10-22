@@ -1,5 +1,5 @@
 // The website (PLAN phases 16, 19): the showcase home with a live sample map (`?session=<id>`, `?view=outline`), the
-// drop zone (`?view=open`) and install (`?view=install`). Garden links (`?sample=…`) open the zoom-in lens (phase 22),
+// drop zone (`?view=open`), the chat paste page (`?view=chat`) and install (`?view=install`). Garden links (`?sample=…`) open the zoom-in lens (phase 22),
 // and so does "Zoom into this sentence" in the map's detail panel: the map stays mounted, hidden, under the lens, so
 // Back (the lens's button or the browser's) shows it again with the same selection and focus (Z3).
 // Internal links change the URL in place, and everything the site can need later is fetched once it is idle, so the
@@ -55,7 +55,7 @@ export function Site() {
   useEffect(focusTitle, [search, focusTitle]);
   // The drop zone names its own tab (the file's name once it is mapped).
   useEffect(() => {
-    if (!lensView && state.view !== 'open' && !saved.current) document.title = state.view === 'install' ? pageTitle('Install') : HOME_TITLE;
+    if (!lensView && state.view !== 'open' && state.view !== 'chat' && !saved.current) document.title = state.view === 'install' ? pageTitle('Install') : HOME_TITLE;
   }, [lensView, state.view]);
   useEffect(() => {
     const sync = () => {
@@ -114,7 +114,8 @@ export function Site() {
   }, [go]);
   const onFile = useCallback((f: File) => {
     setFile(f);
-    if (readSiteState(window.location.search).view === 'open') return;
+    const at = readSiteState(window.location.search).view;
+    if (at === 'open' || at === 'chat') return;
     navigated.current = true;
     go(writeView('', 'open'));
   }, [go]);
@@ -135,9 +136,9 @@ export function Site() {
   };
   const setView = (v: SiteView) => go(writeView(window.location.search, v), false);
   const page =
-    state.view === 'open' ? (
+    state.view === 'open' || state.view === 'chat' ? (
       <Suspense fallback={<p className="page muted">Loading…</p>}>
-        <OpenSession file={file} onFile={onFile} onMount={focusTitle} />
+        <OpenSession key={state.view} file={file} onFile={onFile} onMount={focusTitle} chat={state.view === 'chat'} />
       </Suspense>
     ) : state.view === 'install' ? (
       <Install />

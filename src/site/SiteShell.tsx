@@ -62,8 +62,8 @@ export function SiteShell({ children, onFile, home, view }: { children: ReactNod
       </header>
       <main className="site-main">{children}</main>
       <footer className="site-footer showcase-footer">
-        {/* The drop zone says the privacy line beside the drop target, so the footer does not repeat it there. */}
-        <p>{open ? '' : `${PRIVACY} · `}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
+        {/* The drop zone and the paste page say the privacy line beside their input, so the footer does not repeat it. */}
+        <p>{open || view === 'chat' ? '' : `${PRIVACY} · `}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
         <p>
           <a className="footer-link" href="./#how-to-read">How to read a map</a> ·{' '}
           <a className="footer-link" href="?view=install">Install</a> · Zoom into the words:{' '}

@@ -35,8 +35,9 @@ export interface Job {
   cancel(): void;
 }
 
-/** Reads and maps `file` in the browser. `onProgress` gets lines read so far of the file's total. */
-export function startParse(file: File, onProgress: (lines: number, total: number) => void): Job {
+/** Reads and maps `file` in the browser. `onProgress` gets lines read so far of the file's total; `pick` names the
+ * conversation to map from a chat export. */
+export function startParse(file: File, onProgress: (lines: number, total: number) => void, pick?: string): Job {
   if (file.size > MAX_BYTES) return { result: Promise.resolve({ ok: false, error: 'too-large' }), cancel() {} };
   const id = ++seq;
   let running = true;
@@ -51,7 +52,7 @@ export function startParse(file: File, onProgress: (lines: number, total: number
     if (!running) return;
     if (file.size >= MAIN_THREAD_MAX) return finish({ ok: false, error: 'worker' });
     void import('./parseFile')
-      .then((m) => m.parseFile(file, file.name, { onProgress, cancelled: () => !running }))
+      .then((m) => m.parseFile(file, file.name, { onProgress, cancelled: () => !running, pick }))
       .then((r) => r && finish(r), () => finish({ ok: false, error: 'unreadable' }));
   };
   void warmIntake().then((w) => {
@@ -74,7 +75,7 @@ export function startParse(file: File, onProgress: (lines: number, total: number
     };
     w.addEventListener('message', onMessage);
     w.addEventListener('error', onError);
-    w.postMessage({ type: 'parse', id, file });
+    w.postMessage({ type: 'parse', id, file, pick });
   });
   return {
     result,
