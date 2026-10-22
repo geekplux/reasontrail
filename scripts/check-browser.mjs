@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Headless-browser check: build, start `vite preview` in its own process group, run flows in ONE system
 // Chrome, fail on console errors / non-same-origin requests / axe serious+critical, and ALWAYS clean up.
-// Usage: pnpm check:browser [--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>] [--before]
+// Usage: pnpm check:browser [--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>] [--before] [--headers]
 // --file opens one local HTML file (e.g. a CLI map) instead: no build, no server; flow "file" checks it.
 // --before tells the polish flow to write <out>/before/ instead of <out>/after/.
+// --headers serves dist/ with scripts/serve-dist.mjs, which applies public/_headers (the CSP) like Cloudflare does.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -54,8 +55,8 @@ try {
   }
   mkdirSync(outDir, { recursive: true });
   if (!opts.file) {
-    server = startPreview(port);
-    console.log(`preview: pid/pgid ${server.child.pid} on ${baseURL}`);
+    server = startPreview(port, opts.headers);
+    console.log(`${opts.headers ? 'serve-dist' : 'preview'}: pid/pgid ${server.child.pid} on ${baseURL}`);
     await waitForHttp(`${baseURL}/`, server.child).catch((err) => {
       console.error(server.output.join(''));
       throw err;

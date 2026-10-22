@@ -3,13 +3,14 @@ import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 export const viteBin = join(dirname(require.resolve('vite/package.json')), 'bin', 'vite.js');
 
 /** Parses `[--flows a,b|all] [--out <dir>] [--no-build] [--fail-after-launch] [--file <path>] [--before]`. */
 export function parseArgs(argv) {
-  const opts = { flows: 'all', out: '.tmp/screenshots', build: true, failAfterLaunch: false, file: undefined, before: false };
+  const opts = { flows: 'all', out: '.tmp/screenshots', build: true, failAfterLaunch: false, file: undefined, before: false, headers: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     const value = () => {
@@ -23,14 +24,17 @@ export function parseArgs(argv) {
     else if (arg === '--no-build') opts.build = false;
     else if (arg === '--fail-after-launch') opts.failAfterLaunch = true;
     else if (arg === '--before') opts.before = true;
+    else if (arg === '--headers') opts.headers = true;
     else throw new Error(`unknown argument: ${arg}`);
   }
   return opts;
 }
 
-/** Starts `vite preview` detached in its own process group; returns the child (pid = pgid) and its output buffer. */
-export function startPreview(port) {
-  const args = [viteBin, 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'];
+/** Starts `vite preview` (or, with `headers`, scripts/serve-dist.mjs, which applies dist/_headers) detached in its own
+ * process group; returns the child (pid = pgid) and its output buffer. */
+export function startPreview(port, headers = false) {
+  const serveDist = fileURLToPath(new URL('../serve-dist.mjs', import.meta.url));
+  const args = headers ? [serveDist, '--port', String(port)] : [viteBin, 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'];
   const child = spawn(process.execPath, args, { detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
   const output = [];
   const keep = (chunk) => output.push(String(chunk));
@@ -118,6 +122,19 @@ export function watchContext(context, origin, problems) {
     });
     page.on('pageerror', (err) => problems.push(`page error: ${err.message}`));
   });
+}
+
+/** Adds test-only CSS as a constructed stylesheet (allowed by the site's CSP, unlike `page.addStyleTag`); returns a
+ * function that removes it. */
+export async function addStyle(page, css) {
+  const id = await page.evaluate((text) => {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(text);
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+    window.tgTestSheets = [...(window.tgTestSheets ?? []), sheet];
+    return window.tgTestSheets.length - 1;
+  }, css);
+  return () => page.evaluate((i) => { document.adoptedStyleSheets = document.adoptedStyleSheets.filter((s) => s !== window.tgTestSheets[i]); }, id);
 }
 
 /** A committed sample garden (src/samples/<id>.json), so flows derive tokens and numbers instead of hard-coding them. */

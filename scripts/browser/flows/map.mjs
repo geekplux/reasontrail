@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { STRUCTURE_RULES, axeProblems } from '../axe.mjs';
 import { applyCvd } from '../cvd.mjs';
+import { addStyle } from '../lib.mjs';
 
 const HONESTY = "Written reasoning is the agent's own account, not a record of how the model computed.";
 const DIR = new URL('../../../src/sessions/samples/', import.meta.url);
@@ -234,7 +235,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await applyCvd(page, null);
   // Grayscale: every encoding must survive without colour.
   await open(page, `${baseURL}/?session=verify-fail-fix`);
-  await page.addStyleTag({ content: 'html { filter: grayscale(1); }' });
+  await addStyle(page, 'html { filter: grayscale(1); }');
   await shot('map-verify-fail-fix-grayscale');
 
   // The CLI's file:// map of a fixture with a subagent lane (and one with trouble), in a sandboxed HOME.
@@ -265,11 +266,11 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   // mid-page); the sticky bar itself is checked above.
   const full = {
     screenshot: async (o) => {
-      const style = await page.addStyleTag({ content: '.dest-bar { position: static !important; }' });
+      const remove = await addStyle(page, '.dest-bar { position: static !important; }');
       try {
         return await page.screenshot({ ...o, fullPage: true });
       } finally {
-        await style.evaluate((e) => e.remove());
+        await remove();
       }
     },
   };

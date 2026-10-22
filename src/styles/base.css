@@ -33,3 +33,10 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* index.html's <noscript> note: a class, not a style attribute, so the CSP needs no 'unsafe-inline' (public/_headers). */
+.noscript {
+  max-width: 72ch;
+  padding: 24px;
+  font-family: system-ui, sans-serif;
+}

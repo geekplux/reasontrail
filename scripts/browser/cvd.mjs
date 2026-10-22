@@ -30,7 +30,7 @@ export async function applyCvd(page, type) {
     const svg = document.createElementNS(ns, 'svg');
     svg.id = 'tg-cvd';
     svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('style', 'position:absolute;width:0;height:0');
+    Object.assign(svg.style, { position: 'absolute', width: '0', height: '0' }); // CSSOM, which the site's CSP allows
     svg.innerHTML = `<filter id="tg-cvd-filter" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="${v}"/></filter>`;
     document.body.append(svg);
     document.documentElement.style.filter = 'url(#tg-cvd-filter)';
