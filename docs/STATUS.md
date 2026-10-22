@@ -2,7 +2,7 @@ STATE: IN-PROGRESS
 
 # Status (Reasontrail, formerly token-garden)
 
-- Current phase: 22 (`phase-22-zoom-lens`): zoom-in lens to the next-token garden
+- Current phase: 22 verified PASS; PR submitted
 - Plan: `docs/PLAN.md` (28 phases after the 2026-10-20 pivot and the 2026-10-21 polish phase; final = Cloudflare deploy prep, stops for Sean's approval)
 - Blockers:
   - Live Workers AI not verifiable on this box: `CLOUDFLARE_API_TOKEN` is a placeholder, not a real token. Needed only for live calls, re-recording samples via Workers AI, and the real deploy. Recorded samples, tests and the deploy dry run work without it.
@@ -30,7 +30,7 @@ STATE: IN-PROGRESS
 | 19 | `phase-19-site-showcase` | [#20](https://github.com/geekplux/reasontrail/pull/20) | PASS, PR open | 1 |
 | 20 | `phase-20-ai-structure-worker` | [#21](https://github.com/geekplux/reasontrail/pull/21) | PASS, PR open | 1 |
 | 21 | `phase-21-ai-labels-ui` | [#22](https://github.com/geekplux/reasontrail/pull/22) | PASS, PR open | 1 |
-| 22 | `phase-22-zoom-lens` | - | in progress | 0 |
+| 22 | `phase-22-zoom-lens` | - | PASS, PR open | 2 |
 | 23 | `phase-23-chat-import` | - | pending | 0 |
 | 24 | `phase-24-share-cards` | - | pending | 0 |
 | 25 | `phase-25-polish` | - | pending | 0 |
@@ -45,6 +45,6 @@ STATE: IN-PROGRESS
 - npm publish of the CLI waits for Sean's approval, like deploy (D36).
 - Grok Build: supported (all 58 local sessions parse with 0 skipped lines). `--current` via `GROK_SESSION_ID` is unverified: Grok documents it for hook processes only; without it the CLI falls back to the newest session for the folder and says so (open item, not a blocker).
 - Codex: adapter built from the public source and a synthetic fixture; Codex is not installed on this box, so it is not verified against a real session (open item). Skill installs to `~/.agents/skills/reasontrail/`; `--current` uses `CODEX_THREAD_ID`.
-- Polish backlog for phase 25: `--list` mixes two time formats; Grok fixture delegate episode shows 2 steps in Outline vs 8 on the Map; Map/Outline toggle looks clipped at 390 px; AI wording with one request/link ("1 request, one after another", "1 claim links"); AI tags crowd at 12 episodes; flaky `src/App.test.tsx` copy-link test under load.
+- Polish backlog for phase 25: `--list` mixes two time formats; Grok fixture delegate episode shows 2 steps in Outline vs 8 on the Map; Map/Outline toggle looks clipped at 390 px; AI wording with one request/link ("1 request, one after another", "1 claim links"); AI tags crowd at 12 episodes; flaky `src/App.test.tsx` copy-link test under load; lens footer still says nothing leaves the browser after live opt-in; initial JS at 150 KB (lazy-load lens chips if the first view grows).
 
-Last updated: 2026-10-22 00:35 UTC (phase 21 PR opened, phase 22 started)
+Last updated: 2026-10-22 02:15 UTC (phase 22 verified)
