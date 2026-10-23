@@ -107,6 +107,6 @@ Researched on **2026-10-22** from each project's README or documentation (linked
 - [ ] Re-check the comparison table above against the linked pages on the day of posting.
 - [ ] Open each demo link in a fresh browser on the deployed site: the map loads and the panel opens on the linked step.
 - [ ] **Make the repository public** (Settings → General → Danger zone), after a final secrets scan (`pnpm audit:samples` and a search of the git history).
-- [ ] Tag `v0.1.0` and publish a GitHub release whose notes come from CHANGELOG.md.
+- [ ] Tag `cli-v0.1.0` and publish a GitHub release whose notes come from CHANGELOG.md (this also publishes the CLI to npm, see docs/PUBLISH.md).
 - [ ] Re-render `hero.gif`, `hero.webp`, `social-preview.png` and `examples/img/*.webp` if the UI changed after phase 27.
 - [ ] If possible, check Codex support against a real Codex session before posting; otherwise keep the note in the first comment.

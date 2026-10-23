@@ -4,13 +4,15 @@ One Worker, `reasontrail`, serves the showcase site (static assets from `dist/`)
 `POST /api/next-tokens` (the zoom-in lens) and `POST /api/structure` (AI labels). Everything else in Reasontrail runs
 on the reader's machine, so the site still works if the endpoints are switched off.
 
-> **Approval required.** Nothing has been deployed. The deploy command below is run only by Sean, or by someone else
-> after his explicit approval. Everything before it is safe to run at any time: it deploys nothing.
+Production deploys run in **Cloudflare Workers Builds**, connected to this GitHub repository: every push to `main`
+builds and deploys. Nothing in this repo deploys by itself, and there is no `deploy` script. Connecting the
+repository (step 4) is Sean's decision; everything before it is safe to run at any time.
 
 ## 1. Prerequisites
 
 - A Cloudflare account with Workers enabled. Workers AI and KV are on every plan; see [cost](#9-cost) for limits.
-- Node 20.19+ and pnpm 9 (`corepack enable`).
+- Node 22+ (`.nvmrc`; wrangler 4.151 needs Node 22, which Workers Builds also uses) and pnpm 9 (`corepack enable`).
+  The published CLI itself still runs on Node 20.19+.
 - Authentication for wrangler, either one of:
   - `pnpm exec wrangler login` (a browser login, stored by wrangler), or
   - `CLOUDFLARE_API_TOKEN` (a token from the "Edit Cloudflare Workers" template, plus Workers AI and KV edit
@@ -49,14 +51,18 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
 1. **Social image.** Open the site locally (`pnpm preview`), keep the default sample, choose "Save shareable copy…" →
    "Download map card" (1200×630 PNG, light theme), and save it as `public/og-card.png`. Commit it. `index.html`
    already points `og:image` at `/og-card.png`.
-2. **KV namespace (optional).** `wrangler.jsonc` has no `id` for `TG_CACHE` (PLAN D10), and the first deploy
-   provisions a namespace for it. To create it yourself instead and pin the id:
+2. **KV namespace (recommended).** `wrangler.jsonc` has no `id` for `TG_CACHE` (PLAN D10). Without one, the first
+   deploy (Workers Builds included) provisions a namespace automatically, but from Workers Builds the new id is
+   only visible in the dashboard and never written back to the repo. To keep the binding explicit, create it
+   once and pin it before connecting the repo:
 
    ```sh
    pnpm exec wrangler kv namespace create TG_CACHE
    ```
 
-   and add the printed `"id"` to the `kv_namespaces` entry in `wrangler.jsonc`.
+   and add the printed id to the entry in `wrangler.jsonc`:
+   `"kv_namespaces": [{ "binding": "TG_CACHE", "id": "<printed id>" }],`. Never commit a made-up placeholder id;
+   `wrangler deploy` fails on an id that does not exist.
 3. **Upstream (optional).** The default upstream is Workers AI through the `AI` binding: no key. Only if you set
    `UPSTREAM` to `openai-compatible` (and `OPENAI_BASE_URL`, `OPENAI_MODEL` in `vars`), add the key as a secret:
 
@@ -74,15 +80,42 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
    If it fails, deploy anyway with `DAILY_UPSTREAM_CAP` set to `"0"` (live calls off; recorded lens data and the
    whole site keep working) and see `docs/llm-provider.md` for the fallbacks.
 
-## 4. Deploy (Sean, or after his approval)
+## 4. Deploy with Workers Builds (Sean, or after his approval)
 
-```sh
-pnpm exec wrangler deploy
-```
+One-time, in the Cloudflare dashboard: **Workers & Pages → Create → Import a repository**, pick GitHub (authorise
+the Cloudflare app for `geekplux/reasontrail` if asked) and select the repository. Use these settings (later under
+Workers → reasontrail → Settings → Builds):
 
-Wrangler prints the URL (`https://reasontrail.<account-subdomain>.workers.dev`). A custom domain is added in the
-Cloudflare dashboard (Workers → reasontrail → Settings → Domains & Routes) or with a `routes` entry in
-`wrangler.jsonc`.
+| Setting | Value |
+|---|---|
+| Project / Worker name | `reasontrail` (must equal `name` in `wrangler.jsonc`) |
+| Production branch | `main` |
+| Build command | `pnpm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Preview command (non-production branches) | `npx wrangler preview` (the default) |
+| Root directory | `/` (the repository root) |
+| Build variables | none needed (Node comes from `.nvmrc`, pnpm from `packageManager`) |
+
+The first build deploys to `https://reasontrail.<account-subdomain>.workers.dev`. After that, every push to
+`main` deploys production.
+
+- **Production** is the top level of `wrangler.jsonc`. There are no named environments, so the bare
+  `npx wrangler deploy` deploys it with no "multiple environments" warning.
+- **Branch previews** use the `previews` block of `wrangler.jsonc`, because Previews inherit none of the
+  top-level bindings. They serve the full site with the AI endpoints off (`UPSTREAM` `"off"` → a clear 503, no AI
+  binding, so no model cost), with their own rate-limit counters and without KV. To try live AI on a Preview,
+  add `"ai": { "binding": "AI" }`, a separate KV namespace and `UPSTREAM` `"workers-ai"` to that branch's
+  `previews` block. If you would rather have no preview builds, turn off **Builds for non-production branches**
+  under Settings → Builds → Branch control.
+- **Secrets / variables:** none with the default Workers AI upstream. `MODEL_ID`, `UPSTREAM` and
+  `DAILY_UPSTREAM_CAP` are `vars` in `wrangler.jsonc`, so they are set on each deploy; change them in the file,
+  not the dashboard. Only for `UPSTREAM` `"openai-compatible"` add `OPENAI_BASE_URL` and `OPENAI_MODEL` to `vars`
+  and run `pnpm exec wrangler secret put OPENAI_API_KEY` once.
+- **Custom domain:** add it in Workers → reasontrail → Settings → Domains & Routes, **and** add the same domain
+  to `wrangler.jsonc` as `"routes": [{ "pattern": "<domain>", "custom_domain": true }]`, so later deploys keep it.
+
+A manual deploy from a laptop (`pnpm build && pnpm exec wrangler deploy`) does the same thing, but once the
+repository is connected, let Workers Builds handle deploys.
 
 ## 5. After deploying: checks
 
@@ -153,8 +186,9 @@ pnpm exec wrangler deployments list   # the recent versions
 pnpm exec wrangler rollback           # back to the previous version (or: wrangler rollback <version-id>)
 ```
 
-To switch only the model calls off without a redeploy of code, set `DAILY_UPSTREAM_CAP` to `"0"` in the dashboard
-(Workers → reasontrail → Settings → Variables). The site and recorded data keep working.
+To switch only the model calls off, set `DAILY_UPSTREAM_CAP` to `"0"` in `wrangler.jsonc` and push to `main`, or
+for an immediate stop set it in the dashboard (Workers → reasontrail → Settings → Variables). The next build from
+`main` resets the dashboard value to the one in the file. The site and recorded data keep working.
 
 ## 9. Cost
 

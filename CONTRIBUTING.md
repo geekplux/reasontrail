@@ -6,7 +6,7 @@ Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues go thro
 
 ## Setup
 
-You need Node 20.19 or newer and pnpm 9.
+You need Node 22 or newer and pnpm 9 (`.nvmrc`; wrangler needs Node 22). The published CLI itself runs on Node 20.19+.
 
 ```sh
 git clone https://github.com/geekplux/reasontrail && cd reasontrail
