@@ -16,10 +16,9 @@
     "run_worker_first": ["/api/*"]
   },
   "ai": { "binding": "AI" },
-  // No id (PLAN D10): the first deploy (also from Workers Builds) provisions the namespace automatically. Recommended:
-  // pin it, so the binding is explicit: `pnpm exec wrangler kv namespace create TG_CACHE`, then add "id": "<printed id>"
-  // to this entry (docs/DEPLOY.md, step 3). Never put a placeholder id here: deploy fails on an id that does not exist.
-  "kv_namespaces": [{ "binding": "TG_CACHE" }],
+  // Production namespace REASONTRAIL_CACHE (docs/DEPLOY.md, step 2). Never put a placeholder id here:
+  // deploy fails on an id that does not exist.
+  "kv_namespaces": [{ "binding": "TG_CACHE", "id": "91c14bfbe1444937a095418ee3a2f6ac" }],
   // Per-IP limits keyed by CF-Connecting-IP (worker/limits.ts): RL_MISS before an upstream call, RL_ALL on every request.
   "ratelimits": [
     { "name": "RL_MISS", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },

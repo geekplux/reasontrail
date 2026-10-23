@@ -51,18 +51,10 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
 1. **Social image.** Open the site locally (`pnpm preview`), keep the default sample, choose "Save shareable copy…" →
    "Download map card" (1200×630 PNG, light theme), and save it as `public/og-card.png`. Commit it. `index.html`
    already points `og:image` at `/og-card.png`.
-2. **KV namespace (recommended).** `wrangler.jsonc` has no `id` for `TG_CACHE` (PLAN D10). Without one, the first
-   deploy (Workers Builds included) provisions a namespace automatically, but from Workers Builds the new id is
-   only visible in the dashboard and never written back to the repo. To keep the binding explicit, create it
-   once and pin it before connecting the repo:
-
-   ```sh
-   pnpm exec wrangler kv namespace create TG_CACHE
-   ```
-
-   and add the printed id to the entry in `wrangler.jsonc`:
-   `"kv_namespaces": [{ "binding": "TG_CACHE", "id": "<printed id>" }],`. Never commit a made-up placeholder id;
-   `wrangler deploy` fails on an id that does not exist.
+2. **KV namespace (done).** The production namespace `REASONTRAIL_CACHE` exists and its id
+   (`91c14bfbe1444937a095418ee3a2f6ac`) is pinned on the `TG_CACHE` entry in `wrangler.jsonc`. If you ever recreate
+   it, run `pnpm exec wrangler kv namespace create REASONTRAIL_CACHE` and replace the id. Never commit a made-up
+   placeholder id; `wrangler deploy` fails on an id that does not exist.
 3. **Upstream (optional).** The default upstream is Workers AI through the `AI` binding: no key. Only if you set
    `UPSTREAM` to `openai-compatible` (and `OPENAI_BASE_URL`, `OPENAI_MODEL` in `vars`), add the key as a secret:
 
