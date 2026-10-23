@@ -114,7 +114,7 @@ repository is connected, let Workers Builds handle deploys.
 Replace `$SITE` with the deployed origin.
 
 ```sh
-SITE=https://reasontrail.example   # the real origin
+SITE=https://reasontrail.geekplux.com   # the real origin
 # The lens endpoint: 200 with tokens (or 503 budget_exhausted if DAILY_UPSTREAM_CAP is 0)
 curl -sS -X POST "$SITE/api/next-tokens" -H 'content-type: application/json' \
   -d '{"prefix":"The old lighthouse keeper opened the door and","k":5}'
@@ -134,24 +134,14 @@ curl -sSI "$SITE/og-card.png" | head -1
 Then open `$SITE` in a browser: the default map loads with no console errors, "Map your own session" accepts a
 `.jsonl`, a lens sentence grows, and the share dialog saves a copy. Check the social card with a link preview tool.
 
-## 6. Replace the placeholder URL (PLAN D20)
+## 6. Demo URL and custom domain (PLAN D20)
 
-Until the site exists, every demo link uses `https://reasontrail.example`. After deploying, replace it with the
-real origin in:
-
-| File | What |
-|---|---|
-| `README.md` | the "Live demo: coming soon" link near the top becomes the real link |
-| `examples/README.md` | each sample's "Open it" link and the note about the placeholder |
-| `docs/LAUNCH.md` | the post drafts, demo scenarios and the checklist note |
-| `cli/src/meta.ts` | `DEFAULT_AI_ENDPOINT` (`--ai`'s default, `<origin>/api/structure`); then rebuild the CLI |
-| `index.html` | make `og:image` absolute (`<origin>/og-card.png`) and add `<meta property="og:url" content="<origin>/">` |
-| `scripts/check-docs.mjs` | `DEMO_ORIGIN` (the demo-link check derives its pattern from it) |
-| `scripts/check-docs.test.mjs` | the example links in the tests |
-| `scripts/browser/flows/gallery.mjs` | the comment naming the placeholder |
-
-Find any stragglers with `git grep -n reasontrail.example -- ':!docs/PLAN.md' ':!docs/STATUS.md' ':!docs/DEPLOY.md'`
-(PLAN and STATUS are history), then run `pnpm check:docs` and `pnpm test`.
+The site lives at `https://reasontrail.geekplux.com`. `wrangler.jsonc` declares it as a custom domain
+(`"routes": [{ "pattern": "reasontrail.geekplux.com", "custom_domain": true }]`), so `wrangler deploy` keeps the domain
+attached in the dashboard. The placeholder `reasontrail.example` used during development has been replaced in the
+README, `examples/README.md`, `docs/LAUNCH.md`, `cli/src/meta.ts` (`DEFAULT_AI_ENDPOINT`), `index.html` (absolute
+`og:image`, `og:url`, canonical), `scripts/check-docs.mjs` (`DEMO_ORIGIN`) and its tests. If the domain ever changes,
+update those files and the route, then run `pnpm check:docs` and `pnpm test`.
 
 ## 7. Headers
 

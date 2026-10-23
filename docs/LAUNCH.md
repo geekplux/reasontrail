@@ -2,7 +2,7 @@
 
 # Launch kit
 
-Drafts and scripts for sharing Reasontrail. Every link uses the placeholder demo origin `https://reasontrail.example` (D20); replace it after the site is deployed (see the checklist at the end).
+Drafts and scripts for sharing Reasontrail. Every link uses the demo origin `https://reasontrail.geekplux.com`.
 
 ## What the images show
 
@@ -22,7 +22,7 @@ Drafts and scripts for sharing Reasontrail. Every link uses the placeholder demo
 >
 > It is local: no account, no API key, nothing uploaded. The structure comes from fixed rules, not a model, so the same session always gives the same map. Optional AI labels are opt-in and show what would be sent first. `--share` writes a redacted copy.
 >
-> The website shows maps of the agents that built it, and works offline: https://reasontrail.example
+> The website shows maps of the agents that built it, and works offline: https://reasontrail.geekplux.com
 >
 > There is a skill too, so you can ask your agent to "map this session". Code (MIT): https://github.com/geekplux/reasontrail
 
@@ -44,19 +44,19 @@ Drafts and scripts for sharing Reasontrail. Every link uses the placeholder demo
 >
 > Reasontrail turns a Claude Code, Codex or Grok Build session into one map: the task, the route, where it got stuck, what it changed. Local, no API key, nothing uploaded.
 >
-> https://reasontrail.example
+> https://reasontrail.geekplux.com
 
 **Thread:**
 
-1. Attach `examples/img/implementer-checks.webp`. "Every trouble marker has its evidence. This implementer failed lint, then typecheck, in a row. Enter on the marker shows both runs and their output: https://reasontrail.example/?session=implementer-checks&step=s52"
-2. Attach `examples/img/verify-fail-fix.webp`. "Subagents are side trails. Here a verifier says FAIL, an implementer fixes one file, a second verifier says PASS: https://reasontrail.example/?session=verify-fail-fix&step=s96"
+1. Attach `examples/img/implementer-checks.webp`. "Every trouble marker has its evidence. This implementer failed lint, then typecheck, in a row. Enter on the marker shows both runs and their output: https://reasontrail.geekplux.com/?session=implementer-checks&step=s52"
+2. Attach `examples/img/verify-fail-fix.webp`. "Subagents are side trails. Here a verifier says FAIL, an implementer fixes one file, a second verifier says PASS: https://reasontrail.geekplux.com/?session=verify-fail-fix&step=s96"
 3. Attach `examples/img/planner-pivot.webp`. "One self-contained HTML file, built by fixed rules (no model), with a redacted --share copy. A skill lets you ask your agent to map its own session. MIT: https://github.com/geekplux/reasontrail"
 
 ## Three demo scenarios
 
 ### 1. "What did my agent do for 40 minutes?"
 
-1. Open https://reasontrail.example/?session=implementer-checks.
+1. Open https://reasontrail.geekplux.com/?session=implementer-checks.
 2. Read the task card aloud: about 49 minutes in total, but only 11 minutes active, with 38 minutes idle. Most of the clock time is gaps between recorded steps, not tool work.
 3. Read At a glance: "Verified: pnpm lint passed", "1 trouble spot", "6 files changed, committed".
 4. Press Tab until the map has focus, then `]`: focus jumps to trouble marker 1, the error streak. Press Enter: the panel opens on the first failed run (lint). Press → for the second (typecheck, `TS2339`). Press Esc to go back.
@@ -68,13 +68,13 @@ Drafts and scripts for sharing Reasontrail. Every link uses the placeholder demo
 1. In the PR's repository, run `npx reasontrail --list` and pick the session that wrote the branch, then `npx reasontrail <path or id>`.
 2. Compare the destination's changed files with the PR's diff, and read the last check: was it a test run, and did it pass?
 3. Walk the trouble markers with `[` and `]`. A retry or revert next to a file in the PR is where to look first.
-4. On the demo site, show the same review on https://reasontrail.example/?session=verify-fail-fix&step=s96: the first verifier's "VERDICT: FAIL", the fix trail that changes `scripts/audit-samples.mjs`, and the re-verify that passes.
+4. On the demo site, show the same review on https://reasontrail.geekplux.com/?session=verify-fail-fix&step=s96: the first verifier's "VERDICT: FAIL", the fix trail that changes `scripts/audit-samples.mjs`, and the re-verify that passes.
 5. To share the map with the reviewer, run `npx reasontrail --share`: it writes a redacted copy in the current folder and says how many secrets, emails and paths it replaced.
 
 ### 3. "Watch the agents that built this app"
 
-1. Open https://reasontrail.example. The first map is a real session from building Reasontrail itself; the sample switcher holds the other two.
-2. Pick "A change request rewrites the plan" (https://reasontrail.example/?session=planner-pivot&step=s13): the first planner run was cut off, the retry marker shows it, and the second run rewrote `docs/PLAN.md`.
+1. Open https://reasontrail.geekplux.com. The first map is a real session from building Reasontrail itself; the sample switcher holds the other two.
+2. Pick "A change request rewrites the plan" (https://reasontrail.geekplux.com/?session=planner-pivot&step=s13): the first planner run was cut off, the retry marker shows it, and the second run rewrote `docs/PLAN.md`.
 3. Pick "A verifier fails, a fix passes": three subagents as side trails, labelled FAIL, done and PASS.
 4. In any detail panel with the agent's own words, choose "Zoom into this sentence" to see an open model's next-token branches for it. Recorded sentences work offline.
 5. Close with the PR history on GitHub: each phase of the app was built and verified by agents, and these maps are their sessions.
@@ -98,7 +98,7 @@ Researched on **2026-10-22** from each project's README or documentation (linked
 
 - [ ] **Deploy approval:** Sean approves and runs the deploy ([DEPLOY.md](DEPLOY.md)). Nothing is deployed before that.
 - [ ] **npm publish approval (D36):** Sean approves the package name and runs `npm publish` ([PUBLISH.md](PUBLISH.md)). Until then the README's "Not on npm yet" note and the from-a-clone commands stay.
-- [ ] **Replace `reasontrail.example`** with the deployed URL everywhere: README, `examples/README.md`, this file, and the files [DEPLOY.md](DEPLOY.md#6-replace-the-placeholder-url-plan-d20) lists. Run `pnpm check:docs` afterwards.
+- [x] **Demo URL** set to `https://reasontrail.geekplux.com` everywhere (was the `reasontrail.example` placeholder, PLAN D20).
 - [ ] **Upload the social preview:** GitHub repository Settings → General → Social preview → `docs/brand/social-preview.png` (the API cannot do this).
 - [ ] **Enable private vulnerability reporting:** Settings → Code security, so the route in `SECURITY.md` works.
 - [ ] Repository description and topics set (e.g. `claude-code`, `codex`, `ai-agents`, `visualization`, `developer-tools`).

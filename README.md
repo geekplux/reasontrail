@@ -8,7 +8,7 @@
 <p align="center"><strong>See how your coding agent got there: one command turns a Claude Code, Codex or Grok Build session into a map you can read at a glance. Local, no API key, nothing uploaded.</strong></p>
 
 <p align="center">
-  <a href="#roadmap">Live demo: coming soon</a> ·
+  <a href="https://reasontrail.geekplux.com">Live demo</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="docs/EXTENDING.md">Extend it</a>

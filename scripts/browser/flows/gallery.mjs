@@ -1,5 +1,5 @@
 // Gallery flow (brand, never part of "all"): every demo link in examples/README.md
-// (`https://reasontrail.example/?session=<id>&step=<id>`, D20) is opened on the preview server and must show the map
+// (`https://reasontrail.geekplux.com/?session=<id>&step=<id>`, D20) is opened on the preview server and must show the map
 // with the detail panel open on that step. The first link per sample is also its gallery image,
 // examples/img/<id>.webp (1280×800, light theme, motion reduced).
 // Usage: pnpm check:browser --flows gallery

@@ -6,6 +6,8 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "reasontrail",
+  // Custom domain, also attached in the dashboard: declaring it here keeps `wrangler deploy` from removing it.
+  "routes": [{ "pattern": "reasontrail.geekplux.com", "custom_domain": true }],
   "main": "worker/index.ts",
   "compatibility_date": "2026-04-26",
   "assets": {

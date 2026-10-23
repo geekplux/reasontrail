@@ -6,7 +6,7 @@ export { PKG_NAME };
 export const VERSION: string = pkg.version;
 export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
 /** `--ai`'s default endpoint: the public site's Worker (a placeholder until deployment, D20). */
-export const DEFAULT_AI_ENDPOINT = 'https://reasontrail.example/api/structure';
+export const DEFAULT_AI_ENDPOINT = 'https://reasontrail.geekplux.com/api/structure';
 
 /** Documented exit codes (C2). */
 export const EXIT = { ok: 0, usage: 1, notFound: 2, unreadable: 3 } as const;

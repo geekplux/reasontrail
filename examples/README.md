@@ -2,7 +2,7 @@
 
 These are the sample maps on the Reasontrail website. Each is a real Claude Code session of the agents that built Reasontrail, trimmed and redacted (see [`tools/session-samples.json`](../tools/session-samples.json)). They are bundled with the site, so they open offline and with no API key.
 
-Each link opens the map with the detail panel on the step worth reading first. The demo site is not deployed yet, so `reasontrail.example` is a placeholder. To open the same view locally:
+Each link opens the map with the detail panel on the step worth reading first. The links open the live demo at `reasontrail.geekplux.com`. To open the same view locally:
 
 ```sh
 pnpm install && pnpm dev
@@ -16,7 +16,7 @@ pnpm install && pnpm dev
 
 ![The implementer-checks map with the detail panel open on a failed run (exit 1) whose recorded output shows the lint findings; the route has one numbered error-streak marker.](img/implementer-checks.webp)
 
-Open it: [implementer-checks map at the first failed run](https://reasontrail.example/?session=implementer-checks&step=s52) (`?session=implementer-checks&step=s52`)
+Open it: [implementer-checks map at the first failed run](https://reasontrail.geekplux.com/?session=implementer-checks&step=s52) (`?session=implementer-checks&step=s52`)
 
 What to notice:
 
@@ -30,7 +30,7 @@ What to notice:
 
 ![The verify-fail-fix map with the detail panel open on the first verifier's answer, which starts "VERDICT: FAIL".](img/verify-fail-fix.webp)
 
-Open it: [verify-fail-fix map at the first verifier’s verdict](https://reasontrail.example/?session=verify-fail-fix&step=s96) (`?session=verify-fail-fix&step=s96`)
+Open it: [verify-fail-fix map at the first verifier’s verdict](https://reasontrail.geekplux.com/?session=verify-fail-fix&step=s96) (`?session=verify-fail-fix&step=s96`)
 
 What to notice:
 
@@ -44,7 +44,7 @@ What to notice:
 
 ![The planner-pivot map with the detail panel open on the first "Rewrite plan for pivot" Agent call, marked failed because its result was never recorded; the route shows a numbered retry marker.](img/planner-pivot.webp)
 
-Open it: [planner-pivot map at the first planner call](https://reasontrail.example/?session=planner-pivot&step=s13) (`?session=planner-pivot&step=s13`)
+Open it: [planner-pivot map at the first planner call](https://reasontrail.geekplux.com/?session=planner-pivot&step=s13) (`?session=planner-pivot&step=s13`)
 
 What to notice:
 
