@@ -1,0 +1,22 @@
+{
+  "//": "Synthetic: the shape of a @cf/zai-org/glm-4.7-flash chat completion with response_format json_schema (Cloudflare model schema, output oneOf[0]); written by hand, not a live call.",
+  "id": "chatcmpl-structure-fixture",
+  "object": "chat.completion",
+  "created": 1792540800,
+  "model": "@cf/zai-org/glm-4.7-flash",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "{\"labels\":[{\"stepId\":\"s1\",\"label\":\"sub-question\",\"confidence\":0.82},{\"stepId\":\"s3\",\"label\":\"hypothesis\",\"confidence\":0.71},{\"stepId\":\"s5\",\"label\":\"evidence\",\"confidence\":0.88},{\"stepId\":\"s6\",\"label\":\"dead end\",\"confidence\":0.64},{\"stepId\":\"s7\",\"label\":\"decision\",\"confidence\":0.77},{\"stepId\":\"s9\",\"label\":\"answer\",\"confidence\":0.9}],\"links\":[{\"claimStepId\":\"s7\",\"supportStepIds\":[\"s5\",\"s6\"]},{\"claimStepId\":\"s9\",\"supportStepIds\":[\"s5\",\"s8\"]}]}"
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 512,
+    "completion_tokens": 168,
+    "total_tokens": 680
+  }
+}

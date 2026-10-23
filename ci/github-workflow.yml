@@ -1,0 +1,48 @@
+# CI definition. Lives in ci/ because the current GitHub token lacks `workflow` scope;
+# move it to .github/workflows/ci.yml once that scope is granted (follow-up in docs/STATUS.md).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm check:size
+      - run: pnpm check:docs
+      - run: pnpm build:cli
+      # The published tarball holds only the built CLI, the viewer template, package.json, README and LICENSE.
+      - run: pnpm check:pack
+      # Dry run only: bundles the Worker and lists its bindings; needs no Cloudflare account and deploys nothing.
+      - run: pnpm run check:deploy
+      # --headers serves dist/ with public/_headers applied, so every flow runs under the production CSP.
+      - name: Headless browser check (system Chrome on the runner)
+        run: pnpm check:browser --no-build --headers --out .tmp/screenshots
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: .tmp/screenshots/
+          if-no-files-found: ignore

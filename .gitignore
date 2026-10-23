@@ -6,8 +6,10 @@ node_modules/
 dist/
 dist-ssr/
 build/
+!shared/session/build/
 out/
 coverage/
+.tmp/
 *.tsbuildinfo
 .vite/
 .vitest/
@@ -20,6 +22,7 @@ coverage/
 worker-configuration.d.ts.bak
 
 # env / secrets
+.redact-denylist
 .env
 .env.*
 !.env.example
@@ -46,3 +49,11 @@ pnpm-debug.log*
 # claude code local state
 .claude/settings.local.json
 .claude/agent-memory-local/
+
+# sample recorder (tools/record-samples): model download cache
+tools/record-samples/.cache/
+cli/dist/
+dist-viewer/
+
+# npm pack output (scripts/check-pack.mjs packs into a temp folder)
+*.tgz

@@ -1,0 +1,6 @@
+{
+  "agentType": "verifier",
+  "description": "Run the checks",
+  "toolUseId": "toolu_bg",
+  "spawnDepth": 1
+}

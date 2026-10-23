@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844" width="390" height="844" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif">
+  <title>Reasontrail glance view, 390×844 wireframe (DESIGN.md §8.2): the route turns vertical; a sticky destination bar keeps the outcome on the first screen. Same real session counts as glance.svg.</title>
+  <style>
+    .paper { fill: #f6f3ea } .surface { fill: #fffdf7 } .ink { fill: #1c2620 } .muted { fill: #4d5a52 }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', monospace; font-weight: 500 }
+    .serif { font-family: 'Instrument Serif', 'Iowan Old Style', Georgia, serif; font-style: italic }
+    .cap { font-size: 11.5px; letter-spacing: 0.12em }
+    .rule { stroke: #d9d3c3; stroke-width: 1 }
+    .route { stroke: #1c2620; stroke-width: 4; fill: none; stroke-linecap: round }
+    .side { stroke: #5f7d6c; stroke-width: 2; fill: none; stroke-linejoin: round }
+    .ann { fill: #1c2620 } .ann-t { fill: #fffdf7; font-size: 11px; font-weight: 600 }
+    .ep { font-size: 13px; font-weight: 600; fill: #1c2620 }
+    .cnt { font-size: 11.5px; fill: #4d5a52 }
+    .lane { font-size: 11.5px; fill: #1c2620 }
+    a text { text-decoration: underline }
+  </style>
+  <defs>
+    <!-- Episode kind glyphs (ink, shape = kind) -->
+    <symbol id="k-user" viewBox="-7 -7 14 14"><path d="M-4 -5.5 L5.5 0 L-4 5.5Z" fill="#1c2620"/></symbol>
+    <symbol id="k-explore" viewBox="-7 -7 14 14"><circle r="4.5" fill="#f6f3ea" stroke="#1c2620" stroke-width="2"/></symbol>
+    <symbol id="k-change" viewBox="-7 -7 14 14"><rect x="-4.5" y="-4.5" width="9" height="9" fill="#1c2620"/></symbol>
+    <symbol id="k-verify" viewBox="-7 -7 14 14"><path d="M0 -6 L6 0 L0 6 L-6 0Z" fill="#f6f3ea" stroke="#1c2620" stroke-width="2"/></symbol>
+    <symbol id="k-delegate" viewBox="-7 -7 14 14"><circle r="5" fill="#1c2620"/><circle r="1.8" fill="#f6f3ea"/></symbol>
+    <symbol id="k-answer" viewBox="-8 -8 16 16"><circle r="6" fill="#f6f3ea" stroke="#1c2620" stroke-width="2"/><circle r="2.4" fill="#1c2620"/></symbol>
+    <!-- Status glyphs (hue + shape; always with a word nearby) -->
+    <symbol id="s-ok" viewBox="-8 -8 16 16"><circle r="7" fill="#1a6fa0"/><path d="M-3.5 0.2 L-1 2.8 L3.8 -2.6" stroke="#fffdf7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="s-err" viewBox="-8 -8 16 16"><circle r="7" fill="#a3292b"/><path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="#fffdf7" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="s-int" viewBox="-8 -8 16 16"><circle r="6.5" fill="#f6f3ea" stroke="#4d5a52" stroke-width="1.5"/><path d="M-2 -3 V3 M2 -3 V3" stroke="#4d5a52" stroke-width="2"/></symbol>
+    <!-- Trouble blazes: 20×20 plate. Unresolved = filled blaze; resolved = outlined -->
+    <symbol id="t-streak" viewBox="0 0 20 20"><rect x="1" y="1" width="18" height="18" rx="2" fill="#fffdf7" stroke="#a3292b" stroke-width="2"/><path d="M5 5 L9 9 M9 5 L5 9 M11 11 L15 15 M15 11 L11 15" stroke="#a3292b" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="t-revert" viewBox="0 0 20 20"><rect x="0" y="0" width="20" height="20" rx="2" fill="#a3292b"/><path d="M14.5 15 V8.5 A3.5 3.5 0 0 0 7.5 8.5 V12" stroke="#fffdf7" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M4.5 10 L7.5 13.5 L10.5 10" stroke="#fffdf7" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="t-interrupt" viewBox="0 0 20 20"><rect x="0" y="0" width="20" height="20" rx="2" fill="#a3292b"/><path d="M7.5 5 V15 M12.5 5 V15" stroke="#fffdf7" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="badge" viewBox="-8 -8 16 16"><circle r="7.5" fill="#1c2620"/></symbol>
+  </defs>
+  <rect class="paper" width="390" height="844"/>
+
+  <!-- header -->
+  <g transform="translate(16 10) scale(0.875)" fill="none" stroke="#1c2620" stroke-linecap="round">
+    <circle cx="4.5" cy="20" r="3.5" fill="#1c2620" stroke="none"/>
+    <path d="M4.5 20 H11 L19 12 H22" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M11 20 H19.5" stroke-width="2"/><path d="M21.5 16.5 V23.5" stroke-width="2"/>
+    <circle cx="26.5" cy="12" r="4" stroke-width="2.5"/><circle cx="26.5" cy="12" r="1.5" fill="#1c2620" stroke="none"/>
+  </g>
+  <text x="48" y="31" class="mono ink" font-size="16">reason</text><text x="106" y="31" class="serif ink" font-size="20">trail</text>
+  <g transform="translate(206 10)">
+    <rect width="124" height="28" rx="2" fill="#fffdf7" stroke="#1c2620"/><rect width="52" height="28" rx="2" fill="#1c2620"/>
+    <text x="26" y="19" text-anchor="middle" font-size="13" font-weight="600" fill="#fffdf7">Map</text>
+    <text x="88" y="19" text-anchor="middle" font-size="13" class="ink">Outline</text>
+  </g>
+  <g transform="translate(338 10)"><rect width="36" height="28" rx="2" fill="#fffdf7" stroke="#1c2620"/><circle cx="11" cy="14" r="1.8" class="ink"/><circle cx="18" cy="14" r="1.8" class="ink"/><circle cx="25" cy="14" r="1.8" class="ink"/></g>
+  <line x1="0" y1="48.5" x2="390" y2="48.5" class="rule"/>
+
+  <!-- region a: task -->
+  <text x="16" y="74" class="mono cap muted">TASK · CLAUDE CODE · SAMPLE</text>
+  <text x="16" y="104" class="serif ink" font-size="25">Build phase 4: explore recorded</text>
+  <text x="16" y="132" class="serif ink" font-size="25">gardens and share links</text>
+  <text x="16" y="156" class="mono muted" font-size="12">2 h 10 m active · 202 calls · 7 subagents</text>
+  <g transform="translate(16 168)">
+    <circle cx="7" cy="7" r="6.25" fill="none" stroke="#4d5a52" stroke-width="1.5"/><rect x="6.2" y="6" width="1.6" height="4.5" fill="#4d5a52"/><circle cx="7" cy="3.9" r="1" fill="#4d5a52"/>
+    <text x="22" y="11.5" font-size="12.8" class="muted">Written reasoning is the agent's own account,</text>
+    <text x="22" y="28" font-size="12.8" class="muted">not a record of how the model computed.</text>
+    <text x="22" y="44.5" font-size="12.8" class="ink" text-decoration="underline">How to read this map</text>
+  </g>
+  <!-- glance rows -->
+  <line x1="16" y1="230.5" x2="374" y2="230.5" stroke="#1c2620"/>
+  <use href="#s-ok" x="16" y="242" width="16" height="16"/><text x="40" y="255" font-size="13.5" class="ink"><tspan font-weight="600">Verified:</tspan> pnpm check:browser passed</text>
+  <use href="#t-streak" x="16" y="268" width="16" height="16"/><text x="40" y="281" font-size="13.5" class="ink"><tspan font-weight="600">3 trouble spots,</tspan> 1 resolved</text>
+  <use href="#k-change" x="17" y="295" width="14" height="14"/><text x="40" y="307" font-size="13.5" class="ink"><tspan font-weight="600">22 files changed,</tspan> PR opened</text>
+  <line x1="16" y1="324.5" x2="374" y2="324.5" class="rule"/>
+
+  <!-- regions b + c: vertical route. Rows and lane sub-rows are 44 px (one height: counts carry effort) -->
+  <text x="16" y="348" class="mono cap muted">ROUTE · 10 EPISODES</text>
+  <path class="route" d="M28 382 V578"/>
+  <path class="route" d="M28 626 V844"/>
+
+  <!-- 1 task: row 360-404 -->
+  <use href="#k-user" x="20" y="374" width="16" height="16"/>
+  <text x="48" y="387" class="ep" font-size="14">Task</text><text x="374" y="387" text-anchor="end" class="mono cnt">1</text>
+  <!-- 2 provider: row 404-448, lane sub-row 448-492 -->
+  <use href="#k-delegate" x="20" y="418" width="16" height="16"/>
+  <text x="48" y="431" class="ep" font-size="14">Provider interface</text><text x="374" y="431" text-anchor="end" class="mono cnt">23 steps</text>
+  <path class="side" d="M28 434 L44 450 V474 L28 490"/>
+  <use href="#s-ok" x="56" y="463" width="14" height="14"/><text x="76" y="474" class="mono lane">llm-integration · 21 calls</text>
+  <!-- 3 phase 4 ui (interrupted): row 492-536, sub-row 536-580 -->
+  <use href="#k-delegate" x="20" y="506" width="16" height="16"/>
+  <text x="48" y="519" class="ep" font-size="14">Phase 4 UI</text><text x="374" y="519" text-anchor="end" class="mono cnt">16</text>
+  <path class="side" d="M28 522 L44 538 V564"/><path d="M37 566 H51" stroke="#5f7d6c" stroke-width="2"/>
+  <use href="#s-int" x="56" y="551" width="14" height="14"/><text x="76" y="562" class="mono lane">implementer · interrupted</text>
+  <!-- blaze target: 44 px wide x full sub-row (330-374) -->
+  <use href="#t-interrupt" x="342" y="548" width="20" height="20"/><use href="#badge" x="354" y="540" width="16" height="16"/><text x="362" y="552" text-anchor="middle" class="mono" font-size="10.5" font-weight="600" fill="#fffdf7">1</text>
+  <!-- idle break: a 44 px gap in the rail with two slashes, no dotted line -->
+  <path d="M16 600 L40 592 M16 610 L40 602" stroke="#1c2620" stroke-width="1.5"/>
+  <text x="48" y="606" class="mono cnt">≈11 h idle</text>
+  <!-- 4 resume: row 624-668 -->
+  <use href="#k-user" x="20" y="638" width="16" height="16"/>
+  <text x="48" y="651" class="ep" font-size="14">Resume</text><text x="374" y="651" text-anchor="end" class="mono cnt">1</text>
+  <!-- 5 phase 4 ui second: row 668-712, sub-row 712-756 -->
+  <use href="#k-delegate" x="20" y="682" width="16" height="16"/>
+  <text x="48" y="695" class="ep" font-size="14">Phase 4 UI, second run</text><text x="374" y="695" text-anchor="end" class="mono cnt">64 steps</text>
+  <path class="side" d="M28 698 L44 714 V738 L28 754"/>
+  <use href="#s-ok" x="56" y="727" width="14" height="14"/><text x="76" y="738" class="mono lane">implementer · 62 calls</text>
+  <!-- two blazes, each a 44 px wide target (286-330, 330-374) -->
+  <use href="#t-streak" x="298" y="724" width="20" height="20"/><use href="#badge" x="310" y="716" width="16" height="16"/><text x="318" y="728" text-anchor="middle" class="mono" font-size="10.5" font-weight="600" fill="#fffdf7">2</text>
+  <use href="#t-revert" x="342" y="724" width="20" height="20"/><use href="#badge" x="354" y="716" width="16" height="16"/><text x="362" y="728" text-anchor="middle" class="mono" font-size="10.5" font-weight="600" fill="#fffdf7">3</text>
+  <!-- 6 reviews: row 756-800 (continues under the sticky bar) -->
+  <use href="#k-delegate" x="20" y="770" width="16" height="16"/>
+  <text x="48" y="783" class="ep" font-size="14">Design and a11y reviews</text><text x="374" y="783" text-anchor="end" class="mono cnt">31</text>
+  <path class="side" d="M28 786 L44 802 V844"/>
+
+  <!-- sticky destination bar (region d summary, opens the outcome card) -->
+  <rect x="0" y="788" width="390" height="56" class="surface"/>
+  <line x1="0" y1="788.5" x2="390" y2="788.5" stroke="#1c2620"/>
+  <use href="#k-answer" x="16" y="800" width="20" height="20"/>
+  <text x="44" y="808" class="mono cap muted">DESTINATION</text>
+  <text x="44" y="828" font-size="13.5" class="ink"><tspan font-weight="600">22 files</tspan> · verified · PR opened</text>
+  <path d="M352 808 L360 816 L368 808" stroke="#1c2620" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- annotation pills (wireframe only) -->
+  <g><rect x="306" y="64" width="68" height="18" rx="9" class="ann"/><text x="340" y="77" text-anchor="middle" class="ann-t">Q1 task</text></g>
+  <g><rect x="300" y="336" width="74" height="18" rx="9" class="ann"/><text x="337" y="349" text-anchor="middle" class="ann-t">Q2 route</text></g>
+  <g><rect x="250" y="505" width="76" height="18" rx="9" class="ann"/><text x="288" y="518" text-anchor="middle" class="ann-t">Q3 stuck</text></g>
+  <g><rect x="250" y="798" width="96" height="18" rx="9" class="ann"/><text x="298" y="811" text-anchor="middle" class="ann-t">Q4 outcome</text></g>
+</svg>

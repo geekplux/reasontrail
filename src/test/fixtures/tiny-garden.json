@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "tiny",
+  "title": "Tiny test garden",
+  "prompt": "The cat curled up on the",
+  "model": { "provider": "fixture", "name": "hand-written", "note": "Hand-written test data, not model output." },
+  "recordedAt": "2026-10-20",
+  "k": 3,
+  "nodes": {
+    "": [
+      { "token": " mat", "logprob": -1.05 },
+      { "token": " sofa", "logprob": -1.61 },
+      { "token": " roof", "logprob": -2.3 }
+    ],
+    " mat": [
+      { "token": " and", "logprob": -0.69 },
+      { "token": ".", "logprob": -1.39 },
+      { "token": " by", "logprob": -2.53 }
+    ],
+    " mat and": [
+      { "token": " purred", "logprob": -0.92 },
+      { "token": " slept", "logprob": -1.2 },
+      { "token": " yawned", "logprob": -2.81 }
+    ],
+    " mat and purred": [
+      { "token": ".", "logprob": -0.36 },
+      { "token": " softly", "logprob": -1.9 }
+    ],
+    " sofa": [
+      { "token": " and", "logprob": -0.8 },
+      { "token": ".", "logprob": -1.2 }
+    ]
+  }
+}

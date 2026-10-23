@@ -1,0 +1,96 @@
+/*
+ * Design tokens: the "specimen plate" identity (PLAN §3). Every colour in the app comes from here.
+ * Palette contrasts and CVD distances are asserted by tokens.test.ts; edit both together.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Light theme, "paper" (default) */
+  --tg-paper: #f6f3ea;
+  --tg-surface: #fffdf7;
+  --tg-ink: #1c2620;
+  --tg-ink-muted: #4d5a52;
+  --tg-rule: #d9d3c3;
+  --tg-branch-lo: #5f7d6c;
+  --tg-branch-mid: #3d6150;
+  --tg-branch-hi: #1f4535;
+  --tg-accent: #b4530a;
+  --tg-focus: #2f55d4;
+  --tg-error: #a3292b;
+  /* Reasoning map (DESIGN §6.2): ok and trouble are marks paired with a glyph and a word; wash is a background */
+  --tg-ok: #1a6fa0;
+  --tg-trouble: #a3292b;
+  --tg-wash: #f3e3cf;
+  /* Side trails (subagent lanes): strokes only, never text; the band behind an expanded lane is decorative */
+  --tg-lane: #5f7d6c;
+  --tg-lane-band: #efebdf;
+
+  /* Type: IBM Plex Mono 500 for tokens and numbers, Instrument Serif Italic for names, system UI for the rest */
+  --tg-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --tg-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --tg-font-serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+
+  /* Type scale: base 16 px, ratio 1.25 */
+  --tg-text-sm: 0.8rem; /* 12.8 px: probability labels, fine print */
+  --tg-text-md: 1rem;
+  --tg-text-lg: 1.25rem;
+  --tg-text-xl: 1.5625rem;
+  --tg-text-2xl: 1.953rem;
+
+  /* Spacing (DESIGN §18.3): 4/8/16/24/40/64 only; paper corners; hairlines instead of shadows */
+  --tg-space-1: 4px;
+  --tg-space-2: 8px;
+  --tg-space-4: 16px;
+  --tg-space-5: 24px;
+  --tg-space-8: 40px; /* between bands; outer margins at >= 1280 */
+  --tg-space-9: 64px; /* hero room */
+  --tg-radius: 2px;
+  --tg-hairline: 1px solid var(--tg-rule);
+  --tg-measure: 72ch;
+
+  /* Motion (§3.4); zeroed under prefers-reduced-motion below */
+  --tg-ease-grow: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --tg-dur-grow: 180ms;
+  --tg-dur-fade: 120ms;
+  --tg-dur-reshape: 120ms;
+  /* Reasoning map motion (DESIGN §11) */
+  --tg-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --tg-dur-route: 320ms;
+  --tg-dur-lane: 200ms;
+  --tg-dur-panel: 160ms;
+  --tg-dur-lens: 240ms;
+}
+
+/* Dark theme, "night garden" */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tg-paper: #111813;
+    --tg-surface: #18211b;
+    --tg-ink: #e9eee7;
+    --tg-ink-muted: #a8b4aa;
+    --tg-rule: #2c372f;
+    --tg-branch-lo: #7fa48f;
+    --tg-branch-mid: #a9cdb8;
+    --tg-branch-hi: #d4ebdc;
+    --tg-accent: #f0a04b;
+    --tg-focus: #8db0ff;
+    --tg-error: #ff8f87;
+    --tg-ok: #4a95cf;
+    --tg-trouble: #e5534b;
+    --tg-wash: #33281a;
+    --tg-lane: #7fa48f;
+    --tg-lane-band: #151d18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tg-dur-grow: 0ms;
+    --tg-dur-fade: 0ms;
+    --tg-dur-reshape: 0ms;
+    --tg-dur-route: 0ms;
+    --tg-dur-lane: 0ms;
+    --tg-dur-panel: 0ms;
+    --tg-dur-lens: 0ms;
+  }
+}

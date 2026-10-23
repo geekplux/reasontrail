@@ -1,0 +1,3 @@
+interface:
+  display_name: "Reasontrail"
+  short_description: "Map how this coding-agent session reasoned, as a local HTML trail map"

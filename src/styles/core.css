@@ -1,0 +1,70 @@
+/* Core elements shared by the app and the local viewer: page, focus, header, wordmark. Colours only via tokens.css. */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--tg-paper);
+  color: var(--tg-ink);
+  font: 400 var(--tg-text-md) / 1.5 var(--tg-font-ui);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body { margin: 0; }
+#root { display: flex; flex-direction: column; min-height: 100vh; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+
+/* Focus: 2 px cornflower ring with a 2 px paper gap, on every focusable thing. */
+:focus-visible { outline: 2px solid var(--tg-focus); outline-offset: 2px; box-shadow: 0 0 0 2px var(--tg-paper); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Header: fixed height so the font swap never shifts the page. */
+.site-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--tg-space-4);
+  min-height: 56px;
+  padding: 0 var(--tg-space-8);
+  border-bottom: var(--tg-hairline);
+}
+.brand { text-decoration: none; border-radius: var(--tg-radius); }
+.header-actions { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--tg-space-2) var(--tg-space-5); }
+.share { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--tg-space-2); min-width: 0; }
+.share-button { border: 0; background: none; font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; cursor: pointer; }
+.share-status { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.share-field { width: min(14rem, 100%); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
+
+/* Inline notes (PLAN §3.6): a glyph names the kind, the text says it; colour only repeats it. */
+.inline-note { display: inline-flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); padding: 2px var(--tg-space-2); font-size: var(--tg-text-sm); line-height: 16px; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
+.inline-note-glyph { font-family: var(--tg-font-mono); font-weight: 500; color: var(--tg-ink-muted); }
+.inline-note-ring { display: block; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.inline-note[data-variant='error'] .inline-note-glyph { color: var(--tg-error); }
+
+/* Header and footer links: muted ink, underlined, with a hit area at least 24 px tall. */
+.header-link, .footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: var(--tg-space-1) var(--tg-space-2);
+  margin-inline: calc(-1 * var(--tg-space-2)); /* the padding widens the hit area, not the gap to the page edge */
+  border-radius: var(--tg-radius);
+  color: var(--tg-ink-muted);
+}
+.header-link { font-size: var(--tg-text-sm); }
+/* The current page's header link (DESIGN §18.1): ink, with a 2 px underline. */
+.header-link[aria-current='page'] { color: var(--tg-ink); text-decoration-thickness: 2px; }
+/* Wordmark (DESIGN §4.2): mono 20 / serif 25 (16 / 20 on mobile), shared baseline, no space; mark 1.6x the mono cap height. */
+.wordmark { display: inline-flex; align-items: center; gap: 0.4em; font-size: 20px; line-height: 1; }
+.logo-mark { width: 1.12em; height: 1.12em; flex: none; color: var(--tg-ink); }
+.wordmark-text { display: inline-flex; align-items: baseline; }
+.wordmark-reason { font-family: var(--tg-font-mono); font-weight: 500; letter-spacing: -0.01em; }
+.wordmark-trail { font-family: var(--tg-font-serif); font-style: italic; font-weight: 400; font-size: 1.25em; }
+@media (max-width: 767px) { .wordmark { font-size: 16px; } }

@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "robot",
+  "title": "A small robot",
+  "prompt": "Once upon a time, a small robot",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-20",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " named", "logprob": -0.803 },
+      { "token": " called", "logprob": -3.328 },
+      { "token": ",", "logprob": -4.005 },
+      { "token": " robot", "logprob": -4.088 },
+      { "token": " entered", "logprob": -4.166 }
+    ],
+    " named": [
+      { "token": " \"", "logprob": -2.974 },
+      { "token": " Hello", "logprob": -3.185 },
+      { "token": " T", "logprob": -3.543 },
+      { "token": " '", "logprob": -3.629 },
+      { "token": " Word", "logprob": -3.807 }
+    ],
+    " named \"": [
+      { "token": "Rob", "logprob": -1.744 },
+      { "token": "T", "logprob": -2.52 },
+      { "token": "C", "logprob": -3.326 },
+      { "token": "S", "logprob": -3.684 },
+      { "token": "Micro", "logprob": -3.745 }
+    ],
+    " named \"Rob": [
+      { "token": "ot", "logprob": -0.678 },
+      { "token": "otic", "logprob": -2.044 },
+      { "token": "by", "logprob": -3.016 },
+      { "token": "in", "logprob": -3.233 },
+      { "token": "of", "logprob": -3.597 }
+    ],
+    " named \"Robot": [
+      { "token": " ", "logprob": -0.892 },
+      { "token": "\"", "logprob": -2.682 },
+      { "token": " X", "logprob": -2.981 },
+      { "token": "X", "logprob": -3.225 },
+      { "token": "_", "logprob": -3.567 }
+    ],
+    " named \"Robot ": [
+      { "token": "1", "logprob": -0.812 },
+      { "token": "2", "logprob": -2.158 },
+      { "token": "3", "logprob": -2.391 },
+      { "token": "5", "logprob": -2.691 },
+      { "token": "6", "logprob": -2.848 }
+    ],
+    " named \"Robot 1": [
+      { "token": "0", "logprob": -1.755 },
+      { "token": "5", "logprob": -2.119 },
+      { "token": "1", "logprob": -2.213 },
+      { "token": "8", "logprob": -2.359 },
+      { "token": " Day", "logprob": -2.67 }
+    ],
+    " named \"T": [
+      { "token": "ommy", "logprob": -2.316 },
+      { "token": "iny", "logprob": -3.111 },
+      { "token": "iger", "logprob": -3.494 },
+      { "token": "ouch", "logprob": -3.496 },
+      { "token": "ink", "logprob": -3.619 }
+    ],
+    " named \"Tommy": [
+      { "token": "\"", "logprob": -0.008 },
+      { "token": ",\"", "logprob": -5.83 },
+      { "token": ".\"", "logprob": -7.094 },
+      { "token": "\",", "logprob": -7.502 },
+      { "token": "'", "logprob": -7.573 }
+    ],
+    " named \"Tommy\"": [
+      { "token": " lived", "logprob": -0.743 },
+      { "token": " resided", "logprob": -2.718 },
+      { "token": " had", "logprob": -2.872 },
+      { "token": " existed", "logprob": -3.206 },
+      { "token": " roamed", "logprob": -3.677 }
+    ],
+    " named \"Tommy\" lived": [
+      { "token": " in", "logprob": -0.583 },
+      { "token": " on", "logprob": -2.233 },
+      { "token": " inside", "logprob": -2.479 },
+      { "token": " among", "logprob": -2.49 },
+      { "token": " happily", "logprob": -3.257 }
+    ],
+    " named Hello": [
+      { "token": " Robot", "logprob": -2.812 },
+      { "token": "Bot", "logprob": -3.196 },
+      { "token": "World", "logprob": -3.509 },
+      { "token": "Rob", "logprob": -3.553 },
+      { "token": " Hello", "logprob": -3.775 }
+    ],
+    " named T": [
+      { "token": "ink", "logprob": -2.229 },
+      { "token": "omy", "logprob": -2.886 },
+      { "token": "iki", "logprob": -3.215 },
+      { "token": "une", "logprob": -3.686 },
+      { "token": "ron", "logprob": -3.892 }
+    ],
+    " named '": [
+      { "token": "Rob", "logprob": -2.602 },
+      { "token": "T", "logprob": -2.876 },
+      { "token": "C", "logprob": -3.383 },
+      { "token": "S", "logprob": -3.474 },
+      { "token": "R", "logprob": -3.605 }
+    ],
+    " named Word": [
+      { "token": "y", "logprob": -2.275 },
+      { "token": "le", "logprob": -3.221 },
+      { "token": "Bot", "logprob": -3.362 },
+      { "token": "W", "logprob": -3.827 },
+      { "token": "T", "logprob": -3.852 }
+    ],
+    " called": [
+      { "token": " \"", "logprob": -2.012 },
+      { "token": " '", "logprob": -2.994 },
+      { "token": " Robot", "logprob": -3.857 },
+      { "token": " “", "logprob": -3.925 },
+      { "token": " T", "logprob": -4.044 }
+    ],
+    " called \"": [
+      { "token": "Micro", "logprob": -2.403 },
+      { "token": "Rob", "logprob": -2.415 },
+      { "token": "T", "logprob": -3.035 },
+      { "token": "C", "logprob": -3.244 },
+      { "token": "S", "logprob": -3.678 }
+    ],
+    " called '": [
+      { "token": "T", "logprob": -2.5 },
+      { "token": "C", "logprob": -2.703 },
+      { "token": "Rob", "logprob": -2.717 },
+      { "token": "S", "logprob": -2.854 },
+      { "token": "Micro", "logprob": -3.28 }
+    ],
+    " called Robot": [
+      { "token": "_", "logprob": -3.399 },
+      { "token": " ", "logprob": -3.618 },
+      { "token": "Bot", "logprob": -4.032 },
+      { "token": "-", "logprob": -4.052 },
+      { "token": " A", "logprob": -4.124 }
+    ],
+    " called “": [
+      { "token": "Rob", "logprob": -2.348 },
+      { "token": "C", "logprob": -2.48 },
+      { "token": "T", "logprob": -2.686 },
+      { "token": "S", "logprob": -3.115 },
+      { "token": "R", "logprob": -3.471 }
+    ],
+    " called T": [
+      { "token": "-", "logprob": -2.016 },
+      { "token": "ink", "logprob": -2.894 },
+      { "token": "rist", "logprob": -3.269 },
+      { "token": "une", "logprob": -3.427 },
+      { "token": "rit", "logprob": -3.735 }
+    ],
+    ",": [
+      { "token": " named", "logprob": -0.963 },
+      { "token": " called", "logprob": -1.567 },
+      { "token": " known", "logprob": -3.281 },
+      { "token": " the", "logprob": -4.092 },
+      { "token": "\n", "logprob": -4.116 }
+    ],
+    ", named": [
+      { "token": " Robot", "logprob": -2.981 },
+      { "token": " \"", "logprob": -3.008 },
+      { "token": " Rover", "logprob": -3.49 },
+      { "token": " Scratch", "logprob": -3.763 },
+      { "token": " T", "logprob": -3.821 }
+    ],
+    ", called": [
+      { "token": " \"", "logprob": -1.637 },
+      { "token": " '", "logprob": -3.03 },
+      { "token": " the", "logprob": -3.113 },
+      { "token": " a", "logprob": -3.293 },
+      { "token": " “", "logprob": -3.396 }
+    ],
+    ", known": [
+      { "token": " as", "logprob": -0.362 },
+      { "token": " only", "logprob": -2.816 },
+      { "token": " by", "logprob": -2.874 },
+      { "token": " simply", "logprob": -3.47 },
+      { "token": " for", "logprob": -3.602 }
+    ],
+    ", the": [
+      { "token": " size", "logprob": -3.707 },
+      { "token": " smallest", "logprob": -4.03 },
+      { "token": " robot", "logprob": -4.107 },
+      { "token": " Z", "logprob": -4.789 },
+      { "token": " \"", "logprob": -5.07 }
+    ],
+    ",\n": [
+      { "token": "named", "logprob": -2.401 },
+      { "token": "\n", "logprob": -2.546 },
+      { "token": "a", "logprob": -3.243 },
+      { "token": "the", "logprob": -3.27 },
+      { "token": "A", "logprob": -3.852 }
+    ],
+    " robot": [
+      { "token": " named", "logprob": -0.859 },
+      { "token": ",", "logprob": -2.401 },
+      { "token": " called", "logprob": -2.792 },
+      { "token": " that", "logprob": -3.362 },
+      { "token": " was", "logprob": -3.574 }
+    ],
+    " robot named": [
+      { "token": " \"", "logprob": -2.242 },
+      { "token": " Robot", "logprob": -3.602 },
+      { "token": " “", "logprob": -3.709 },
+      { "token": " '", "logprob": -3.871 },
+      { "token": " Hello", "logprob": -3.962 }
+    ],
+    " robot,": [
+      { "token": " named", "logprob": -2.101 },
+      { "token": "\n", "logprob": -2.374 },
+      { "token": " who", "logprob": -2.674 },
+      { "token": " lived", "logprob": -2.926 },
+      { "token": " lives", "logprob": -3.694 }
+    ],
+    " robot called": [
+      { "token": " \"", "logprob": -2.242 },
+      { "token": " “", "logprob": -3.517 },
+      { "token": " '", "logprob": -3.572 },
+      { "token": " Robot", "logprob": -3.787 },
+      { "token": " the", "logprob": -4.393 }
+    ],
+    " robot that": [
+      { "token": " lives", "logprob": -1.89 },
+      { "token": " was", "logprob": -2.443 },
+      { "token": " could", "logprob": -2.689 },
+      { "token": " is", "logprob": -3.135 },
+      { "token": " can", "logprob": -3.369 }
+    ],
+    " robot was": [
+      { "token": " being", "logprob": -2.432 },
+      { "token": " sitting", "logprob": -3.524 },
+      { "token": " walking", "logprob": -3.552 },
+      { "token": " trying", "logprob": -3.604 },
+      { "token": " placed", "logprob": -3.691 }
+    ],
+    " entered": [
+      { "token": " the", "logprob": -0.696 },
+      { "token": " a", "logprob": -2.106 },
+      { "token": " our", "logprob": -2.654 },
+      { "token": " my", "logprob": -2.709 },
+      { "token": " your", "logprob": -2.745 }
+    ],
+    " entered the": [
+      { "token": " room", "logprob": -2.303 },
+      { "token": " classroom", "logprob": -3.113 },
+      { "token": " world", "logprob": -3.255 },
+      { "token": " bustling", "logprob": -3.747 },
+      { "token": " building", "logprob": -3.983 }
+    ],
+    " entered a": [
+      { "token": " bustling", "logprob": -1.99 },
+      { "token": " classroom", "logprob": -2.122 },
+      { "token": " room", "logprob": -2.86 },
+      { "token": " busy", "logprob": -3.471 },
+      { "token": " quaint", "logprob": -3.683 }
+    ],
+    " entered our": [
+      { "token": " classroom", "logprob": -1.474 },
+      { "token": " world", "logprob": -3.367 },
+      { "token": " lives", "logprob": -3.428 },
+      { "token": " room", "logprob": -3.608 },
+      { "token": " neighborhood", "logprob": -3.762 }
+    ],
+    " entered my": [
+      { "token": " classroom", "logprob": -1.164 },
+      { "token": " room", "logprob": -1.686 },
+      { "token": " life", "logprob": -2.193 },
+      { "token": " home", "logprob": -3.922 },
+      { "token": " mind", "logprob": -4.035 }
+    ],
+    " entered your": [
+      { "token": " room", "logprob": -1.443 },
+      { "token": " classroom", "logprob": -1.583 },
+      { "token": " life", "logprob": -2.915 },
+      { "token": " home", "logprob": -3.134 },
+      { "token": " world", "logprob": -3.468 }
+    ]
+  }
+}

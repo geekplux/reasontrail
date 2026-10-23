@@ -1,0 +1,40 @@
+name: New agent adapter
+description: Propose mapping sessions from another coding agent or chat tool.
+labels: [adapter]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adapters are pure functions from the agent's session files to Reasontrail's neutral format. See `docs/EXTENDING.md`, section 5.
+  - type: input
+    id: agent
+    attributes:
+      label: Agent or tool
+      placeholder: e.g. Aider
+    validations:
+      required: true
+  - type: textarea
+    id: store
+    attributes:
+      label: Where it keeps sessions
+      description: The folder layout and file format, with a link to its documentation if there is one.
+      placeholder: "~/.example/sessions/<project>/<id>.jsonl, one JSON record per line"
+    validations:
+      required: true
+  - type: textarea
+    id: records
+    attributes:
+      label: Record shapes
+      description: A few lines of a **synthetic** example (user turn, tool call, tool result, answer). Never paste a real transcript.
+      render: json
+  - type: input
+    id: current
+    attributes:
+      label: How a running session is identified
+      description: An environment variable with the session id, if the agent sets one.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to write this adapter.

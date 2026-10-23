@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "autumn",
+  "title": "Autumn",
+  "prompt": "My favorite thing about autumn is",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-20",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " the", "logprob": -2.07 },
+      { "token": " when", "logprob": -2.804 },
+      { "token": " its", "logprob": -3.072 },
+      { "token": " that", "logprob": -3.367 },
+      { "token": " nature", "logprob": -3.778 }
+    ],
+    " the": [
+      { "token": " fall", "logprob": -3.286 },
+      { "token": "\n", "logprob": -4.009 },
+      { "token": " autumn", "logprob": -4.019 },
+      { "token": " smell", "logprob": -4.236 },
+      { "token": " crisp", "logprob": -4.441 }
+    ],
+    " the fall": [
+      { "token": " season", "logprob": -2.348 },
+      { "token": " colors", "logprob": -2.896 },
+      { "token": "ow", "logprob": -2.898 },
+      { "token": ".", "logprob": -2.989 },
+      { "token": " color", "logprob": -3.366 }
+    ],
+    " the\n": [
+      { "token": "t", "logprob": -3.472 },
+      { "token": "del", "logprob": -3.769 },
+      { "token": "bl", "logprob": -3.874 },
+      { "token": "vari", "logprob": -3.919 },
+      { "token": "s", "logprob": -3.954 }
+    ],
+    " the autumn": [
+      { "token": " leaves", "logprob": -1.575 },
+      { "token": " equinox", "logprob": -2.766 },
+      { "token": " showers", "logprob": -2.969 },
+      { "token": " leaf", "logprob": -3.026 },
+      { "token": " season", "logprob": -3.391 }
+    ],
+    " the smell": [
+      { "token": " of", "logprob": -1.293 },
+      { "token": ".", "logprob": -1.465 },
+      { "token": "!", "logprob": -1.775 },
+      { "token": ":", "logprob": -3.32 },
+      { "token": "...", "logprob": -3.52 }
+    ],
+    " the crisp": [
+      { "token": " crisp", "logprob": -0.501 },
+      { "token": " autumn", "logprob": -2.923 },
+      { "token": " mornings", "logprob": -3.416 },
+      { "token": " air", "logprob": -4.311 },
+      { "token": "ness", "logprob": -4.403 }
+    ],
+    " when": [
+      { "token": " you", "logprob": -1.648 },
+      { "token": " it", "logprob": -2.023 },
+      { "token": " the", "logprob": -2.255 },
+      { "token": " I", "logprob": -2.351 },
+      { "token": " we", "logprob": -2.649 }
+    ],
+    " when you": [
+      { "token": " see", "logprob": -1.806 },
+      { "token": " can", "logprob": -2.246 },
+      { "token": " get", "logprob": -2.501 },
+      { "token": " find", "logprob": -3.185 },
+      { "token": " have", "logprob": -3.385 }
+    ],
+    " when you see": [
+      { "token": " the", "logprob": -2.424 },
+      { "token": " trees", "logprob": -2.578 },
+      { "token": " a", "logprob": -2.807 },
+      { "token": " it", "logprob": -3.291 },
+      { "token": " snow", "logprob": -3.568 }
+    ],
+    " when you see the": [
+      { "token": " beautiful", "logprob": -3.106 },
+      { "token": " colors", "logprob": -3.219 },
+      { "token": " leaves", "logprob": -3.372 },
+      { "token": " trees", "logprob": -3.824 },
+      { "token": " color", "logprob": -3.868 }
+    ],
+    " when you see the beautiful": [
+      { "token": " colors", "logprob": -2.775 },
+      { "token": " autumn", "logprob": -2.992 },
+      { "token": " landscapes", "logprob": -3.298 },
+      { "token": " flowers", "logprob": -3.423 },
+      { "token": " wildflowers", "logprob": -3.601 }
+    ],
+    " when you see the beautiful colors": [
+      { "token": " of", "logprob": -0.999 },
+      { "token": " and", "logprob": -2.354 },
+      { "token": " in", "logprob": -3.171 },
+      { "token": " on", "logprob": -3.582 },
+      { "token": " that", "logprob": -3.73 }
+    ],
+    " when it": [
+      { "token": "'s", "logprob": -1.54 },
+      { "token": " is", "logprob": -1.829 },
+      { "token": " comes", "logprob": -2.45 },
+      { "token": "’", "logprob": -2.656 },
+      { "token": " starts", "logprob": -2.945 }
+    ],
+    " when the": [
+      { "token": " sun", "logprob": -2.762 },
+      { "token": " weather", "logprob": -2.862 },
+      { "token": " autumn", "logprob": -3.065 },
+      { "token": " days", "logprob": -3.087 },
+      { "token": " day", "logprob": -3.308 }
+    ],
+    " when I": [
+      { "token": " can", "logprob": -2.204 },
+      { "token": " get", "logprob": -2.21 },
+      { "token": " find", "logprob": -2.81 },
+      { "token": " feel", "logprob": -2.94 },
+      { "token": " see", "logprob": -2.994 }
+    ],
+    " when we": [
+      { "token": " get", "logprob": -1.251 },
+      { "token": " see", "logprob": -2.499 },
+      { "token": " have", "logprob": -2.792 },
+      { "token": " can", "logprob": -3.437 },
+      { "token": " are", "logprob": -3.667 }
+    ],
+    " its": [
+      { "token": " unpredict", "logprob": -3.439 },
+      { "token": " crisp", "logprob": -3.484 },
+      { "token": " warmth", "logprob": -3.594 },
+      { "token": " endless", "logprob": -3.601 },
+      { "token": " magical", "logprob": -4.056 }
+    ],
+    " its unpredict": [
+      { "token": "ability", "logprob": -0.001 },
+      { "token": "abilities", "logprob": -7.82 },
+      { "token": "ive", "logprob": -9.124 },
+      { "token": "able", "logprob": -9.207 },
+      { "token": "abl", "logprob": -9.325 }
+    ],
+    " its crisp": [
+      { "token": " crisp", "logprob": -1.162 },
+      { "token": "ness", "logprob": -1.541 },
+      { "token": " sweetness", "logprob": -2.828 },
+      { "token": ",", "logprob": -3.741 },
+      { "token": " autumn", "logprob": -3.824 }
+    ],
+    " its warmth": [
+      { "token": ",", "logprob": -1.142 },
+      { "token": ".", "logprob": -1.472 },
+      { "token": " and", "logprob": -1.672 },
+      { "token": ":", "logprob": -3.425 },
+      { "token": "\n", "logprob": -3.549 }
+    ],
+    " its endless": [
+      { "token": " variety", "logprob": -2.436 },
+      { "token": " succession", "logprob": -3.266 },
+      { "token": " collection", "logprob": -3.655 },
+      { "token": " supply", "logprob": -3.656 },
+      { "token": " diversity", "logprob": -3.663 }
+    ],
+    " its magical": [
+      { "token": " colors", "logprob": -3.323 },
+      { "token": " smell", "logprob": -3.563 },
+      { "token": " taste", "logprob": -3.706 },
+      { "token": " color", "logprob": -3.95 },
+      { "token": " sounds", "logprob": -4.194 }
+    ],
+    " that": [
+      { "token": " I", "logprob": -1.327 },
+      { "token": " it", "logprob": -2.07 },
+      { "token": " we", "logprob": -2.518 },
+      { "token": " there", "logprob": -3.208 },
+      { "token": " when", "logprob": -3.314 }
+    ],
+    " that I": [
+      { "token": " like", "logprob": -1.029 },
+      { "token": " love", "logprob": -2.03 },
+      { "token": " enjoy", "logprob": -3.011 },
+      { "token": "'ve", "logprob": -3.597 },
+      { "token": "'m", "logprob": -3.68 }
+    ],
+    " that I like": [
+      { "token": " to", "logprob": -0.898 },
+      { "token": " the", "logprob": -2.804 },
+      { "token": " it", "logprob": -3.433 },
+      { "token": " autumn", "logprob": -3.926 },
+      { "token": " reading", "logprob": -4.296 }
+    ],
+    " that I like to": [
+      { "token": " take", "logprob": -2.464 },
+      { "token": " go", "logprob": -2.492 },
+      { "token": " spend", "logprob": -2.694 },
+      { "token": " see", "logprob": -2.764 },
+      { "token": " get", "logprob": -2.769 }
+    ],
+    " that I like to take": [
+      { "token": " pictures", "logprob": -1.012 },
+      { "token": " advantage", "logprob": -1.713 },
+      { "token": " time", "logprob": -2.985 },
+      { "token": " walks", "logprob": -3.402 },
+      { "token": " photos", "logprob": -3.623 }
+    ],
+    " that I like to take pictures": [
+      { "token": " of", "logprob": -0.99 },
+      { "token": " with", "logprob": -2.445 },
+      { "token": " during", "logprob": -2.687 },
+      { "token": " in", "logprob": -2.687 },
+      { "token": " when", "logprob": -3.006 }
+    ],
+    " that it": [
+      { "token": "'s", "logprob": -1.184 },
+      { "token": "’", "logprob": -1.779 },
+      { "token": " is", "logprob": -2.606 },
+      { "token": " reminds", "logprob": -2.839 },
+      { "token": " always", "logprob": -3.373 }
+    ],
+    " that we": [
+      { "token": "'ve", "logprob": -2.397 },
+      { "token": " get", "logprob": -2.458 },
+      { "token": " have", "logprob": -2.807 },
+      { "token": "'re", "logprob": -2.917 },
+      { "token": " can", "logprob": -3.018 }
+    ],
+    " that there": [
+      { "token": " are", "logprob": -1.052 },
+      { "token": " is", "logprob": -1.336 },
+      { "token": "'s", "logprob": -2.067 },
+      { "token": "’", "logprob": -2.251 },
+      { "token": " isn", "logprob": -3.725 }
+    ],
+    " that when": [
+      { "token": " it", "logprob": -1.019 },
+      { "token": " you", "logprob": -1.743 },
+      { "token": " the", "logprob": -2.42 },
+      { "token": " I", "logprob": -2.456 },
+      { "token": " there", "logprob": -2.801 }
+    ],
+    " nature": [
+      { "token": ".", "logprob": -1.446 },
+      { "token": "!", "logprob": -2.268 },
+      { "token": "'s", "logprob": -2.294 },
+      { "token": ",", "logprob": -2.417 },
+      { "token": " and", "logprob": -2.919 }
+    ],
+    " nature.": [
+      { "token": " I", "logprob": -1.703 },
+      { "token": " When", "logprob": -2.901 },
+      { "token": " ", "logprob": -3.036 },
+      { "token": " It", "logprob": -3.206 },
+      { "token": "\n", "logprob": -3.418 }
+    ],
+    " nature!": [
+      { "token": " It", "logprob": -1.69 },
+      { "token": "\n", "logprob": -2.026 },
+      { "token": " I", "logprob": -2.758 },
+      { "token": " You", "logprob": -3.184 },
+      { "token": " This", "logprob": -3.196 }
+    ],
+    " nature's": [
+      { "token": " bounty", "logprob": -2.112 },
+      { "token": " beauty", "logprob": -4.195 },
+      { "token": " gift", "logprob": -4.349 },
+      { "token": " generosity", "logprob": -4.493 },
+      { "token": " gorgeous", "logprob": -4.494 }
+    ],
+    " nature,": [
+      { "token": " and", "logprob": -2.343 },
+      { "token": " so", "logprob": -2.387 },
+      { "token": " especially", "logprob": -3.085 },
+      { "token": " but", "logprob": -3.481 },
+      { "token": " the", "logprob": -3.781 }
+    ],
+    " nature and": [
+      { "token": " nature", "logprob": -2.616 },
+      { "token": " the", "logprob": -3.202 },
+      { "token": " its", "logprob": -3.498 },
+      { "token": " it", "logprob": -3.76 },
+      { "token": " seeing", "logprob": -4.075 }
+    ]
+  }
+}

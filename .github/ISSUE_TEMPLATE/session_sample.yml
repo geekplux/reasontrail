@@ -1,0 +1,36 @@
+name: Session sample proposal
+description: Propose a session for the website's sample gallery.
+labels: [sample]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Samples are public. Only propose a session you own, from a project you can publish, and never attach the raw transcript here. Maintainers make the sample with `--share` redaction, the local denylist and `pnpm audit:samples`.
+  - type: textarea
+    id: story
+    attributes:
+      label: What the session shows
+      description: The task, and what a reader learns at a glance (a recovery after failing checks, a dead end, subagents, a plan change …).
+    validations:
+      required: true
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options: [Claude Code, Codex, Grok Build, Chat transcript]
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Size
+      description: Steps or minutes, and the stretch to keep (samples stay under 400 steps).
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Consent
+      options:
+        - label: I own this session and agree to publish a redacted copy under the MIT License.
+          required: true
+        - label: It contains no personal data of others and no private code.
+          required: true

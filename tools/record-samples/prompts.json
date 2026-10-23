@@ -1,0 +1,8 @@
+[
+  { "id": "lighthouse", "title": "The lighthouse keeper", "prompt": "The old lighthouse keeper opened the door and" },
+  { "id": "robot", "title": "A small robot", "prompt": "Once upon a time, a small robot" },
+  { "id": "language", "title": "Learning a language", "prompt": "The best way to learn a new language is" },
+  { "id": "autumn", "title": "Autumn", "prompt": "My favorite thing about autumn is" },
+  { "id": "recipe", "title": "Two cups of", "prompt": "The recipe calls for two cups of" },
+  { "id": "cat", "title": "The cat at night", "prompt": "In the middle of the night, the cat" }
+]

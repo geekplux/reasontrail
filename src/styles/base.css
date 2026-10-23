@@ -1,0 +1,42 @@
+/* Base layout and elements for the "specimen plate" identity (PLAN §3.3). Colours only via tokens.css. */
+@import './core.css';
+
+.site-main { flex: 1; }
+
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--tg-space-2) var(--tg-space-5);
+  padding: var(--tg-space-4) var(--tg-space-8);
+  border-top: var(--tg-hairline);
+  font-size: var(--tg-text-sm);
+  color: var(--tg-ink-muted);
+}
+.site-footer p { margin: 0; }
+.how-to-read { flex-basis: 100%; max-width: var(--tg-measure); }
+.how-to-read summary { cursor: pointer; color: var(--tg-ink); }
+
+@media (max-width: 47.99rem) {
+  .site-header, .site-footer { padding-inline: var(--tg-space-4); }
+}
+
+/* Reduced motion: no transitions or animations anywhere (A5). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* index.html's <noscript> note: a class, not a style attribute, so the CSP needs no 'unsafe-inline' (public/_headers). */
+.noscript {
+  max-width: 72ch;
+  padding: 24px;
+  font-family: system-ui, sans-serif;
+}

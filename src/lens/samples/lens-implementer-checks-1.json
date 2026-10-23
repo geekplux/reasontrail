@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "lens-implementer-checks-1",
+  "title": "Without a fix",
+  "prompt": "Without a fix, Chrome would read branches in",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-21",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " the", "logprob": -1.493 },
+      { "token": " its", "logprob": -2.683 },
+      { "token": " a", "logprob": -2.796 },
+      { "token": " one", "logprob": -3.884 },
+      { "token": " each", "logprob": -4.105 }
+    ],
+    " the": [
+      { "token": " wrong", "logprob": -2.622 },
+      { "token": " form", "logprob": -2.665 },
+      { "token": " same", "logprob": -2.899 },
+      { "token": " following", "logprob": -3.026 },
+      { "token": " history", "logprob": -3.52 }
+    ],
+    " the wrong": [
+      { "token": " direction", "logprob": -0.75 },
+      { "token": " order", "logprob": -1.108 },
+      { "token": " places", "logprob": -3.451 },
+      { "token": " place", "logprob": -3.533 },
+      { "token": " location", "logprob": -3.866 }
+    ],
+    " the wrong direction": [
+      { "token": ",", "logprob": -1.343 },
+      { "token": ".", "logprob": -1.556 },
+      { "token": " and", "logprob": -2.515 },
+      { "token": "\n", "logprob": -2.52 },
+      { "token": " (", "logprob": -3.22 }
+    ],
+    " the wrong direction,": [
+      { "token": " and", "logprob": -2.029 },
+      { "token": " like", "logprob": -2.643 },
+      { "token": " so", "logprob": -2.869 },
+      { "token": " causing", "logprob": -3.121 },
+      { "token": " which", "logprob": -3.259 }
+    ],
+    " the wrong direction, and": [
+      { "token": " would", "logprob": -2.077 },
+      { "token": " the", "logprob": -2.805 },
+      { "token": " it", "logprob": -3.433 },
+      { "token": " could", "logprob": -3.801 },
+      { "token": " then", "logprob": -3.898 }
+    ],
+    " the wrong direction, and would": [
+      { "token": " not", "logprob": -2.613 },
+      { "token": " be", "logprob": -3.484 },
+      { "token": " also", "logprob": -3.739 },
+      { "token": " then", "logprob": -3.768 },
+      { "token": " have", "logprob": -3.977 }
+    ],
+    " the wrong order": [
+      { "token": ",", "logprob": -1.218 },
+      { "token": ".", "logprob": -1.492 },
+      { "token": "\n", "logprob": -2.237 },
+      { "token": " and", "logprob": -2.754 },
+      { "token": " (", "logprob": -3.183 }
+    ],
+    " the wrong order,": [
+      { "token": " and", "logprob": -1.828 },
+      { "token": " like", "logprob": -2.328 },
+      { "token": " which", "logprob": -2.994 },
+      { "token": " but", "logprob": -3.053 },
+      { "token": " so", "logprob": -3.293 }
+    ],
+    " the wrong order, and": [
+      { "token": " would", "logprob": -2.333 },
+      { "token": " the", "logprob": -2.518 },
+      { "token": " it", "logprob": -3.346 },
+      { "token": " not", "logprob": -3.922 },
+      { "token": " then", "logprob": -3.963 }
+    ],
+    " the wrong order, and would": [
+      { "token": " not", "logprob": -2.458 },
+      { "token": " use", "logprob": -3.628 },
+      { "token": " ignore", "logprob": -3.657 },
+      { "token": " also", "logprob": -3.716 },
+      { "token": " be", "logprob": -3.838 }
+    ],
+    " the form": [
+      { "token": " of", "logprob": -2.153 },
+      { "token": "\n", "logprob": -2.215 },
+      { "token": ":", "logprob": -2.362 },
+      { "token": " shown", "logprob": -3.102 },
+      { "token": " below", "logprob": -3.11 }
+    ],
+    " the same": [
+      { "token": " way", "logprob": -1.783 },
+      { "token": " order", "logprob": -1.923 },
+      { "token": " manner", "logprob": -1.937 },
+      { "token": " direction", "logprob": -2.561 },
+      { "token": " directory", "logprob": -3.622 }
+    ],
+    " the following": [
+      { "token": " way", "logprob": -0.735 },
+      { "token": " order", "logprob": -1.465 },
+      { "token": " manner", "logprob": -2.578 },
+      { "token": " format", "logprob": -3.244 },
+      { "token": " form", "logprob": -3.749 }
+    ],
+    " the history": [
+      { "token": ",", "logprob": -2.217 },
+      { "token": " and", "logprob": -2.507 },
+      { "token": "\n", "logprob": -3.504 },
+      { "token": ".", "logprob": -3.524 },
+      { "token": " instead", "logprob": -3.695 }
+    ],
+    " its": [
+      { "token": " browser", "logprob": -3.464 },
+      { "token": " history", "logprob": -3.485 },
+      { "token": " root", "logprob": -3.519 },
+      { "token": " own", "logprob": -3.758 },
+      { "token": " filesystem", "logprob": -3.963 }
+    ],
+    " its browser": [
+      { "token": " history", "logprob": -2.61 },
+      { "token": ",", "logprob": -2.632 },
+      { "token": " window", "logprob": -2.855 },
+      { "token": " menu", "logprob": -3.048 },
+      { "token": " and", "logprob": -3.414 }
+    ],
+    " its history": [
+      { "token": ",", "logprob": -1.777 },
+      { "token": " and", "logprob": -1.84 },
+      { "token": ".", "logprob": -3.24 },
+      { "token": " like", "logprob": -3.286 },
+      { "token": "\n", "logprob": -3.464 }
+    ],
+    " its root": [
+      { "token": " tree", "logprob": -1.605 },
+      { "token": " node", "logprob": -3.082 },
+      { "token": " directory", "logprob": -3.163 },
+      { "token": " hierarchy", "logprob": -3.402 },
+      { "token": "-", "logprob": -3.567 }
+    ],
+    " its own": [
+      { "token": " way", "logprob": -1.582 },
+      { "token": " directory", "logprob": -2.757 },
+      { "token": " folder", "logprob": -3.587 },
+      { "token": " manner", "logprob": -3.706 },
+      { "token": "\n", "logprob": -4.078 }
+    ],
+    " its filesystem": [
+      { "token": " like", "logprob": -2.152 },
+      { "token": ",", "logprob": -2.357 },
+      { "token": " and", "logprob": -2.569 },
+      { "token": " instead", "logprob": -3.313 },
+      { "token": " as", "logprob": -3.533 }
+    ],
+    " a": [
+      { "token": " way", "logprob": -2.526 },
+      { "token": "\n", "logprob": -3.175 },
+      { "token": " file", "logprob": -3.303 },
+      { "token": " very", "logprob": -3.474 },
+      { "token": " different", "logprob": -3.595 }
+    ],
+    " a way": [
+      { "token": " that", "logprob": -0.588 },
+      { "token": " similar", "logprob": -3.31 },
+      { "token": "\n", "logprob": -3.402 },
+      { "token": " they", "logprob": -3.499 },
+      { "token": " different", "logprob": -3.588 }
+    ],
+    " a\n": [
+      { "token": "tree", "logprob": -3.5 },
+      { "token": " directory", "logprob": -3.687 },
+      { "token": "different", "logprob": -3.809 },
+      { "token": "file", "logprob": -3.957 },
+      { "token": "way", "logprob": -4.381 }
+    ],
+    " a file": [
+      { "token": " called", "logprob": -1.47 },
+      { "token": " named", "logprob": -1.758 },
+      { "token": " like", "logprob": -2.404 },
+      { "token": "\n", "logprob": -2.728 },
+      { "token": " that", "logprob": -3.135 }
+    ],
+    " a very": [
+      { "token": " different", "logprob": -2.709 },
+      { "token": " small", "logprob": -2.761 },
+      { "token": " slow", "logprob": -3.061 },
+      { "token": "\n", "logprob": -3.092 },
+      { "token": " long", "logprob": -3.101 }
+    ],
+    " a different": [
+      { "token": " order", "logprob": -0.756 },
+      { "token": " way", "logprob": -2.501 },
+      { "token": " format", "logprob": -2.774 },
+      { "token": " direction", "logprob": -3.129 },
+      { "token": " manner", "logprob": -3.204 }
+    ],
+    " one": [
+      { "token": " direction", "logprob": -1.904 },
+      { "token": " file", "logprob": -2.16 },
+      { "token": " directory", "logprob": -2.244 },
+      { "token": " place", "logprob": -2.435 },
+      { "token": " of", "logprob": -3.183 }
+    ],
+    " one direction": [
+      { "token": ",", "logprob": -1.547 },
+      { "token": " and", "logprob": -1.907 },
+      { "token": " at", "logprob": -2.882 },
+      { "token": ".", "logprob": -2.889 },
+      { "token": "\n", "logprob": -3.053 }
+    ],
+    " one file": [
+      { "token": ",", "logprob": -1.996 },
+      { "token": " at", "logprob": -2.904 },
+      { "token": " and", "logprob": -2.946 },
+      { "token": " called", "logprob": -3.136 },
+      { "token": "\n", "logprob": -3.15 }
+    ],
+    " one directory": [
+      { "token": ",", "logprob": -2.167 },
+      { "token": " at", "logprob": -2.357 },
+      { "token": " and", "logprob": -2.858 },
+      { "token": " only", "logprob": -3.282 },
+      { "token": " instead", "logprob": -3.295 }
+    ],
+    " one place": [
+      { "token": ",", "logprob": -1.385 },
+      { "token": " and", "logprob": -1.766 },
+      { "token": ".", "logprob": -2.778 },
+      { "token": "\n", "logprob": -2.989 },
+      { "token": " only", "logprob": -3.191 }
+    ],
+    " one of": [
+      { "token": " its", "logprob": -1.196 },
+      { "token": " the", "logprob": -1.819 },
+      { "token": " them", "logprob": -2.233 },
+      { "token": " these", "logprob": -3.241 },
+      { "token": " those", "logprob": -3.608 }
+    ],
+    " each": [
+      { "token": " package", "logprob": -2.255 },
+      { "token": " branch", "logprob": -2.454 },
+      { "token": " directory", "logprob": -3.294 },
+      { "token": " node", "logprob": -3.299 },
+      { "token": " direction", "logprob": -3.319 }
+    ],
+    " each package": [
+      { "token": " directory", "logprob": -1.982 },
+      { "token": " and", "logprob": -2.913 },
+      { "token": " separately", "logprob": -2.996 },
+      { "token": " tree", "logprob": -3.016 },
+      { "token": ",", "logprob": -3.153 }
+    ],
+    " each branch": [
+      { "token": ",", "logprob": -1.683 },
+      { "token": " and", "logprob": -1.828 },
+      { "token": ".", "logprob": -3.139 },
+      { "token": " with", "logprob": -3.334 },
+      { "token": " as", "logprob": -3.359 }
+    ],
+    " each directory": [
+      { "token": " separately", "logprob": -1.918 },
+      { "token": ",", "logprob": -2.573 },
+      { "token": " and", "logprob": -2.726 },
+      { "token": "\n", "logprob": -3.221 },
+      { "token": " sequentially", "logprob": -3.296 }
+    ],
+    " each node": [
+      { "token": ",", "logprob": -1.947 },
+      { "token": " and", "logprob": -2.097 },
+      { "token": "\n", "logprob": -2.792 },
+      { "token": " separately", "logprob": -3.382 },
+      { "token": ".", "logprob": -3.385 }
+    ],
+    " each direction": [
+      { "token": ",", "logprob": -1.886 },
+      { "token": " and", "logprob": -2.303 },
+      { "token": ".", "logprob": -2.865 },
+      { "token": " from", "logprob": -3.239 },
+      { "token": "\n", "logprob": -3.338 }
+    ]
+  }
+}

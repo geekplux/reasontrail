@@ -1,0 +1,6 @@
+{
+  "agentType": "Explore",
+  "description": "Find note storage",
+  "toolUseId": "toolu_agent",
+  "spawnDepth": 1
+}

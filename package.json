@@ -1,0 +1,60 @@
+{
+  "name": "reasontrail",
+  "version": "0.0.0",
+  "description": "See what your coding agent did: a self-contained map of an AI session, with a next-token lens.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:viewer": "vite build -c vite.viewer.config.ts && node scripts/inline-viewer.mjs",
+    "build:cli": "pnpm run build:viewer && vite build -c vite.cli.config.ts",
+    "preview": "vite preview",
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.session.json && tsc --noEmit -p cli/tsconfig.json",
+    "test": "vitest run",
+    "test:cli": "vitest run cli/",
+    "check:size": "node scripts/check-size.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:browser": "node scripts/check-browser.mjs",
+    "brand:hero-gif": "node scripts/brand/hero-gif.mjs",
+    "audit:samples": "node scripts/audit-samples.mjs",
+    "skill:audit": "node skills/reasontrail/audit/audit.mjs",
+    "skill:evals": "node skills/reasontrail/evals/run-evals.mjs",
+    "check:deploy": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "check:pack": "node scripts/check-pack.mjs",
+    "dev:worker": "wrangler dev",
+    "samples:record": "(test -d tools/record-samples/node_modules || pnpm --dir tools/record-samples install --ignore-workspace --ignore-scripts --frozen-lockfile) && node tools/record-samples/record.mjs",
+    "samples:sessions": "pnpm -s build:cli && node scripts/session-samples.mjs"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5",
+    "@fontsource/instrument-serif": "^5",
+    "d3-hierarchy": "^3",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/node": "^20",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6",
+    "axe-core": "^4.11",
+    "happy-dom": "^21.0.3",
+    "oxlint": "^1",
+    "playwright-core": "^1.64",
+    "typescript": "^7",
+    "vite": "^8",
+    "vitest": "~4.1",
+    "wrangler": "~4.151.3"
+  }
+}

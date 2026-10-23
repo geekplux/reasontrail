@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "lighthouse",
+  "title": "The lighthouse keeper",
+  "prompt": "The old lighthouse keeper opened the door and",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-20",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " looked", "logprob": -2.417 },
+      { "token": " entered", "logprob": -3.125 },
+      { "token": " turned", "logprob": -3.31 },
+      { "token": " the", "logprob": -3.615 },
+      { "token": " stood", "logprob": -3.616 }
+    ],
+    " looked": [
+      { "token": " out", "logprob": -1.595 },
+      { "token": " in", "logprob": -2.027 },
+      { "token": " inside", "logprob": -2.382 },
+      { "token": " outside", "logprob": -2.704 },
+      { "token": " around", "logprob": -3.022 }
+    ],
+    " looked out": [
+      { "token": ".", "logprob": -1.881 },
+      { "token": ",", "logprob": -2.165 },
+      { "token": " the", "logprob": -2.19 },
+      { "token": " into", "logprob": -2.788 },
+      { "token": " to", "logprob": -2.789 }
+    ],
+    " looked in": [
+      { "token": " the", "logprob": -1.238 },
+      { "token": ".", "logprob": -1.856 },
+      { "token": ",", "logprob": -2.089 },
+      { "token": " through", "logprob": -2.494 },
+      { "token": " at", "logprob": -3.157 }
+    ],
+    " looked in the": [
+      { "token": " direction", "logprob": -1.036 },
+      { "token": " window", "logprob": -2.046 },
+      { "token": " light", "logprob": -3.751 },
+      { "token": " lantern", "logprob": -3.916 },
+      { "token": " dark", "logprob": -4.018 }
+    ],
+    " looked in the direction": [
+      { "token": " he", "logprob": -0.973 },
+      { "token": " of", "logprob": -1.132 },
+      { "token": " that", "logprob": -3.019 },
+      { "token": " from", "logprob": -3.135 },
+      { "token": " where", "logprob": -3.429 }
+    ],
+    " looked in the direction he": [
+      { "token": " had", "logprob": -1.518 },
+      { "token": " was", "logprob": -1.527 },
+      { "token": " expected", "logprob": -2.471 },
+      { "token": " saw", "logprob": -2.475 },
+      { "token": " wanted", "logprob": -2.843 }
+    ],
+    " looked in the direction he had": [
+      { "token": " been", "logprob": -1.683 },
+      { "token": " taken", "logprob": -2.06 },
+      { "token": "\n", "logprob": -2.449 },
+      { "token": " come", "logprob": -2.834 },
+      { "token": " left", "logprob": -3.171 }
+    ],
+    " looked inside": [
+      { "token": ".", "logprob": -0.981 },
+      { "token": ",", "logprob": -1.763 },
+      { "token": " and", "logprob": -2.99 },
+      { "token": " the", "logprob": -3.128 },
+      { "token": "\n", "logprob": -3.519 }
+    ],
+    " looked outside": [
+      { "token": ".", "logprob": -0.986 },
+      { "token": ",", "logprob": -1.5 },
+      { "token": " and", "logprob": -2.502 },
+      { "token": "\n", "logprob": -3.024 },
+      { "token": " at", "logprob": -3.454 }
+    ],
+    " looked around": [
+      { "token": " the", "logprob": -1.132 },
+      { "token": " for", "logprob": -1.765 },
+      { "token": ".", "logprob": -2.239 },
+      { "token": ",", "logprob": -2.604 },
+      { "token": " to", "logprob": -2.632 }
+    ],
+    " entered": [
+      { "token": " the", "logprob": -1.271 },
+      { "token": ".", "logprob": -1.691 },
+      { "token": ",", "logprob": -1.863 },
+      { "token": " with", "logprob": -2.821 },
+      { "token": " to", "logprob": -3.408 }
+    ],
+    " entered the": [
+      { "token": " room", "logprob": -2.693 },
+      { "token": " building", "logprob": -2.945 },
+      { "token": " lighthouse", "logprob": -3.778 },
+      { "token": " hall", "logprob": -3.893 },
+      { "token": " dark", "logprob": -3.931 }
+    ],
+    " entered.": [
+      { "token": "\n", "logprob": -0.995 },
+      { "token": " The", "logprob": -1.649 },
+      { "token": " He", "logprob": -2.809 },
+      { "token": " A", "logprob": -3.154 },
+      { "token": " It", "logprob": -3.564 }
+    ],
+    " entered,": [
+      { "token": " and", "logprob": -2.003 },
+      { "token": "\n", "logprob": -2.285 },
+      { "token": " but", "logprob": -2.43 },
+      { "token": " then", "logprob": -3.421 },
+      { "token": " he", "logprob": -3.61 }
+    ],
+    " entered with": [
+      { "token": " a", "logprob": -1.031 },
+      { "token": " the", "logprob": -1.551 },
+      { "token": " his", "logprob": -2.408 },
+      { "token": " an", "logprob": -2.824 },
+      { "token": "\n", "logprob": -3.23 }
+    ],
+    " entered to": [
+      { "token": " see", "logprob": -1.103 },
+      { "token": " the", "logprob": -2.106 },
+      { "token": "\n", "logprob": -2.183 },
+      { "token": " find", "logprob": -2.828 },
+      { "token": " take", "logprob": -3.839 }
+    ],
+    " turned": [
+      { "token": " to", "logprob": -1.33 },
+      { "token": " the", "logprob": -1.494 },
+      { "token": " on", "logprob": -2.008 },
+      { "token": " back", "logprob": -2.443 },
+      { "token": "\n", "logprob": -2.917 }
+    ],
+    " turned to": [
+      { "token": " the", "logprob": -1.408 },
+      { "token": " face", "logprob": -1.911 },
+      { "token": " see", "logprob": -1.976 },
+      { "token": " look", "logprob": -2.015 },
+      { "token": " a", "logprob": -2.719 }
+    ],
+    " turned the": [
+      { "token": " light", "logprob": -1.688 },
+      { "token": " knob", "logprob": -2.781 },
+      { "token": " key", "logprob": -2.991 },
+      { "token": " lamp", "logprob": -3.16 },
+      { "token": " lights", "logprob": -3.31 }
+    ],
+    " turned on": [
+      { "token": " the", "logprob": -0.244 },
+      { "token": " a", "logprob": -2.284 },
+      { "token": " his", "logprob": -2.928 },
+      { "token": "\n", "logprob": -3.792 },
+      { "token": " light", "logprob": -4.835 }
+    ],
+    " turned on the": [
+      { "token": " light", "logprob": -0.974 },
+      { "token": " lights", "logprob": -1.84 },
+      { "token": " lamp", "logprob": -2.144 },
+      { "token": " gas", "logprob": -4.016 },
+      { "token": " air", "logprob": -4.167 }
+    ],
+    " turned on the light": [
+      { "token": ".", "logprob": -0.826 },
+      { "token": ",", "logprob": -1.515 },
+      { "token": " and", "logprob": -2.685 },
+      { "token": " to", "logprob": -3.305 },
+      { "token": "\n", "logprob": -3.408 }
+    ],
+    " turned on the light.": [
+      { "token": "\n", "logprob": -1.619 },
+      { "token": " The", "logprob": -1.769 },
+      { "token": " A", "logprob": -2.655 },
+      { "token": " He", "logprob": -2.696 },
+      { "token": " It", "logprob": -3.25 }
+    ],
+    " turned on the light.\n": [
+      { "token": "\n", "logprob": -0.506 },
+      { "token": "The", "logprob": -2.138 },
+      { "token": "\"", "logprob": -3.02 },
+      { "token": "“", "logprob": -3.703 },
+      { "token": "He", "logprob": -4.228 }
+    ],
+    " turned back": [
+      { "token": " to", "logprob": -0.91 },
+      { "token": "\n", "logprob": -1.952 },
+      { "token": ".", "logprob": -2.758 },
+      { "token": " in", "logprob": -3.003 },
+      { "token": " on", "logprob": -3.048 }
+    ],
+    " turned\n": [
+      { "token": "to", "logprob": -1.797 },
+      { "token": "the", "logprob": -1.927 },
+      { "token": "it", "logprob": -2.458 },
+      { "token": "round", "logprob": -2.894 },
+      { "token": "on", "logprob": -3.135 }
+    ],
+    " the": [
+      { "token": " fire", "logprob": -3.303 },
+      { "token": " young", "logprob": -3.447 },
+      { "token": "\n", "logprob": -3.57 },
+      { "token": " old", "logprob": -3.718 },
+      { "token": " crowd", "logprob": -3.947 }
+    ],
+    " the fire": [
+      { "token": " went", "logprob": -2.741 },
+      { "token": " ro", "logprob": -2.757 },
+      { "token": " began", "logprob": -2.816 },
+      { "token": " fell", "logprob": -3.266 },
+      { "token": " was", "logprob": -3.492 }
+    ],
+    " the young": [
+      { "token": " man", "logprob": -1.434 },
+      { "token": "\n", "logprob": -1.902 },
+      { "token": " girl", "logprob": -2.472 },
+      { "token": " woman", "logprob": -2.568 },
+      { "token": " lady", "logprob": -3.065 }
+    ],
+    " the\n": [
+      { "token": "old", "logprob": -2.916 },
+      { "token": "l", "logprob": -3.331 },
+      { "token": "crow", "logprob": -3.623 },
+      { "token": "fire", "logprob": -3.94 },
+      { "token": "light", "logprob": -4.079 }
+    ],
+    " the old": [
+      { "token": "\n", "logprob": -1.98 },
+      { "token": " man", "logprob": -2.231 },
+      { "token": " lighthouse", "logprob": -2.854 },
+      { "token": " sailor", "logprob": -3.717 },
+      { "token": " woman", "logprob": -3.793 }
+    ],
+    " the crowd": [
+      { "token": " of", "logprob": -2.627 },
+      { "token": " gathered", "logprob": -2.812 },
+      { "token": " began", "logprob": -2.836 },
+      { "token": "\n", "logprob": -2.969 },
+      { "token": " rushed", "logprob": -3.057 }
+    ],
+    " stood": [
+      { "token": " outside", "logprob": -2.075 },
+      { "token": " in", "logprob": -2.188 },
+      { "token": " there", "logprob": -2.191 },
+      { "token": " on", "logprob": -2.54 },
+      { "token": " at", "logprob": -2.95 }
+    ],
+    " stood outside": [
+      { "token": ",", "logprob": -1.229 },
+      { "token": ".", "logprob": -2.297 },
+      { "token": " to", "logprob": -2.564 },
+      { "token": " the", "logprob": -2.586 },
+      { "token": " and", "logprob": -2.843 }
+    ],
+    " stood in": [
+      { "token": " front", "logprob": -0.124 },
+      { "token": " the", "logprob": -2.59 },
+      { "token": " a", "logprob": -4.75 },
+      { "token": "\n", "logprob": -5.584 },
+      { "token": " his", "logprob": -5.965 }
+    ],
+    " stood there": [
+      { "token": ",", "logprob": -1.514 },
+      { "token": " for", "logprob": -2.512 },
+      { "token": ".", "logprob": -3.079 },
+      { "token": " to", "logprob": -3.177 },
+      { "token": " waiting", "logprob": -3.391 }
+    ],
+    " stood on": [
+      { "token": " the", "logprob": -0.667 },
+      { "token": " his", "logprob": -1.726 },
+      { "token": " guard", "logprob": -2.541 },
+      { "token": " a", "logprob": -2.977 },
+      { "token": " top", "logprob": -3.55 }
+    ],
+    " stood at": [
+      { "token": " the", "logprob": -0.459 },
+      { "token": " my", "logprob": -2.015 },
+      { "token": " a", "logprob": -2.357 },
+      { "token": " attention", "logprob": -3.462 },
+      { "token": " its", "logprob": -4.477 }
+    ]
+  }
+}

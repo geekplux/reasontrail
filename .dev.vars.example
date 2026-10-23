@@ -1,0 +1,7 @@
+# Copy to .dev.vars (gitignored) for local `pnpm dev:worker`. Never commit real values.
+# Deployed secrets go through `wrangler secret put OPENAI_API_KEY` instead.
+# Only needed with UPSTREAM=openai-compatible (docs/EXTENDING.md); values here override wrangler.jsonc vars locally.
+# UPSTREAM=openai-compatible
+# OPENAI_BASE_URL=http://localhost:8000/v1
+# OPENAI_MODEL=your-model-id
+OPENAI_API_KEY=

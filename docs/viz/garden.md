@@ -1,0 +1,212 @@
+# Garden visual encoding (spec)
+
+Owner: `dataviz-designer`. Builds on PLAN §3 (tokens in `src/styles/tokens.css`), §4 (F5, F6, A1–A5), D5, D6, D7, D8, D11.
+Scope: what phases 3–7 build. Every row carries the phase that delivers it. States that only live mode produces (loading, error, depth limit, end of text) get their shape here so the vocabulary is complete, but phase 3 does not implement them.
+
+## 1. The question it answers
+
+"After this text, what might the model say next, and how sure is it?" A reader should see in one glance which continuation dominates, how many real alternatives there are, and how much probability sits outside the shown top-k. Exact numbers are one hover or one focus away.
+
+Form: horizontal tidy tree (a dendrogram of next-token choices). Root (the prompt, drawn as a seed) on the left, depth grows right. No radial layout, no 3D, no decorative effects.
+
+## 2. Data -> encoding
+
+Per visible branch the data model (`buildTree`) provides `key`, `token`, `p` (conditional, `exp(logprob)`), `pathP` (product of `p` from the root, new in phase 3), `depth`, `rank`, `state`; per expanded node a remainder `r = max(0, 1 − Σ children p)`.
+
+| Data | Channel | Exact rule | Phase |
+|---|---|---|---|
+| Next-token choice | one link (parent fork -> child tip) + tip marker + label | one row per choice, siblings ordered by `rank` top to bottom | 3 |
+| Conditional `p` | **stroke width** (primary) | `w = 1.5 + 18.5·clamp(p,0,1)` px (D5); 5% = 2.425, 25% = 6.125, 75% = 15.375, 100% = 20 | 3 |
+| Conditional `p` | **numeric value label** on hover / selection / focus | `formatPct(p)`: one decimal, `<0.1%` below 0.0005 | 3 (focus: 5) |
+| `pathP` | second part of the value label | depth 1: `44.7%`; depth ≥ 2: `30.1% · path 2.7%` | 3 |
+| `p` band | stroke colour (secondary only) | `p < 0.10` `--tg-branch-lo`; `0.10 ≤ p < 0.40` `--tg-branch-mid`; `p ≥ 0.40` `--tg-branch-hi`; exposed as `data-band="lo|mid|hi"` | 3 |
+| Token text | direct label, IBM Plex Mono 500, `TOKEN_PX` = 14 px, `--tg-ink` | visible whitespace: space -> `·`, `\n` -> `↵`, `\t` -> `⇥`, each in a `<tspan data-ws>` filled `--tg-ink-muted`; max 12 glyphs, longer = first 11 + `…` (full token in value label, readout, accessible name) | 3 |
+| Remainder `r` ("other tokens") | dashed stub under the last child, same width scale `w(r)` | runs like a link from the fork to the child column (`tipX − 4`), dash `6 4`, `--tg-ink-muted`, no marker, label `other 77.7%` at `tipX + LABEL_DX` (12.8 px, `--tg-ink-muted`) always visible; omitted when `r < 0.0005`; `pointer-events: none`, never focusable or clickable | 3 |
+| State | tip marker shape + dash pattern (table §3) | colour never distinguishes a state on its own | 3–10 |
+| Selected / hovered branch | casing + ring + underline + value label | §3 | 3 |
+| Sampled path | accent stroke with ink outline + diamond markers | §3 | 7 |
+| Temperature | widths and labels recomputed from tempered `p'` (D8, remainder included); **layout never depends on T** | widths transition 120 ms; labels switch instantly; "approximate (top-k only)" note when T ≠ 1. Full rules §10 | 7 |
+
+## 3. States: marker and line style (independent of colour)
+
+Marker sits centred on the child tip `(tipX, y)` and is drawn above the stroke end. Stroke width is always `w(p)`, whatever the state.
+
+| State (`data-state`) | Link stroke | Tip marker (`data-marker`) | Text | Phase |
+|---|---|---|---|---|
+| `expandable` (recorded, closed) | solid, band colour | `bud`: filled disc r 4, band colour | none | 3 |
+| `expanded` | solid, band colour | `knot`: filled disc r 4 + concentric ring r 7, 1.5 px, band colour | children fan out after the label | 3 |
+| `not-recorded` (rename of today's `leaf`) | dash `4 3`, `--tg-ink-muted` | `ring`: hollow circle r 4, 1.5 px `--tg-ink-muted`, fill `--tg-paper` | note "Not in this recording." on activation | 3 marker/dash; note 4 |
+| `leaf` (end of text, no continuation exists) | solid, band colour | `square`: filled 7×7, `--tg-ink` | label `end of text` | 10 |
+| `loading` | dash `2 2`, `--tg-ink-muted` | `ring-dotted`: hollow circle r 4 with `stroke-dasharray: 2 2` | `growing…` stub, 3 dots, `aria-busy` | 10 |
+| `error` | dash `8 3`, `--tg-ink-muted` | `triangle`: upward, side 10, fill `--tg-error`, 1 px `--tg-ink` edge | `! Couldn't grow this branch.` (`--tg-error` text) + Retry | 10 (InlineNote variant 4) |
+| `depth-limit` | solid, `--tg-ink-muted` | `bar`: 2×12 px perpendicular bar (⊣), `--tg-ink` | `depth limit (12 tokens)` | 10 |
+| selected (hover in 3, click in 4, focus in 5) | self + ancestors: 2 px `--tg-paper` casing (underlay `w + 4`) and stroke `--tg-ink` | existing marker + ring r 9, 2 px `--tg-ink` | 1 px `--tg-ink` underline under the label; value label shown | 3 |
+| sampled path | path links: `--tg-ink` underlay `w + 3`, then `--tg-accent` at `w` | `diamond`: 10×10 rotated square, `--tg-accent` fill, 1 px `--tg-ink` edge, replaces bud/knot on the path; the stop node keeps its own marker | readout spells the sentence + stop reason | 7 |
+
+Rules: a hollow marker (`ring`, `ring-dotted`) only ever means "no data here yet". Every `--tg-ink-muted` stroke is dashed or carries text (depth-limit), because ink-muted vs branch-hi is only ΔE 10 (§7). `--tg-error` never paints a link, only the triangle and note text. Keyboard focus (phase 5) adds the global 2 px `--tg-focus` ring around the row hit rect, on top of the selected style.
+
+## 4. Scales, metrics, layout
+
+Single source of truth: new `src/garden/metrics.ts` exports every number below. `GardenView` sets `style={{ fontSize: TOKEN_PX }}` on the `<svg>`; `--tg-token-size` is removed from `tokens.css` and `base.css`, and the `FONT` constant disappears. Layout never measures text: label width = `glyphs × 0.6 × TOKEN_PX`.
+
+| Name | Value | Meaning |
+|---|---|---|
+| `TOKEN_PX` | 14 | token label size, all viewports (never scaled; mobile scrolls) |
+| `VALUE_PX` | 12.8 | value label, remainder label, legend (`--tg-text-sm`) |
+| `ROW` | 40 | sibling pitch (d3 `nodeSize` x); cousins `separation` 1.25 (50 px) |
+| `COL` | 180 | depth pitch; fixed, so growth never moves a column (x) |
+| `MAX_GLYPHS` | 12 | label truncation (max label width 100.8 px) |
+| `LABEL_DX` | 12 | tip -> label start (clears the r 7 knot) |
+| `FORK_DX` | 8 | label end -> fork x |
+| `STEM` | 8 | straight segment after the fork before the curve |
+| `GAP` | 1 | gap between stacked child strokes at the fork |
+| `HIT_H` | 24 | minimum hit-rect height |
+| `PAD` | 16 | drawing padding |
+
+Layout (`layout.ts`, pure): `d3-hierarchy` `tree().nodeSize([ROW, COL])` on the visible tree including one remainder pseudo-row per expanded node (last child). Seed: disc r 5 `--tg-ink` at (0, 0), root fork at x 8. For each other node: `tipX = depth·COL`, `forkX = tipX + LABEL_DX + labelW + FORK_DX`. Worst-case curve run = `180 − 12 − 100.8 − 8 − 8 = 51.2` px.
+
+**Fork joint (fixes the phase-2 blob).** Children leave the parent from a **stacked bundle** at `forkX`: child strokes (rank order) then the remainder, each occupying its own `w` vertically, `GAP` px apart, the bundle centred on the parent row. Because `Σp + r = 1`, the bundle height is at most `(k+1)·1.5 + 18.5 + k·GAP` = 32.5 px for k = 5, less than `ROW`. All link strokes use `stroke-linecap: butt` and `stroke-linejoin: round`; no round caps anywhere. Each link (`linkPath.ts`, pure): `M forkX,yᵢ H forkX+STEM C m,yᵢ m,y_c tipX_c−4,y_c` with `m` the midpoint of the curve run. The incoming end stops 4 px before the tip so the marker covers it.
+
+**Growth stability (decided in phase 3 review, built in phase 4).** A tidy tree cannot keep every existing node in place: growing ` entered` in the default garden pushes its subtree (and the root's re-centring moves everything, ` entered` itself by 105 px). We keep the tidy tree (PLAN §3.3, the fan is the identity) and make the *activated* node stand still on screen instead:
+
+- `layoutGarden` stays a pure function of the visible tree only (no anchor parameter, no memory of the previous layout). Guaranteed by the layout: (a) every node's `tipX = depth·COL`, so x never changes; (b) the seed is fixed at (0, 0) and `viewBox.x = −PAD`, so the drawing only ever widens to the right; (c) growing a node whose next column has no visible nodes nearby moves nothing (all ` looked` children in the default garden); (d) new children sit at `tipX(parent) + COL`; (e) siblings keep their rank order and ≥ `ROW` pitch. Phase 3 tests (a), (c), (d) and that the grown node's ancestors stay put (§9.2); (b) and (e) hold by construction of d3 `tree().nodeSize`.
+- **Anchoring (phase 4).** On every expand/collapse of node K (click or Enter/Space in phase 4; the same handler serves phase-5 keyboard actions), the click handler records `before = hitRect(K).getBoundingClientRect().top` before dispatching. A `useLayoutEffect` keyed on the new layout measures `after` for the same element and calls `window.scrollBy({ top: after − before, behavior: 'instant' })` before paint. Horizontal needs no compensation (x is fixed). Vertical page scroll is the only compensation channel (`.garden-scroll` has `overflow-y: hidden`); measuring rects (not layout maths) also absorbs the mobile scroll cue appearing or disappearing above the drawing. If the browser clamps the scroll (collapse at `scrollY = 0`), the residual shift is accepted. When growth above K is taller than the page can scroll, the compensation uses a temporary bottom slack inside `main` (padding under the garden figure, above the footer), removed on the next activation or scroll-up.
+- Then, for an expand only, bring the new child group in with `scrollIntoView({ inline: 'nearest', block: 'nearest' })` (§8). With `block: 'nearest'` this does nothing when the children are already visible, which is the normal case on desktop.
+- Other nodes jump to their new y at once (no position transition: SVG path `d` is not reliably transitionable, and 180 ms of everything sliding is noise). Only the new child group animates (§6). Reduced motion changes nothing here.
+- Phase 4 tests (`explore.mjs`, 1280×800, default garden): click ` entered`; its hit rect's viewport `top` and `left` before and after differ by ≤ 1 px, and its children are visible. Collapse it again with the page scrolled ≥ 200 px: same ≤ 1 px check. Keyboard focus and hover stay on K (stable React keys).
+
+**Hit targets.** One transparent `rect` per branch from `tipX − 12` to `forkX` (or label end + 8 for unexpanded), height `HIT_H` centred on the row. Rows are ≥ 40 px apart so rects never overlap; the thinnest branch has the same target as the thickest. Visible strokes also take `pointer-events: visibleStroke`, drawn in ascending `p` order so thin links sit on top near the fork.
+
+## 5. Interaction
+
+| Input | Effect | Phase |
+|---|---|---|
+| Hover a branch (hit rect or stroke) | `hoverKey` = branch; value label + selected style + readout follow it | 3 |
+| Pointer leaves | label returns to `selectedKey` (or none) | 3 |
+| Click / Enter / Space | toggle expand (recorded) or show not-recorded note; sets `selectedKey` | 4 |
+| Arrows, Home, End | roving focus per WAI-ARIA tree; focus sets `selectedKey` | 5 |
+| Temperature slider, "Sample a path" | §2 rows; sampled walk §6 | 7 |
+
+`GardenView` props: `{ garden, selectedKey: string | null, hoverKey?: string | null, onHover?(key), onSelect?(key) }` (phase 4 adds `onSelect`); hover state lives in `App` because the readout follows it too. The labelled key is `hoverKey ?? selectedKey`. **The value label is a rendered element, not `<title>`**: `<g data-role="value-label" data-key aria-hidden="true">` drawn last (on top), at `x = labelEnd + 8`, vertically centred on the row: `rect` fill `--tg-surface`, 1 px `--tg-ink-muted` stroke, radius 2, padding 2×6 px, text `VALUE_PX` mono tabular `--tg-ink`. It never flips: `layoutGarden` reserves `labelEnd + FORK_DX + valueWidth` to the right of every branch in the drawing width, so the box always fits (decided in phase 3 review: a flipped box would cover the incoming links being read). For an `expanded` branch the box would sit on its own fork bundle, so from phase 4 (when click selection makes the label persistent) it is drawn above the row instead: `x = labelX`, bottom edge at `y − 10` (box top `y − 28.8`, clear of the row above, whose glyphs end at about `y − 33`). Text is built from the branch's own `p` / `pathP` (never literals). Remove every `<title>` from the garden. Until phase 5 the `<svg>` stays `role="img"` with an `aria-label` that also names the remainder ("…; other tokens 77.7%").
+
+**Path readout** (`PathReadout.tsx`, directly under the drawing): prompt in `--tg-ink-muted` mono, then each continuation token as a mono `<span>` with a 1 px `--tg-ink-muted` bottom border and 2 px gap between tokens (the break in the underline marks the boundary), whitespace shown as in labels, then `path 2.7%`. With no labelled key it shows the rank-0 chain of the visible expanded nodes prefixed `Most likely:`; otherwise `Reading:`. Mobile (< 48rem): `position: sticky; bottom: 0`, `--tg-surface` background, hairline top (§3.3).
+
+**Legend** (`Legend.tsx`, under the readout, HTML + inline SVG): row 1 "Thickness = chance of the next token": three 32 px butt-capped line samples at `LEGEND_P = [0.05, 0.25, 0.75]`, width `branchWidth(p)`, band colour, direct label `formatPct(p)` (5.0%, 25.0%, 75.0%), plus a dashed `6 4` sample labelled `other tokens`. Row 2: marker key for the states that exist in the phase (phase 3: bud "can grow", knot "grown", ring "not recorded"), each the real marker glyph + text.
+
+## 6. Motion (§3.4)
+
+| Event | Motion | Phase |
+|---|---|---|
+| Hover / selection value label | none (appears at once) | 3 |
+| Growth | new child group: `clip-path: inset(0 100% 0 0)` -> `inset(0)` over `--tg-dur-grow` (180 ms, `--tg-ease-grow`) via `@starting-style`; labels `opacity` 0 -> 1 over `--tg-dur-fade` after 60 ms. Fallback: opacity only | 4 |
+| Collapse | immediate unmount, no exit animation | 4 |
+| Existing nodes after growth or collapse | none: jump to the new y at once; the activated node is anchored on screen (§4 growth stability) | 4 |
+| Reshape | `stroke-width` set as a CSS property (`style`), transition `--tg-dur-reshape` | 7 |
+| Sampled walk | 80 ms per edge, cap 600 ms (§10.3) | 7 |
+
+Reduced motion: durations are 0 ms (already in tokens/base). **No code waits on `transitionend` / `animationend`** and no timer is keyed to a duration: state updates are synchronous and CSS animates the result. The phase-7 walk checks `matchMedia('(prefers-reduced-motion: reduce)')` and applies the whole path in one update.
+
+## 7. Colour validation
+
+Colour carries no meaning on its own (D6). Ramp validated with the dataviz skill validator (`validate_palette.js --ordinal`, Machado 2009, OKLab ΔE×100):
+
+| Ramp lo -> hi | Monotone L | Adjacent ΔL ≥ 0.06 | Light end vs paper | Hue spread | Result |
+|---|---|---|---|---|---|
+| light `#5f7d6c,#3d6150,#1f4535` on `#f6f3ea` | pass | pass | 4.08:1 | 4° | PASS |
+| dark `#7fa48f,#a9cdb8,#d4ebdc` on `#111813` | pass | pass | 6.54:1 | 3° | PASS |
+
+State colours (branch-hi, accent, error, focus, ink-muted) run as a categorical set with `--pairs all` FAIL in both themes, as expected: the moss ramp is deliberately low-chroma and red/green collapse under protan. Pairs that can touch on screen (OKLab ΔE×100, worst CVD):
+
+| Pair | Theme | normal | worst CVD | Required non-colour cue |
+|---|---|---|---|---|
+| error / branch-hi | light | 23.4 | **3.3 protan** | error never paints a link; triangle marker + `!` text + dash `8 3` |
+| error / branch-lo | dark | 19.5 | **1.6 protan** | same |
+| accent / error | dark | **9.3** | 6.1 deutan, **3.2 tritan** | accent = diamond + ink outline; error = triangle + text + dash |
+| accent / error | light | **10.2** | 7.8 tritan | same |
+| ink-muted / branch-hi | light | **10.2** | 8.8 | ink-muted strokes always dashed or text-labelled |
+| accent / branch-mid | light | 19.7 | 8.3 | pass; diamond + outline anyway |
+| focus / branch-hi | light / dark | 26.2 / 20.6 | 17.3 / 17.5 tritan | pass |
+
+Re-stepping `--tg-error` was tried (5 candidates per theme, crimson to pink): none cleared both the accent pair and the green pairs at ≥ 4.5:1, so the tokens stay and the structural rules above are binding. Text pairs keep the §3.2 WCAG values.
+
+## 8. Viewports and states of the whole drawing
+
+- **Desktop 1280×800:** the default garden (D11: root + top child, about 11 rows) fits without scrolling.
+- **Mobile 390×844:** labels stay 14 px; `.garden-scroll` scrolls sideways. On mount and on sample change, set `scrollLeft = max(0, tipX(deepest expanded node on the default path) + PAD − 16)` (instant, no smooth scroll), so that fork and all its children labels are in view. Phase 4: after an expansion, first anchor the activated node (§4), then bring the new fork in with `scrollIntoView({ inline: 'nearest', block: 'nearest' })`. Whenever `scrollWidth > clientWidth`, a plain text cue (`--tg-text-sm`, `--tg-ink-muted`, above the drawing, `aria-hidden`; the region already has a label) reads `← Scroll sideways to the seed` / `Scroll sideways for more →` / `← Scroll sideways →` by position, updated on `scroll` (passive, rAF). No fades or shadows as cues.
+- **No branches** (root list empty): seed only + text "This garden has no recorded branches." (3). The layout reserves the text's width (`LABEL_DX + 37 × 0.6 × TOKEN_PX`) so the `<svg>` does not clip it, and the `aria-label` reads "Garden after the prompt: no recorded branches.". Live empty, loading and error states: §3.6, phase 10.
+
+## 9. Phase 3 acceptance criteria
+
+1. `metrics.ts` is the only place token/label sizes live: `grep -rn "tg-token-size\|FONT =" src` finds nothing; `<svg>` font size comes from `TOKEN_PX`.
+2. `layout.test.ts`: positions for the lighthouse default are deterministic; adding children to any unexpanded node keeps every existing node's `tipX`, keeps the grown node's ancestors in place and puts the new children at `tipX + COL`; adding children to any ` looked` child (next column free) leaves every existing `(tipX, y)` unchanged; hit rects are ≥ 24 px tall and pairwise non-overlapping. (Full on-screen stability of the activated node is the phase-4 anchoring rule in §4, tested in the browser.)
+3. `scales.test.ts`: `branchWidth` 0 / 0.05 / 0.25 / 0.75 / 1 = 1.5 / 2.425 / 6.125 / 15.375 / 20; `band` at 0.0999 / 0.10 / 0.3999 / 0.40 = lo / mid / mid / hi; `formatPct` `44.7%`, `<0.1%`; `formatToken(" looked")` = `·looked`, `"\n"` = `↵`, a 15-glyph token = 11 glyphs + `…`.
+4. In the browser, every `[data-role=branch-stroke]` has computed `stroke-width` = `branchWidth(data-p)` ± 0.01, computed `stroke-linecap: butt`, and computed stroke colour equal to its `data-band` token.
+5. `linkPath.test.ts` + `layout.test.ts`: at each fork all child links and the remainder start at the same `forkX`, stacked in rank order with 1 px gaps; bundle height = Σw + k·GAP ± 0.5.
+6. Each branch has `data-state` and `data-marker`; expandable = `bud`, expanded = `knot`, not-recorded = `ring` with dash `4 3`; no expandable/expanded branch draws a hollow circle.
+7. The garden contains no `<title>`. Hovering the thinnest branch shows `[data-role=value-label]` whose text equals `formatPct(data-p)` (plus `path …` at depth ≥ 2). A component test rendering `GardenView` with `selectedKey` set shows the same label with no pointer events.
+8. Each expanded node (and the root) whose `1 − Σp ≥ 0.0005` has exactly one `[data-role=remainder]` with `data-p` = `max(0, 1 − Σp)`, label `other x%`, computed `pointer-events: none` on the group **and on its `path` and `text`**, no `tabindex`; clicking it changes nothing.
+9. The path readout shows prompt + continuation with visible token boundaries and `path x%` for the hovered branch, and `Most likely:` the rank-0 chain by default.
+10. The legend shows samples at 5.0% / 25.0% / 75.0% whose widths equal `branchWidth`, a dashed `other tokens` sample, and the bud / knot / ring key.
+11. Desktop 1280×800 shows the whole default garden without scrolling; at 390×844 the expanded fork and all its child labels are inside the scroll viewport on load and the scroll cue text is present.
+12. No hex colours in `src/**/*.tsx`; `--tg-error` and `--tg-accent` are not used on any phase-3 stroke; `grep -rn "transitionend\|animationend" src` finds nothing.
+13. Screenshots per PLAN phase 3 are committed; in each CVD screenshot bud, knot, ring, remainder and the selected style remain distinguishable by shape/dash alone (dataviz-designer and a11y-reviewer confirm); the ramp re-validates with `validate_palette.js --ordinal` in both themes.
+
+## 10. Phase 7: temperature, entropy, sampled path
+
+### 10.1 Temperature (D8) -> encoding
+
+`temper(ps, r, T)` in `src/llm/temperature.ts`, per expanded node (DECISIONS 2026-10-20, "remainder as hidden tokens"). The remainder `r = 1 − Σp_i` is **not** one pseudo-token: it is modelled as `n` equal hidden tokens, each `r/n` and therefore ≤ the smallest shown chance `p_min = min(ps)`:
+
+- `n = max(1, ceil(r / p_min − 1e-9))` when `r > 0` (the `1e-9` stops float noise from adding a token when `r/p_min` is an exact integer); `r ≤ 0` -> remainder weight 0.
+- Weights: `w_i = p_i^(1/T)` for the k shown tokens, `w_r = n·(r/n)^(1/T)` for the remainder. `q_i = w_i / Z`, `q_r = w_r / Z`, `Z = Σw_i + w_r`.
+- Log space so T = 0.1 and logprob −30 never underflow: `log w_i = log p_i / T`, `log w_r = log n + log(r/n) / T`; subtract the max before `exp`. `n` may be large (e.g. 10⁵) - never materialise the hidden tokens.
+- T = 1 returns the inputs unchanged (`w_r = n·r/n = r`). For T > 1 the hidden mass grows (flatter); for T < 1 it shrinks, and as T -> 0⁺ everything converges to rank 0, so the slider is continuous down to greedy.
+- T = 0 (greedy): rank 0 gets `1`, every other child and the remainder `0`. Rank 0 is the true argmax because every hidden token is ≤ `p_min` ≤ `p_0`; ties go to the lower rank, and a hidden token tying `p_0` still loses (accepted: only when all shown chances are equal).
+- Entropy (§10.2) and sampling (§10.3) keep the tempered remainder as **one** outcome `q_r` (an "other" draw is one stop reason); entropy is therefore a lower bound, which "How to read" may say in one clause.
+
+| Data | Channel | Rule |
+|---|---|---|
+| tempered `q` | stroke width, band colour, value label, accessible name | `branchWidth(q)`, `band(q)`, `formatPct(q)`; `data-p` = shown (tempered) value, new `data-p-recorded` = recorded `p` |
+| tempered `pathP` | value label `path x%`, readout | product of `q` from the root |
+| tempered remainder | dashed stub width + `other x%` label | `branchWidth(q_r)`; omitted when `q_r < 0.0005` (so it vanishes at T = 0) |
+| T ≠ 1 | text note `≈ approximate (top-k only)` | in the control row right after the slider `<output>` (`--tg-text-sm`, `--tg-ink-muted`), referenced by the slider's `aria-describedby`; also appended to the Table view caption. It is a link to `#how-to-read` that opens the panel and focuses its summary |
+| Legend | unchanged | it maps width <-> %, which T does not change |
+
+Layout never depends on T: memoize `layoutGarden` on the visible tree only, and reserve the value-label width for the **worst-case string** of the row's kind (`100.0% · path 100.0%`, plus the entropy suffix for expanded rows), not the current text. Only widths, bands and text update. Width transitions 120 ms via `style.strokeWidth` (§6); band colour and labels switch instantly. The Table view shows both `Recorded` and `At T x.x` columns.
+
+### 10.2 Entropy (uncertainty after a token)
+
+`H = −Σ q·log2 q` over the k tempered children plus the tempered remainder (`src/garden/entropy.ts`); `0·log 0 = 0`. Maximum for k = 5 is log2 6 = 2.58 bits. Bands: **low** `H < 1.0`, **medium** `1.0 ≤ H < 2.0`, **high** `H ≥ 2.0` (recorded samples at T = 1: 22 / 135 / 77 of 234 forks). Format: one decimal, `1.4 bits`, plus the band word; "≈ n choices" = `2^H`, one decimal, Table view only.
+
+- Value label of an **expanded** branch (hover, selection, focus): suffix ` · next 1.4 bits, medium`.
+- Accessible name of an expanded treeitem: "…, uncertainty after it: medium, 1.4 bits".
+- Table view: column `Uncertainty after` (`1.4 bits · medium · ≈ 2.6 choices`) on expanded rows; caption line "After the prompt: …" for the root fork.
+- Optional fork cue (dataviz review may cut it for clutter): 1 / 2 / 3 short ticks (1 px, 6 px tall, 3 px apart, `--tg-ink-muted`, `aria-hidden`) above the stem at `forkX`, `data-entropy-band`. Never a colour change.
+
+### 10.3 Sampled path
+
+- Algorithm (`samplePath.ts`): mulberry32(seed); at each node draw one `u` and pick by cumulative tempered `q` in rank order, remainder last. Walks recorded data with **zero calls**; recorded-but-closed nodes on the path are expanded. The path is a pure function of (sample, T, seed): changing T with a path shown re-samples instantly (no walk).
+- Stop reasons, shown in the readout and announced once (polite): `not-recorded` "the recording ends here" (stop node keeps its `ring`); `other` "drew a token outside the top 5 (other x%)" (the remainder stub gets the ink underlay + accent dash, label `other x% · sampled`); `depth-cap` "depth limit (12 tokens)"; phase 10 adds `unexpanded` "this branch has not grown yet" (never triggers a model call) and `end`.
+- Highlight: §3 row (ink underlay `w + 3`, accent at `w`, diamonds on every path tip except the stop node). Each path link has `data-sampled-step = i`.
+- Walk: one state update; CSS only. Accent path `pathLength="1"`, `stroke-dasharray: 1`, `stroke-dashoffset` 1 -> 0 over `step = min(80, 600/n)` ms linear, `animation-delay: i·step`; diamond fades in at the end of its edge. Reduced motion: duration and delay 0, the full path at once. No timers, no `animationend`.
+- Readout: `Sampled (T 1.0, seed 7): <prompt><tokens> · path x% · stopped: <reason>`. "New seed" picks a random integer 1–9999 and samples. Changing sample clears the path.
+
+### 10.4 Controls and "How to read"
+
+- Control row (§3.3), after the sample picker: `<label>Temperature</label>` + native `<input type="range" min="0" max="2" step="0.1">` (default 1.0) + `<output>` `T 1.0` / `T 0 (greedy)`; presets as `<button aria-pressed>` "0 (greedy)", "1.0", "1.5"; then "Sample a path", "New seed". URL `t` is clamped to [0, 2] and rounded to 0.1 (invalid -> 1); `seed` is an integer 1–9999.
+- "How to read this garden": footer `<details id="how-to-read">` (§3.3), ≤ 120 words, closed by default; on mobile it sits above the sticky readout's reserved space.
+
+### 10.5 Phase 7 acceptance criteria
+
+1. `temperature.test.ts`: T = 1 identity; T = 0 -> `[1,0,…]`, remainder 0; Σq + q_r = 1 ± 1e-9 for T ∈ {0.1, 0.5, 1.5, 2}; lowering T never lowers `q_0`; T = 0.1 with logprob −30 gives finite values. Remainder as hidden tokens: (a) `q_r` is non-decreasing in T over {0.1, 0.2, …, 2} and `q_r ≤ r` for every T < 1, `q_r ≥ r` for T > 1; (b) regression for the old bug, `ps = [0.2, 0.1, 0.05, 0.03, 0.02]`, `r = 0.6` (n = 30): at T = 0.2 `q_r < 0.01` and `q_0 > 0.95` (as one pseudo-token `q_r` would be ≈ 0.99); (c) continuity, T = 0.05 is within 1e-5 of the T = 0 result for that input; (d) `n` exact-integer case `ps = [0.5, 0.25]`, `r = 0.25` gives n = 1, and at T = 2 matches `p^(1/2)` normalised over three tokens; (e) `r = 0` gives `q_r = 0` for every T.
+3a. Browser on the default sample: at T = 0.2 every fork's `other` label is ≤ its value at T = 1, and no `other` label reads `100%`.
+2. `entropy.test.ts`: uniform over 6 = 2.585 bits; one-hot = 0; band at 0.999 / 1.0 / 1.999 / 2.0 = low / medium / medium / high.
+3. Browser, for T ∈ {0.2, 1, 1.8}: every `[data-role=branch-stroke]` has computed `stroke-width` = `branchWidth(data-p)` ± 0.01 and `data-p` = tempered value of `data-p-recorded`; every remainder width follows `q_r`; node `(tipX, y)` positions are identical across the three; 0 network requests.
+4. The `approximate (top-k only)` note is present iff T ≠ 1 and is in the slider's accessible description.
+5. Focusing an expanded branch shows `next x.x bits, <band>` matching `entropy(q)`; the Table view has the `Recorded`, `At T` and `Uncertainty after` columns.
+6. Same (sample, T, seed) gives the same path twice; at T = 0 the path is the rank-0 chain; readout shows the sentence and stop reason, and the live region announces it once.
+7. Sampled links have the ink underlay and accent stroke; path tips show `diamond` except the stop node; in `sampled-path-cvd-deuteranopia.png` the path is identifiable by outline and diamonds alone.
+8. Reduced motion: the full path is drawn on the first frame after the click (computed animation duration and delay 0).
+9. `?sample=recipe&t=1.5&seed=7` restores slider, widths and the same path; `t=9` clamps to 2.
+10. Keyboard alone operates slider (arrows step 0.1), presets, Sample, New seed and the details panel; the note link opens and focuses the panel.
+11. P4: one slider step with the largest sample fully expanded re-renders in ≤ 100 ms (median of 3); layout is not recomputed (memo hit).

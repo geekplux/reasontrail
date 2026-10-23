@@ -1,0 +1,97 @@
+/* The outline and the cards the map shares with it (DESIGN §8.8, §8.9, §10.2). Colours only via tokens.css. */
+.mono { font-family: var(--tg-font-mono); font-weight: 500; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.muted { color: var(--tg-ink-muted); }
+.strong { font-weight: 600; }
+/* Bands are grouped by 40 px of space, not rules (CL8, T5): only the header and footer keep a full-width hairline. */
+.region { padding: 0 0 var(--tg-space-8); }
+.section-label, .sub-label { display: flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); font: 500 0.72rem / 1.3 var(--tg-font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--tg-ink-muted); }
+.sub-label { margin-top: var(--tg-space-4); }
+.section-label span { color: inherit; }
+
+/* Task card (DESIGN §8.9) */
+.task-title { margin: 0 0 var(--tg-space-2); font: italic 400 31px / 1.15 var(--tg-font-serif); overflow-wrap: anywhere; white-space: pre-line; }
+.task-title.is-clamped { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.task-request { margin-bottom: var(--tg-space-2); }
+.task-request .task-title { margin: 0; }
+.task-raw { margin: var(--tg-space-2) 0 var(--tg-space-4); max-width: 72ch; white-space: pre-line; overflow-wrap: anywhere; }
+.task-raw .sub-label { margin-bottom: var(--tg-space-1); }
+.task-meta { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--tg-space-4); margin: 0 0 var(--tg-space-2); }
+.meta-item + .meta-item::before { content: ' · '; }
+/* The eyebrow row: the TASK label, and the header items (Map/Outline) at its right end. */
+.task-eyebrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-4); margin-bottom: var(--tg-space-2); }
+.task-eyebrow .section-label { margin: 0; }
+.task-meta .session-toggle { font-size: 12.8px; }
+.session-details > p { margin: 0 0 var(--tg-space-2); }
+.note, .honesty, .glance-rows li, .episode-head { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-2); margin: 0; }
+.note, .honesty { margin: 0 0 var(--tg-space-2); font-size: 13.5px; }
+.note { color: var(--tg-ink-muted); }
+.skipped-where { margin: 0 0 var(--tg-space-2) 22px; font-size: 13.5px; color: var(--tg-ink-muted); }
+.skipped-where summary { min-height: 24px; cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; }
+.skipped-where p { margin: var(--tg-space-1) 0 0; overflow-wrap: anywhere; }
+.honesty a { min-height: 24px; }
+
+/* Glyphs: shape = meaning (DESIGN §8.2, §8.5, §8.6) */
+.glyph { flex: none; align-self: center; overflow: visible; }
+:is(.note, .honesty, .glance-rows li, .episode-head, .chip) > .glyph { align-self: start; margin-top: 0.2em; }
+.glyph .g-fill { fill: var(--tg-ink); }
+.glyph .g-line { fill: none; stroke: var(--tg-ink); stroke-width: 2; }
+.glyph .g-thin { stroke-width: 1.4; }
+.glyph .g-paper { fill: var(--tg-paper); }
+.glyph .g-dotted { stroke: var(--tg-ink-muted); stroke-width: 1.5; stroke-dasharray: 1.5 2; }
+.glyph .g-ok { fill: var(--tg-ok); }
+.glyph .g-bad { fill: var(--tg-trouble); }
+.glyph .g-mark { fill: none; stroke: var(--tg-paper); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.glyph .g-muted { fill: none; stroke: var(--tg-ink-muted); stroke-width: 1.5; }
+.glyph-plate .g-plate { fill: var(--tg-trouble); stroke: var(--tg-trouble); stroke-width: 2; }
+.glyph-plate .g-plate-mark { fill: none; stroke: var(--tg-paper); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.glyph-plate.is-resolved .g-plate { fill: var(--tg-paper); }
+.glyph-plate.is-resolved .g-plate-mark { stroke: var(--tg-trouble); }
+.glyph-plate.is-neutral .g-plate { fill: var(--tg-paper); stroke: var(--tg-ink); }
+.glyph-plate.is-neutral .g-plate-mark { stroke: var(--tg-ink); }
+.glyph-plate .g-plate-dot { fill: var(--tg-ink); }
+.glyph-plate.is-open .g-plate-dot { fill: var(--tg-paper); }
+
+/* At a glance */
+.glance-rows { display: grid; gap: var(--tg-space-2); margin: 0; padding: 0; list-style: none; }
+.glance-rows li { overflow-wrap: anywhere; }
+
+/* Route: episodes, lanes, steps */
+.episodes, .lanes, .steps, .files, .chips { margin: 0; padding: 0; list-style: none; }
+.episodes { display: grid; gap: var(--tg-space-4); counter-reset: ep; }
+.episode { counter-increment: ep; padding-left: var(--tg-space-5); position: relative; }
+.episode::before { content: counter(ep); position: absolute; left: 0; top: 2px; font: 500 0.8rem var(--tg-font-mono); color: var(--tg-ink-muted); }
+.lane-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--tg-space-2); margin: 0; }
+.episode-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.chips { display: grid; gap: var(--tg-space-1); margin: var(--tg-space-1) 0; }
+.chip { display: grid; grid-template-columns: 14px 16px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-1); font-size: 13.5px; }
+.chip-n { display: inline-grid; place-items: center; min-width: 16px; height: 16px; border-radius: 2px; color: var(--tg-paper); background: var(--tg-ink); font-size: 10.5px; font-weight: 600; }
+.lanes { margin: var(--tg-space-2) 0; padding-left: var(--tg-space-4); border-left: 2px solid var(--tg-branch-lo); }
+.lane .episodes { margin-top: var(--tg-space-2); }
+/* The step list's quiet text disclosure (O2, CL11): "4 steps", no border and no fill. */
+.disclosure { margin-top: var(--tg-space-1); font-size: 12.8px; }
+.steps { display: grid; gap: 2px; margin-top: var(--tg-space-2); padding-left: var(--tg-space-4); border-left: var(--tg-hairline); font-size: 13.5px; }
+.steps li { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--tg-space-2); overflow-wrap: anywhere; }
+.agent-words { padding-left: var(--tg-space-2); border-left: 2px dotted var(--tg-ink-muted); }
+.footnote { margin: var(--tg-space-4) 0 0; }
+.empty { padding: var(--tg-space-4) 0; }
+.trail-stub { display: block; position: relative; width: 120px; height: 8px; margin-bottom: var(--tg-space-4); border-bottom: 4px solid var(--tg-rule); }
+.trail-stub::before { content: ''; position: absolute; left: -4px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--tg-ink); }
+
+/* Destination */
+.outcome-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--tg-space-5); }
+.outcome-cols p { margin: 0 0 var(--tg-space-2); overflow-wrap: anywhere; }
+.files li { display: flex; gap: var(--tg-space-2); align-items: baseline; padding: 2px 0; border-bottom: var(--tg-hairline); }
+.files .path { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.files .edits { white-space: nowrap; }
+.excerpt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; font-size: 13.5px; }
+.excerpt.is-clamped { -webkit-line-clamp: 2; }
+code.mono { overflow-wrap: anywhere; }
+
+
+@media (max-width: 767px) {
+  .task-title { font-size: 25px; }
+  .mono { font-size: 12px; }
+  .outcome-cols { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .episode { padding-left: var(--tg-space-5); }
+}
+.outline { max-width: 1040px; }

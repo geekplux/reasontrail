@@ -90,3 +90,19 @@ This project will be released as open source and is not meant to be commercializ
 - **Open-source packaging is part of the product,** planned as real phases: README that sells in 10 seconds (one-line pitch, hero GIF or screenshot, live demo link placeholder, quick start, how it works, roadmap), LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates, a CHANGELOG, good-first-issue candidates listed in docs, a social preview image, and an examples/ gallery.
 - **Quality signals:** tests and CI config (in ci/ until workflow scope is granted), typed public APIs, small dependency footprint, fast load, accessible (keyboard + screen reader), docs for extending it.
 - **Launch-ready:** include a short launch kit in docs/LAUNCH.md (Show HN / X post draft, 3 demo scenarios, comparison with alternatives). Do not post anything anywhere.
+
+## Repositioning 2026-10-20 (Sean) — overrides the Product section above
+The product is now a **reasoning map** for AI sessions: coding-agent sessions (Claude Code / Codex .jsonl) first, chat transcripts second; the next-token garden stays only as a zoom-in lens. A new `lead-designer` sub-agent owns docs/DESIGN.md and signs off every UI phase. Full details: /workspace/gx-projects/logs/token-garden.change-request.md
+Addendum: the primary entry point is a **skill** (Claude Code / Codex / Grok Build) backed by one local CLI that opens the session's reasoning map in a local web page; the hosted site is the showcase. See the addendum at the end of the change-request file.
+Rename 2026-10-20: the product is now **Reasontrail** (repo geekplux/reasontrail; `origin` already points there; old URLs redirect). Use the name in all user-facing text, package name, CLI (`npx reasontrail`), skill name, README and PR links. Keep the local folder name.
+
+## Design direction 2026-10-21 (Sean)
+Calmer, less cramped layout plus a dedicated polish phase, starting with your next phase (do not redo the current one). Full details: /workspace/gx-projects/logs/token-garden.design-direction.md
+
+## Speed mode 2026-10-21 (Sean): go as fast as possible, starting now
+Sean wants maximum development speed. Quality bar for shipped code is unchanged, but cut verification overhead:
+- Exactly two review rounds per phase (review, fix, second review, fix), then stop. Never run a third review round.
+- Per phase run lint, typecheck, unit tests and build. Run the headless-browser suite (check:browser / smoke / e2e / a11y probes) at most ONCE per phase, at the end, and only the flows the phase touched.
+- Wrap EVERY headless Chrome / Playwright / browser check in a shared lock so only one project on this machine runs a browser at a time: `flock /workspace/gx-projects/logs/browser.lock <command>`. Close preview servers right after.
+- Screenshots: per phase only 1-2 key shots (1440 light) for the PR description, compressed WebP. The full 1440/390 light/dark before/after set is done once, in the calm-polish phase.
+- Keep PRs focused; don't gold-plate docs mid-phase.

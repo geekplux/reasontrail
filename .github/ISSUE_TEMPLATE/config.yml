@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security issue privately
+    url: https://github.com/geekplux/reasontrail/security/advisories/new
+    about: Security issues go through a private advisory, not a public issue (see SECURITY.md).
+  - name: Read how to extend Reasontrail
+    url: https://github.com/geekplux/reasontrail/blob/main/docs/EXTENDING.md
+    about: Adapters, Worker upstreams, gardens and themes, with the check that proves each one.

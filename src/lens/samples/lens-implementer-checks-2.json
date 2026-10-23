@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "id": "lens-implementer-checks-2",
+  "title": "Moving focus",
+  "prompt": "Moving focus selects the branch, so its",
+  "model": {
+    "provider": "local-onnx",
+    "name": "onnx-community/SmolLM2-135M-ONNX",
+    "dtype": "q8"
+  },
+  "recordedAt": "2026-10-21",
+  "k": 5,
+  "nodes": {
+    "": [
+      { "token": " location", "logprob": -2.196 },
+      { "token": " position", "logprob": -2.824 },
+      { "token": " name", "logprob": -3.264 },
+      { "token": " value", "logprob": -3.465 },
+      { "token": " size", "logprob": -3.784 }
+    ],
+    " location": [
+      { "token": " is", "logprob": -1.263 },
+      { "token": " will", "logprob": -2.329 },
+      { "token": " in", "logprob": -2.874 },
+      { "token": " on", "logprob": -3.327 },
+      { "token": " and", "logprob": -3.346 }
+    ],
+    " location is": [
+      { "token": " not", "logprob": -2.964 },
+      { "token": " at", "logprob": -3.11 },
+      { "token": " shown", "logprob": -3.219 },
+      { "token": " the", "logprob": -3.283 },
+      { "token": " known", "logprob": -3.413 }
+    ],
+    " location will": [
+      { "token": " be", "logprob": -0.337 },
+      { "token": " not", "logprob": -4.149 },
+      { "token": " remain", "logprob": -4.19 },
+      { "token": " always", "logprob": -4.267 },
+      { "token": " change", "logprob": -4.348 }
+    ],
+    " location will be": [
+      { "token": " at", "logprob": -1.985 },
+      { "token": " in", "logprob": -2.422 },
+      { "token": " the", "logprob": -2.683 },
+      { "token": " on", "logprob": -2.725 },
+      { "token": " directly", "logprob": -4.135 }
+    ],
+    " location will be at": [
+      { "token": " the", "logprob": -0.283 },
+      { "token": " its", "logprob": -2.826 },
+      { "token": " a", "logprob": -3.74 },
+      { "token": " that", "logprob": -3.986 },
+      { "token": " one", "logprob": -4.964 }
+    ],
+    " location will be at the": [
+      { "token": " root", "logprob": -2.326 },
+      { "token": " end", "logprob": -2.814 },
+      { "token": " same", "logprob": -2.929 },
+      { "token": " bottom", "logprob": -3.014 },
+      { "token": " top", "logprob": -3.114 }
+    ],
+    " location will be at the root": [
+      { "token": " of", "logprob": -0.705 },
+      { "token": " node", "logprob": -2.175 },
+      { "token": ".", "logprob": -2.58 },
+      { "token": "\n", "logprob": -2.747 },
+      { "token": " position", "logprob": -3.332 }
+    ],
+    " location in": [
+      { "token": " the", "logprob": -0.784 },
+      { "token": " memory", "logprob": -1.23 },
+      { "token": " tree", "logprob": -4.032 },
+      { "token": " history", "logprob": -4.554 },
+      { "token": " your", "logprob": -4.691 }
+    ],
+    " location on": [
+      { "token": " the", "logprob": -0.066 },
+      { "token": " a", "logprob": -3.958 },
+      { "token": " your", "logprob": -5.437 },
+      { "token": " this", "logprob": -5.55 },
+      { "token": " its", "logprob": -5.804 }
+    ],
+    " location and": [
+      { "token": " size", "logprob": -2.564 },
+      { "token": " position", "logprob": -3.023 },
+      { "token": " content", "logprob": -3.214 },
+      { "token": " location", "logprob": -3.321 },
+      { "token": " contents", "logprob": -3.443 }
+    ],
+    " position": [
+      { "token": " is", "logprob": -1.203 },
+      { "token": " will", "logprob": -1.767 },
+      { "token": " in", "logprob": -2.712 },
+      { "token": " can", "logprob": -3.291 },
+      { "token": " changes", "logprob": -3.384 }
+    ],
+    " position is": [
+      { "token": " centered", "logprob": -3.191 },
+      { "token": " at", "logprob": -3.328 },
+      { "token": " aligned", "logprob": -3.448 },
+      { "token": " always", "logprob": -3.738 },
+      { "token": " directly", "logprob": -3.973 }
+    ],
+    " position will": [
+      { "token": " be", "logprob": -0.567 },
+      { "token": " change", "logprob": -3.014 },
+      { "token": " become", "logprob": -3.612 },
+      { "token": " remain", "logprob": -3.713 },
+      { "token": "\n", "logprob": -3.942 }
+    ],
+    " position will be": [
+      { "token": " at", "logprob": -2.464 },
+      { "token": " the", "logprob": -2.762 },
+      { "token": "\n", "logprob": -2.943 },
+      { "token": " centered", "logprob": -3.421 },
+      { "token": " in", "logprob": -3.426 }
+    ],
+    " position will be at": [
+      { "token": " the", "logprob": -0.37 },
+      { "token": " its", "logprob": -2.091 },
+      { "token": " a", "logprob": -3.621 },
+      { "token": " that", "logprob": -3.649 },
+      { "token": " least", "logprob": -4.906 }
+    ],
+    " position will be at the": [
+      { "token": " same", "logprob": -1.84 },
+      { "token": " root", "logprob": -2.993 },
+      { "token": " end", "logprob": -3.089 },
+      { "token": " center", "logprob": -3.147 },
+      { "token": " beginning", "logprob": -3.154 }
+    ],
+    " position will be at the same": [
+      { "token": " position", "logprob": -1.181 },
+      { "token": " location", "logprob": -1.813 },
+      { "token": " place", "logprob": -2.157 },
+      { "token": " time", "logprob": -2.511 },
+      { "token": " level", "logprob": -2.925 }
+    ],
+    " position in": [
+      { "token": " the", "logprob": -0.521 },
+      { "token": " space", "logprob": -2.865 },
+      { "token": " time", "logprob": -3.13 },
+      { "token": " a", "logprob": -3.478 },
+      { "token": " relation", "logprob": -4.147 }
+    ],
+    " position can": [
+      { "token": " be", "logprob": -0.639 },
+      { "token": " only", "logprob": -1.613 },
+      { "token": "'t", "logprob": -3.127 },
+      { "token": " change", "logprob": -4.278 },
+      { "token": " no", "logprob": -4.386 }
+    ],
+    " position changes": [
+      { "token": " with", "logprob": -2.221 },
+      { "token": " from", "logprob": -3.022 },
+      { "token": " to", "logprob": -3.092 },
+      { "token": ".", "logprob": -3.115 },
+      { "token": " when", "logprob": -3.187 }
+    ],
+    " name": [
+      { "token": " is", "logprob": -1.282 },
+      { "token": " will", "logprob": -1.989 },
+      { "token": " must", "logprob": -2.845 },
+      { "token": " can", "logprob": -3.018 },
+      { "token": " becomes", "logprob": -3.419 }
+    ],
+    " name is": [
+      { "token": " called", "logprob": -3.49 },
+      { "token": " \"", "logprob": -3.754 },
+      { "token": " named", "logprob": -3.758 },
+      { "token": " shown", "logprob": -3.896 },
+      { "token": " also", "logprob": -3.93 }
+    ],
+    " name will": [
+      { "token": " be", "logprob": -0.213 },
+      { "token": " become", "logprob": -4.286 },
+      { "token": " have", "logprob": -4.33 },
+      { "token": " remain", "logprob": -4.466 },
+      { "token": " appear", "logprob": -4.581 }
+    ],
+    " name must": [
+      { "token": " be", "logprob": -0.598 },
+      { "token": " match", "logprob": -1.786 },
+      { "token": " correspond", "logprob": -4.011 },
+      { "token": " always", "logprob": -4.021 },
+      { "token": " contain", "logprob": -4.094 }
+    ],
+    " name can": [
+      { "token": " be", "logprob": -0.943 },
+      { "token": " only", "logprob": -1.729 },
+      { "token": "'t", "logprob": -2.661 },
+      { "token": "’", "logprob": -2.926 },
+      { "token": " easily", "logprob": -4.053 }
+    ],
+    " name becomes": [
+      { "token": " the", "logprob": -1.701 },
+      { "token": " \"", "logprob": -3.084 },
+      { "token": " a", "logprob": -3.37 },
+      { "token": " focus", "logprob": -3.699 },
+      { "token": " its", "logprob": -3.974 }
+    ],
+    " value": [
+      { "token": " is", "logprob": -1.083 },
+      { "token": " will", "logprob": -1.1 },
+      { "token": " can", "logprob": -3.178 },
+      { "token": " must", "logprob": -3.193 },
+      { "token": " should", "logprob": -4.21 }
+    ],
+    " value is": [
+      { "token": " the", "logprob": -3.109 },
+      { "token": " zero", "logprob": -3.302 },
+      { "token": " ", "logprob": -3.784 },
+      { "token": " equal", "logprob": -3.953 },
+      { "token": " not", "logprob": -3.994 }
+    ],
+    " value will": [
+      { "token": " be", "logprob": -0.784 },
+      { "token": " remain", "logprob": -2.905 },
+      { "token": " stay", "logprob": -3.604 },
+      { "token": " always", "logprob": -3.663 },
+      { "token": " only", "logprob": -3.916 }
+    ],
+    " value can": [
+      { "token": " be", "logprob": -1.323 },
+      { "token": "'t", "logprob": -2.612 },
+      { "token": "cels", "logprob": -2.679 },
+      { "token": " only", "logprob": -2.701 },
+      { "token": " change", "logprob": -3.829 }
+    ],
+    " value must": [
+      { "token": " be", "logprob": -0.213 },
+      { "token": " lie", "logprob": -4.2 },
+      { "token": " remain", "logprob": -4.524 },
+      { "token": " change", "logprob": -4.626 },
+      { "token": " match", "logprob": -4.953 }
+    ],
+    " value should": [
+      { "token": " be", "logprob": -0.317 },
+      { "token": " always", "logprob": -3.662 },
+      { "token": " match", "logprob": -3.751 },
+      { "token": " only", "logprob": -4.208 },
+      { "token": " not", "logprob": -4.45 }
+    ],
+    " size": [
+      { "token": " will", "logprob": -1.34 },
+      { "token": " is", "logprob": -1.382 },
+      { "token": " and", "logprob": -2.225 },
+      { "token": ",", "logprob": -2.606 },
+      { "token": " can", "logprob": -3.522 }
+    ],
+    " size will": [
+      { "token": " be", "logprob": -1.016 },
+      { "token": " change", "logprob": -1.948 },
+      { "token": " match", "logprob": -2.936 },
+      { "token": " not", "logprob": -3.584 },
+      { "token": " always", "logprob": -3.788 }
+    ],
+    " size is": [
+      { "token": " the", "logprob": -2.695 },
+      { "token": " determined", "logprob": -2.752 },
+      { "token": " proportional", "logprob": -2.852 },
+      { "token": " equal", "logprob": -2.898 },
+      { "token": " smaller", "logprob": -3.4 }
+    ],
+    " size and": [
+      { "token": " position", "logprob": -1.476 },
+      { "token": " shape", "logprob": -1.837 },
+      { "token": " location", "logprob": -1.91 },
+      { "token": " content", "logprob": -3.274 },
+      { "token": " color", "logprob": -3.507 }
+    ],
+    " size,": [
+      { "token": " position", "logprob": -1.875 },
+      { "token": " shape", "logprob": -2.486 },
+      { "token": " location", "logprob": -3.118 },
+      { "token": " direction", "logprob": -3.398 },
+      { "token": " orientation", "logprob": -3.486 }
+    ],
+    " size can": [
+      { "token": " be", "logprob": -0.492 },
+      { "token": " change", "logprob": -2.657 },
+      { "token": " vary", "logprob": -3.727 },
+      { "token": " only", "logprob": -3.733 },
+      { "token": " match", "logprob": -3.736 }
+    ]
+  }
+}

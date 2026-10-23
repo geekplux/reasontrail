@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest something that makes a session easier to understand.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: moment
+    attributes:
+      label: The moment you would use it
+      description: What were you trying to understand about a session, and what got in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: What do you get, and what time or effort does it save?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: How it could work. Sketches welcome.
+  - type: checkboxes
+    id: fit
+    attributes:
+      label: Fit
+      options:
+        - label: It works without an API key, or the AI part is optional and asks first.
+        - label: It keeps sessions on the user's machine unless they choose to share.

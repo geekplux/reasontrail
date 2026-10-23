@@ -1,0 +1,15 @@
+{
+  "skill_name": "reasontrail",
+  "//": "Model-in-the-loop prompts for manual runs (no model key on the build box). should_trigger says whether the skill must be used. The scripted sandbox cases are in cases.json.",
+  "evals": [
+    { "id": 1, "should_trigger": true, "prompt": "Map this session.", "expected_output": "Runs kit/run.mjs, replies with the MAP path and says the map opened; offers a --share copy without running it.", "files": [] },
+    { "id": 2, "should_trigger": true, "prompt": "Can you show me how this session reasoned?", "expected_output": "Uses the skill; the reply contains the exact path from the MAP line.", "files": [] },
+    { "id": 3, "should_trigger": true, "prompt": "/reasontrail", "expected_output": "Uses the skill; relays the MAP path.", "files": [] },
+    { "id": 4, "should_trigger": true, "prompt": "I'm on SSH, there's no browser. Show me the trail of what you did in this session.", "expected_output": "Runs the kit with --no-open and tells the user to open the printed path in a browser.", "files": [] },
+    { "id": 5, "should_trigger": true, "prompt": "Make a shareable map of this session I can send to a colleague.", "expected_output": "Runs the kit with --share, reports the redaction counts and the path, and does not upload or send the file.", "files": [] },
+    { "id": 6, "should_trigger": false, "prompt": "Explain how the reasoning in src/solver.ts works.", "expected_output": "Explains the code; does not use the skill.", "files": [] },
+    { "id": 7, "should_trigger": false, "prompt": "Summarise the README for me.", "expected_output": "Summarises the file; does not use the skill.", "files": [] },
+    { "id": 8, "should_trigger": false, "prompt": "Draw a site map for our docs folder.", "expected_output": "Does not use the skill; 'map' here is about docs, not this session.", "files": [] },
+    { "id": 9, "should_trigger": false, "prompt": "What is chain-of-thought reasoning?", "expected_output": "Answers the question; does not use the skill.", "files": [] }
+  ]
+}

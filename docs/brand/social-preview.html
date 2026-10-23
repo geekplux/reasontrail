@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Social preview template (PLAN D19), 1280×640. `pnpm check:browser --flows brand` inlines every relative file
+     (the hero still and the two fonts) as data URLs and renders docs/brand/social-preview.png. Opened directly from a
+     clone it shows the same layout. Colours are the light theme tokens (src/styles/tokens.css). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reasontrail social preview</title>
+<style>
+  @font-face { font-family: 'Plex Mono'; font-weight: 500; src: url('../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Instrument Serif'; font-style: italic; src: url('../../node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2') format('woff2'); }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; }
+  body { display: grid; grid-template-columns: 500px 1fr; gap: 48px; padding: 64px 0 0 72px; background: #f6f3ea; color: #1c2620; font: 22px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  .mark { display: flex; align-items: center; gap: 16px; font-size: 44px; line-height: 1; }
+  .mark svg { width: 64px; height: 64px; color: #1c2620; }
+  .reason { font-family: 'Plex Mono', ui-monospace, monospace; font-weight: 500; letter-spacing: -0.01em; }
+  .trail { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 1.25em; }
+  h1 { margin-top: 64px; font: italic 400 54px/1.08 'Instrument Serif', Georgia, serif; letter-spacing: -0.01em; }
+  p { margin-top: 24px; color: #4d5a52; }
+  .foot { position: absolute; left: 72px; bottom: 52px; font: 500 18px 'Plex Mono', ui-monospace, monospace; color: #4d5a52; }
+  .foot b { color: #b4530a; font-weight: 500; }
+  figure { align-self: start; height: 516px; margin-top: 48px; overflow: hidden; border: 1px solid #1c2620; border-right: 0; border-radius: 6px 0 0 6px; background: #fffdf7; }
+  figure img { display: block; width: 1000px; height: 100%; object-fit: cover; object-position: top left; }
+</style>
+</head>
+<body>
+  <main>
+    <div class="mark">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
+        <circle cx="4.5" cy="20" r="3.5" fill="currentColor" stroke="none"/>
+        <path d="M4.5 20 H11 L19 12 H22" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M11 20 H19.5" stroke-width="2"/><path d="M21.5 16.5 V23.5" stroke-width="2"/>
+        <circle cx="26.5" cy="12" r="4" stroke-width="2.5"/><circle cx="26.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <span><span class="reason">reason</span><span class="trail">trail</span></span>
+    </div>
+    <h1>See how your coding agent got there.</h1>
+    <p>One command turns a Claude Code, Codex or Grok Build session into a map you can read at a glance. Local, no API key, nothing uploaded.</p>
+    <div class="foot"><b>▶</b> github.com/geekplux/reasontrail</div>
+  </main>
+  <figure><img src="hero.webp" alt="A Reasontrail map: the task card, a route of named episodes with a numbered trouble marker, and the destination card."></figure>
+</body>
+</html>

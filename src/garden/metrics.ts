@@ -1,0 +1,27 @@
+/** Every size of the garden drawing, in px (docs/viz/garden.md §4). The only place these numbers live. */
+export const TOKEN_PX = 14; // token labels, all viewports (never scaled; mobile scrolls)
+export const VALUE_PX = 12.8; // value label, remainder label (--tg-text-sm)
+export const GLYPH_EM = 0.6; // monospace advance: layout never measures text
+export const ROW = 40; // sibling pitch
+export const COUSIN_SEPARATION = 1.25; // in rows, between nodes with different parents
+export const COL = 180; // depth pitch; fixed, so growth never moves a column
+export const MAX_GLYPHS = 12; // label truncation
+export const LABEL_DX = 12; // tip -> label start (clears the r 7 knot)
+export const FORK_DX = 8; // label end -> fork x
+export const STEM = 8; // straight segment after the fork
+export const GAP = 1; // between stacked strokes at a fork
+export const TIP_INSET = 4; // incoming links stop this far before the tip; the marker covers the end
+export const HIT_H = 24; // minimum hit-rect height
+export const HIT_BEFORE = 12; // hit rect starts this far before the tip
+export const PAD = 16; // drawing padding
+export const SEED_R = 5;
+export const ROOT_FORK_X = 8;
+export const MARKER_R = 4; // bud, ring
+export const KNOT_R = 7;
+export const SELECTED_R = 9;
+export const VALUE_PAD_X = 6;
+export const VALUE_PAD_Y = 2;
+export const NOTE_H = 18; // a branch note (InlineNote): fits the gap between two rows' labels
+export const NOTE_PAD_X = 8; // a branch note's inline padding (--tg-space-2)
+export const DASH_FROM = 8; // dash patterns scale with stroke width above this, so thick dashes stay dashes
+export const LEGEND_P = [0.05, 0.25, 0.75] as const;
