@@ -53,7 +53,7 @@ export async function run({ page, root, shot, log, fail }) {
   if (!/files? changed/.test(regions.outcome ?? '') || !/Last verification/i.test(regions.outcome ?? '')) fail('destination lacks files or verification');
   if (await page.locator('[role="tree"], [role="treeitem"], [role="grid"]').count()) fail('the page uses tree or grid roles');
   const title = await page.evaluate(() => getComputedStyle(document.querySelector('.task-title')).fontFamily);
-  if (!title.startsWith('"Instrument Serif"') || !(await page.evaluate(() => document.fonts.check('italic 400 16px "Instrument Serif"')))) fail(`task title font: ${title}`);
+  if (!title.startsWith('"Chivo Mono Variable"') || !(await page.evaluate(() => document.fonts.check('800 16px "Chivo Mono Variable"')))) fail(`task title font: ${title}`);
   for (const p of await axeProblems(page, 'desktop', STRUCTURE_RULES)) fail(p);
   await shot('cli-map-desktop');
 

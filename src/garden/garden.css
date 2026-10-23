@@ -1,14 +1,15 @@
+/* Hallmark · theme: Wayfind · redesign: full · the stamp, critique and waivers are in src/site/site.css */
 /* The next-token garden (PLAN §3.3, docs/viz/garden.md): the lens and garden page only, so it loads with them and
    not with the map's first view (DESIGN §18, size budget). Colours only via tokens.css. */
 
 /* Control row (PLAN §3.3, DESIGN §18.1 GA1): the sample picker as quiet text radios; the chosen one is 600, underlined. */
 .controls { padding: var(--tg-space-4) var(--tg-space-8) 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
-.picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--tg-ink-muted); }
+.picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-ui); color: var(--tg-ink-muted); }
 .picker-options { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-5); }
 .picker-option { position: relative; display: inline-flex; align-items: center; min-height: 28px; font-size: 13.5px; color: var(--tg-ink-muted); white-space: nowrap; border-bottom: 2px solid transparent; cursor: pointer; }
 .picker-option input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
-.picker-option:has(input:checked) { font-weight: 600; color: var(--tg-ink); border-bottom-color: var(--tg-ink); }
+.picker-option:has(input:checked) { font-weight: 800; color: var(--tg-ink); border-bottom-color: var(--tg-ink); }
 .picker-option:has(input:focus-visible) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
 .controls-row, .temperature { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); }
 .controls-row { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); }
@@ -30,15 +31,14 @@
 
 .specimen-kicker {
   margin: 0;
-  font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-ui);
   color: var(--tg-ink-muted);
 }
 
 .specimen-title {
   margin: var(--tg-space-1) 0 var(--tg-space-2);
-  font: italic 400 var(--tg-text-2xl) / 1.1 var(--tg-font-serif);
+  font: 800 var(--tg-text-2xl) / 1.1 var(--tg-font-ui);
+  letter-spacing: -0.03em;
 }
 .specimen-fields { margin: 0; }
 .specimen-fields dt { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
@@ -140,7 +140,7 @@
 .view-toggle-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-2) 0; }
 .view-toggle { min-height: 24px; padding: 0 var(--tg-space-1); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); background: none; border: 0; border-radius: var(--tg-radius); text-underline-offset: 4px; cursor: pointer; }
 .view-toggle:is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline; }
-.view-toggle[aria-pressed='true'] { font-weight: 600; color: var(--tg-ink); text-decoration: underline 2px; }
+.view-toggle[aria-pressed='true'] { font-weight: 800; color: var(--tg-ink); text-decoration: underline 2px; }
 .table-scroll { overflow-x: auto; margin-bottom: var(--tg-space-2); }
 .garden-table { border-collapse: collapse; font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
 .garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--tg-ink-muted); }

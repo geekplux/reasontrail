@@ -16,7 +16,8 @@ export function LensIcon({ className = 'lens-icon', title }: { className?: strin
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
-      {...(title ? { role: 'img', 'aria-label': title } : { 'aria-hidden': true, focusable: false })}
+      aria-hidden={title ? undefined : true}
+      {...(title ? { role: 'img', 'aria-label': title } : { focusable: false })}
     >
       <circle cx={5} cy={16} r={3} fill="currentColor" stroke="none" />
       <path d="M5 16H12" strokeWidth={4} />

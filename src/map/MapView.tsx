@@ -216,7 +216,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
       </div>
       <section className="region route-band" data-region="route" aria-labelledby="h-route">
         <div className="route-head">
-          <h2 id="h-route" className="section-label">Route <span>· {count === 1 ? '1 episode' : `${count} episodes`} · in order</span></h2>
+          <h2 id="h-route" className="region-head">Route <span>· {count === 1 ? '1 episode' : `${count} episodes`} · in order</span></h2>
           <div className="route-tools">
             <button type="button" className="ai-button key-button" aria-expanded={key} aria-controls={keyId} onClick={() => setKey(!key)}>Key</button>
             {ai && (aiLoaded ? (

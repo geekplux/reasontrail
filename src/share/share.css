@@ -1,7 +1,8 @@
+/* Hallmark · theme: Wayfind · redesign: full · the stamp, critique and waivers are in src/site/site.css */
 /* The share dialog (DESIGN §13.1, V4): one of the allowed frames (§18.3); ink and muted only, no hue in chrome. */
 .share-dialog { max-width: min(38rem, calc(100vw - 2 * var(--tg-space-4))); padding: var(--tg-space-5); color: var(--tg-ink); background: var(--tg-paper); border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); font: 400 14px / 1.5 var(--tg-font-ui); }
 .share-dialog::backdrop { background: color-mix(in srgb, var(--tg-ink) 35%, transparent); }
-.share-title { margin: 0 0 var(--tg-space-2); font: 600 17px / 1.3 var(--tg-font-ui); }
+.share-title { margin: 0 0 var(--tg-space-2); font: 800 17px / 1.3 var(--tg-font-ui); }
 .share-summary { margin: 0 0 var(--tg-space-4); }
 .share-summary p { margin: 0; }
 .share-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--tg-space-2) var(--tg-space-4); margin: 0 0 var(--tg-space-4); font-size: 13.5px; color: var(--tg-ink-muted); }
@@ -10,22 +11,22 @@
 .share-toggle { display: inline-flex; gap: var(--tg-space-2); align-items: center; min-height: 28px; font-size: 13.5px; cursor: pointer; }
 .share-examples { margin: var(--tg-space-2) 0 0; padding: 0; list-style: none; font-size: 12.8px; }
 .share-examples li { margin: 0 0 var(--tg-space-2); padding: var(--tg-space-2); overflow-wrap: anywhere; background: var(--tg-surface); }
-.share-examples mark { padding: 0 2px; font-weight: 600; color: var(--tg-ink); background: var(--tg-wash); outline: 1px dashed var(--tg-ink-muted); }
+.share-examples mark { padding: 0 2px; font-weight: 800; color: var(--tg-ink); background: var(--tg-wash); outline: 1px dashed var(--tg-ink-muted); }
 .share-actions { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); align-items: center; margin-top: var(--tg-space-5); }
 .share-actions button:not(.text-button) { min-height: 32px; padding: 0 var(--tg-space-4); font: 500 13.5px var(--tg-font-ui); color: var(--tg-ink); background: transparent; border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); cursor: pointer; }
 /* SD2: Download HTML is the dialog's one ink-filled action; the card is a quiet bordered secondary. */
-.share-actions button.share-primary { font-weight: 600; color: var(--tg-paper); background: var(--tg-ink); }
+.share-actions button.share-primary { font-weight: 800; color: var(--tg-paper); background: var(--tg-ink); }
 .share-dialog .text-button { padding: 0 var(--tg-space-2); font: 500 13.5px var(--tg-font-ui); color: var(--tg-ink); background: none; border: 0; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 .share-actions .share-close { margin-left: auto; min-height: 32px; }
 .share-actions button[aria-disabled="true"] { cursor: progress; opacity: 0.6; }
 .share-alt-box { display: flex; flex-wrap: wrap; gap: var(--tg-space-2); align-items: baseline; margin-top: var(--tg-space-4); padding: var(--tg-space-2) var(--tg-space-4); background: var(--tg-surface); }
 .share-alt-box .text-button { padding-left: 0; }
 .share-alt { flex: 1 1 100%; margin: 0; font-size: 13.5px; }
-.share-alt-label { font-weight: 600; }
+.share-alt-label { font-weight: 800; }
 /* The live regions stay in the DOM; they take room only once there is something to say. */
 .share-status, .share-error { margin: var(--tg-space-2) 0 0; font-size: 13.5px; }
 .share-status { color: var(--tg-ink-muted); }
-.share-error { font-weight: 600; }
+.share-error { font-weight: 800; }
 .share-status:empty, .share-error:empty { margin: 0; }
 @media (min-width: 481px) {
   .share-actions { flex-wrap: nowrap; }

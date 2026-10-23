@@ -33,8 +33,7 @@
     "samples:sessions": "pnpm -s build:cli && node scripts/session-samples.mjs"
   },
   "dependencies": {
-    "@fontsource/ibm-plex-mono": "^5",
-    "@fontsource/instrument-serif": "^5",
+    "@fontsource-variable/chivo-mono": "^5",
     "d3-hierarchy": "^3",
     "react": "^19",
     "react-dom": "^19"

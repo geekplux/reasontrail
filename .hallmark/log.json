@@ -1,0 +1,32 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "site",
+  "shape": "Station Sequence",
+  "theme": "wayfind",
+  "axes": "light/mono/cool",
+  "hero": "Banner",
+  "nav": "slab",
+  "footer": "mast",
+  "imagery": "the product",
+  "photos": [],
+  "entry": "/",
+  "fingerprint": "banner-wellmap-inkband-rows-mast",
+  "sections": [
+   "hero",
+   "showcase",
+   "band",
+   "rows",
+   "footer"
+  ],
+  "signature": "the session route as a station line",
+  "waived": [
+   "64",
+   "39b",
+   "24b"
+  ],
+  "prompt": "developer tool: a map of what a coding agent did in one session",
+  "date": "2026-10-23"
+ }
+]

@@ -95,7 +95,7 @@ export function Outline({ graph: g, sample = false, head, label }: { graph: Sess
       <TaskCard g={g} sample={sample} title={g.displayTitle} label={label} head={head} />
       <GlanceRows g={g} />
       <section className="region route" data-region="route" aria-labelledby="h-route">
-        <h2 id="h-route" className="section-label">Route</h2>
+        <h2 id="h-route" className="region-head">Route</h2>
         {g.steps.length === 0 ? (
           <div className="empty">
             <span className="trail-stub" aria-hidden="true" />

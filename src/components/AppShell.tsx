@@ -10,14 +10,16 @@ export function AppShell({ children, actions, footer, privacy }: { children: Rea
   return (
     <>
       <header className="site-header showcase-header">
-        <a className="brand" href="./">
-          <Wordmark />
-        </a>
-        <div className="header-actions">
-          {actions}
-          <a className="header-link" href={SOURCE_URL}>
-            GitHub
+        <div className="bar">
+          <a className="brand" href="./">
+            <Wordmark />
           </a>
+          <div className="header-actions">
+            {actions}
+            <a className="header-link" href={SOURCE_URL}>
+              GitHub
+            </a>
+          </div>
         </div>
       </header>
       <main className="site-main">{children}</main>

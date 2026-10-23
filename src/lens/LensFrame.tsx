@@ -160,8 +160,8 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     <div className="lens-bar">
       {live ? (
         <p id="lens-live" className="lens-live muted" tabIndex={-1}>
-          Live growth on · {modelLabel({ provider: '', name: provider!.model })} · {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep ·{' '}
-          {provider!.callsLeft} of {LIVE_MAX_CALLS} live calls left in this tab
+          Live growth is on with {modelLabel({ provider: '', name: provider!.model })}: {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep.{' '}
+          {provider!.callsLeft} of {LIVE_MAX_CALLS} live calls left in this tab.
         </p>
       ) : rec ? null : (
         <p className="lens-offer">

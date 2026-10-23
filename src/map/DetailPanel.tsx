@@ -135,8 +135,8 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
             </ProvenanceBlock>
           )}
           <div className="panel-nav">
-            <button type="button" data-panel-nav="" aria-disabled={at <= 0} onClick={() => stepBy(-1)}>← Previous {pattern ? 'evidence' : 'step'}</button>
-            <button type="button" data-panel-nav="" aria-disabled={at >= nav.length - 1} onClick={() => stepBy(1)}>Next {pattern ? 'evidence' : 'step'} →</button>
+            <button type="button" data-panel-nav="" aria-disabled={at <= 0} onClick={() => stepBy(-1)}>Previous {pattern ? 'evidence' : 'step'}</button>
+            <button type="button" data-panel-nav="" aria-disabled={at >= nav.length - 1} onClick={() => stepBy(1)}>Next {pattern ? 'evidence' : 'step'}</button>
           </div>
         </>
       )}

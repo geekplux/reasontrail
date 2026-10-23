@@ -57,7 +57,7 @@ export function TaskCard({ g, sample = false, title, label, head }: { g: Session
   return (
     <section className="region task-card" data-region="task" aria-labelledby="h-task">
       <div className="task-eyebrow">
-        <h2 id="h-task" className="section-label task-label">
+        <h2 id="h-task" className="region-head task-label">
           Task <span>· {card.source}{sample ? ' · sample' : ''}{label ? ` · ${label}` : ''}</span>
         </h2>
         {head}
@@ -102,7 +102,7 @@ export function GlanceRows({ g }: { g: SessionGraph }) {
   };
   return (
     <section className="region glance" data-region="glance" aria-labelledby="h-glance">
-      <h2 id="h-glance" className="section-label">At a glance</h2>
+      <h2 id="h-glance" className="region-head">At a glance</h2>
       <ul className="glance-rows">
         {glance(g).map((r) => (
           <li key={r.key} data-glance={r.key} data-status={r.status}>

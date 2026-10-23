@@ -1,64 +1,152 @@
-/* The website (DESIGN §13.3, §13.4, §18): calm chrome, one focal point per page, space instead of boxes. Tokens only. */
+/* Hallmark · shape: Station Sequence · genre: modern-minimal · theme: Wayfind (deal 1/3, seed developer-tool-map-what-3f07·dcfc65d9·2026-10-23·r0) · redesign: full
+ * hero: Banner · nav: slab · footer: mast · imagery: the product (the live map of a recorded session) · signature: the session's route drawn as a station line on the first screen · wayfind: platform (light), night (dark)
+ * axes: light/mono/cool · posture: committed · contrast: pass · fold: pass · modes: light+dark · job: try · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V4 · weakest: P, a map tool argues little; the head says what the reader gets (how the agent got there) and the live route proves it */
+/* Hallmark · waive 64 · the theme's material is mono: Wayfind sets every glyph in Chivo Mono · a session map reads as a departure board of steps, so labels share the board's face */
+/* Hallmark · waive 39b · app UI at 32 to 44px with 44px hit areas on phones (map.css) · the live session map is the product's own screen, so its controls keep the app range */
+/* Hallmark · waive 24b · two nudges of 22px on .lane-item and .lep · the side-trail labels sit under the route line at the fixed geometry layout.ts computes */
+/* Hallmark · dropped "· what changed" after the Destination head · 54 named the label, and the file count under the head already says what changed */
+/* Hallmark · reworded "Reasontrail turns a Claude Code, Codex or Grok Build session into a map: the task, the route, where it got stuck, what it changed." to "Reasontrail maps a Claude Code, Codex or Grok Build session." · 58 holds the hero to one sentence; the map below shows the task, route, trouble and changes */
+/* The website, Wayfind: a slab of ink for the chrome, a banner head in Chivo Mono 800, the live route in a bordered
+   well, one ink band for the install command, a mast footer. Tokens only. */
 .site { display: contents; }
 .site[hidden] { display: none; }
 
-.showcase-header { gap: var(--tg-space-5); padding: var(--tg-space-2) var(--tg-space-8); }
-.site-nav { display: flex; gap: var(--tg-space-5); margin-inline-start: auto; }
-.button {
-  display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--tg-space-4); gap: var(--tg-space-2);
-  border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); background: transparent; color: var(--tg-ink);
-  font: 500 var(--tg-text-sm) var(--tg-font-ui); text-decoration: none; cursor: pointer;
+/* One container: 1440 capped, 64 px gutters (24 and 16 on smaller screens); the gutters grow past 1440, nothing else. */
+.showcase-header > .bar, .site-footer > .bar, .hero, .showcase .site-map, .band-inner, .how-to-read-wrap, .page {
+  width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter);
 }
-.button.primary { background: var(--tg-ink); color: var(--tg-paper); }
+
+/* The slab: an ink bar, the wordmark at one edge, the destinations at the other. */
+.showcase-header { display: block; min-height: 0; padding: 0; color: var(--tg-on-band); background: var(--tg-band); border-bottom: 0; }
+.showcase-header > .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--tg-space-5); min-height: 64px; }
+.showcase-header .header-link { white-space: nowrap; }
+.showcase-header .logo-mark { color: var(--tg-on-band); }
+.showcase-header .header-actions { margin-inline-start: auto; }
+.showcase-header .brand { color: var(--tg-on-band); }
+.site-nav { display: flex; gap: var(--tg-space-5); margin-inline-start: auto; }
+.showcase-header .header-link { min-height: 44px; color: var(--tg-on-band); font-size: var(--tg-text-sm); font-weight: 500; }
+.showcase-header .header-link:hover { color: var(--tg-on-band); text-decoration-thickness: 2px; }
+.showcase-header .header-link[aria-current='page'] { text-decoration-thickness: 2px; }
+
+/* Buttons: square, Chivo Mono 800, 48 px; the cobalt fill is the page's one primary, the rest carry a 2 px ink border. */
+.button {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 var(--tg-space-5); gap: var(--tg-space-2);
+  border: var(--tg-border); border-radius: 0; background: transparent; color: var(--tg-ink);
+  font: 800 var(--tg-text-sm) / 1 var(--tg-font-ui); white-space: nowrap; text-decoration: none; cursor: pointer;
+  transition: background-color var(--tg-dur-micro) steps(1), color var(--tg-dur-micro) steps(1);
+}
+.button:hover { color: var(--tg-ink); background: var(--tg-paper-2); }
+.button:active { background: var(--tg-rule); }
+.button.primary { border-color: var(--tg-accent); background: var(--tg-accent); color: var(--tg-accent-ink); }
+.button.primary:hover { color: var(--tg-accent-ink); background: var(--tg-ink); border-color: var(--tg-ink); }
+.button.primary:active { background: var(--tg-ink-muted); border-color: var(--tg-ink-muted); }
+.button:disabled { opacity: 0.55; cursor: not-allowed; }
 .button:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
-.text-button { border: 0; padding: var(--tg-space-1) var(--tg-space-2); background: none; color: var(--tg-ink); font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+.text-button { min-height: 32px; border: 0; padding: var(--tg-space-1) var(--tg-space-2); background: none; color: var(--tg-ink); font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+.text-button:hover { color: var(--tg-accent); }
+.text-button:active { color: var(--tg-ink-muted); }
 
-.showcase, .page { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 var(--tg-space-8) var(--tg-space-8); }
-.hero { padding: var(--tg-space-9) 0 var(--tg-space-8); }
-.headline { margin: 0 0 var(--tg-space-2); font: 400 2.441rem / 1.1 var(--tg-font-serif); letter-spacing: -0.01em; }
-.sub-line { margin: 0; max-width: 64rem; color: var(--tg-ink-muted); }
-.showcase .site-map { padding: 0; max-width: none; }
-/* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point; the headline is the one large text */
+/* Banner hero: the head on eight columns, its one line and the two actions on the last four, on the head's baseline. */
+.showcase { width: 100%; }
+.hero { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--tg-space-8); align-items: end; padding-block: var(--tg-space-9) var(--tg-space-8); }
+.headline {
+  margin: 0; max-width: 26ch; font: 800 var(--text-display-s) / 1 var(--tg-font-ui); letter-spacing: var(--tracking-display);
+  overflow-wrap: break-word; min-width: 0; text-wrap: balance;
+}
+.hero-side { display: grid; gap: var(--tg-space-4); padding-bottom: var(--tg-space-1); }
+.sub-line { margin: 0; max-width: 34ch; font-size: var(--tg-text-md); line-height: 1.45; color: var(--tg-ink); text-wrap: pretty; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: var(--tg-space-3); }
+
+/* The signature: the live route of a recorded session, in a well with a 2 px ink border. */
+.showcase .site-map { max-width: var(--container); padding-block: 0; }
+.showcase .site-map > .map, .showcase .site-map > .outline, .showcase .site-map > .inline-note, .showcase .site-map > p.muted {
+  padding: var(--tg-space-8); background: var(--tg-surface); border: var(--tg-border);
+}
+.showcase .site-map > .map.has-panel { padding-inline-end: 0; }
+/* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point */
 .showcase .task-request { display: flex; align-items: baseline; gap: var(--tg-space-2); }
-.showcase .task-title { min-width: 0; font-size: var(--tg-text-lg); }
-.showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-8); }
+.showcase .task-title { min-width: 0; font-size: var(--text-title); }
+.showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-5); }
 
+/* Samples: square cells joined edge to edge; the chosen one fills ink. */
 .gallery { margin: 0; padding: 0; border: 0; min-width: 0; }
-.gallery legend { padding: 0; }
-.gallery-segments { display: flex; flex-wrap: wrap; gap: var(--tg-space-5); }
-.gallery-segments label { display: inline-flex; align-items: center; min-height: 32px; border-bottom: 2px solid transparent; cursor: pointer; }
+.gallery legend { padding: 0; margin-bottom: var(--tg-space-2); }
+.gallery-segments { display: flex; flex-wrap: wrap; }
+.gallery-segments label {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 var(--tg-space-5); border: var(--tg-border); cursor: pointer;
+  font-size: var(--tg-text-sm); font-weight: 500; transition: background-color var(--tg-dur-micro) steps(1), color var(--tg-dur-micro) steps(1);
+}
+.gallery-segments label + label { margin-inline-start: calc(-1 * var(--tg-rule-bar)); }
+.gallery-segments label:hover { background: var(--tg-paper-2); }
+.gallery-segments label:active { background: var(--tg-rule); }
 .gallery-segments input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.gallery-segments label:has(input:checked) { border-bottom-color: var(--tg-ink); font-weight: 600; }
-.gallery-segments label:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
-.gallery-segments label:not(:has(input:checked)) { color: var(--tg-ink-muted); }
+.gallery-segments label:has(input:checked) { color: var(--tg-paper); background: var(--tg-ink); font-weight: 800; }
+.gallery-segments label:has(input:focus-visible) { outline: 2px solid var(--tg-focus); outline-offset: 2px; position: relative; z-index: 1; }
 .gallery-select { display: none; }
 .view-switch.narrow-only { display: none; }
 
-.command { display: inline-flex; align-items: center; gap: var(--tg-space-2); max-width: 100%; padding: var(--tg-space-2) var(--tg-space-2) var(--tg-space-2) var(--tg-space-4); background: var(--tg-surface); border-radius: var(--tg-radius); }
+.command { display: inline-flex; align-items: center; gap: var(--tg-space-2); max-width: 100%; padding: var(--tg-space-2) var(--tg-space-2) var(--tg-space-2) var(--tg-space-4); background: var(--tg-surface); border: var(--tg-border); }
 .command code { font: 500 15px var(--tg-font-mono); overflow-wrap: anywhere; }
-/* The focal command (I1): mono 18 against 15 for the rest, so the two boxes do not read as equals. */
+/* The focal command (I1): larger than the rest, so the two boxes do not read as equals. */
 .command.is-big code { font-size: 18px; }
-.install-line, .how-to-read-map { margin-top: var(--tg-space-8); max-width: var(--tg-measure); }
+
+/* The install band: one ink field edge to edge, the command set large on it. */
+.install-line { margin-top: var(--section-gap-s); padding-block: var(--section-gap-s); color: var(--tg-on-band); background: var(--tg-band); }
+.band-inner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--tg-space-5) var(--tg-space-9); align-items: start; }
+.band-head { grid-row: span 2; margin: 0; max-width: 12ch; font: 800 var(--text-section) / 1 var(--tg-font-ui); letter-spacing: var(--tracking-display); overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+.install-line .command { justify-self: start; padding: var(--tg-space-4) var(--tg-space-4) var(--tg-space-4) var(--tg-space-5); color: var(--tg-on-band); background: transparent; border-color: var(--tg-on-band); }
+.install-line .command.is-big code { font-size: clamp(1.125rem, 1.4vw + 0.5rem, 1.75rem); font-weight: 800; color: var(--tg-amber); }
+.install-line .text-button { color: var(--tg-on-band); }
+.install-line .copy-said { color: var(--tg-on-band-muted); }
+.band-line { margin: 0; max-width: 56ch; color: var(--tg-on-band-muted); }
+.band-line code { color: var(--tg-on-band); }
+.band-line a { color: var(--tg-on-band); }
 .install-line p, .page p { margin: var(--tg-space-2) 0 0; }
-.how-to-read-map ol { margin: 0; padding-inline-start: var(--tg-space-5); display: grid; gap: var(--tg-space-2); }
-.how-to-read-map summary { min-height: 24px; cursor: pointer; color: var(--tg-ink-muted); }
-.how-to-read-map summary .section-label { display: inline; }
-.how-to-read-map[open] summary { margin-bottom: var(--tg-space-2); }
+
+/* How to read: folded, its summary set as a sign on a 2 px rule; open, four rows. */
+.how-to-read-wrap { padding-block: var(--section-gap-s) var(--section-gap); }
+.how-to-read-map { max-width: none; border-top: var(--tg-border); }
+.how-to-read-map summary { display: flex; align-items: center; gap: var(--tg-space-3); min-height: 64px; padding-top: var(--tg-space-4); cursor: pointer; color: var(--tg-ink); list-style: none; }
+.how-to-read-map summary::-webkit-details-marker { display: none; }
+.how-to-read-map summary::before { content: ''; flex: none; width: 14px; height: 16px; background: currentColor; clip-path: polygon(0 0, 100% 50%, 0 100%); transition: transform var(--tg-dur-micro) steps(1); }
+.how-to-read-map[open] summary::before { transform: rotate(90deg); }
+.how-to-read-map summary .section-label { display: inline; margin: 0; font: 800 var(--text-section) / 1 var(--tg-font-ui); letter-spacing: var(--tracking-display); color: var(--tg-ink); }
+.how-to-read-map summary:hover .section-label { color: var(--tg-accent); }
+.how-to-read-map ol { display: grid; margin: var(--tg-space-8) 0 0; padding: 0; list-style: none; counter-reset: how; }
+.how-to-read-map ol > li { counter-increment: how; display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: var(--tg-space-5); padding-block: var(--tg-space-5); border-top: var(--tg-hairline); max-width: 96ch; }
+.how-to-read-map ol > li::before { content: counter(how); font: 800 var(--text-title) / 1 var(--tg-font-ui); }
+.how-to-read-map > p { margin: var(--tg-space-5) 0 0; }
 .how-kinds { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; color: var(--tg-ink-muted); }
 .how-kinds > span { display: inline-flex; align-items: center; gap: var(--tg-space-1); }
 .how-kinds .glyph, .how-kinds svg { width: 16px; height: 16px; }
 
-.page-title { margin: var(--tg-space-9) 0 var(--tg-space-5); font: 400 var(--tg-text-xl) / 1.2 var(--tg-font-serif); }
-.page section + section { margin-top: var(--tg-space-8); }
+/* The map's last band ends on the well's own padding. */
+.showcase .bottom-band > .region { padding-bottom: 0; }
+/* Plain pages (install, open, chat). */
+.page { padding-block: 0 var(--section-gap-s); }
+.page-title { margin: var(--tg-space-9) 0 var(--tg-space-8); font: 800 var(--text-display-s) / 1 var(--tg-font-ui); letter-spacing: var(--tracking-display); overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+.page section + section { margin-top: var(--section-gap-s); }
+/* Install: each section a split, its head as a sign on the left, the commands on the right. */
+.install > section { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--tg-space-5) var(--tg-space-9); align-items: start; padding-top: var(--tg-space-5); border-top: var(--tg-border); }
+.install > section > h2.region-head { grid-row: span 4; padding-top: 0; border-top: 0; font-size: var(--text-section); line-height: 1; letter-spacing: var(--tracking-display); }
+.install > section > :not(h2) { grid-column: 2; }
+@media (max-width: 60rem) { .install > section { grid-template-columns: minmax(0, 1fr); } .install > section > :not(h2) { grid-column: 1; } }
 .page details { margin-top: var(--tg-space-4); }
-.page summary { cursor: pointer; }
+.page summary { min-height: 32px; cursor: pointer; }
 .plain-list { margin: var(--tg-space-2) 0; padding-inline-start: var(--tg-space-5); }
 
-/* The footer sits in the same 1280 px column as the page, on one line at 1440 (X6). */
-.showcase-footer { justify-content: flex-start; padding: var(--tg-space-5) max(var(--tg-space-8), calc((100% - 1280px) / 2 + var(--tg-space-8))); }
+/* The mast: the wordmark set large over the links, then the licence line. */
+.showcase-footer { display: block; padding: 0; color: var(--tg-on-band); background: var(--tg-band); border-top: 0; font-size: var(--tg-text-sm); }
+.site-footer > .bar { display: grid; gap: var(--tg-space-5); padding-block: var(--tg-space-9) var(--tg-space-8); }
+.footer-mark { margin: 0; font-size: var(--text-display-s); line-height: 1; letter-spacing: -0.03em; }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--tg-space-2) var(--tg-space-8); margin: 0; padding: var(--tg-space-5) 0 0; list-style: none; border-top: 1px solid var(--tg-on-band-muted); }
+.showcase-footer .footer-link { margin-inline: 0; padding-inline: 0; min-height: 32px; color: var(--tg-on-band); }
+.showcase-footer .footer-link:hover { color: var(--tg-on-band); text-decoration-thickness: 2px; }
+.footer-legal { margin: 0; color: var(--tg-on-band-muted); }
 
 /* Drop zone */
-.drop-target { display: grid; justify-items: center; gap: var(--tg-space-4); max-width: 40rem; padding: var(--tg-space-8) var(--tg-space-5); border: 2px dashed var(--tg-ink-muted); border-radius: var(--tg-radius); text-align: center; }
+.drop-target { display: grid; justify-items: center; gap: var(--tg-space-4); max-width: 48rem; padding: var(--tg-space-9) var(--tg-space-5); background: var(--tg-surface); border: 2px dashed var(--tg-ink); text-align: center; }
 .drop-target p { margin: 0; }
 .drop-target .logo-mark { width: 48px; height: 48px; }
 .drop-target[data-busy] { opacity: 0.6; }
@@ -67,7 +155,7 @@
 .intake-alert { margin-top: var(--tg-space-5); }
 .intake-alert:empty { margin: 0; } /* present and empty from load, so the first message is announced */
 .intake-error { display: flex; align-items: center; flex-wrap: wrap; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); }
-.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--tg-paper); background: var(--tg-trouble); font-weight: 700; }
+.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--tg-paper); background: var(--tg-trouble); font-weight: 800; }
 .open-session .trail-stub { margin-top: var(--tg-space-5); }
 .open-session > .muted { margin-top: var(--tg-space-4); }
 .quiet-details summary { color: var(--tg-ink-muted); }
@@ -81,6 +169,7 @@
 .route-skeleton { width: 100%; height: 24px; fill: var(--tg-paper); stroke: var(--tg-rule); stroke-width: 2; }
 .open-after { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-5); }
 .open-file { margin: var(--tg-space-5) 0 var(--tg-space-4); font: 500 var(--tg-text-sm) var(--tg-font-mono); color: var(--tg-ink-muted); overflow-wrap: anywhere; }
+.open-session code, .open-session pre { overflow-wrap: anywhere; white-space: pre-wrap; }
 .open-session > .quiet-links { margin-top: var(--tg-space-1); }
 .open-session .site-map, .open-session .map, .open-session .outline { padding: 0; }
 .open-session > .visually-hidden + [data-testid='map'] { margin-top: var(--tg-space-5); }
@@ -92,20 +181,23 @@
 .drop-overlay p { margin: 0; }
 .drop-overlay .logo-mark { width: 64px; height: 64px; }
 
+@media (max-width: 60rem) {
+  .hero, .band-inner { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-5); }
+  .band-head { grid-row: auto; }
+}
 @media (max-width: 767px) {
-  .showcase-header { padding: var(--tg-space-2) var(--tg-space-4); }
   .site-nav { display: none; }
-  .showcase, .page { padding: 0 var(--tg-space-4) var(--tg-space-8); }
-  .hero { padding: var(--tg-space-5) 0 var(--tg-space-4); }
-  .headline { font-size: var(--tg-text-xl); }
+  .showcase-header .header-link { font-size: 13px; }
+  .showcase-header > .bar { padding-block: var(--tg-space-2); }
+  .hero { padding-block: var(--tg-space-5) var(--tg-space-4); gap: var(--tg-space-3); }
+  .headline { font-size: 1.75rem; }
+  .hero-side { gap: var(--tg-space-3); }
+  .showcase .site-map > .map, .showcase .site-map > .outline { padding: var(--tg-space-4); }
   .gallery-segments { display: none; }
   .view-switch.wide-only { display: none; }
   .view-switch.narrow-only { display: inline-flex; }
-  .gallery-select { display: block; min-height: 36px; max-width: 100%; font: inherit; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
-  .showcase-footer { padding: var(--tg-space-5) var(--tg-space-4); }
-  /* Phone hit areas of at least 44 px (WCAG 2.5.5) without moving the layout. */
-  .how-to-read-map summary { position: relative; }
-  .how-to-read-map summary::before { content: ''; position: absolute; inset: -10px -4px; }
+  .gallery-select { display: block; min-height: 48px; max-width: 100%; padding: 0 var(--tg-space-3); font: inherit; color: var(--tg-ink); background: var(--tg-surface); border: var(--tg-border); border-radius: 0; }
+  .how-to-read-map ol > li { grid-template-columns: 2.5rem minmax(0, 1fr); gap: var(--tg-space-3); }
 }
 
 /* Chat import (phase 23, DESIGN §13.8, §18.1): the paste box is the focal point; the export is a quiet text link. */
@@ -120,7 +212,7 @@
 .file-link input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .file-link:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
 .chat-picker { display: grid; gap: var(--tg-space-2); max-width: 40rem; }
-.chat-picker h2 { margin: 0; font-size: inherit; }
+.chat-picker h2 { margin: 0; font-size: inherit; text-wrap: balance; }
 .chat-picker p { margin: 0; }
 .chat-picker input[type='search'] { padding: var(--tg-space-2); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); background: var(--tg-paper); color: var(--tg-ink); font: inherit; }
 .chat-list { margin: 0; padding: 4px; list-style: none; max-height: 24rem; overflow-y: auto; }

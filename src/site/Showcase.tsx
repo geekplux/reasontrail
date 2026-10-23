@@ -34,10 +34,17 @@ export function Showcase({ session, view, onView, onSession }: { session: string
   const toggle = <ViewSwitch view={view} onChange={onView} className="wide-only" />;
   return (
     <div className="showcase">
-      <div className="hero">
-        <h1 className="headline" tabIndex={-1}>See how your coding agent got there.</h1>
-        <p className="sub-line">Reasontrail turns a Claude Code, Codex or Grok Build session into a map: the task, the route, where it got stuck, what it changed.</p>
-      </div>
+      {/* Banner: the head on the left, its one line and the two actions on the right; the live map starts above the fold. */}
+      <section className="hero" aria-labelledby="h-hero">
+        <h1 id="h-hero" className="headline" tabIndex={-1}>See how your coding agent got there.</h1>
+        <div className="hero-side">
+          <p className="sub-line">Reasontrail maps a Claude Code, Codex or Grok Build session.</p>
+          <div className="hero-actions">
+            <a className="button primary" href="?view=open">Map your own session</a>
+            <a className="button" href="?view=install">Install</a>
+          </div>
+        </div>
+      </section>
       <section className="site-map showcase-map" aria-labelledby="h-watch">
         <h2 id="h-watch" className="visually-hidden">Watch the agents that built this app</h2>
         {unknown && <InlineNote variant="info">That session isn&apos;t here, so here is “{sample?.title}”.</InlineNote>}
@@ -49,7 +56,9 @@ export function Showcase({ session, view, onView, onSession }: { session: string
         </div>
       </section>
       <InstallLine />
-      <HowToReadMap />
+      <section className="how-to-read-wrap" aria-label="How to read a map">
+        <HowToReadMap />
+      </section>
     </div>
   );
 }

@@ -20,7 +20,8 @@ export function LogoMark({ className = 'logo-mark', title }: { className?: strin
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
-      {...(title ? { role: 'img', 'aria-label': title } : { 'aria-hidden': true, focusable: false })}
+      aria-hidden={title ? undefined : true}
+      {...(title ? { role: 'img', 'aria-label': title } : { focusable: false })}
     >
       <circle cx={4.5} cy={20} r={3.5} fill="currentColor" stroke="none" />
       <path d={TRAIL_MARK.route} strokeWidth={3.5} strokeLinejoin="round" />

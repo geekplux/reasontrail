@@ -8,7 +8,7 @@ const GLYPH: Record<NoteVariant, ReactNode> = {
   info: 'i',
   // The hollow r 4 ring of a not-recorded branch tip.
   'not-recorded': (
-    <svg width={12} height={12} viewBox="-6 -6 12 12" className="inline-note-ring">
+    <svg width={12} height={12} viewBox="-6 -6 12 12" className="inline-note-ring" aria-hidden="true">
       <circle r={MARKER_R} />
     </svg>
   ),

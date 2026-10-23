@@ -24,7 +24,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await page.waitForTimeout(200); // let the second font response finish
   const fontBytes = fonts.reduce((sum, f) => sum + f.bytes, 0);
   log(`fonts: ${fonts.map((f) => `${f.url.split('/').pop()} ${f.bytes} B`).join(', ')}; total ${fontBytes} B`);
-  if (fonts.length !== 2) fail(`expected exactly 2 font requests, got ${fonts.length}`);
+  if (fonts.length !== 1) fail(`expected exactly 1 font request (Chivo Mono, one variable file), got ${fonts.length}`);
   if (fontBytes > FONT_BUDGET) fail(`fonts ${fontBytes} B > ${FONT_BUDGET} B`);
   fonts.filter((f) => new URL(f.url).origin !== baseURL).forEach((f) => fail(`font not same-origin: ${f.url}`));
 
@@ -35,21 +35,21 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   const mark = await page.evaluate(() => {
     const style = (sel) => {
       const el = document.querySelector(sel);
-      return el && { family: getComputedStyle(el).fontFamily, italic: getComputedStyle(el).fontStyle, text: el.textContent };
+      return el && { family: getComputedStyle(el).fontFamily, weight: getComputedStyle(el).fontWeight, text: el.textContent };
     };
     return {
       logo: Boolean(document.querySelector('header .wordmark svg.logo-mark')),
       reason: style('header .wordmark-reason'),
       trail: style('header .wordmark-trail'),
-      loaded: document.fonts.check('500 16px "IBM Plex Mono"') && document.fonts.check('italic 400 16px "Instrument Serif"'),
+      loaded: document.fonts.check('400 16px "Chivo Mono Variable"') && document.fonts.check('800 16px "Chivo Mono Variable"'),
       landmarks: ['header', 'main', 'footer'].map((t) => document.querySelectorAll(t).length),
     };
   });
   log(`wordmark: ${JSON.stringify(mark)}`);
   if (!mark.logo) fail('header wordmark has no logo mark');
-  if (mark.reason?.text !== 'reason' || !mark.reason.family.startsWith('"IBM Plex Mono"')) fail('"reason" is not set in IBM Plex Mono');
-  if (mark.trail?.text !== 'trail' || !mark.trail.family.startsWith('"Instrument Serif"') || mark.trail.italic !== 'italic')
-    fail('"trail" is not set in Instrument Serif Italic');
+  // The wordmark (Wayfind, 2026-10-23): one face, Chivo Mono; the change of weight (400 to 800) is the join.
+  if (mark.reason?.text !== 'reason' || !mark.reason.family.startsWith('"Chivo Mono Variable"') || mark.reason.weight !== '400') fail('"reason" is not set in Chivo Mono 400');
+  if (mark.trail?.text !== 'trail' || !mark.trail.family.startsWith('"Chivo Mono Variable"') || mark.trail.weight !== '800') fail('"trail" is not set in Chivo Mono 800');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
   // One name for the brand link; the header also links to the source.
@@ -101,7 +101,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   // Dark theme.
   await page.emulateMedia({ colorScheme: 'dark' });
   const bg = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
-  if (bg !== 'rgb(17, 24, 19)') fail(`dark: page background is ${bg}, expected --tg-paper #111813`);
+  if (bg !== 'rgb(8, 11, 16)') fail(`dark: page background is ${bg}, expected --tg-paper #080b10`);
   for (const p of await axeProblems(page, 'dark desktop')) fail(p);
   await shot('identity-dark');
   await page.emulateMedia({ colorScheme: 'light' });

@@ -18,15 +18,15 @@ const c = (theme: Theme, name: string) => {
   return hex;
 };
 
-// PLAN §3.2: contrast of each token on --tg-paper.
+// Contrast of each token on --tg-paper (the Wayfind palette, Hallmark redesign 2026-10-23; was PLAN §3.2's).
 const CONTRAST: Record<Theme, Record<string, number>> = {
   light: {
-    surface: 1.09, ink: 14.1, 'ink-muted': 6.5, rule: 1.35, 'branch-lo': 4.1, 'branch-mid': 6.3,
-    'branch-hi': 9.7, accent: 4.5, focus: 5.6, error: 6.5, ok: 4.95, trouble: 6.51, wash: 1.13, lane: 4.08, 'lane-band': 1.07,
+    surface: 1.13, ink: 17.01, 'ink-muted': 6.48, rule: 1.64, 'branch-lo': 3.9, 'branch-mid': 7.4,
+    'branch-hi': 13.59, accent: 5.33, focus: 5.33, error: 5.63, ok: 5.33, trouble: 3.86, wash: 1.07, lane: 4.08, 'lane-band': 1.12,
   },
   dark: {
-    surface: 1.09, ink: 15.3, 'ink-muted': 8.4, rule: 1.46, 'branch-lo': 6.5, 'branch-mid': 10.4,
-    'branch-hi': 14.4, accent: 8.5, focus: 8.4, error: 8.2, ok: 5.58, trouble: 4.87, wash: 1.25, lane: 6.54, 'lane-band': 1.05,
+    surface: 1.08, ink: 17.54, 'ink-muted': 9.2, rule: 1.49, 'branch-lo': 5.87, 'branch-mid': 9.9,
+    'branch-hi': 14.59, accent: 7.22, focus: 7.22, error: 11.13, ok: 6.73, trouble: 10.77, wash: 1.3, lane: 5.84, 'lane-band': 1.06,
   },
 };
 const TEXT = ['ink', 'ink-muted', 'accent', 'error'];
@@ -55,27 +55,27 @@ const DISTINCT: [Theme, string, string][] = [
 
 // DESIGN §6.2: text on the wash background and glyph interiors (paper) on the ok and trouble plates.
 const ON: [Theme, string, string, number][] = [
-  ['light', 'error', 'wash', 5.74],
-  ['dark', 'error', 'wash', 6.53],
-  ['light', 'ink', 'wash', 12.39],
-  ['light', 'ink-muted', 'wash', 5.76],
-  ['dark', 'ink', 'wash', 12.23],
-  ['dark', 'ink-muted', 'wash', 6.7],
-  ['light', 'surface', 'ok', 5.4],
-  ['light', 'surface', 'trouble', 7.1],
-  ['dark', 'paper', 'ok', 5.58],
-  ['dark', 'paper', 'trouble', 4.87],
+  ['light', 'error', 'wash', 5.25],
+  ['dark', 'error', 'wash', 8.59],
+  ['light', 'ink', 'wash', 15.87],
+  ['light', 'ink-muted', 'wash', 6.05],
+  ['dark', 'ink', 'wash', 13.54],
+  ['dark', 'ink-muted', 'wash', 7.11],
+  ['light', 'surface', 'ok', 6.01],
+  ['light', 'surface', 'trouble', 4.36],
+  ['dark', 'paper', 'ok', 6.73],
+  ['dark', 'paper', 'trouble', 10.77],
   // The expanded-lane band: its 3 px stroke (mark) and the text and glyphs on it (§6.2)
-  ['light', 'lane', 'lane-band', 3.8],
-  ['dark', 'lane', 'lane-band', 6.23],
-  ['light', 'ink', 'lane-band', 13.08],
-  ['light', 'ink-muted', 'lane-band', 6.08],
-  ['light', 'ok', 'lane-band', 4.61],
-  ['light', 'trouble', 'lane-band', 6.06],
-  ['dark', 'ink', 'lane-band', 14.62],
-  ['dark', 'ink-muted', 'lane-band', 8.01],
-  ['dark', 'ok', 'lane-band', 5.32],
-  ['dark', 'trouble', 'lane-band', 4.64],
+  ['light', 'lane', 'lane-band', 3.64],
+  ['dark', 'lane', 'lane-band', 5.52],
+  ['light', 'ink', 'lane-band', 15.17],
+  ['light', 'ink-muted', 'lane-band', 5.78],
+  ['light', 'ok', 'lane-band', 4.75],
+  ['light', 'trouble', 'lane-band', 3.44],
+  ['dark', 'ink', 'lane-band', 16.56],
+  ['dark', 'ink-muted', 'lane-band', 8.69],
+  ['dark', 'ok', 'lane-band', 6.35],
+  ['dark', 'trouble', 'lane-band', 10.17],
 ];
 const VISION: (Cvd | undefined)[] = [undefined, 'protanopia', 'deuteranopia', 'tritanopia'];
 

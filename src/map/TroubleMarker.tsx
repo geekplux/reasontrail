@@ -46,7 +46,7 @@ export function StuckList({ g, L, narrow = false, current }: { g: SessionGraph; 
   const more = L.order.length - cap;
   return (
     <section className="region stuck" data-region="trouble" aria-labelledby="h-stuck">
-      <h2 id="h-stuck" className="section-label">Where it got stuck <span>· {L.order.length === 1 ? '1 detected pattern' : `${L.order.length} detected patterns`}</span></h2>
+      <h2 id="h-stuck" className="region-head">Where it got stuck <span>· {L.order.length === 1 ? '1 detected pattern' : `${L.order.length} detected patterns`}</span></h2>
       {L.order.length === 0 ? (
         <p className="stuck-none"><StatusGlyph status="ok" /><span>No trouble detected. {chat ? 'No corrections or regenerated answers.' : 'No failed runs, retries, reverts or interruptions.'}<span className="visually-hidden"> Status: none.</span></span></p>
       ) : (

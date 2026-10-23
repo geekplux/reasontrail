@@ -62,11 +62,13 @@ const callLine = (
 export function InstallLine() {
   return (
     <section className="install-line" aria-labelledby="h-install-line">
-      <h2 id="h-install-line" className="section-label">Install the skill</h2>
-      <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
-      <p className="muted">
-        {callLine} <a href="?view=install">All install options</a>
-      </p>
+      <div className="band-inner">
+        <h2 id="h-install-line" className="band-head">Install the skill</h2>
+        <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
+        <p className="band-line">
+          {callLine} <a href="?view=install">All install options</a>
+        </p>
+      </div>
     </section>
   );
 }
@@ -77,7 +79,7 @@ export function Install() {
     <div className="page install">
       <h1 className="page-title" tabIndex={-1}>Install</h1>
       <section aria-labelledby="h-skill">
-        <h2 id="h-skill" className="section-label">The skill</h2>
+        <h2 id="h-skill" className="region-head">The skill</h2>
         <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
         <p>{callLine}</p>
         <details>
@@ -92,7 +94,7 @@ export function Install() {
         </details>
       </section>
       <section aria-labelledby="h-cli">
-        <h2 id="h-cli" className="section-label">Or run it yourself</h2>
+        <h2 id="h-cli" className="region-head">Or run it yourself</h2>
         <CommandLine command={COMMANDS.open} label="the map command" />
         <p>Maps the newest session for this folder and opens it in your browser. Nothing is uploaded.</p>
         <details>

@@ -55,22 +55,31 @@ export function SiteShell({ children, onFile, home, view }: { children: ReactNod
   const dragging = useFileDrop(onFile);
   return (
     <>
+      {/* The slab: one ink bar, the wordmark at one edge and the two destinations at the other. */}
       <header className="site-header showcase-header">
-        {home ? <Wordmark /> : <a className="brand" href="./" aria-label="Reasontrail home"><Wordmark /></a>}
-        <nav className="site-nav" aria-label="Site">
-          <a className="header-link" href="?view=install" aria-current={view === 'install' ? 'page' : undefined}>Install</a>
-        </nav>
-        <a className={showcase ? 'button primary' : 'header-link'} href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
+        <div className="bar">
+          {home ? <Wordmark /> : <a className="brand" href="./" aria-label="Reasontrail home"><Wordmark /></a>}
+          <nav className="site-nav" aria-label="Site">
+            <a className="header-link" href="?view=install" aria-current={view === 'install' ? 'page' : undefined}>Install</a>
+          </nav>
+          {/* The showcase's hero carries the filled action; every other page keeps it here as a text link. */}
+          {!showcase && <a className="header-link" href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>}
+        </div>
       </header>
       <main className="site-main">{children}</main>
+      {/* The mast: the wordmark large over the page's real links, then the licence line. */}
       <footer className="site-footer showcase-footer">
-        {/* The drop zone, the paste page and install say the privacy line in the page, so the footer does not repeat it. */}
-        <p>{showcase ? `${PRIVACY} · ` : ''}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
-        <p>
-          <a className="footer-link" href="./#how-to-read">How to read a map</a> ·{' '}
-          <a className="footer-link" href="?view=install">Install</a> · Zoom into the words:{' '}
-          <a className="footer-link" href="?sample=">the next-token garden</a>
-        </p>
+        <div className="bar">
+          <p className="footer-mark" aria-hidden="true"><span className="wordmark-reason">reason</span><span className="wordmark-trail">trail</span></p>
+          <ul className="footer-links">
+            <li><a className="footer-link" href="./#how-to-read">How to read a map</a></li>
+            <li><a className="footer-link" href="?view=install">Install</a></li>
+            <li>Zoom into the words: <a className="footer-link" href="?sample=">the next-token garden</a></li>
+            <li><a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></li>
+          </ul>
+          {/* The drop zone, the paste page and install say the privacy line in the page, so the footer does not repeat it. */}
+          <p className="footer-legal">{showcase ? `${PRIVACY} ` : ''}MIT licence.</p>
+        </div>
       </footer>
       {dragging && (
         <div className="drop-overlay" aria-hidden="true">

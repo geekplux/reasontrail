@@ -1,90 +1,123 @@
 /*
- * Design tokens: the "specimen plate" identity (PLAN §3). Every colour in the app comes from here.
- * Palette contrasts and CVD distances are asserted by tokens.test.ts; edit both together.
+ * Design tokens (Wayfind, adapted). Every colour in the app comes from here, as hex because tokens.test.ts reads hex.
+ * Cool grey paper, blue-black ink, cobalt for what passed or is live, amber for where it got stuck (shape still carries
+ * the meaning: glyphs and words, never colour alone). Palette contrasts and CVD distances are asserted by tokens.test.ts.
  */
 :root {
   color-scheme: light dark;
 
-  /* Light theme, "paper" (default) */
-  --tg-paper: #f6f3ea;
-  --tg-surface: #fffdf7;
-  --tg-ink: #1c2620;
-  --tg-ink-muted: #4d5a52;
-  --tg-rule: #d9d3c3;
-  --tg-branch-lo: #5f7d6c;
-  --tg-branch-mid: #3d6150;
-  --tg-branch-hi: #1f4535;
-  --tg-accent: #b4530a;
-  --tg-focus: #2f55d4;
-  --tg-error: #a3292b;
-  /* Reasoning map (DESIGN §6.2): ok and trouble are marks paired with a glyph and a word; wash is a background */
-  --tg-ok: #1a6fa0;
-  --tg-trouble: #a3292b;
-  --tg-wash: #f3e3cf;
+  /* Light, Wayfind "platform" */
+  --tg-paper: #edf0f4;
+  --tg-paper-2: #dde2e7;
+  --tg-surface: #fbfeff;
+  --tg-ink: #0a0d13;
+  --tg-ink-muted: #50565e;
+  --tg-rule: #b9bec5;
+  --tg-branch-lo: #727880;
+  --tg-branch-mid: #384e6e;
+  --tg-branch-hi: #16243c;
+  --tg-accent: #2055e1;
+  --tg-accent-ink: #fbfeff;
+  --tg-amber: #f4b522;
+  --tg-amber-ink: #0a0d13;
+  /* The ink band (header slab, install band, footer mast): the same blue-black in both modes, so it reads as one sign */
+  --tg-band: #0a0d13;
+  --tg-on-band: #eff2f5;
+  --tg-on-band-muted: #abb2ba;
+  --tg-focus: #2055e1;
+  --tg-error: #8c5007;
+  /* Reasoning map: ok and trouble are marks paired with a glyph and a word; wash is a background */
+  --tg-ok: #2055e1;
+  --tg-trouble: #ad6800;
+  --tg-wash: #f6e7c3;
   /* Side trails (subagent lanes): strokes only, never text; the band behind an expanded lane is decorative */
-  --tg-lane: #5f7d6c;
-  --tg-lane-band: #efebdf;
+  --tg-lane: #657689;
+  --tg-lane-band: #dee4e9;
 
-  /* Type: IBM Plex Mono 500 for tokens and numbers, Instrument Serif Italic for names, system UI for the rest */
-  --tg-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
-  --tg-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-  --tg-font-serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  /* Type: Chivo Mono throughout (the board's face); the three names stay so every component keeps its role */
+  --tg-font-ui: 'Chivo Mono Variable', 'Chivo Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --tg-font-mono: var(--tg-font-ui);
+  --tg-font-serif: var(--tg-font-ui);
+  --font-display: 'Chivo Mono Variable', 'Chivo Mono', ui-monospace, monospace;
+  --font-body: 'Chivo Mono Variable', 'Chivo Mono', ui-monospace, monospace;
 
-  /* Type scale: base 16 px, ratio 1.25 */
-  --tg-text-sm: 0.8rem; /* 12.8 px: probability labels, fine print */
+  /* Type scale: base 16 px; display steps from the Hallmark scale */
+  --tg-text-sm: 0.875rem;
   --tg-text-md: 1rem;
   --tg-text-lg: 1.25rem;
   --tg-text-xl: 1.5625rem;
   --tg-text-2xl: 1.953rem;
+  --text-display: clamp(2.75rem, 5vw + 1rem, 4.75rem);
+  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem);
+  --text-section: clamp(2rem, 2.5vw + 1rem, 3.25rem);
+  --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem);
+  --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --tracking-display: -0.03em;
 
-  /* Spacing (DESIGN §18.3): 4/8/16/24/40/64 only; paper corners; hairlines instead of shadows */
+  /* Spacing: the 4 px scale */
   --tg-space-1: 4px;
   --tg-space-2: 8px;
+  --tg-space-3: 12px;
   --tg-space-4: 16px;
   --tg-space-5: 24px;
-  --tg-space-8: 40px; /* between bands; outer margins at >= 1280 */
-  --tg-space-9: 64px; /* hero room */
-  --tg-radius: 2px;
+  --tg-space-8: 40px;
+  --tg-space-9: 64px;
+  --tg-space-10: 96px;
+  --section-gap-s: 120px;
+  --section-gap: 144px;
+  --container: 1440px;
+  --gutter: 64px;
+  --tg-radius: 0;
+  --tg-rule-bar: 2px;
   --tg-hairline: 1px solid var(--tg-rule);
+  --tg-border: var(--tg-rule-bar) solid var(--tg-ink);
   --tg-measure: 72ch;
 
-  /* Motion (§3.4); zeroed under prefers-reduced-motion below */
-  --tg-ease-grow: cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* Motion: departure-board stiff; zeroed under prefers-reduced-motion below */
+  --tg-ease-grow: cubic-bezier(0.16, 1, 0.3, 1);
+  --tg-dur-micro: 120ms;
   --tg-dur-grow: 180ms;
   --tg-dur-fade: 120ms;
   --tg-dur-reshape: 120ms;
-  /* Reasoning map motion (DESIGN §11) */
-  --tg-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --tg-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --tg-dur-route: 320ms;
   --tg-dur-lane: 200ms;
   --tg-dur-panel: 160ms;
   --tg-dur-lens: 240ms;
 }
 
-/* Dark theme, "night garden" */
+/* Dark, Wayfind "night" */
 @media (prefers-color-scheme: dark) {
   :root {
-    --tg-paper: #111813;
-    --tg-surface: #18211b;
-    --tg-ink: #e9eee7;
-    --tg-ink-muted: #a8b4aa;
-    --tg-rule: #2c372f;
-    --tg-branch-lo: #7fa48f;
-    --tg-branch-mid: #a9cdb8;
-    --tg-branch-hi: #d4ebdc;
-    --tg-accent: #f0a04b;
-    --tg-focus: #8db0ff;
-    --tg-error: #ff8f87;
-    --tg-ok: #4a95cf;
-    --tg-trouble: #e5534b;
-    --tg-wash: #33281a;
-    --tg-lane: #7fa48f;
-    --tg-lane-band: #151d18;
+    --tg-paper: #080b10;
+    --tg-paper-2: #15181f;
+    --tg-surface: #12151b;
+    --tg-ink: #eff2f5;
+    --tg-ink-muted: #abb2ba;
+    --tg-rule: #2c3038;
+    --tg-branch-lo: #788eab;
+    --tg-branch-mid: #a2bad8;
+    --tg-branch-hi: #d1dff2;
+    --tg-accent: #6b9aff;
+    --tg-accent-ink: #080b10;
+    --tg-amber: #f4b522;
+    --tg-band: #15181f;
+    --tg-focus: #6b9aff;
+    --tg-error: #f2b95a;
+    --tg-ok: #6594fa;
+    --tg-trouble: #f4b522;
+    --tg-wash: #32230a;
+    --tg-lane: #808d9f;
+    --tg-lane-band: #101318;
   }
 }
 
+@media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; } }
+
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --tg-dur-micro: 0ms;
     --tg-dur-grow: 0ms;
     --tg-dur-fade: 0ms;
     --tg-dur-reshape: 0ms;

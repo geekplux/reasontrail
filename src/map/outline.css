@@ -1,31 +1,36 @@
 /* The outline and the cards the map shares with it (DESIGN §8.8, §8.9, §10.2). Colours only via tokens.css. */
-.mono { font-family: var(--tg-font-mono); font-weight: 500; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--tg-font-mono); font-weight: 400; font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
 .muted { color: var(--tg-ink-muted); }
-.strong { font-weight: 600; }
+.strong { font-weight: 800; }
 /* Bands are grouped by 40 px of space, not rules (CL8, T5): only the header and footer keep a full-width hairline. */
 .region { padding: 0 0 var(--tg-space-8); }
-.section-label, .sub-label { display: flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); font: 500 0.72rem / 1.3 var(--tg-font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--tg-ink-muted); }
+.section-label, .sub-label { display: flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); font: 500 var(--tg-text-sm) / 1.35 var(--tg-font-ui); color: var(--tg-ink-muted); }
+/* A region's own head (Route, Where it got stuck, Destination): a sign, 800 in ink on a 2 px rule; its count stays muted. */
+.region-head { display: block; margin: 0 0 var(--tg-space-3); padding-top: var(--tg-space-2); border-top: var(--tg-border); font: 800 var(--tg-text-lg) / 1.2 var(--tg-font-ui); letter-spacing: -0.02em; color: var(--tg-ink); overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+.region-head > .glyph { display: inline-block; margin-inline-end: var(--tg-space-2); vertical-align: -0.1em; }
+/* Its count follows at a second size in muted ink, the way a sign carries its line under the name. */
+.region-head > span { margin-inline-start: var(--tg-space-2); font-size: var(--tg-text-sm); font-weight: 500; letter-spacing: 0; color: var(--tg-ink-muted); }
 .sub-label { margin-top: var(--tg-space-4); }
-.section-label span { color: inherit; }
+
 
 /* Task card (DESIGN §8.9) */
-.task-title { margin: 0 0 var(--tg-space-2); font: italic 400 31px / 1.15 var(--tg-font-serif); overflow-wrap: anywhere; white-space: pre-line; }
+.task-title { margin: 0 0 var(--tg-space-2); font: 800 28px / 1.15 var(--tg-font-ui); letter-spacing: -0.03em; overflow-wrap: anywhere; white-space: pre-line; text-wrap: balance; }
 .task-title.is-clamped { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .task-request { margin-bottom: var(--tg-space-2); }
 .task-request .task-title { margin: 0; }
 .task-raw { margin: var(--tg-space-2) 0 var(--tg-space-4); max-width: 72ch; white-space: pre-line; overflow-wrap: anywhere; }
 .task-raw .sub-label { margin-bottom: var(--tg-space-1); }
 .task-meta { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--tg-space-4); margin: 0 0 var(--tg-space-2); }
-.meta-item + .meta-item::before { content: ' · '; }
+.meta-item + .meta-item { padding-inline-start: var(--tg-space-4); }
 /* The eyebrow row: the TASK label, and the header items (Map/Outline) at its right end. */
 .task-eyebrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--tg-space-2) var(--tg-space-4); margin-bottom: var(--tg-space-2); }
-.task-eyebrow .section-label { margin: 0; }
+.task-eyebrow .region-head { margin: 0; }
 .task-meta .session-toggle { font-size: 12.8px; }
 .session-details > p { margin: 0 0 var(--tg-space-2); }
 .note, .honesty, .glance-rows li, .episode-head { display: grid; grid-template-columns: 14px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-2); margin: 0; }
 .note, .honesty { margin: 0 0 var(--tg-space-2); font-size: 13.5px; }
 .note { color: var(--tg-ink-muted); }
-.skipped-where { margin: 0 0 var(--tg-space-2) 22px; font-size: 13.5px; color: var(--tg-ink-muted); }
+.skipped-where { margin: 0 0 var(--tg-space-2) var(--tg-space-5); font-size: 13.5px; color: var(--tg-ink-muted); }
 .skipped-where summary { min-height: 24px; cursor: pointer; text-decoration: underline; text-underline-offset: 0.2em; }
 .skipped-where p { margin: var(--tg-space-1) 0 0; overflow-wrap: anywhere; }
 .honesty a { min-height: 24px; }
@@ -61,10 +66,10 @@
 .episode { counter-increment: ep; padding-left: var(--tg-space-5); position: relative; }
 .episode::before { content: counter(ep); position: absolute; left: 0; top: 2px; font: 500 0.8rem var(--tg-font-mono); color: var(--tg-ink-muted); }
 .lane-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--tg-space-2); margin: 0; }
-.episode-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.episode-title { font-weight: 800; font-size: 14px; overflow-wrap: anywhere; }
 .chips { display: grid; gap: var(--tg-space-1); margin: var(--tg-space-1) 0; }
 .chip { display: grid; grid-template-columns: 14px 16px minmax(0, 1fr); align-items: baseline; gap: 0 var(--tg-space-1); font-size: 13.5px; }
-.chip-n { display: inline-grid; place-items: center; min-width: 16px; height: 16px; border-radius: 2px; color: var(--tg-paper); background: var(--tg-ink); font-size: 10.5px; font-weight: 600; }
+.chip-n { display: inline-grid; place-items: center; min-width: 16px; height: 16px; border-radius: 2px; color: var(--tg-paper); background: var(--tg-ink); font-size: 10.5px; font-weight: 800; }
 .lanes { margin: var(--tg-space-2) 0; padding-left: var(--tg-space-4); border-left: 2px solid var(--tg-branch-lo); }
 .lane .episodes { margin-top: var(--tg-space-2); }
 /* The step list's quiet text disclosure (O2, CL11): "4 steps", no border and no fill. */

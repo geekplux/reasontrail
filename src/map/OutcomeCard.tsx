@@ -34,8 +34,8 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
     // A chat changes no files and runs no checks: the destination is the final answer alone, full width.
     return (
       <section className="region outcome is-chat" id="destination" data-region="outcome" aria-labelledby="h-outcome">
-        <h2 id="h-outcome" className="section-label">
-          <KindGlyph kind="answer" /> Destination <span>· final answer</span>
+        <h2 id="h-outcome" className="region-head">
+          <KindGlyph kind="answer" /> Destination
         </h2>
         {finalAnswer}
       </section>
@@ -43,8 +43,8 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
   }
   return (
     <section className="region outcome" id="destination" data-region="outcome" aria-labelledby="h-outcome">
-      <h2 id="h-outcome" className="section-label">
-        <KindGlyph kind="answer" /> Destination <span>· what changed</span>
+      <h2 id="h-outcome" className="region-head">
+        <KindGlyph kind="answer" /> Destination
       </h2>
       <div className="outcome-cols">
         <div>
