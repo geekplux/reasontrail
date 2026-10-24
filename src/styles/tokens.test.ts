@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { contrast, deltaE, parseHex, type Cvd } from './colorMath';
 import css from './tokens.css?raw';
-import homeCss from '../site/home.css?raw';
 import favicon from '../../public/favicon.svg?raw';
 import indexHtml from '../../index.html?raw';
 
@@ -35,6 +34,12 @@ const declared = (fragment: string) => Object.fromEntries([...fragment.matchAll(
 const darkStart = css.indexOf('@media (prefers-color-scheme: dark)');
 const tokens = { light: declared(css.slice(0, darkStart)), dark: declared(css.slice(darkStart)) };
 const resolve = step;
+
+// Every stylesheet and every script in src/ (tests and the generated static port excluded), as raw text, by repo path.
+const byPath = (files: Record<string, string>) => Object.fromEntries(Object.entries(files).map(([k, v]) => [k.replace(/^\.\//, 'src/styles/').replace(/^\.\.\//, 'src/'), v]));
+const STYLESHEETS = byPath(import.meta.glob('../**/*.css', { query: '?raw', import: 'default', eager: true }));
+const SCRIPTS = byPath(import.meta.glob(['../**/*.{ts,tsx}', '!../**/*.test.{ts,tsx}', '!../test/**', '!../site/static/**'], { query: '?raw', import: 'default', eager: true }));
+const uncommented = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, '');
 
 describe('colorMath', () => {
   it('computes WCAG contrast at the known extremes', () => {
@@ -92,30 +97,61 @@ describe('CVD distance (CIE76 ΔE after Machado 2009 simulation)', () => {
   });
 });
 
-// The tokens and the v7 site page; widened to every stylesheet in src/ in phase 29b, once the rest is restyled.
-describe('every colour in tokens.css and the site page CSS is a Radix token or value', () => {
-  const sources = { 'tokens.css': css, 'home.css': homeCss };
-  const files = Object.keys(sources) as (keyof typeof sources)[];
+describe('every colour in src/**/*.css is a Radix token or value', () => {
   const KEYWORDS = new Set(['transparent', 'currentcolor', 'inherit', 'none']);
   const COLOUR_PROPS = /(?:^|[;{\s])((?:background|background-color|color|fill|stroke|outline|outline-color|border(?:-(?:top|right|bottom|left))?(?:-color)?|box-shadow|text-decoration(?:-color)?|accent-color|caret-color|border-image)\s*:\s*[^;}]+)/gi;
-  it.each(files)('%s', (file) => {
-    const text = sources[file]!.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Local aliases of a Radix step (e.g. the garden's `--band`, the home's `--bg`) count as Radix, in every file.
+  const aliases = new Set(Object.values(STYLESHEETS).flatMap((t) => [...t.matchAll(/--([\w-]+):\s*var\(--(?:slate|blue|orange)-(?:[1-9]|1[0-2])\)/g)].map((m) => m[1])));
+  it('reads every stylesheet', () => expect(Object.values(STYLESHEETS).every((t) => t.length > 0) && Object.keys(STYLESHEETS).length > 10).toBe(true));
+  it.each(Object.keys(STYLESHEETS))('%s', (file) => {
+    const text = uncommented(STYLESHEETS[file]!);
     const bad: string[] = [];
-    // Local aliases of a Radix step (e.g. the garden's `--tg-band`) count as Radix.
-    const aliases = new Set([...text.matchAll(/--([\w-]+):\s*var\(--(?:slate|blue|orange)-(?:[1-9]|1[0-2])\)/g)].map((m) => m[1]));
     // Literal colours anywhere (outside the Radix values the token file declares).
     for (const m of text.matchAll(/#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(/gi)) {
       if (!ALL_VALUES.has(m[0].toLowerCase())) bad.push(m[0]);
     }
-    // Every var() in a colour property names a Radix step or a token built from them (--hair, --frame).
+    // Every var() in a colour property names a Radix step or a token built from them (--hair, --on-orange-9).
     for (const [, decl] of text.matchAll(COLOUR_PROPS)) {
-      for (const [, name] of decl!.matchAll(/var\(--([\w-]+)/g)) {
-        if (!/^(slate|blue|orange)-([1-9]|1[0-2])$|^(hair|hair-soft|bg)$/.test(name!) && !aliases.has(name)) bad.push(`var(--${name})`);
+      for (const [, v] of decl!.matchAll(/var\(--([\w-]+)/g)) {
+        if (!/^(slate|blue|orange)-([1-9]|1[0-2])$|^(hair|hair-soft|bg|on-orange-9|motion|motion-ms|motion-ease)$/.test(v!) && !aliases.has(v)) bad.push(`var(--${v})`);
       }
       // Named colours: any bare word that is not a keyword, unit, or known non-colour value.
       const words = decl!.replace(/var\([^)]*\)|url\([^)]*\)|[\w-]+\(/g, ' ').split(':').slice(1).join(':').match(/\b[a-z]+\b/gi) ?? [];
       for (const w of words) if (/^(red|green|blue|black|white|gray|grey|orange|yellow|purple|pink|navy|teal|silver)$/i.test(w) && !KEYWORDS.has(w.toLowerCase())) bad.push(w);
     }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe('drawing colours in scripts are Radix values', () => {
+  it('no stylesheet or script names an old palette token (--tg-*)', () => {
+    expect(Object.entries({ ...STYLESHEETS, ...SCRIPTS }).filter(([, t]) => t.includes('--tg-')).map(([f]) => f)).toEqual([]);
+  });
+  it.each(Object.keys(SCRIPTS))('%s', (file) => {
+    const text = SCRIPTS[file]!.replace(/\/\/.*$/gm, '');
+    const literals = [...uncommented(text).matchAll(/['"`]#([0-9a-f]{3}|[0-9a-f]{6})['"`]|\b(?:rgba?|hsla?)\(\s*\d/gi)].map((m) => m[0].replace(/['"`]/g, '').toLowerCase());
+    expect(literals.filter((c) => !ALL_VALUES.has(c))).toEqual([]);
+  });
+});
+
+describe('type in src/**/*.css: four sizes, no uppercase, no letter-spaced labels (v7 §3.2)', () => {
+  const SIZES = new Set(['var(--text-12)', 'var(--text-14)', 'var(--text-20)', 'var(--text-32)', '12px', '14px', '20px', '32px', 'inherit']);
+  // The display tracking of §3.2 (headline, titles, wordmark); everything else keeps the font's own spacing.
+  const TRACKING = new Set(['-0.025em', '-0.015em', '-0.01em', '0', 'normal']);
+  const FAMILY = /var\(--font-(?:sans|mono)\)|ui-sans-serif|system-ui|sans-serif|monospace/;
+  /** The size in a `font:` shorthand: the token before the optional `/ line-height` and the family. */
+  const shorthandSize = (v: string) => {
+    if (/^(inherit|initial|unset)$/.test(v.trim())) return 'inherit';
+    const head = v.split(FAMILY)[0]!.split('/')[0]!.trim().split(/\s+/);
+    return head.at(-1) ?? '';
+  };
+  it.each(Object.keys(STYLESHEETS))('%s', (file) => {
+    const text = uncommented(STYLESHEETS[file]!);
+    const bad: string[] = [];
+    for (const [, v] of text.matchAll(/(?:^|[;{\s])font-size\s*:\s*([^;}]+)/g)) if (!SIZES.has(v!.trim())) bad.push(`font-size: ${v!.trim()}`);
+    for (const [, v] of text.matchAll(/(?:^|[;{\s])font\s*:\s*([^;}]+)/g)) if (!SIZES.has(shorthandSize(v!))) bad.push(`font: ${v!.trim()}`);
+    for (const [, v] of text.matchAll(/text-transform\s*:\s*([^;}]+)/g)) if (v!.trim() !== 'none') bad.push(`text-transform: ${v!.trim()}`);
+    for (const [, v] of text.matchAll(/letter-spacing\s*:\s*([^;}]+)/g)) if (!TRACKING.has(v!.trim())) bad.push(`letter-spacing: ${v!.trim()}`);
     expect(bad).toEqual([]);
   });
 });
