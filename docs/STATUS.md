@@ -3,7 +3,7 @@ Redesign v7 (phases 29–37, spec `docs/design/v7/PROMPT.md`) in progress. Phase
 
 # Status (Reasontrail)
 
-- Current phase: 29 (`phase-29-v7-tokens-logo`), step: PR
+- Current phase: 30 (`phase-30-v7-gitlist`), step: implement
 - Plan: `docs/PLAN.md` "Redesign v7" section; spec and reference in `docs/design/v7/`
 - Blockers: none for v7. (Live Workers AI still needs a real `CLOUDFLARE_API_TOKEN`; not needed for this run.)
 
@@ -11,8 +11,8 @@ Redesign v7 (phases 29–37, spec `docs/design/v7/PROMPT.md`) in progress. Phase
 
 | Phase | Branch | PR | State | Review rounds |
 |---|---|---|---|---|
-| 29 | `phase-29-v7-tokens-logo` | (pending) | 2 rounds done, PR | 2 |
-| 30 | `phase-30-v7-gitlist` | – | pending | – |
+| 29 | `phase-29-v7-tokens-logo` | [#31](https://github.com/geekplux/reasontrail/pull/31) | PR open | 2 |
+| 30 | `phase-30-v7-gitlist` | – | implementing | 0 |
 | 31 | `phase-31-v7-tree-engine` | – | pending | – |
 | 32 | `phase-32-v7-tree-render` | – | pending | – |
 | 33 | `phase-33-v7-site-layout` | – | pending | – |
@@ -21,7 +21,7 @@ Redesign v7 (phases 29–37, spec `docs/design/v7/PROMPT.md`) in progress. Phase
 | 36 | `phase-36-v7-polish-docs` | – | pending | – |
 | 37 | `phase-37-v7-deploy-prep` | – | pending | – |
 
-Last updated: 2026-10-23 (phase 29 reviewed, PR opening)
+Last updated: 2026-10-23 (phase 29 PR #31 open; phase 30 started)
 
 ## History: phases 1–28 (merged)
 
