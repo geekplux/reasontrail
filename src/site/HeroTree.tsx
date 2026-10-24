@@ -30,10 +30,19 @@ export function HeroTree({ id, g, hover, onHover }: { id: string; g: SessionGrap
       setM((was) => (was.width === width && JSON.stringify(was.reserve) === JSON.stringify(reserve) ? was : { width, reserve }));
     };
     measure();
-    if (typeof ResizeObserver === 'undefined') return;
+    // The legend's width changes when the web font arrives: measure again then, so the layout does not depend on
+    // when it loaded.
+    let live = true;
+    void document.fonts?.ready.then(() => live && measure());
+    if (typeof ResizeObserver === 'undefined') return () => { live = false; };
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
+    const lg = el.querySelector('.legend');
+    if (lg) ro.observe(lg);
+    return () => {
+      live = false;
+      ro.disconnect();
+    };
   }, []);
   const labels = m.width >= LABELS_FROM;
   const height = labels ? DESKTOP.height : Math.round((m.width * 190) / 358);

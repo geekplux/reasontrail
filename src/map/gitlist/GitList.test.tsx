@@ -242,13 +242,15 @@ describe('GitList long episodes', () => {
   });
 
   it('reports the focused row for the tree highlight', () => {
-    const onActive = vi.fn<(s: ListSelection | undefined) => void>();
+    const onActive = vi.fn<(s: ListSelection | undefined, via: 'focus' | 'pointer') => void>();
     render(<GitList g={G} onActive={onActive} />);
     const ep = items().find((el) => name(el).startsWith('Episode 2: Read PLAN.md'))!;
     act(() => ep.focus());
-    expect(onActive).toHaveBeenLastCalledWith({ episodeId: 'e14' });
+    expect(onActive).toHaveBeenLastCalledWith({ episodeId: 'e14' }, 'focus');
     fireEvent.mouseLeave(ep);
-    expect(onActive).toHaveBeenLastCalledWith(undefined);
+    expect(onActive).toHaveBeenLastCalledWith(undefined, 'pointer');
+    act(() => ep.blur());
+    expect(onActive).toHaveBeenLastCalledWith(undefined, 'focus');
   });
 
   it('shows AI titles as tags beside episode rows only when the overlay is on', () => {

@@ -21,8 +21,9 @@ export interface GitListProps {
   selection?: ListSelection;
   /** A step was selected (Enter, click) or the selection changed (open, close, Esc). */
   onSelect?(selection: ListSelection): void;
-  /** The focused or hovered row's episode and step, for the tree's highlight; undefined when none. */
-  onActive?(active: ListSelection | undefined): void;
+  /** The focused or hovered row's episode and step, for the tree's highlight; undefined when none. `via` says
+   * which: a parent falls back to the focused row when the pointer leaves. */
+  onActive?(active: ListSelection | undefined, via: 'focus' | 'pointer'): void;
   /** The episode hovered in the tree: its row (episode or lane verdict) gets the hover background. */
   hover?: string | undefined;
 }
@@ -291,16 +292,16 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
               }}
               onFocus={() => {
                 setFocusKey(r.key);
-                onActive?.(activeOf(r));
+                onActive?.(activeOf(r), 'focus');
               }}
-              onBlur={() => onActive?.(undefined)}
+              onBlur={() => onActive?.(undefined, 'focus')}
               onMouseEnter={() => {
                 hover(r.key, true);
-                onActive?.(activeOf(r));
+                onActive?.(activeOf(r), 'pointer');
               }}
               onMouseLeave={() => {
                 hover(r.key, false);
-                onActive?.(undefined);
+                onActive?.(undefined, 'pointer');
               }}
             >
               {content(r)}

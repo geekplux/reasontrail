@@ -56,7 +56,7 @@ describe('Home (v7 §4, §12)', () => {
     const label = () => container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label');
     expect(label()).toContain('Verify phase 12 (failed: 1 gap)');
     rerender(<Home session="implementer-checks" onSession={() => {}} />);
-    await waitFor(() => expect(label()).toBe('Tree: 12 episodes, 51 tool calls, 49 min, all by the main agent.'));
+    await waitFor(() => expect(label()).toBe('Tree: 12 episodes, 51 tool calls (3 failed), 49 min, all by the main agent.'));
     expect(document.getElementById('sess-title')?.textContent).toBe('Build keyboard navigation and a screen-reader table (phase 5)');
     rerender(<Home session="planner-pivot" onSession={() => {}} />);
     await waitFor(() => expect(label()).toMatch(/spawns 2 subagents: Rewrite plan for pivot \(failed\)/));
@@ -87,6 +87,49 @@ describe('Home (v7 §4, §12)', () => {
     expect(svg.classList.contains('hvmode')).toBe(true);
     act(() => item.blur());
     expect(svg.classList.contains('hvmode')).toBe(false);
+  });
+
+  it('falls back to the focused list row when the pointer leaves the tree or the list', () => {
+    const { container } = render(<Home session={null} onSession={() => {}} />);
+    const svg = container.querySelector('.hero-tree svg.tree')!;
+    const tipNum = () => container.querySelector('.tip text')?.textContent;
+    const item = screen.getAllByRole('treeitem').find((el) => el.textContent?.startsWith('Episode 6:'))!;
+    act(() => item.focus());
+    expect(tipNum()).toBe('6');
+    const twig = treeFor(defaultSessionGraph, 1200, 520).twigs.find((w) => w.episodeId === 'e19')!;
+    fireEvent.pointerMove(svg, { clientX: twig.tip.x, clientY: twig.tip.y, pointerType: 'mouse' });
+    expect(tipNum()).toBe('7');
+    fireEvent.pointerLeave(svg);
+    expect(tipNum()).toBe('6');
+    const other = screen.getAllByRole('treeitem').find((el) => el.textContent?.startsWith('Episode 7:'))!;
+    fireEvent.mouseEnter(other);
+    expect(tipNum()).toBe('7');
+    fireEvent.mouseLeave(other);
+    expect(tipNum()).toBe('6');
+    act(() => item.blur());
+    expect(svg.classList.contains('hvmode')).toBe(false);
+  });
+
+  it('clears an in-progress hover when the tab changes', async () => {
+    const { container, rerender } = render(<Home session={null} onSession={() => {}} />);
+    const svg = () => container.querySelector('.hero-tree svg.tree')!;
+    const twig = treeFor(defaultSessionGraph, 1200, 520).twigs.find((w) => w.episodeId === 'e19')!;
+    fireEvent.pointerMove(svg(), { clientX: twig.tip.x, clientY: twig.tip.y, pointerType: 'mouse' });
+    expect(svg().classList.contains('hvmode')).toBe(true);
+    rerender(<Home session="implementer-checks" onSession={() => {}} />);
+    await waitFor(() => expect(svg().getAttribute('aria-label')).toMatch(/^Tree: 12 episodes/));
+    expect(svg().classList.contains('hvmode')).toBe(false);
+    expect(container.querySelector('.tip')).toBeNull();
+    expect(container.querySelector('.gl-row.is-hv')).toBeNull();
+  });
+
+  it('says so when a sample fails to load, instead of loading forever', async () => {
+    const sample = sessionSamples[1]!;
+    const load = vi.spyOn(sample, 'load').mockRejectedValueOnce(new Error('offline'));
+    render(<Home session={sample.id} onSession={() => {}} />);
+    await waitFor(() => expect(document.getElementById('session')?.textContent).toBe('!This sample did not load. Reload the page to try again.'));
+    expect(document.body.textContent).not.toContain('Loading the sample');
+    load.mockRestore();
   });
 
   it('names the tab of another page with an en dash, not a middle dot', () => {

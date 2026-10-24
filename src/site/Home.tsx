@@ -54,19 +54,44 @@ export function Home({ session, onSession }: { session: string | null; onSession
   const unknown = session !== null && sample.id !== session;
   // Loaded graphs are kept per sample id, so a tab switch re-renders the card without remounting the tabs.
   const [loaded, setLoaded] = useState<{ id: string; graph: SessionGraph } | null>(sample.id === sessionSamples[0]?.id ? { id: sample.id, graph: defaultSessionGraph } : null);
+  const [failed, setFailed] = useState<string>();
   const graph = loaded?.id === sample.id ? loaded.graph : null;
   useEffect(() => {
     if (graph) return;
     let live = true; // a late answer for a sample left behind must not replace the current one
-    void sample.load().then((g) => live && setLoaded({ id: sample.id, graph: g }));
+    sample.load().then(
+      (g) => live && setLoaded({ id: sample.id, graph: g }),
+      () => live && setFailed(sample.id),
+    );
     return () => {
       live = false;
     };
   }, [graph, sample]);
-  // The hovered episode, from the tree (pointer) or the list (pointer or focus); a tab switch clears it.
-  const [hover, setHover] = useState<{ id: string; episodeId: string }>();
+  // The hovered episode, from the tree (pointer) or the list (pointer or focus); a tab switch clears it. When the
+  // pointer leaves, the focused list row's episode (if any) is shown again.
+  type Active = { id: string; episodeId: string } | undefined;
+  const [hover, setHover] = useState<Active>();
+  const [focused, setFocused] = useState<Active>();
   const hovered = hover?.id === sample.id ? hover.episodeId : undefined;
-  const onHover = (episodeId: string | undefined) => setHover(episodeId ? { id: sample.id, episodeId } : undefined);
+  const of = (episodeId: string | undefined): Active => (episodeId ? { id: sample.id, episodeId } : undefined);
+  const onHover = (episodeId: string | undefined) => setHover(of(episodeId) ?? (focused?.id === sample.id ? focused : undefined));
+  const onActive = (episodeId: string | undefined, via: 'focus' | 'pointer') => {
+    if (via === 'pointer') {
+      onHover(episodeId);
+      return;
+    }
+    setFocused(of(episodeId));
+    setHover(of(episodeId));
+  };
+  const card = graph ? (
+    <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)} />
+  ) : failed === sample.id ? (
+    <div className="frame" id={CARD_ID}>
+      <InlineNote variant="error">This sample did not load. Reload the page to try again.</InlineNote>
+    </div>
+  ) : (
+    <p className="frame muted" id={CARD_ID}>Loading the sample…</p>
+  );
   return (
     <div className="v7 home">
       <section className="hero" aria-labelledby="hero-h">
@@ -83,7 +108,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
         </div>
       </section>
       {unknown && <InlineNote variant="info">That session isn&apos;t here, so here is “{sample.title}”.</InlineNote>}
-      {graph ? <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a) => onHover(a?.episodeId)} /> : <p className="frame muted" id={CARD_ID}>Loading the sample…</p>}
+      {card}
       <section className="install" id="install" tabIndex={-1} aria-labelledby="install-h">
         <div>
           <h2 id="install-h">Map your own sessions</h2>
