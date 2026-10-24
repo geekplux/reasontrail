@@ -16,7 +16,7 @@ const out = resolve(arg('out', '/tmp/reasontrail-tree'));
 const shots = resolve(root, arg('shots', 'docs/screenshots/phase-31'));
 const load = async (id) => (await runnerImport(join(root, id), { root, configFile: false, logLevel: 'error' })).module;
 const T = await load('src/map/tree/index.ts');
-const { eightLanes, longSession } = await load('src/map/tree/synthetic.ts');
+const { eightLanes, longSession, synthGraph } = await load('src/map/tree/synthetic.ts');
 const sample = (id) => JSON.parse(readFileSync(join(root, 'src/sessions/samples', `${id}.graph.json`), 'utf8'));
 
 const css = readFileSync(join(root, 'docs/design/v7/preview/Home.html'), 'utf8').match(/<style>([\s\S]*?)<\/style>/)[1];
@@ -74,7 +74,13 @@ const SETS = [
   ['planner-pivot', sample('planner-pivot'), { width: 1200, height: 520 }],
   ['eight-lanes', eight, { width: 1200, height: 520 }],
   ['long-session', longSession(), { width: 1200, height: 520 }],
-  ['vff-phone', sample('verify-fail-fix'), { width: 358, height: 190, k: 0.95, labels: false }],
+  ['concurrent-lanes', synthGraph([
+    { main: { kind: 'explore', calls: 2 } },
+    { spawn: ['one', 'two', 'three', 'four', 'five'].map((x, i) => ({ name: `Review part ${x}`, agentType: 'reviewer', episodes: [{ kind: 'explore', calls: 3 + i, reads: 2 }, { kind: 'verify', calls: 2 }] })) },
+    { main: { kind: 'change', calls: 3 } },
+  ]), { width: 1200, height: 520 }],
+  // The canvas's phone tree: the desktop geometry (k 1.45) scaled down.
+  ['vff-phone', sample('verify-fail-fix'), { width: 358, height: 190, labels: false }],
 ];
 mkdirSync(out, { recursive: true });
 const pages = [];
