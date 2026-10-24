@@ -46,7 +46,7 @@ export function StuckList({ g, L, narrow = false, current }: { g: SessionGraph; 
   const more = L.order.length - cap;
   return (
     <section className="region stuck" data-region="trouble" aria-labelledby="h-stuck">
-      <h2 id="h-stuck" className="section-label">Where it got stuck <span>· {L.order.length === 1 ? '1 detected pattern' : `${L.order.length} detected patterns`}</span></h2>
+      <h2 id="h-stuck" className="section-label">Where it got stuck <span>{L.order.length === 1 ? '1 detected pattern' : `${L.order.length} detected patterns`}</span></h2>
       {L.order.length === 0 ? (
         <p className="stuck-none"><StatusGlyph status="ok" /><span>No trouble detected. {chat ? 'No corrections or regenerated answers.' : 'No failed runs, retries, reverts or interruptions.'}<span className="visually-hidden"> Status: none.</span></span></p>
       ) : (
@@ -57,7 +57,7 @@ export function StuckList({ g, L, narrow = false, current }: { g: SessionGraph; 
             const [lead, rest] = troubleText(t, chat);
             const step = g.steps.find((s) => s.id === t.stepIds[0]);
             const ep = episodeOf(t.stepIds[0] ?? '');
-            const where = [chat ? '' : laneName(step?.laneId ?? ''), ep.length > 40 ? `${ep.slice(0, 39)}…` : ep].filter(Boolean).join(' · ');
+            const where = [chat ? '' : laneName(step?.laneId ?? ''), ep.length > 40 ? `${ep.slice(0, 39)}…` : ep].filter(Boolean).join(', ');
             return (
               <li key={t.id} data-trouble-kind={t.kind} data-count={t.count} data-resolved={String(t.resolved)} data-n={n} hidden={!open && i >= cap}>
                 <BlazeIcon kind={t.kind} resolved={t.resolved} badge={String(n)} />

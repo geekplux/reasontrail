@@ -76,8 +76,8 @@ export function jumpPattern(L: GlanceLayout, from: string | undefined, dir: 1 | 
 export const KIND_WORD: Record<string, string> = { discuss: 'ask', explore: 'explore', change: 'change', verify: 'verify', delegate: 'delegate', answer: 'answer' };
 export const TROUBLE_WORD: Record<string, string> = { 'error-streak': 'error streak', retry: 'retry', revert: 'revert', rewind: 'rewind', interrupt: 'interrupt', churn: 'churn' };
 
-/** The count line under an episode title: "23 steps · 12 min idle", else the longest of "23 steps" or "23" that fits
- * `availPx` (mono 11.5 px, 6.9 px a character). Never truncated; the idle note stays in the accessible name. */
+/** The count line under an episode title: "23 steps, 12 min idle", else the longest of "23 steps" or "23" that fits
+ * `availPx` (mono 12 px, 7.2 px a character). Never truncated; the idle note stays in the accessible name. */
 export function countText(r: RouteEpisode, availPx = Number.POSITIVE_INFINITY): string {
   const options = [`${plural(r.steps, 'step')}${r.idle}`, plural(r.steps, 'step'), String(r.steps)];
   return options.find((t) => t.length * G.monoPx <= availPx) ?? String(r.steps);
@@ -105,13 +105,13 @@ const laneSummary = (l: LaneItem) => (l.lanes.length > 1 ? `${l.lanes.length} su
 export interface LaneLines {
   /** Agent type (or "3 subagents"), with "+n nested" / "+n parallel". CSS may ellipsis it. */
   name: string;
-  /** "14 calls · 12 min ·": the part of the facts line that gives way first. */
+  /** "14 calls, 12 min,": the part of the facts line that gives way first. */
   count: string;
   /** "FAIL", "done", "1 failed": never cut. */
   word: string;
 }
 
-/** The two label lines of a lane item: agent type, then "<n> calls · <duration> · <status>". With `availPx` (the facts
+/** The two label lines of a lane item: agent type, then "<n> calls, <duration>, <status>". With `availPx` (the facts
  * line's width, glyph included) the duration goes first, then "calls"; the status word is always whole. `duration:
  * false` leaves the duration out (the mobile rail). */
 export function laneLines(l: LaneItem, opts: { availPx?: number; duration?: boolean } = {}): LaneLines {
@@ -120,8 +120,8 @@ export function laneLines(l: LaneItem, opts: { availPx?: number; duration?: bool
   const extra = [l.nested ? `+${l.nested} nested` : '', l.parallel ? `+${l.parallel} parallel` : ''].filter(Boolean).join(' ');
   const name = extra ? `${base} ${extra}` : base;
   const word = many ? `${l.failed} failed` : l.word;
-  const dur = !many && opts.duration !== false && l.ms >= 5 * 60_000 ? ` · ${duration(l.ms)}` : '';
-  const options = [`${plural(l.calls, 'call')}${dur} ·`, `${plural(l.calls, 'call')} ·`, `${l.calls} ·`];
+  const dur = !many && opts.duration !== false && l.ms >= 5 * 60_000 ? `, ${duration(l.ms)}` : '';
+  const options = [`${plural(l.calls, 'call')}${dur},`, `${plural(l.calls, 'call')},`, `${l.calls},`];
   // The status glyph and its gap take about 2.5 characters.
   const room = (opts.availPx ?? Number.POSITIVE_INFINITY) / G.monoPx - 2.5 - word.length - 1;
   const count = options.find((t) => t.length <= room) ?? (options[options.length - 1] as string);
@@ -131,13 +131,13 @@ export function laneLines(l: LaneItem, opts: { availPx?: number; duration?: bool
 /** Facts-line width of a lane label on the horizontal route (its box less the padding). */
 export const laneAvailPx = (l: LaneItem) => Math.max(88, l.chars * G.monoPx + 12) - 10;
 
-/** "Subagent lane: implementer 14 calls · interrupted. Fix the audit gap." / "3 subagents 41 calls · 1 failed. Collapsed."
+/** "Subagent lane: implementer 14 calls, interrupted. Fix the audit gap." / "3 subagents 41 calls, 1 failed. Collapsed."
  * Starts with the label as drawn with the same `opts` (WCAG 2.5.3: the visible text is part of the name), then gives the
  * full facts when the drawn count gave way. */
 export function laneName(l: LaneItem, opts: { availPx?: number; duration?: boolean } = {}): string {
   const { name, count, word } = laneLines(l, opts);
-  const full = laneLines(l).count.replace(/ ·$/, '');
-  const more = full !== count.replace(/ ·$/, '') ? ` ${full}.` : '';
+  const full = laneLines(l).count.replace(/,$/, '');
+  const more = full !== count.replace(/,$/, '') ? ` ${full}.` : '';
   if (l.lanes.length > 1) return `${name} ${count} ${word}.${more} Bundle, collapsed.`;
   return `Subagent lane: ${name} ${count} ${word}${l.noHandBack ? ', hand-back not recorded in the main session' : ''}.${more} ${l.lanes[0]?.name ?? ''}.`;
 }

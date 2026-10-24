@@ -127,7 +127,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
       <p className="visually-hidden" role="status" data-role="intake-live">{said}</p>
       {state.at === 'done' ? (
         <>
-          {/* A chat's source joins the TASK eyebrow (CM3); a session file keeps its name as a quiet line. */}
+          {/* A chat's source joins the task meta line (CM3); a session file keeps its name as a quiet line. */}
           <h1 ref={title} tabIndex={-1} className={chat ? 'open-file visually-hidden' : 'open-file'}><span className="visually-hidden">Your session map: </span>{state.name}</h1>
           <MapBoundary key={view} onOutline={() => setView('outline')}>
             {view === 'map' ? <MapView graph={state.graph} ai={LIVE_AI} head={toggle} label={label} /> : <Outline graph={state.graph} head={toggle} label={label} />}
@@ -180,7 +180,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
           </div>
           {(error?.error === 'too-large' || error?.error === 'worker') && <CommandLine command={COMMANDS.file} label="the command line" />}
           <p className="muted">{PRIVACY}</p>
-          {!chat && <p className="muted quiet-links">Or <a href="?view=chat">map a chat</a> · <a href="./">try a sample</a></p>}
+          {!chat && <p className="muted quiet-links">Or <a href="?view=chat">map a chat</a>, or <a href="./">try a sample</a></p>}
           {chat ? (
             <details className="quiet-details">
               <summary>Where to find a chat</summary>

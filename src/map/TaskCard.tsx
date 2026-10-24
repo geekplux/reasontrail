@@ -46,7 +46,7 @@ function Request({ text, title }: { text: string; title?: string | undefined }) 
 }
 
 /** `title`: an authored heading (a sample's or a shared copy's), shown in place of the first request. `label`: one more
- * word for the TASK eyebrow ("pasted"). `head`: header items at the eyebrow row's right end (the Map/Outline switch). */
+ * word for the meta line ("pasted"). `head`: header items above the title, at its right end (the Map/Outline switch). */
 export function TaskCard({ g, sample = false, title, label, head }: { g: SessionGraph; sample?: boolean; title?: string | undefined; label?: string | undefined; head?: ReactNode }) {
   const card = taskCard(g);
   const where = skippedWhere(g);
@@ -56,20 +56,16 @@ export function TaskCard({ g, sample = false, title, label, head }: { g: Session
   const folded = card.details.length > 0 || title !== undefined;
   return (
     <section className="region task-card" data-region="task" aria-labelledby="h-task">
-      <div className="task-eyebrow">
-        <h2 id="h-task" className="section-label task-label">
-          Task <span>· {card.source}{sample ? ' · sample' : ''}{label ? ` · ${label}` : ''}</span>
-        </h2>
-        {head}
-      </div>
+      <h2 id="h-task" className="visually-hidden">Task</h2>
+      {head && <div className="task-tools">{head}</div>}
       <Request text={request} title={title} />
       <p className="mono muted task-meta">
-        <span>{card.meta.map((m) => <span key={m} className="meta-item">{m}</span>)}</span>
+        <span className="meta-items">{[card.source, ...card.meta, sample ? 'sample' : '', label ?? ''].filter(Boolean).map((m) => <span key={m} className="meta-item">{m}</span>)}</span>
         {folded && <button type="button" className="link-button session-toggle" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails(!details)}>Session details</button>}
       </p>
       {/* Folded, never deleted (CL4): the rest of the meta, the model and an authored title's first request. */}
       {folded && <div id={detailsId} className="session-details" hidden={!details}>
-        {card.details.length > 0 && <p className="mono muted">{card.details.map((m) => <span key={m} className="meta-item">{m}</span>)}</p>}
+        {card.details.length > 0 && <p className="mono muted meta-items">{card.details.map((m) => <span key={m} className="meta-item">{m}</span>)}</p>}
         {title !== undefined && <p className="task-raw"><span className="sub-label">First request</span>{request}</p>}
       </div>}
       {parseNotes(g).map((n) => (

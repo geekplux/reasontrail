@@ -99,7 +99,7 @@ export function useLensSentences(text: string, stepId: string | null, where: str
         <span id={pickedId} className="visually-hidden">
           {sentence.text}
         </span>
-        <span id={noteId} className="muted">{rec ? 'Recorded · works offline' : 'Not recorded · grows live if you opt in'}</span>
+        <span id={noteId} className="muted">{rec ? 'Recorded, works offline' : 'Not recorded, grows live if you opt in'}</span>
         {zoomable.length > 1 ? (
           <span id={hintId} className="visually-hidden">
             Arrow keys pick another sentence.

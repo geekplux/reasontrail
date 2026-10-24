@@ -68,14 +68,14 @@ describe('local viewer', () => {
   it('renders the four regions as plain document structure with the honesty label in the task card', () => {
     outline();
     const { container } = render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent?.split(' ·')[0]?.trim())).toEqual(['Task', 'At a glance', 'Route', 'Destination']);
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => [...h.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join('').trim())).toEqual(['Task', 'At a glance', 'Route', 'Destination']);
     expect([...container.querySelectorAll('[data-region]')].map((r) => r.getAttribute('data-region'))).toEqual(['task', 'glance', 'route', 'outcome']);
     const task = container.querySelector('[data-region="task"]');
     expect(task?.querySelector('[data-honesty]')?.textContent).toContain(HONESTY_TEXT);
     expect(task?.querySelector('[data-honesty] a')?.textContent).toBe('How to read this map');
     expect(container.querySelector('[role="tree"], [role="treeitem"], [role="grid"], [role="listbox"], [role="menu"]')).toBeNull();
     expect(container.querySelectorAll('[data-trouble-kind]').length).toBeGreaterThan(0);
-    expect(screen.getByText('Generated on your machine · nothing was uploaded')).toBeTruthy();
+    expect(screen.getByText('Generated on your machine, nothing was uploaded')).toBeTruthy();
   });
 
   it('shows an episode\'s steps behind a disclosure button', () => {
@@ -102,7 +102,7 @@ describe('local viewer', () => {
   it('marks shared copies in a labelled region, under one page heading', () => {
     const payload = { ...JSON.parse(fixture('basic')), meta: { version: '0.1.0', shared: { replaced: 4 } } };
     render(<Viewer loaded={loadGraph(JSON.stringify(payload))} />);
-    expect(screen.getByRole('region', { name: 'Shared copy' }).textContent).toBe('Shared copy · redacted (4 items replaced)');
+    expect(screen.getByRole('region', { name: 'Shared copy' }).textContent).toBe('Shared copy, redacted (4 items replaced)');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
     cleanup();
     render(<Viewer loaded={loadGraph('{')} />);

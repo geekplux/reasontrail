@@ -60,7 +60,7 @@ interface Sel { item: string; step: string | undefined; focus: boolean; raw?: bo
 
 /** `link`: how a step link is written: `?step=` on the website, `#step=` in a local file (PLAN M9). `ai`: the opt-in
  * AI labels (phase 21): live on the website, or the overlay the CLI's `--ai` embedded. `head`: header items for the
- * task's eyebrow row (the Map/Outline switch); `label`: one more eyebrow word ("pasted"). */
+ * task card's tool row above the title (the Map/Outline switch); `label`: one more meta word ("pasted"). */
 export function MapView({ graph: g, sample = false, link = 'search', ai, head, label }: { graph: SessionGraph; sample?: boolean; link?: LinkMode; ai?: AiSource | undefined; head?: ReactNode; label?: string | undefined }) {
   const [message, announce] = useAnnouncer();
   const vertical = useSyncExternalStore(subscribe, narrow, () => false);
@@ -205,7 +205,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
   const count = g.episodes.filter((e) => e.laneId === g.lanes[0]?.id && !e.parentId).length;
   const chat = g.source.kind === 'chat';
   const [verify, , files] = chat ? [] : glance(g);
-  const heading = target ? (target.kind === 'pattern' ? `Steps in pattern ${L.numbers.get(target.trouble?.[0]?.id ?? '') ?? ''} · evidence highlighted` : `Steps in “${target.title.length > 48 ? `${target.title.slice(0, 47)}…` : target.title}”`) : '';
+  const heading = target ? (target.kind === 'pattern' ? `Steps in pattern ${L.numbers.get(target.trouble?.[0]?.id ?? '') ?? ''}, evidence highlighted` : `Steps in “${target.title.length > 48 ? `${target.title.slice(0, 47)}…` : target.title}”`) : '';
   return (
     <SelectContext.Provider value={selector}>
     <div ref={root} className={target ? 'map has-panel' : 'map'} data-testid="map" data-view="map" data-ready="true">
@@ -216,7 +216,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
       </div>
       <section className="region route-band" data-region="route" aria-labelledby="h-route">
         <div className="route-head">
-          <h2 id="h-route" className="section-label">Route <span>· {count === 1 ? '1 episode' : `${count} episodes`} · in order</span></h2>
+          <h2 id="h-route" className="section-label">Route <span>{count === 1 ? '1 episode' : `${count} episodes`}, in order</span></h2>
           <div className="route-tools">
             <button type="button" className="ai-button key-button" aria-expanded={key} aria-controls={keyId} onClick={() => setKey(!key)}>Key</button>
             {ai && (aiLoaded ? (
@@ -260,7 +260,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
         <KindGlyph kind="answer" />
         <span className="dest-bar-text">
           <span className="section-label">Destination</span>
-          {chat ? <span><strong>final answer</strong></span> : <span><strong>{g.outcome.files.length === 1 ? '1 file' : `${g.outcome.files.length} files`}</strong> · {verify?.status === 'ok' ? 'verified' : 'not verified'}{files?.rest ? ` · ${files.rest.replace(/^, /, '')}` : ''}</span>}
+          {chat ? <span><strong>final answer</strong></span> : <span><strong>{g.outcome.files.length === 1 ? '1 file' : `${g.outcome.files.length} files`}</strong>, {verify?.status === 'ok' ? 'verified' : 'not verified'}{files?.rest ? `, ${files.rest.replace(/^, /, '')}` : ''}</span>}
         </span>
         <span className="chevron" aria-hidden="true" />
       </a>
@@ -298,7 +298,7 @@ export function MapView({ graph: g, sample = false, link = 'search', ai, head, l
 
 export type View = 'map' | 'outline';
 
-/** The view a switch click asked for: the switch moves with the view (into the task's eyebrow row of the map or the
+/** The view a switch click asked for: the switch moves with the view (into the task card's tool row of the map or the
  * outline), so the new one takes focus back on mount. */
 let refocus: View | null = null;
 

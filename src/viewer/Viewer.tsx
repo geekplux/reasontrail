@@ -30,7 +30,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
         {loaded.ok ? <ViewSwitch view={view} onChange={change} /> : null}
       </header>
       {meta?.shared && (
-        <section className="shared-ribbon" aria-label="Shared copy">Shared copy · redacted ({meta.shared.replaced} items replaced)</section>
+        <section className="shared-ribbon" aria-label="Shared copy">Shared copy, redacted ({meta.shared.replaced} items replaced)</section>
       )}
       <main className="site-main viewer-main">
         <h1 className="visually-hidden">Reasoning map</h1>
@@ -41,8 +41,11 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
         )}
       </main>
       <footer className="viewer-footer">
-        <span className="viewer-privacy">Generated on your machine · nothing was uploaded</span> · Reasontrail {meta?.version ?? ''} · <a href={HOW_TO_READ_URL}>How to read this map</a> · <a href={SOURCE}>Source</a>
-        {loaded.ok && <> · <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} prior={meta?.shared?.replaced} /></>}
+        <span className="viewer-privacy">Generated on your machine, nothing was uploaded</span>
+        <span>Reasontrail {meta?.version ?? ''}</span>
+        <a href={HOW_TO_READ_URL}>How to read this map</a>
+        <a href={SOURCE}>Source</a>
+        {loaded.ok && <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} prior={meta?.shared?.replaced} />}
       </footer>
     </>
   );

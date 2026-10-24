@@ -17,9 +17,9 @@ export function filterChats(chats: readonly ChatSummary[], query: string): ChatS
   return chats.filter((c) => words.every((w) => c.title.toLowerCase().includes(w)));
 }
 
-/** "15 Oct 2026 · 3 messages" (UTC date, so it reads the same everywhere). */
+/** "15 Oct 2026, 3 messages" (UTC date, so it reads the same everywhere). */
 export function chatMeta(c: ChatSummary): string {
   const date = c.updated ? new Date(c.updated).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '';
   const turns = `${c.turns} message${c.turns === 1 ? '' : 's'} from you`;
-  return date ? `${date} · ${turns}` : turns;
+  return date ? `${date}, ${turns}` : turns;
 }

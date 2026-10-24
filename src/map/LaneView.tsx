@@ -1,6 +1,6 @@
 // Side trails (DESIGN §8.3): a collapsed subagent lane leaves the route at 45°, runs below it, and rejoins at 45°; an
 // interrupted lane ends in a perpendicular bar instead. Its label is the agent type in ink, then a status glyph and
-// "<n> calls · <duration> · <status word>". The lane colour is a stroke only, never text.
+// "<n> calls, <duration>, <status word>". The lane colour is a stroke only, never text.
 import { StatusGlyph } from './Glyph';
 import { laneLines } from './keyboard';
 import { G, lineY, type LaneItem } from './layout';
@@ -30,7 +30,7 @@ export function LanePath({ l, expanded = false }: { l: LaneItem; expanded?: bool
   );
 }
 
-/** Agent type, then status glyph, "<n> calls · <duration> ·" (gives way first) and the whole status word. */
+/** Agent type, then status glyph, "<n> calls, <duration>," (gives way first) and the whole status word. */
 export function LaneLabel({ l, availPx, duration = true }: { l: LaneItem; availPx?: number; duration?: boolean }) {
   const { name, count, word } = laneLines(l, { ...(availPx !== undefined ? { availPx } : {}), duration });
   const full = laneLines(l);

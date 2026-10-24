@@ -43,7 +43,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
               <span className="chip-n mono">{n}</span>
               <span className="chip-text">
                 <strong>{troubleLabel(t.kind, g.source.kind === 'chat')}:</strong> {t.summary.replace(new RegExp(`^${TROUBLE_LABEL[t.kind]}:\\s*`), '')}
-                <span className="mono muted"> · detected pattern{t.resolved ? ' · resolved' : ''}</span>
+                <span className="mono muted">, detected pattern{t.resolved ? ', resolved' : ''}</span>
               </span>
             </li>
           ))}
@@ -59,7 +59,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
               <li key={l.id} className="lane" data-lane={l.id} data-lane-status={status}>
                 <p className="lane-head">
                   <span className="mono">{l.agentType ?? 'subagent'}</span> {l.name}
-                  <span className="mono muted"> · {plural(calls, 'call')} · </span>
+                  <span className="mono muted">, {plural(calls, 'call')}, </span>
                   <StatusGlyph status={status} /> <span className="mono">{status === 'unknown' ? 'no result recorded' : STATUS_WORD[status]}</span>
                 </p>
                 <EpisodeList g={g} laneId={l.id} />
@@ -87,7 +87,7 @@ function EpisodeItem({ g, e }: { g: SessionGraph; e: Episode }) {
   );
 }
 
-/** `head` and `label`: as for the map (the Map/Outline switch in the eyebrow row, one more eyebrow word). */
+/** `head` and `label`: as for the map (the Map/Outline switch above the title, one more meta word). */
 export function Outline({ graph: g, sample = false, head, label }: { graph: SessionGraph; sample?: boolean; head?: ReactNode; label?: string | undefined }) {
   useMapReady();
   return (

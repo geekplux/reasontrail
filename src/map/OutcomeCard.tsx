@@ -7,13 +7,13 @@ import { duration, fileLabel } from './outline';
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-/** Where the verification ran and when, relative to the session start: "in verifier · at 26 min". */
+/** Where the verification ran and when, relative to the session start: "in verifier, at 26 min". */
 function ranWhere(g: SessionGraph, stepId: string): string {
   const step = g.steps.find((s) => s.id === stepId);
   const lane = g.lanes.find((l) => l.id === step?.laneId);
   const at = step?.t && g.source.startedAt ? Date.parse(step.t) - Date.parse(g.source.startedAt) : Number.NaN;
   const who = lane && lane.id !== g.lanes[0]?.id ? lane.agentType ?? lane.name : 'main';
-  return `in ${who}${Number.isFinite(at) ? ` · at ${duration(at)}` : ''}`;
+  return `in ${who}${Number.isFinite(at) ? `, at ${duration(at)}` : ''}`;
 }
 
 export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boolean }) {
@@ -25,7 +25,7 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
   const finalAnswer = answer?.text ? (
     <>
       <p className={full ? 'agent-words excerpt' : 'agent-words excerpt is-clamped'}>{answer.text}</p>
-      <p className="muted provenance">The {chat ? 'model' : 'agent'}&apos;s own words{full && <span className="mono"> · <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}</span>}</p>
+      <p className="muted provenance">The {chat ? 'model' : 'agent'}&apos;s own words{full && <span className="mono">, <span title={answer.raw.file}>{fileLabel(answer.raw.file)}</span>:{answer.raw.line}</span>}</p>
     </>
   ) : (
     <p className="muted">No final answer was recorded.</p>
@@ -35,7 +35,7 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
     return (
       <section className="region outcome is-chat" id="destination" data-region="outcome" aria-labelledby="h-outcome">
         <h2 id="h-outcome" className="section-label">
-          <KindGlyph kind="answer" /> Destination <span>· final answer</span>
+          <KindGlyph kind="answer" /> Destination <span>final answer</span>
         </h2>
         {finalAnswer}
       </section>
@@ -44,7 +44,7 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
   return (
     <section className="region outcome" id="destination" data-region="outcome" aria-labelledby="h-outcome">
       <h2 id="h-outcome" className="section-label">
-        <KindGlyph kind="answer" /> Destination <span>· what changed</span>
+        <KindGlyph kind="answer" /> Destination <span>what changed</span>
       </h2>
       <div className="outcome-cols">
         <div>
@@ -75,7 +75,7 @@ export function OutcomeCard({ g, full = false }: { g: SessionGraph; full?: boole
           {v ? (
             <p className="verification" data-status={v.ok ? 'ok' : 'error'}>
               <StatusGlyph status={v.ok ? 'ok' : 'error'} />
-              <span><code className="mono">{v.command}</code><br /><span className="muted">{v.ok ? 'passed' : 'failed'} · {ranWhere(g, v.stepId)}</span></span>
+              <span><code className="mono">{v.command}</code><br /><span className="muted">{v.ok ? 'passed' : 'failed'} {ranWhere(g, v.stepId)}</span></span>
             </p>
           ) : (
             <p className="verification" data-status="unknown"><StatusGlyph status="unknown" /> <span>No test, build, lint or typecheck run found.</span></p>

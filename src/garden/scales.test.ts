@@ -28,8 +28,8 @@ describe('scales', () => {
 
   it('adds the path chance below the first fork', () => {
     expect(formatValue({ p: 0.447, pathP: 0.447, depth: 1 })).toBe('44.7%');
-    expect(formatValue({ p: 0.301, pathP: 0.0269, depth: 2 })).toBe('30.1% · path 2.7%');
-    expect(formatValue({ p: 0.301, pathP: 0.0269, depth: 2, next: { entropy: 1.44 } })).toBe('30.1% · path 2.7% · next 1.4 bits, medium');
+    expect(formatValue({ p: 0.301, pathP: 0.0269, depth: 2 })).toBe('30.1%, path 2.7%');
+    expect(formatValue({ p: 0.301, pathP: 0.0269, depth: 2, next: { entropy: 1.44 } })).toBe('30.1%, path 2.7%, next 1.4 bits, medium');
   });
 
   it.each([

@@ -47,7 +47,7 @@ function Toggle({ overlay, onOverlay, initial = false, focusRef, label, buttonCl
     <span className="ai-control">
       {/* One button, so the key never adds a header row: the dashed swatch says what a suggested label looks like. */}
       <button ref={focusRef} type="button" className="ai-button ai-toggle" aria-pressed={on} aria-label={`AI labels, suggested by ${overlay.model}`} onClick={flip}>
-        <span className="ai-tag ai-swatch" aria-hidden="true" /> AI labels · suggested by <span className="ai-model">{overlay.model}</span>
+        <span className="ai-tag ai-swatch" aria-hidden="true" /> AI labels, suggested by <span className="ai-model">{overlay.model}</span>
       </button>
     </span>
   );

@@ -31,7 +31,7 @@ export function stopText(s: SampledPath, k: number): string {
   return s.stop === 'depth-cap' ? `depth limit (${DEPTH_CAP} tokens)` : 'the recording ends here';
 }
 
-/** The sampled sentence: "Sampled (T 1.0, seed 7): <prompt><tokens> · path x% · stopped: <reason>". */
+/** The sampled sentence: "Sampled (T 1.0, seed 7): <prompt><tokens>, path x%, stopped: <reason>". */
 export function SampledReadout({ prompt, sampled, t, seed, k }: { prompt: string; sampled: SampledPath; t: number; seed: number; k: number }) {
   return (
     <p className="readout-sampled" data-role="sampled-readout">
@@ -42,7 +42,7 @@ export function SampledReadout({ prompt, sampled, t, seed, k }: { prompt: string
           <WsText text={visibleWs(key.slice(i ? sampled.keys[i - 1]!.length : 0))} Run="span" />
         </span>
       ))}
-      <span className="readout-p">{` · path ${formatPct(sampled.p)} · stopped: ${stopText(sampled, k)}`}</span>
+      <span className="readout-p">{`, path ${formatPct(sampled.p)}, stopped: ${stopText(sampled, k)}`}</span>
     </p>
   );
 }

@@ -110,7 +110,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
       </div>
       <p className="kind-line">
         {pattern && t0 ? <BlazeIcon kind={t0.kind} resolved={t0.resolved} badge={String(n ?? '')} /> : target.episode ? <KindGlyph kind={target.episode.kind} /> : <KindGlyph kind="answer" />}
-        <span>{pattern && target.trouble ? patternLine(target.trouble) : target.episode ? `Episode · ${KIND_WORD[target.episode.kind] ?? target.episode.kind}` : g.source.kind === 'chat' ? 'Destination · final answer' : 'Destination · what changed'}</span>
+        <span>{pattern && target.trouble ? patternLine(target.trouble) : target.episode ? `Episode, ${KIND_WORD[target.episode.kind] ?? target.episode.kind}` : g.source.kind === 'chat' ? 'Destination, final answer' : 'Destination, what changed'}</span>
       </p>
       <h2 id={titleId} ref={title} tabIndex={-1} className="panel-title" title={heading}>{heading}</h2>
       {target.kind === 'files' ? (
@@ -145,7 +145,7 @@ export function DetailPanel({ g, L, target, rows, step, vertical, focusOnOpen, o
   );
 }
 
-/** Provenance (§8.10, CL12): a closed "Source · <file>:<line>" holding the record ids, "Show raw", "Copy link to step"
+/** Provenance (§8.10, CL12): a closed "Source <file>:<line>" holding the record ids, "Show raw", "Copy link to step"
  * and the rule note; keyed by the row, so it resets when the step changes. The destination's raw link opens it. */
 function ProvenanceBlock({ g, row, openRaw, link, announce, children }: { g: SessionGraph; row: Row; openRaw: boolean; link: string; announce(text: string): void; children?: ReactNode }) {
   const [raw, setRaw] = useState(openRaw);
@@ -159,7 +159,7 @@ function ProvenanceBlock({ g, row, openRaw, link, announce, children }: { g: Ses
   };
   return (
     <details className="provenance-block" open={openRaw || undefined}>
-      <summary><span className="mono" title={row.step.raw.file}>Source · {fileLabel(row.step.raw.file)}:{row.step.raw.line}</span></summary>
+      <summary><span className="mono" title={row.step.raw.file}>Source {fileLabel(row.step.raw.file)}:{row.step.raw.line}</span></summary>
       <Provenance g={g} row={row} />
       <div className="panel-actions">
         <button type="button" aria-expanded={raw} onClick={() => setRaw(!raw)}>{raw ? 'Hide raw' : 'Show raw'}</button>
@@ -180,10 +180,10 @@ function Provenance({ g, row }: { g: SessionGraph; row: Row }) {
   return (
     <>
       <p className="mono prov-file" title={s.raw.file}>
-        {fileLabel(s.raw.file)}:{s.raw.line}{res ? ` · result at line ${res}` : ''}
+        {fileLabel(s.raw.file)}:{s.raw.line}{res ? `, result at line ${res}` : ''}
         <span className="visually-hidden"> (file {s.raw.file}, line {s.raw.line}{lane ? `, in ${laneWord(g, lane)}` : ''})</span>
       </p>
-      {ids.length > 0 && <p className="mono muted prov-ids">{ids.join(' · ')}</p>}
+      {ids.length > 0 && <p className="mono muted prov-ids">{ids.join(', ')}</p>}
     </>
   );
 }
@@ -198,10 +198,10 @@ function StepBlock({ g, row, index, count, label, where, onOpenLane }: { g: Sess
   const spawned = tool?.category === 'agent' ? g.lanes.find((l) => l.spawnedBy === s.id) : undefined;
   return (
     <section className="step-block" aria-label={label} data-step={row.id} data-tool={tool?.name}>
-      <h3 className="section-label">{label} · {index + 1} of {count}</h3>
+      <h3 className="section-label">{label}, {index + 1} of {count}</h3>
       <p className="step-status">
         <RowGlyph row={row} />
-        <strong>{rowCategory(row)}</strong>{words ? ` · ${words}` : ''}
+        <strong>{rowCategory(row)}</strong>{words ? `, ${words}` : ''}
         <span className="mono muted">{since(g, s.t)}</span>
       </p>
       {isUnstoredThinking(s) ? (
@@ -211,7 +211,7 @@ function StepBlock({ g, row, index, count, label, where, onOpenLane }: { g: Sess
           <Box label="Command" className="cmd">{`$ ${tool.command}`}</Box>
           {row.result && (
             <>
-              <h4 className="section-label">Output · {more || !ex.more ? 'recorded' : 'excerpt'}</h4>
+              <h4 className="section-label">Output, {more || !ex.more ? 'recorded' : 'excerpt'}</h4>
               <Box label="Output">{(more ? out : ex.head) || '(no output)'}</Box>
               {ex.more > 0 && <button type="button" className="link-button" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Show less' : `Show ${plural(ex.more, 'more line')}`}</button>}
               {row.result.tool?.persistedOutput && <p className="muted fine">The full output was saved to {row.result.tool.persistedOutput}.</p>}

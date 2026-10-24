@@ -249,5 +249,5 @@ export const RULE_WORDS: Record<Trouble['kind'], string> = {
   churn: '4 or more edits to the same file in one episode',
 };
 
-/** "Detected pattern · error streak · resolved". */
-export const patternLine = (t: Trouble[]) => (t.length === 1 && t[0] ? `Detected pattern · ${TROUBLE_WORD[t[0].kind]} · ${t[0].resolved ? 'resolved' : 'unresolved'}` : `Detected patterns · ${t.length}`);
+/** "Detected pattern, error streak, resolved". */
+export const patternLine = (t: Trouble[]) => (t.length === 1 && t[0] ? `Detected pattern, ${TROUBLE_WORD[t[0].kind]}, ${t[0].resolved ? 'resolved' : 'unresolved'}` : `${t.length} detected patterns`);

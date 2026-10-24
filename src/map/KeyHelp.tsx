@@ -4,7 +4,7 @@ export function KeyHelp({ vertical = false }: { vertical?: boolean }) {
   return (
     <details className="key-help">
       <summary><span className="key-q" aria-hidden="true">?</span> Keyboard</summary>
-      <p className="muted fine">{vertical ? '↑ ↓' : '← →'} previous and next step · ] [ next and previous pattern · Esc closes the details.</p>
+      <p className="muted fine">{vertical ? '↑ ↓' : '← →'} previous and next step. ] [ next and previous pattern. Esc closes the details.</p>
     </details>
   );
 }

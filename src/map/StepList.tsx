@@ -29,7 +29,7 @@ export function since(g: SessionGraph, t: string | undefined): string {
 export function rowWords(r: Row): string {
   const word = rowStatusWord(r);
   const exit = exitCode(r);
-  return [word, exit !== undefined ? `exit ${exit}` : ''].filter(Boolean).join(' · ');
+  return [word, exit !== undefined ? `exit ${exit}` : ''].filter(Boolean).join(', ');
 }
 
 /** The row's glyph: ▶ for the user's asks, the dotted square for unstored thinking, else its status (or a space). */

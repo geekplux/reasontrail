@@ -45,7 +45,7 @@ describe('AI labels (phase 21)', () => {
     expect(fetch).toHaveBeenCalledTimes(1); // the fixture has far fewer than 200 steps
     expect(fetch.mock.calls[0]?.[0]).toBe('/api/structure');
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    expect(toggle.textContent).toBe(' AI labels · suggested by fake-model'); // the dashed swatch is the key
+    expect(toggle.textContent).toBe(' AI labels, suggested by fake-model'); // the dashed swatch is the key
     expect(container.querySelectorAll('.route-canvas .ai-tag').length).toBeGreaterThan(0);
     const named = [...container.querySelectorAll('[data-episode-id]')].map((e) => e.getAttribute('aria-label') ?? '');
     expect(named.every((n) => n.includes('AI labels, suggested by fake-model: '))).toBe(true);

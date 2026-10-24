@@ -28,7 +28,7 @@ describe('Zoom into this sentence (Z1)', () => {
     expect(chip.getAttribute('aria-pressed')).toBe('true');
     expect(chip.getAttribute('tabindex')).toBe('0');
     expect(chip.textContent).toContain('(recorded, works offline)');
-    expect(screen.getByText('Recorded · works offline')).toBeTruthy();
+    expect(screen.getByText('Recorded, works offline')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Zoom into this sentence' }));
     expect(open).toHaveBeenLastCalledWith(expect.objectContaining({ stepId: 's12', recorded: expect.objectContaining({ gardenId: 'lens-planner-pivot-1' }) }));
   });
@@ -39,7 +39,7 @@ describe('Zoom into this sentence (Z1)', () => {
     const chips = [...panel.querySelectorAll<HTMLElement>('.lens-sentence')];
     expect(chips.length).toBeGreaterThan(3);
     expect(chips[0]!.getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('Not recorded · grows live if you opt in')).toBeTruthy();
+    expect(screen.getByText('Not recorded, grows live if you opt in')).toBeTruthy();
     fireEvent.keyDown(chips[2]!, { key: 'Enter' });
     expect(chips[2]!.getAttribute('aria-pressed')).toBe('true');
     expect(chips[0]!.getAttribute('aria-pressed')).toBe('false');
@@ -68,7 +68,7 @@ describe('Zoom into this sentence (Z1)', () => {
     expect(document.getElementById(chips[0]!.getAttribute('aria-describedby')!)?.textContent).toBe('Arrow keys pick another sentence.');
     const zoom = screen.getByRole('button', { name: 'Zoom into this sentence' });
     const described = zoom.getAttribute('aria-describedby')!.split(' ').map((id) => document.getElementById(id)?.textContent);
-    expect(described).toEqual([chips[0]!.textContent, 'Not recorded · grows live if you opt in']);
+    expect(described).toEqual([chips[0]!.textContent, 'Not recorded, grows live if you opt in']);
   });
 
   it('is not offered without the website lens, nor on a tool step', async () => {
