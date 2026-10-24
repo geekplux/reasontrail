@@ -11,7 +11,7 @@ Redesign v7 (phases 29–37, spec `docs/design/v7/PROMPT.md`) in progress. Phase
 
 | Phase | Branch | PR | State | Review rounds |
 |---|---|---|---|---|
-| 29 | `phase-29-v7-tokens-logo` | – | implementing | 0 |
+| 29 | `phase-29-v7-tokens-logo` | – | review 2 | 1 |
 | 30 | `phase-30-v7-gitlist` | – | pending | – |
 | 31 | `phase-31-v7-tree-engine` | – | pending | – |
 | 32 | `phase-32-v7-tree-render` | – | pending | – |
