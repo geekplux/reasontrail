@@ -8,7 +8,7 @@ const SIZES = [12, 14, 20, 32];
 export async function run({ page, baseURL, shot, log, fail }) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${baseURL}/`, { waitUntil: 'load' });
-  await page.waitForSelector('.gl [role="tree"]', { timeout: 10_000 });
+  await page.waitForSelector('.gl [role="treeitem"]', { timeout: 10_000 });
   await page.evaluate(() => document.fonts.ready);
 
   const edge = await page.evaluate(() => {
@@ -20,7 +20,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   if (!(Math.abs(edge.root - edge.content) <= 0.5)) fail(`list root mark at ${edge.root}px, card content edge at ${edge.content}px`);
 
   // Keyboard only: Tab until a row of the list has focus, then walk the tree.
-  const label = () => page.evaluate(() => (document.activeElement?.getAttribute('role') === 'treeitem' ? document.activeElement.getAttribute('aria-label') : null));
+  const label = () => page.evaluate(() => (document.activeElement?.getAttribute('role') === 'treeitem' ? document.activeElement.textContent : null));
   let tabs = 0;
   while (!(await label()) && tabs++ < 80) await page.keyboard.press('Tab');
   if (!(await label())) return fail('Tab never reached the list');
@@ -37,7 +37,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   await page.keyboard.press('ArrowRight'); // first step
   if (!(await walk((t) => t.includes(', failed, '), 'the failed step'))) return;
   await page.keyboard.press('Enter');
-  const picked = await page.evaluate(() => ({ label: document.activeElement?.getAttribute('aria-label'), selected: document.activeElement?.getAttribute('aria-selected'), ring: document.querySelectorAll('.gl-svg .ring').length }));
+  const picked = await page.evaluate(() => ({ label: document.activeElement?.textContent, selected: document.activeElement?.getAttribute('aria-selected'), ring: document.querySelectorAll('.gl-svg .ring').length }));
   log(`selected ${JSON.stringify(picked)}`);
   if (picked.selected !== 'true' || picked.ring !== 1) fail(`Enter did not select the failed step: ${JSON.stringify(picked)}`);
 

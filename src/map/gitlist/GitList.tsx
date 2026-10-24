@@ -26,16 +26,8 @@ export interface GitListProps {
 const KIND: Record<GlyphKind, string> = { discuss: 'task', explore: 'explore', change: 'change', verify: 'verify', answer: 'answer' };
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 
-function said(row: AnyRow, tag?: string): string {
-  switch (row.kind) {
-    case 'lane': return [row.name, row.agent?.toLowerCase(), row.steps !== undefined && plural(row.steps, 'step'), row.at && `starts at ${row.at}`].filter(Boolean).join(', ');
-    case 'episode': return [`${row.n} ${row.title}`, KIND[row.glyph], row.failed > 0 && plural(row.failed, 'failed command'), row.wait, plural(row.steps, 'step'), row.at && `starts at ${row.at}`, tag].filter(Boolean).join(', ');
-    case 'verdict': return [row.text, row.dur && `after ${row.dur}`].filter(Boolean).join(', ');
-    case 'end': return `Session ends at ${row.at}`;
-    case 'step': return [row.label, row.mark === 'failed' && 'failed', row.exit, row.at].filter(Boolean).join(', ');
-    default: return `Show ${plural(row.more, 'more step')}`;
-  }
-}
+/** Words a screen reader needs that the columns show by position: each row's name is its text, read as a sentence. */
+const vh = (text: string) => <span className="visually-hidden">{text}</span>;
 
 const episodeOf = (row: AnyRow) => (row.kind === 'episode' || row.kind === 'step' || row.kind === 'more' ? row.episodeId : row.kind === 'verdict' ? row.episodeId : undefined);
 const activeOf = (row: AnyRow): ListSelection => {
@@ -169,32 +161,38 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
   };
 
   const content = (r: AnyRow) => {
+    const at = (word: string, text: string) => text && <span className="gl-main gl-at">{vh(word)}{text}</span>;
+    const count = (n: number | undefined) => n !== undefined && <span className="gl-main gl-steps">{vh(', ')}{n}{vh(n === 1 ? ' step' : ' steps')}</span>;
     switch (r.kind) {
       case 'lane':
-        return (<><span className="gl-main gl-title t-lane">{r.name}</span>{r.agent && <span className="gl-sub gl-title">{r.agent}</span>}{r.steps !== undefined && <span className="gl-main gl-steps">{r.steps}</span>}<span className="gl-main gl-at">{r.at}</span></>);
+        return (<><span className="gl-main gl-title t-lane">{r.name}</span>{r.agent && <span className="gl-sub gl-title">{vh(', ')}{r.agent}</span>}{count(r.steps)}{at(', starts at ', r.at)}</>);
       case 'episode': {
         const tag = tags?.get(r.episodeId);
         return (
           <>
-            <span className="gl-main gl-num">{r.n}</span>
-            <span className="gl-main gl-title"><span className="gl-text">{r.title}</span>{tag && overlay && <span className="ai-tag" title={tagName(tag, overlay.model)}>{tag.label}</span>}</span>
+            <span className="gl-main gl-num">{vh('Episode ')}{r.n}{vh(': ')}</span>
+            <span className="gl-main gl-title">
+              <span className="gl-text">{r.title}</span>{vh(`, ${KIND[r.glyph]}`)}
+              {tag && overlay && (<><span className="ai-tag" aria-hidden="true" title={tagName(tag, overlay.model)}>{tag.label}</span>{vh(`, ${tagName(tag, overlay.model)}`)}</>)}
+            </span>
             {(r.failed > 0 || r.wait) && (
               <span className="gl-sub gl-title">
+                {vh(', ')}
                 {r.failed > 0 && (<><AlertIcon size={12} /><b>{plural(r.failed, 'failed command')}</b></>)}
                 {r.failed > 0 && r.wait ? `, ${r.wait}` : r.wait}
               </span>
             )}
-            <span className="gl-main gl-steps">{r.steps}</span>
-            <span className="gl-main gl-at">{r.at}</span>
+            {count(r.steps)}
+            {at(', starts at ', r.at)}
           </>
         );
       }
       case 'verdict':
-        return (<><span className="gl-main gl-title gl-verdict"><VerdictIcon tone={r.tone} /><span className="t-lane">{r.text}</span></span>{r.dur && <span className="gl-sub gl-title gl-indent">{r.dur}</span>}{r.steps !== undefined && <span className="gl-main gl-steps">{r.steps}</span>}<span className="gl-main gl-at">{r.at}</span></>);
+        return (<><span className="gl-main gl-title gl-verdict"><VerdictIcon tone={r.tone} /><span className="t-lane">{r.text}</span></span>{r.dur && <span className="gl-sub gl-title gl-indent">{vh(', after ')}{r.dur}</span>}{count(r.steps)}{at(', at ', r.at)}</>);
       case 'end':
-        return (<><span className="gl-main gl-title gl-small">Session ends</span><span className="gl-main gl-at">{r.at}</span></>);
+        return (<><span className="gl-main gl-title gl-small">Session ends</span>{at(' at ', r.at)}</>);
       case 'step':
-        return (<><span className={`gl-main gl-title${r.mark === 'thinking' ? ' gl-small' : ''}`}><span className="gl-text">{r.label}</span></span>{r.exit && <span className={`gl-main gl-steps${r.mark === 'failed' ? ' gl-bad' : ''}`}>{r.exit}</span>}{r.mark !== 'thinking' && <span className="gl-main gl-at">{r.at}</span>}</>);
+        return (<><span className={`gl-main gl-title${r.mark === 'thinking' ? ' gl-small' : ''}`}><span className="gl-text">{r.label}</span>{r.mark === 'failed' && vh(', failed')}</span>{r.exit && <span className={`gl-main gl-steps${r.mark === 'failed' ? ' gl-bad' : ''}`}>{vh(', ')}{r.exit}</span>}{r.mark !== 'thinking' && at(', ', r.at)}</>);
       default:
         return <span className="gl-main gl-title gl-small"><span className="link">Show {plural(r.more, 'more step')}</span></span>;
     }
@@ -217,7 +215,6 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
           const inner = r.kind === 'step' || r.kind === 'more';
           const set = inner ? level2 : level1;
           const open = r.kind === 'episode' && sel.episodeId === r.episodeId;
-          const tag = r.kind === 'episode' && overlay ? tags?.get(r.episodeId) : undefined;
           const cls = ['gl-row', `gl-${r.kind}`, open && 'is-open', r.key === target && 'is-sel', r.kind === 'step' && r.mark === 'thinking' && 'is-think'].filter(Boolean).join(' ');
           return (
             <div
@@ -235,7 +232,6 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
               aria-posinset={set.indexOf(r) + 1}
               aria-selected={r.key === target}
               aria-expanded={r.kind === 'episode' ? open : undefined}
-              aria-label={said(r, tag && overlay ? tagName(tag, overlay.model) : undefined)}
               onKeyDown={onKey}
               onClick={() => {
                 setFocusKey(r.key);

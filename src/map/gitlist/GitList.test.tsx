@@ -11,7 +11,8 @@ afterEach(cleanup);
 const items = () => screen.getAllByRole('treeitem');
 const focused = () => document.activeElement as HTMLElement;
 const press = (key: string) => act(() => void fireEvent.keyDown(focused(), { key }));
-const name = (el: Element | null) => el?.getAttribute('aria-label') ?? '';
+/** The row's accessible name: its text, visually hidden words included. */
+const name = (el: Element | null) => el?.textContent ?? '';
 
 describe('GitList keyboard (WAI-ARIA tree)', () => {
   it('is a tree with one tab stop that moves with ↑/↓/Home/End', () => {
@@ -24,13 +25,13 @@ describe('GitList keyboard (WAI-ARIA tree)', () => {
     expect(all[0]?.getAttribute('aria-setsize')).toBe(String(all.length));
     act(() => all[0]!.focus());
     press('ArrowDown');
-    expect(name(focused())).toBe('Verify phase 12, verifier, 96 steps, starts at 0 min');
+    expect(name(focused())).toBe('Verify phase 12, Verifier, 96 steps, starts at 0 min');
     expect(focused().tabIndex).toBe(0);
     expect(all[0]?.tabIndex).toBe(-1);
     press('End');
     expect(name(focused())).toBe('Session ends at 47 min');
     press('ArrowUp');
-    expect(name(focused())).toBe('Passed, after 1 min');
+    expect(name(focused())).toBe('Passed, after 1 min, 1 step, at 47 min');
     press('Home');
     expect(focused()).toBe(all[0]);
   });
@@ -38,8 +39,8 @@ describe('GitList keyboard (WAI-ARIA tree)', () => {
   it('→ opens an episode, → again enters it, Enter selects a step, Esc clears it, then closes the episode', () => {
     const onSelect = vi.fn<(s: ListSelection) => void>();
     render(<GitList g={G} onSelect={onSelect} />);
-    const ep6 = items().find((el) => name(el).startsWith('6 Read redact.test.ts +8 more'))!;
-    expect(name(ep6)).toBe('6 Read redact.test.ts +8 more, explore, 1 failed command, 28 steps, starts at 16 min');
+    const ep6 = items().find((el) => name(el).startsWith('Episode 6: Read redact.test.ts +8 more'))!;
+    expect(name(ep6)).toBe('Episode 6: Read redact.test.ts +8 more, explore, 1 failed command, 28 steps, starts at 16 min');
     act(() => ep6.focus());
     expect(ep6.getAttribute('aria-expanded')).toBe('false');
     press('ArrowRight');
@@ -68,21 +69,21 @@ describe('GitList keyboard (WAI-ARIA tree)', () => {
 
   it('← closes an open episode; opening another closes the first', () => {
     render(<GitList g={G} />);
-    const find = (n: string) => items().find((el) => name(el).startsWith(n))!;
-    act(() => find('6 Read').focus());
+    const find = (n: string) => items().find((el) => name(el).startsWith(`Episode ${n}`))!;
+    act(() => find('6: Read').focus());
     press('ArrowRight');
     press('ArrowLeft');
-    expect(find('6 Read').getAttribute('aria-expanded')).toBe('false');
-    fireEvent.click(find('6 Read'));
-    fireEvent.click(find('7 Edit'));
-    expect(find('6 Read').getAttribute('aria-expanded')).toBe('false');
-    expect(find('7 Edit').getAttribute('aria-expanded')).toBe('true');
+    expect(find('6: Read').getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(find('6: Read'));
+    fireEvent.click(find('7: Edit'));
+    expect(find('6: Read').getAttribute('aria-expanded')).toBe('false');
+    expect(find('7: Edit').getAttribute('aria-expanded')).toBe('true');
   });
 
   it('reports the focused row for the tree highlight', () => {
     const onActive = vi.fn<(s: ListSelection | undefined) => void>();
     render(<GitList g={G} onActive={onActive} />);
-    const ep = items().find((el) => name(el).startsWith('2 Read PLAN.md'))!;
+    const ep = items().find((el) => name(el).startsWith('Episode 2: Read PLAN.md'))!;
     act(() => ep.focus());
     expect(onActive).toHaveBeenLastCalledWith({ episodeId: 'e14' });
     fireEvent.mouseLeave(ep);
@@ -95,6 +96,6 @@ describe('GitList keyboard (WAI-ARIA tree)', () => {
     expect(container.querySelector('.ai-tag')).toBeNull();
     rerender(<GitList g={G} overlay={overlay} />);
     expect([...container.querySelectorAll('.ai-tag')].map((t) => t.textContent)).toEqual(['dead end']);
-    expect(name(items().find((el) => name(el).startsWith('6 Read'))!)).toMatch(/AI labels, suggested by test-model: dead end \(1 step\)$/);
+    expect(name(items().find((el) => name(el).startsWith('Episode 6:'))!)).toContain(', AI labels, suggested by test-model: dead end (1 step), 1 failed command');
   });
 });

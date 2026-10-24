@@ -20,7 +20,7 @@ describe('Home (v7 §4, §12)', () => {
       ['A change request rewrites the plan', 'false'],
     ]);
     expect(container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label')).toMatch(/^Tree: /);
-    const labels = [...container.querySelectorAll('[aria-label]')].map((el) => el.getAttribute('aria-label'));
+    const labels = [...container.querySelectorAll('[aria-label]')].map((el) => el.textContent);
     expect(`${container.textContent}${labels.join('')}`).not.toContain('·');
   });
 
@@ -41,7 +41,7 @@ describe('Home (v7 §4, §12)', () => {
       const g = await sample.load();
       const { unmount } = render(<SessionCard g={g} sample />);
       const tree = screen.getByRole('tree', { name: 'Episodes in order' });
-      const rows = [...tree.querySelectorAll('[role="treeitem"]')].map((el) => el.getAttribute('aria-label'));
+      const rows = [...tree.querySelectorAll('[role="treeitem"]')].map((el) => el.textContent);
       expect(rows[0]).toBe('Main agent, starts at 0 min');
       expect(rows.at(-1)).toMatch(/^Session ends at \d+ min$/);
       expect(document.body.textContent).not.toContain('not drawn yet');
