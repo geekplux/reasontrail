@@ -20,7 +20,7 @@ describe('Home (v7 §4, §12)', () => {
       ['A change request rewrites the plan', 'false'],
     ]);
     expect(container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label')).toMatch(/^Tree: /);
-    const labels = [...container.querySelectorAll('[aria-label]')].map((el) => el.textContent);
+    const labels = [...container.querySelectorAll('[aria-label]')].map((el) => el.getAttribute('aria-label'));
     expect(`${container.textContent}${labels.join('')}`).not.toContain('·');
   });
 
