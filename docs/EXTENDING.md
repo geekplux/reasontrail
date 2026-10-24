@@ -82,14 +82,15 @@ Gardens are committed JSON in `src/samples/`, recorded by the standalone tool in
 
 ## 4. A theme
 
-Every colour is a CSS custom property in `src/styles/tokens.css`: the light theme in `:root` and the dark theme under `@media (prefers-color-scheme: dark)`. Change the `--tg-*` values there and nowhere else.
+Every colour is a Radix Colors 3.0 step (slate, blue, orange) declared in `src/styles/tokens.css`: the light values in `:root` and the dark ones under `@media (prefers-color-scheme: dark)`. Stylesheets use them by role (`var(--slate-11)` for muted text, `var(--blue-9)` for the selected path, and so on; see `docs/DESIGN.md` §6) and never write a colour of their own.
 
 Then run `pnpm vitest run src/styles/tokens.test.ts`. It checks the following:
 
-- each colour's contrast on paper matches the `CONTRAST` table (update the table on purpose when you change a colour);
-- text reaches 4.5:1 and marks reach 3:1 on `--tg-paper` and `--tg-surface`;
-- the colours that must stay apart remain apart (ΔE >= 20) under protanopia, deuteranopia and tritanopia;
-- `public/favicon.svg` and `public/logo.svg` draw in `--tg-branch-hi`, and the `theme-color` in `index.html` matches `--tg-paper` (static files cannot read CSS variables, so update those copies too).
+- the tokens carry the exact Radix values, light and dark, and no other colour token exists;
+- text roles reach 4.5:1 (`--slate-11`, `--slate-12` on slate-1/2/3; `--blue-11` on slate-1/2);
+- blue-9, orange-9 and slate-12 stay apart (ΔE >= 20) under protanopia, deuteranopia and tritanopia;
+- every colour in `src/**/*.css` is a `var(--slate|blue|orange-N)` or a Radix value;
+- `public/favicon.svg` draws the leaf from `src/brand/LogoMark.tsx`, and the `theme-color` in `index.html` matches `--slate-1` per theme (static files cannot read CSS variables, so update those copies too, and `public/logo.svg` and `public/favicon-32.png` with them).
 
 Colour is never the only signal in Reasontrail: thickness, markers, dash patterns and labels carry the meaning. Keep it that way.
 

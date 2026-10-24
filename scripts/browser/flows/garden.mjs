@@ -42,7 +42,7 @@ function audit() {
     if (Math.abs(parseFloat(cs.strokeWidth) - w) > 0.01) problems.push(`${key}: stroke-width ${cs.strokeWidth} != ${w}`);
     if (cs.strokeLinecap !== 'butt') problems.push(`${key}: linecap ${cs.strokeLinecap}`);
     if (g.classList.contains('on-path')) continue; // selected style: ink stroke on a paper casing
-    const colour = state === 'not-recorded' ? '--tg-ink-muted' : `--tg-branch-${band}`;
+    const colour = state === 'not-recorded' ? '--slate-11' : { lo: '--slate-9', mid: '--slate-11', hi: '--slate-12' }[band];
     if (cs.stroke !== token(colour)) problems.push(`${key}: stroke ${cs.stroke} != ${colour}`);
     if (MARKER[state] !== marker) problems.push(`${key}: state ${state} has marker ${marker}`);
     if (state === 'not-recorded' ? !dashOk(cs, [4, 3]) : cs.strokeDasharray !== 'none') problems.push(`${key}: dash ${cs.strokeDasharray} on ${state}`);

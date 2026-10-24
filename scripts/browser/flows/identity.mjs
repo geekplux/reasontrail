@@ -39,17 +39,14 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     };
     return {
       logo: Boolean(document.querySelector('header .wordmark svg.logo-mark')),
-      reason: style('header .wordmark-reason'),
-      trail: style('header .wordmark-trail'),
-      loaded: document.fonts.check('500 16px "IBM Plex Mono"') && document.fonts.check('italic 400 16px "Instrument Serif"'),
+      name: style('header .wordmark > span'),
+      loaded: document.fonts.check('600 14px "Geist"') && document.fonts.check('400 12px "Geist Mono"'),
       landmarks: ['header', 'main', 'footer'].map((t) => document.querySelectorAll(t).length),
     };
   });
   log(`wordmark: ${JSON.stringify(mark)}`);
   if (!mark.logo) fail('header wordmark has no logo mark');
-  if (mark.reason?.text !== 'reason' || !mark.reason.family.startsWith('"IBM Plex Mono"')) fail('"reason" is not set in IBM Plex Mono');
-  if (mark.trail?.text !== 'trail' || !mark.trail.family.startsWith('"Instrument Serif"') || mark.trail.italic !== 'italic')
-    fail('"trail" is not set in Instrument Serif Italic');
+  if (mark.name?.text !== 'Reasontrail' || !/^"?Geist\b/.test(mark.name.family)) fail('the wordmark name is not set in Geist');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
   // One name for the brand link; the header also links to the source.
@@ -101,7 +98,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   // Dark theme.
   await page.emulateMedia({ colorScheme: 'dark' });
   const bg = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
-  if (bg !== 'rgb(17, 24, 19)') fail(`dark: page background is ${bg}, expected --tg-paper #111813`);
+  if (bg !== 'rgb(17, 17, 19)') fail(`dark: page background is ${bg}, expected --slate-1 #111113`);
   for (const p of await axeProblems(page, 'dark desktop')) fail(p);
   await shot('identity-dark');
   await page.emulateMedia({ colorScheme: 'light' });
