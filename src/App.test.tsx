@@ -75,7 +75,7 @@ describe('App', () => {
 
   it('frames the garden with the shell: wordmark header, specimen label, footer', async () => {
     await renderApp();
-    expect(screen.getByRole('link', { name: 'Reasontrail' }).textContent).toBe('reasontrail');
+    expect(screen.getByRole('link', { name: 'Reasontrail' }).textContent).toBe('Reasontrail');
     expect(screen.getByRole('banner').querySelector('a.header-link')?.getAttribute('href')).toBe(SOURCE_URL);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The lighthouse keeper');
     const specimen = screen.getByRole('region', { name: 'The lighthouse keeper' });

@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <title>Reasontrail</title>
-  <style>svg { color: #1c2620 } @media (prefers-color-scheme: dark) { svg { color: #e9eee7 } }</style>
-  <circle cx="4.5" cy="20" r="3.5" fill="currentColor" stroke="none"/>
-  <path d="M4.5 20 H11 L19 12 H22" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M11 20 H19.5" stroke-width="2.5"/>
-  <circle cx="26.5" cy="12" r="4" stroke-width="2.5"/><circle cx="26.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+  <!-- The veined leaf (src/brand/LogoMark.tsx). The vein is cut out with a mask, so it shows whatever is behind the icon. -->
+  <mask id="vein"><rect width="64" height="64" fill="#fff"/><path d="M8 56L56 8M20 44C17 38 16 31 17 25M31 33C37 35 43 35 49 33M41 23C39 19 39 15 40 11" fill="none" stroke="#000" stroke-width="2.8" stroke-linecap="round"/></mask>
+  <g mask="url(#vein)">
+    <path d="M6 58C6 28 28 6 58 6Z" fill="#0090ff"/>
+    <path d="M6 58C36 58 58 36 58 6Z" fill="#f76b15"/>
+  </g>
 </svg>

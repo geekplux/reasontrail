@@ -1,17 +1,11 @@
 import { LogoMark } from './LogoMark';
 
-/**
- * The wordmark (DESIGN §4.2): the trail mark, "reason" in IBM Plex Mono 500 and "trail" in Instrument Serif Italic,
- * baseline-aligned with no space (the change of typeface is the join). Announced as one name, "Reasontrail".
- */
+/** The wordmark (docs/design/v7/PROMPT.md §3.4): the leaf at 20px, an 8px gap, then "Reasontrail" in Geist 600 14px. */
 export function Wordmark() {
   return (
-    <span className="wordmark" role="img" aria-label="Reasontrail">
+    <span className="wordmark">
       <LogoMark />
-      <span className="wordmark-text">
-        <span className="wordmark-reason">reason</span>
-        <span className="wordmark-trail">trail</span>
-      </span>
+      <span>Reasontrail</span>
     </span>
   );
 }
