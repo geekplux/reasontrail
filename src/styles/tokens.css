@@ -35,7 +35,7 @@
   --radius-14: 14px;
   --radius-16: 16px;
 
-  /* Spacing (DESIGN §18.3): 4/8/16/24/40/64 */
+  /* Spacing (DESIGN §7): 4/8/16/24/40/64 */
   --tg-space-1: 4px;
   --tg-space-2: 8px;
   --tg-space-4: 16px;
@@ -44,7 +44,8 @@
   --tg-space-9: 64px; /* hero room */
   --tg-measure: 72ch;
 
-  /* Motion (§3.4); zeroed under prefers-reduced-motion below */
+  /* Motion (DESIGN §7); zeroed under prefers-reduced-motion below.
+     TODO(phase 35): align with v7 motion, 250ms ease-out on colour and opacity only. */
   --tg-ease-grow: cubic-bezier(0.2, 0.7, 0.2, 1);
   --tg-dur-grow: 180ms;
   --tg-dur-fade: 120ms;

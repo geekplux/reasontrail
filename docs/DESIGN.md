@@ -208,6 +208,7 @@ Radix Colors 3.0 **slate**, **blue** and **orange**, light and dark, copied into
 | orange-9 (marks) | **2.90** / 2.83 / 2.61 | 6.35 / 5.92 / 5.35 |
 
 - `--blue-11` text sits on slate-1 and slate-2 only; on slate-3 or blue-3 in light it is below AA, so text there stays `--slate-12`.
+- Exception: input boundaries (`.share-field`) use `--slate-11`, not a 6–8 line step, for 3:1 non-text contrast (WCAG 1.4.11).
 - `--orange-9` is under 3:1 on light backgrounds. A failure is therefore never a bare orange mark: it carries a ✕ or ⚠ shape drawn in ink or on the fill, and the text says it.
 
 **CVD** (CIE76 ΔE after Machado 2009; normal / protan / deutan / tritan; `colorMath.ts`): blue-9 vs orange-9 137 / 118 / 138 / 111; blue-9 vs slate-12 77 / 75 / 79 / 61 light, 72 / 65 / 78 / 46 dark; orange-9 vs slate-12 100 / 75 / 90 / 92 light, 90 / 72 / 75 / 84 dark. Every pair is far above 20. Blue and orange also differ in lightness.
@@ -650,25 +651,9 @@ Verified (pnpm check:browser passed) · 3 trouble spots, 1 resolved · 22 files 
 
 ## 14. Build notes
 
-### 14.1 Tokens block (phase 16 adds it; phase 13 adds `--tg-ok`, `--tg-trouble` and `--tg-wash` for the outline)
+### 14.1 Tokens block
 
-```css
-:root {
-  --tg-lane: #5f7d6c; --tg-ok: #1a6fa0; --tg-trouble: #a3292b; --tg-wash: #f3e3cf; --tg-lane-band: #efebdf;
-  --tg-ease-out: cubic-bezier(0.2, 0, 0, 1);
-  --tg-dur-route: 320ms; --tg-dur-lane: 200ms; --tg-dur-panel: 160ms; --tg-dur-lens: 240ms;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --tg-lane: #7fa48f; --tg-ok: #4a95cf; --tg-trouble: #e5534b; --tg-wash: #33281a; --tg-lane-band: #151d18; }
-}
-@media (prefers-reduced-motion: reduce) {
-  :root { --tg-dur-route: 0ms; --tg-dur-lane: 0ms; --tg-dur-panel: 0ms; --tg-dur-lens: 0ms; }
-}
-```
-
-`tokens.test.ts` gains the contrast rows from §6.2 (including `--tg-lane` on `--tg-lane-band` and `--tg-error` on `--tg-wash` in both themes) and the ΔE rows from §6.3 with values ≥ 20, so the palette cannot silently regress.
-
-The `--tg-` prefix stays after the rename. It is internal, and renaming it would churn every phase 1–9 file for no user value. The main agent records this in DECISIONS.md.
+Superseded in v7: the tokens are `src/styles/tokens.css`, specified in §§5–7; `tokens.test.ts` guards them.
 
 ### 14.2 Test hooks (in addition to PLAN §6.0a)
 
