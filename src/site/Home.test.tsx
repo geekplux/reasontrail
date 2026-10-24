@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { defaultSessionGraph } from '../sessions/samples';
+import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
 import { Home } from './Home';
 import { SessionCard } from './SessionCard';
 import { pageTitle } from './SiteShell';
@@ -34,6 +34,19 @@ describe('Home (v7 §4, §12)', () => {
     expect(meta.tagName).toBe('UL'); // one list item each, so a screen reader does not run them together
     expect([...meta.children].every((c) => c.tagName === 'LI')).toBe(true);
     expect(screen.getAllByRole('button').map((b) => b.textContent).filter((t) => ['AI titles', 'Details', 'Share'].includes(t ?? ''))).toEqual(['AI titles', 'Details', 'Share']);
+  });
+
+  it('draws the git-style list for every sample, so a tab switch swaps the list too', async () => {
+    for (const sample of sessionSamples) {
+      const g = await sample.load();
+      const { unmount } = render(<SessionCard g={g} sample />);
+      const tree = screen.getByRole('tree', { name: 'Episodes in order' });
+      const rows = [...tree.querySelectorAll('[role="treeitem"]')].map((el) => el.getAttribute('aria-label'));
+      expect(rows[0]).toBe('Main agent, starts at 0 min');
+      expect(rows.at(-1)).toMatch(/^Session ends at \d+ min$/);
+      expect(document.body.textContent).not.toContain('not drawn yet');
+      unmount();
+    }
   });
 
   it('names the tab of another page with an en dash, not a middle dot', () => {

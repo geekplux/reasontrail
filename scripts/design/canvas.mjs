@@ -7,8 +7,10 @@
 //       Renders the canvas preview pages (docs/design/v7/preview/*.html) with system Chrome: home-1440-light,
 //       home-1440-dark, hover-1440-light, step-1440-light (viewport 1440×900) and phone-390-light (390×844),
 //       each as `<name>.webp` (full page) and `<name>-fold.webp` (first screen only).
-//   shoot --url <url> --out <file.webp> [--width 1440] [--height 900] [--theme light|dark] [--full]
-//       Screenshots any page (the app) at the same viewport and theme as a canvas frame.
+//   shoot --url <url> --out <file.webp> [--width 1440] [--height 900] [--theme light|dark] [--full] [--actions <list>]
+//       Screenshots any page (the app) at the same viewport and theme as a canvas frame. `--actions` runs steps before
+//       the shot, separated by ";": click:<selector>, press:<key> (on the focused element), focus:<selector>,
+//       mouse:<x>,<y>. E.g. the Step state: 'click:[aria-label^="6 Read"];click:[aria-label^="Inspect vitest"];mouse:0,0'.
 //   pair --canvas <file> --app <file> --out <file.webp> [--title <short text, at most 24 characters>]
 //       Puts the canvas frame (left) and the app screenshot (right) side by side in one WebP.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -39,11 +41,20 @@ const browser = await chromium.launch({
   args: ['--disable-dev-shm-usage', '--disable-gpu', '--allow-file-access-from-files'],
 });
 
-async function shoot(url, { width, height, theme, full, out, foldOut }) {
+async function shoot(url, { width, height, theme, full, out, foldOut, actions }) {
   const ctx = await browser.newContext({ viewport: { width, height }, colorScheme: theme, reducedMotion: 'reduce' });
   const tab = await ctx.newPage();
   await tab.goto(url, { waitUntil: 'networkidle' });
   await tab.evaluate(() => document.fonts.ready);
+  for (const step of (actions ?? '').split(';').filter(Boolean)) {
+    const [verb, ...arg] = step.split(':');
+    const a = arg.join(':');
+    if (verb === 'click') await tab.click(a);
+    else if (verb === 'focus') await tab.focus(a);
+    else if (verb === 'press') await tab.keyboard.press(a);
+    else if (verb === 'mouse') await tab.mouse.move(...a.split(',').map(Number));
+    else throw new Error(`unknown action: ${step}`);
+  }
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, await tab.screenshot({ type: 'webp', quality: 82, fullPage: Boolean(full) }));
   if (foldOut) writeFileSync(foldOut, await tab.screenshot({ type: 'webp', quality: 82 }));
@@ -60,7 +71,7 @@ try {
     }
   } else if (command === 'shoot') {
     if (!opts.url || !opts.out) throw new Error('shoot needs --url and --out');
-    await shoot(opts.url, { width: Number(opts.width ?? 1440), height: Number(opts.height ?? 900), theme: opts.theme ?? 'light', full: opts.full, out: resolve(opts.out) });
+    await shoot(opts.url, { width: Number(opts.width ?? 1440), height: Number(opts.height ?? 900), theme: opts.theme ?? 'light', full: opts.full, out: resolve(opts.out), actions: opts.actions });
     console.log(`shot ${opts.url} -> ${opts.out}`);
   } else if (command === 'pair') {
     if (!opts.canvas || !opts.app || !opts.out) throw new Error('pair needs --canvas, --app and --out');

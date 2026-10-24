@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New look (redesign v7): Radix colours, Geist, the veined-leaf logo, and a home page led by the session's tree, with sample tabs, a session card (meta line, outcome box, final answer), install and "Made by GeekPlux" links.
 - The drop zone, chat paste, garden lens, AI labels, share dialog and local viewer use the same Radix colours, Geist, four type sizes and 0.5px lines; separators in labels are commas or spacing instead of "·", and the README wordmarks show the veined leaf.
+- The session card lists the session as a git-style list for every sample: the main agent's rail, a fork per subagent with its episodes and a merge after its verdict (failed, committed, passed). Open an episode to see its tool calls and thinking, select a step, and move through it all with the keyboard (arrows, Home/End, Enter, Esc). AI titles show as small tags beside the episodes.
 - Deploys through Cloudflare Workers Builds ([docs/DEPLOY.md](docs/DEPLOY.md)): a `previews` block for branch previews, and wrangler 4.151 with Node 22 for development. The CLI still runs on Node 20.19+.
 - The CLI is published to npm by a GitHub Actions workflow on a `cli-v*` release, using npm trusted publishing ([docs/PUBLISH.md](docs/PUBLISH.md)).
 
