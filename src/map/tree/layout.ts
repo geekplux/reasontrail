@@ -22,6 +22,10 @@ const TAIL = 12;
 /** The share of the height a one-lane tree grows to. */
 const FILL = 0.7;
 const N = 40;
+/** The right-hand room (design units) of a tree drawn without labels. */
+const NO_LABEL_ROOM = 54;
+/** A trunk that ends in a dot (no answer) runs at least this far (design units) past its last glyph. */
+const DOT_CLEAR = 20;
 const rad = (d: number) => (d * Math.PI) / 180;
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -83,11 +87,14 @@ function touches(line: Line, c: Pt, r: number): boolean {
   return false;
 }
 
+/** The smallest box (px) a tree is drawn in; below it, or for a box that is not finite, `layoutTree` returns no marks. */
+export const MIN_BOX = { width: 240, height: 120 } as const;
 const EMPTY = (width: number, height: number): TreeLayout => ({ width, height, ribbons: [], twigs: [], episodes: [], tips: [], handBacks: [], root: { at: { x: 0, y: 0 }, r: 0 }, blocks: [], labels: [], hits: [], paths: {} });
 
 export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   const { width, height, k = 1.45, labels = true, reserve = [] } = opts;
-  if (!(width > 0) || !(height > 0)) return EMPTY(width, height);
+  // Too small to draw, or not a finite box (an infinite one would grow the trunk forever): the empty tree.
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < MIN_BOX.width || height < MIN_BOX.height) return EMPTY(width, height);
   const z = Math.min(1, height / DESIGN_H);
   const W = width / z;
   const H = height / z;
@@ -95,8 +102,9 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   const U0 = ROOT_R + 10;
   // Room on the right for the tip's text block (about 210px on the canvas).
   const blockW = Math.max(0, ...m.trunk.block.map((l) => labelBox({ key: '', x: 0, y: 0, anchor: 'start', ...l }).x1));
-  // As tree.mjs: 28 units on the left (root, flare), the label room on the right.
-  const along = Math.max(1, W - 28 - (labels ? Math.max(210, blockW + 26) / z : 48));
+  // As tree.mjs: 28 units on the left (root, flare), the label room on the right (54 units without labels, which puts
+  // the phone silhouette's tips on Phone.html's).
+  const along = Math.max(1, W - 28 - (labels ? Math.max(210, blockW + 26) / z : NO_LABEL_ROOM));
   // Along-axis: one unit per record, +9 after a spawn, +4 on return to main, packed closer below MIN_UNIT. Each part
   // ends 2 units after its last record; that tail may reach TAIL units into the label room (one unit of it on the
   // canvas), so a short session with huge units still ends inside the box.
@@ -185,7 +193,8 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   const episodeHit = (id: string, points: Pt[]): HitTarget => ({ id, kind: 'episode', episodeId: id, points });
   const hits: HitTarget[] = [
     ...episodes.map((e) => episodeHit(e.episodeId, [...(byPart.get(`branch:${e.episodeId}`)?.line ?? []), e.at])),
-    ...tips.flatMap((t) => (t.episodeId ? [episodeHit(t.episodeId, [t.at])] : [])),
+    // A tip without an episode of its own (an errored lane's ◉, the trunk's end dot) hits its lane's last episode.
+    ...tips.flatMap((t) => { const id = t.episodeId ?? m.lastEpisode[t.laneId]; return id ? [episodeHit(id, [t.at])] : []; }),
     ...text.labels.filter((l) => l.key.startsWith('num:')).map((l) => episodeHit(l.key.slice(4), [{ x: l.x, y: r1(l.y - 4) }])),
     ...twigs.map((t) => {
       const a = rad(t.angle);
@@ -244,6 +253,16 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
       const clear = () => gr.branches.every((b) => dist(b.at, ln.pts.at(-1) as Pt) >= tipR + GLYPH_R + 6);
       while (!clear() && (ln.pts.at(-1) as Pt).x + 2 <= uMax) push(ln, gr.at((ln.pts.at(-1) as Pt).x + 2));
       if (!clear()) { ln.pts.length = keep; ln.widths.length = keep; }
+    }
+    // A trunk ending in a dot runs on until the dot is DOT_CLEAR units right of its last glyph, so it does not crowd
+    // it; it may reach into the label room as far as still leaves its own block ("Session ends") room on the right.
+    const tg = groups[0];
+    if (tg && tg.src.tip.kind === 'end' && tg.branches.length) {
+      const ln = tg.part.line;
+      const most = Math.max(uMax, W - PAD - (labels ? (blockW + 24) / z : 12));
+      let last = -Infinity;
+      for (const b of tg.branches) last = Math.max(last, b.at.x);
+      while ((ln.pts.at(-1) as Pt).x < last + DOT_CLEAR && (ln.pts.at(-1) as Pt).x + 2 <= most) push(ln, tg.at((ln.pts.at(-1) as Pt).x + 2));
     }
     // A glyph that lands on another ribbon, glyph, tip or ✕ (or whose branch runs over another glyph) grows its branch
     // 4 units at a time, at most 40; failing that, the branch tries the other side (up to 60 longer there), then shorter.

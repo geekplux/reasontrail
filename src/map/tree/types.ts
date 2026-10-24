@@ -7,6 +7,10 @@ export interface Pt { x: number; y: number }
 export interface Box { x0: number; y0: number; x1: number; y1: number }
 
 export interface TreeOptions {
+  /**
+   * The box in px. The smallest drawn is 240 × 120 (`MIN_BOX`); a smaller box, or one that is not finite (NaN,
+   * Infinity), gives the empty layout: no ribbons, twigs, marks, labels or hit targets.
+   */
   width: number;
   height: number;
   /**

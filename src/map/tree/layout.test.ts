@@ -6,7 +6,7 @@ import implementer from '../../sessions/samples/implementer-checks.graph.json';
 import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
 import { listRows, type EpisodeRow, type VerdictRow } from '../gitlist/rows';
-import { highlight, layoutTree, nearest, type Box, type Pt, type TreeLayout, type TreeOptions } from '.';
+import { highlight, layoutTree, MIN_BOX, nearest, type Box, type Pt, type TreeLayout, type TreeOptions } from '.';
 import { boxesHit, labelBox } from './labels';
 import { treeModel } from './model';
 import { eightLanes, longSession, synthGraph } from './synthetic';
@@ -62,16 +62,17 @@ const sample = (pts: Pt[], step: number): Pt[] => {
   const n = Math.max(1, Math.ceil((dist(a, c) + dist(c, b)) / step));
   return Array.from({ length: n + 1 }, (_, i) => { const s = i / n; return { x: (1 - s) ** 2 * a.x + 2 * s * (1 - s) * c.x + s * s * b.x, y: (1 - s) ** 2 * a.y + 2 * s * (1 - s) * c.y + s * s * b.y }; });
 };
-/** How far the box sits above or below `y` (0 when it spans it). */
-const vGap = (b: Box, y: number) => Math.max(0, b.y0 - y, y - b.y1);
+/** How far the box's nearest edge or corner is from `p` (0 when it contains it). */
+const boxDist = (b: Box, p: Pt) => Math.hypot(Math.max(b.x0 - p.x, 0, p.x - b.x1), Math.max(b.y0 - p.y, 0, p.y - b.y1));
 
 /**
  * Known gaps of the two stress cases: where lanes spawned together all hand back across each other's tips, nothing
- * near the tip is free, so the text crosses a dotted hand-back (the last resort) or, once, a twig.
+ * near the tip is free, so the text crosses a dotted hand-back (the last resort) or, once, a twig, and three blocks
+ * move further out to the side of their tip ("Review part four" the furthest).
  */
 const KNOWN: Record<string, string[]> = {
   'eight lanes': ['wait:agent-1 × hand-back agent-1'],
-  'five concurrent lanes, three on one side': ['block:agent-3 × twig s88', 'block:agent-4 × hand-back agent-2'],
+  'five concurrent lanes, three on one side': ['block:agent-3 × twig s88', 'block:agent-4 × hand-back agent-2', 'block:agent-1 31px from its tip', 'block:agent-3 31px from its tip', 'block:agent-4 70px from its tip'],
 };
 
 describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
@@ -101,7 +102,7 @@ describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
       }
       for (const b of t.handBacks) if (sample([b.from, b.c, b.to], 2).some((p) => hitsCircle(box, p, 0.5)) || hitsCircle(box, b.to, 2.5)) clashes.push(`${key} × hand-back ${b.laneId}`);
     }
-    expect(clashes).toEqual(KNOWN[name] ?? []);
+    expect(clashes).toEqual((KNOWN[name] ?? []).filter((x) => x.includes(' × ')));
   });
 
   it('keeps every glyph off other glyphs, tips, ✕ and every ribbon but its own branch', () => {
@@ -133,11 +134,14 @@ describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
     expect(close).toEqual([]);
   });
 
-  it('puts every lane block within 24px of its tip, vertically', () => {
+  it('puts every lane block within 24px of its tip', () => {
+    const far: string[] = [];
     for (const b of t.blocks) {
       const tip = t.tips.find((m) => m.laneId === b.laneId) as TreeLayout['tips'][number];
-      expect(vGap(b.box, tip.at.y), `block ${b.laneId}`).toBeLessThanOrEqual(24);
+      const d = boxDist(b.box, tip.at);
+      if (d > 24) far.push(`block:${b.laneId} ${Math.round(d)}px from its tip`);
     }
+    expect(far).toEqual((KNOWN[name] ?? []).filter((x) => x.endsWith('from its tip')));
   });
 
   it('keeps wait texts at least 32px apart left to right (16px above or below)', () => {
@@ -200,8 +204,10 @@ describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
     }
   });
 
-  it('hits an answer tip, an episode number and a leaf\'s far end', () => {
+  it('hits every tip, an episode number and a leaf\'s far end', () => {
     for (const m of t.tips.filter((x) => x.episodeId)) expect(t.hits.some((h) => h.id === m.episodeId && h.points.length === 1 && h.points[0] === m.at)).toBe(true);
+    // A tip without an episode of its own (an errored lane, the trunk's end dot) is its lane's last episode.
+    for (const m of t.tips) expect(t.hits.some((h) => h.kind === 'episode' && h.points.length === 1 && h.points[0] === m.at), `tip ${m.laneId}`).toBe(true);
     for (const l of t.labels.filter((x) => x.key.startsWith('num:'))) expect(t.hits.some((h) => h.kind === 'episode' && h.id === l.key.slice(4) && h.points.length === 1)).toBe(true);
     const leaf = t.twigs.find((w) => w.mark === 'leaf') as TreeLayout['twigs'][number];
     const a = (leaf.angle * Math.PI) / 180;
@@ -246,6 +252,14 @@ describe('layoutTree: verify-fail-fix against the canvas (docs/design/v7/tree.mj
       expect(dist(e.at, refGlyphs[i] as Pt), `glyph ${r.n}`).toBeLessThan(2);
       expect(dist(num, r), `number ${r.n}`).toBeLessThan(2);
     });
+  });
+
+  it('puts the phone silhouette\'s tips within 1px of Phone.html (its 980 × 520 tree at 358 × 190)', () => {
+    const phone = layoutTree(VFF, PHONE);
+    const z = 358 / 980;
+    // Phone.html's tip halos, in its viewBox units: Re-verify, Verify, Fix.
+    const want = [{ x: 919.5, y: 296.9 }, { x: 467.5, y: 140.4 }, { x: 688.8, y: 444 }];
+    phone.tips.forEach((m, i) => expect(dist(m.at, { x: want[i]!.x * z, y: want[i]!.y * z }), `tip ${m.tone}`).toBeLessThan(1));
   });
 
   it('sets the waits on the trunk like the canvas: below its flat line, and above the trunk\'s edge', () => {
@@ -325,12 +339,13 @@ describe('layoutTree: generalised (§5.3)', () => {
     expect(textBoxes(t).filter(({ box }) => boxesHit(box, zone))).toEqual([]);
   });
 
-  it('returns an empty tree for an empty box', () => {
-    for (const [width, height] of [[0, 520], [1200, 0], [-5, 100], [Number.NaN, 520]]) {
+  it('returns an empty tree for an empty, infinite or too small box (below MIN_BOX)', () => {
+    const { width: w, height: h } = MIN_BOX;
+    for (const [width, height] of [[0, 520], [1200, 0], [-5, 100], [Number.NaN, 520], [Infinity, 520], [1200, Infinity], [Infinity, Infinity], [w - 1, 520], [1200, h - 1]]) {
       const t = layoutTree(VFF, { width: width as number, height: height as number });
-      expect([t.ribbons, t.twigs, t.labels, t.hits]).toEqual([[], [], [], []]);
+      expect([t.ribbons, t.twigs, t.episodes, t.tips, t.labels, t.blocks, t.hits]).toEqual([[], [], [], [], [], [], []]);
     }
-    expect(layoutTree(VFF, { width: 60, height: 520 }).ribbons.length).toBeGreaterThan(0);
+    expect(layoutTree(VFF, { width: w, height: h }).ribbons.length).toBeGreaterThan(0);
   });
 
   it('models a session with an episode of 200,000 records (no argument-spread overflow)', () => {
@@ -355,6 +370,13 @@ describe('layoutTree: generalised (§5.3)', () => {
     expect(t.tips.map((m) => [m.kind, m.tone])).toEqual([['end', 'done'], ['answer', 'fail'], ['answer', 'done']]);
     expect(t.tips[1]!.at.y).toBeLessThan(trunkY(t));
     expect(t.tips[2]!.at.y).toBeGreaterThan(trunkY(t));
+  });
+
+  it('a trunk ending in a dot runs at least 20px past its last glyph (planner-pivot)', () => {
+    const t = layoutTree(GRAPHS[2]![1], DESKTOP);
+    const dot = t.tips.find((m) => m.kind === 'end') as TreeLayout['tips'][number];
+    const last = Math.max(...t.episodes.filter((e) => t.paths[e.episodeId]?.length === 2 && t.paths[e.episodeId]?.[0]?.part === 'trunk').map((e) => e.at.x));
+    expect(dot.at.x - last).toBeGreaterThanOrEqual(20);
   });
 
   it('more than four lanes: limbs alternate sides and stack with decreasing amplitude', () => {

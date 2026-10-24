@@ -3,7 +3,7 @@
 import { ribbonPath } from './layout';
 import type { HitTarget, Pt, TreeLayout } from './types';
 
-export { layoutTree, ribbonPath } from './layout';
+export { layoutTree, MIN_BOX, ribbonPath } from './layout';
 export { textWidth } from './text';
 export type * from './types';
 export type { GlyphKind, VerdictTone } from '../gitlist/rows';

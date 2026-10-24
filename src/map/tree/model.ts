@@ -36,6 +36,8 @@ export interface TreeModel {
   trunk: PartSrc;
   limbs: PartSrc[];
   rootAt: string;
+  /** Each lane's last episode in the list, by lane id (the hit target of a tip without an episode of its own). */
+  lastEpisode: Record<string, string>;
 }
 
 // Loops, not `Math.min(...xs)`: a spread of a huge session's seqs overflows the call stack.
@@ -76,7 +78,9 @@ export function treeModel(g: SessionGraph): TreeModel {
   const limbs: PartSrc[] = [];
   const episodeIds = new Set<string>();
   const lanes = new Map<string, LaneRow>();
+  const lastEpisode: Record<string, string> = {};
   for (const row of rows) {
+    if (row.kind === 'episode') lastEpisode[row.laneId] = row.episodeId;
     if (row.kind === 'lane' && !parts.has(row.laneId)) {
       const limb = make(row.laneId, `limb:${row.laneId}`);
       parts.set(row.laneId, limb);
@@ -130,5 +134,5 @@ export function treeModel(g: SessionGraph): TreeModel {
   trunk.from = recs[0]?.seq ?? 0;
   trunk.last = most([...trunkSeqs, ...limbs.map((l) => l.from), trunk.from]);
   delete trunk.wait;
-  return { records, trunk, limbs, rootAt: rows[0]?.at ?? '' };
+  return { records, trunk, limbs, rootAt: rows[0]?.at ?? '', lastEpisode };
 }
