@@ -8,9 +8,9 @@
 <p align="center"><strong>See how your coding agent got there: one command turns a Claude Code, Codex or Grok Build session into a map you can read at a glance. Local, no API key, nothing uploaded.</strong></p>
 
 <p align="center">
-  <a href="https://reasontrail.geekplux.com">Live demo</a> ·
-  <a href="#quick-start">Quick start</a> ·
-  <a href="#how-it-works">How it works</a> ·
+  <a href="https://reasontrail.geekplux.com">Live demo</a>&emsp;
+  <a href="#quick-start">Quick start</a>&emsp;
+  <a href="#how-it-works">How it works</a>&emsp;
   <a href="docs/EXTENDING.md">Extend it</a>
 </p>
 
@@ -19,7 +19,7 @@
     <source media="(prefers-reduced-motion: reduce)" srcset="docs/brand/hero.webp">
     <img src="docs/brand/hero.gif" width="800" alt="A Reasontrail map of a real session: the task card with three At a glance rows, a route of twelve named episodes from the request to the answer with a numbered trouble marker where check runs failed, and the destination card. The pointer clicks the marker, the detail panel opens on the first failed run and steps to the second, and Esc returns to the map.">
   </picture>
-  <br><sub><a href="docs/brand/hero.webp">Still image</a> · <a href="examples/README.md">Three example maps</a></sub>
+  <br><sub><a href="docs/brand/hero.webp">Still image</a>&emsp;<a href="examples/README.md">Three example maps</a></sub>
 </p>
 
 ## Quick start
