@@ -84,3 +84,12 @@ export function writeView(search: string, view: SiteView): string {
   const out = q.toString();
   return out ? `?${out}` : '';
 }
+
+/** The search a same-page link leads to from `search`. A link to a home section (`./#install`) keeps the selected
+ * sample when the home is already showing; from any other page it opens the home, as written. */
+export function linkSearch(href: string, search: string): string {
+  const url = new URL(href, `http://site/${search}`);
+  const at = readSiteState(search);
+  const home = at.view === 'map' && !at.garden && !at.lens;
+  return url.hash && !url.search && home ? search : url.search;
+}

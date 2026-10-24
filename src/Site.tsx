@@ -5,7 +5,7 @@
 // Internal links change the URL in place, and everything the site can need later is fetched once it is idle, so the
 // gallery and the drop zone keep working offline after the first load (PLAN phase 19, AC3).
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
-import { lensSearch, mapSearch, readSiteState, writeView } from './app/urlState';
+import { lensSearch, linkSearch, mapSearch, readSiteState, writeView } from './app/urlState';
 import { loadDetailPanel } from './map/MapView';
 import { loadShareDialog } from './share/ShareAction';
 import { LensContext, type LensOpener, type LensTarget } from './lens/lensTarget';
@@ -125,7 +125,7 @@ export function Site() {
     go(writeView('', 'open'));
   }, [go]);
 
-  // Same-page links (`./`, `?view=…`, `./#how-to-read`) change the view without a page load.
+  // Same-page links (`./`, `?view=…`, `./#install`) change the view without a page load.
   const onClick = (e: MouseEvent) => {
     const a = (e.target as Element).closest?.('a');
     const href = a?.getAttribute('href');
@@ -133,9 +133,10 @@ export function Site() {
     if (!/^(\.\/|\?)/.test(href) || GARDEN_PARAMS.test(href)) return;
     e.preventDefault();
     const url = new URL(href, window.location.href);
+    const next = linkSearch(href, search); // `./#install` on the home keeps the selected sample
     navigated.current = !url.hash;
-    const same = url.search === search;
-    go(url.search);
+    const same = next === search;
+    if (!same || !url.hash) go(next);
     if (same) focusTitle(); // no re-render, so no effect: the heading is already drawn
     requestAnimationFrame(() => {
       const el = url.hash ? document.querySelector<HTMLElement>(url.hash) : null;

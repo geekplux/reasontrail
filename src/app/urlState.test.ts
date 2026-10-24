@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lensSearch, mapSearch, readSiteState, readUrlState, writeUrlState, writeView } from './urlState';
+import { lensSearch, linkSearch, mapSearch, readSiteState, readUrlState, writeUrlState, writeView } from './urlState';
 
 describe('urlState', () => {
   it.each([
@@ -52,5 +52,17 @@ describe('lens links (phase 22)', () => {
     expect(mapSearch('?session=planner-pivot&step=s12&sample=lens-planner-pivot-1&path=0.1&t=0.5&seed=3')).toBe(map);
     expect(mapSearch('?lens=live&path=0')).toBe('');
     expect(lensSearch('?sample=cat&path=1', 'lens-x')).toBe('?sample=lens-x');
+  });
+});
+
+describe('same-page links (phase 29)', () => {
+  it('keeps the selected sample for a home section link on the home, and opens the home from other pages', () => {
+    expect(linkSearch('./#install', '?session=planner-pivot')).toBe('?session=planner-pivot');
+    expect(linkSearch('./#install', '')).toBe('');
+    expect(linkSearch('./#install', '?view=how')).toBe('');
+    expect(linkSearch('./#install', '?session=x&view=install')).toBe('');
+    expect(linkSearch('./#install', '?sample=cat&path=1')).toBe('');
+    expect(linkSearch('./', '?session=planner-pivot')).toBe('');
+    expect(linkSearch('?view=how', '?session=planner-pivot')).toBe('?view=how');
   });
 });
