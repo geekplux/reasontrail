@@ -1,5 +1,28 @@
-STATE: DONE
-All 28 phases are complete with open PRs (#1–#29, stacked; none merged). Deployment and npm publish are prepared and dry-run-verified: **awaiting Sean's approval to deploy** (`pnpm exec wrangler deploy`, see PR #29 and docs/DEPLOY.md) and to publish (`npm publish --access public` from `cli/`, see docs/PUBLISH.md).
+STATE: IN-PROGRESS
+Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28 are merged; PR #31 (first v7 attempt) is closed and discarded.
+
+# Status (Reasontrail)
+
+## Redesign v7 (phases 29–36)
+
+- Current phase: 29 `phase-29-v7-canvas-page`, step: implement
+- Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
+
+| Phase | Branch | PR | State | Review rounds | lead-designer |
+|---|---|---|---|---|---|
+| 29 | `phase-29-v7-canvas-page` | – | implementing | 0 | – |
+| 29b | `phase-29b-v7-brand-cleanup` | – | pending | – | – |
+| 30 | `phase-30-v7-gitlist` | – | pending | – | – |
+| 31 | `phase-31-v7-tree-engine` | – | pending | – | – |
+| 32 | `phase-32-v7-tree-render` | – | pending | – | – |
+| 33 | `phase-33-v7-phone-dark` | – | pending | – | – |
+| 34 | `phase-34-v7-viewer-features` | – | pending | – | – |
+| 35 | `phase-35-v7-polish-docs` | – | pending | – | – |
+| 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
+
+Last updated: 2026-10-24 (phase 29 implement started)
+
+## History: phases 1–28
 
 # Status (Reasontrail, formerly token-garden)
 
