@@ -1421,7 +1421,8 @@ Spec: `docs/design/v7/PROMPT.md` (§13 wins over §1–§12; the canvas `docs/de
 | 29b | `phase-29b-v7-brand-cleanup` | Remaining surfaces (drop zone, garden lens, AI, share, viewer) moved onto the Radix tokens; old palette deleted; token test widened to every `src/**/*.css`; favicon PNG and wordmark PNGs; interim DESIGN.md identity/type/colour/shape from the spec |
 | 30 | `phase-30-v7-gitlist` | Git-style list (§6) with rails, rows, states, WAI-ARIA tree keyboard; replaces the placeholder; outcome box from real sample data |
 | 31 | `phase-31-v7-tree-engine` | Pure tree layout engine in `src/map/tree/` (§5.2–5.3) with label placement |
-| 32 | `phase-32-v7-tree-render` | SVG renderer replaces the static tree; hover, selection, callout, detail panel, list link; tab switching; URL state (may split 32a/32b) |
+| 32a | `phase-32a-v7-tree-render` | SVG renderer replaces the static tree; legend; hover + tooltip linked to the list; 12px hit testing; tab switching swaps tree, list, outcome |
+| 32b | `phase-32b-v7-step-detail` | Step selection: blue path, callout, detail panel, Prev/Next, Esc, list link; URL state (sample, step) |
 | 33 | `phase-33-v7-phone-dark` | Phone 390 and dark |
 | 34 | `phase-34-v7-viewer-features` | Local viewer on the new design; AI titles, Share, drop zone, lens, HowToReadMap; browser checks |
 | 35 | `phase-35-v7-polish-docs` | Full before/after set vs canvas; README hero, wordmarks, social preview, examples, CHANGELOG, DESIGN.md rewrite |
