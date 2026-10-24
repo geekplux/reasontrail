@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- New look (redesign v7): Radix colours, Geist, the veined-leaf logo, and a home page led by the session's tree, with sample tabs, a session card (meta line, outcome box, final answer), install and "Made by GeekPlux" links.
 - Deploys through Cloudflare Workers Builds ([docs/DEPLOY.md](docs/DEPLOY.md)): a `previews` block for branch previews, and wrangler 4.151 with Node 22 for development. The CLI still runs on Node 20.19+.
 - The CLI is published to npm by a GitHub Actions workflow on a `cli-v*` release, using npm trusted publishing ([docs/PUBLISH.md](docs/PUBLISH.md)).
 
