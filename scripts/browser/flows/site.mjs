@@ -122,7 +122,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.locator('header').getByRole('link', { name: 'Install' }).click();
   await page.waitForSelector('.install');
   if (!(await page.evaluate(() => document.activeElement?.matches('main h1')))) fail('Install: focus did not move to the page heading');
-  if ((await page.title()) !== 'Install · Reasontrail') fail(`install title: ${await page.title()}`);
+  if ((await page.title()) !== 'Install – Reasontrail') fail(`install title: ${await page.title()}`);
   const commands = await page.locator('.install [data-command]').allTextContents();
   const installText = await page.locator('.install').textContent();
   const cli = join(root, 'cli', 'dist', 'cli.mjs');
@@ -157,7 +157,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.waitForSelector('[data-testid="drop-target"]');
   if (!(await page.locator('main').textContent()).includes(PRIVACY)) fail('V2: the drop zone lacks the privacy line');
   await page.waitForFunction(() => document.activeElement?.matches('main h1')).catch(() => fail('open: focus did not move to the page heading'));
-  if ((await page.title()) !== 'Map your own session · Reasontrail') fail(`open title: ${await page.title()}`);
+  if ((await page.title()) !== 'Map your own session – Reasontrail') fail(`open title: ${await page.title()}`);
   // X1: only the showcase home fills "Map your own session"; on its own page it is the current text link.
   if ((await page.locator('header a[href="?view=open"]').getAttribute('aria-current')) !== 'page') fail('open: the header link is not aria-current="page"');
   if (await page.locator('header .button.primary').count()) fail('open: the header still has an ink-filled button');
@@ -172,7 +172,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   if (requests.length) fail(`V1: ${requests.length} requests while parsing: ${requests.slice(0, 3)}`);
   if (!/^Map ready: \d+ episodes?, \d+ detected patterns?/.test((await live(page)) ?? '')) fail(`announce: "${await live(page)}"`);
   if (!(await page.evaluate(() => document.activeElement?.tagName === 'H1'))) fail('focus did not move to the mapped file');
-  if ((await page.title()) !== 'trouble.jsonl · Reasontrail') fail(`dropped map title: ${await page.title()}`);
+  if ((await page.title()) !== 'trouble.jsonl – Reasontrail') fail(`dropped map title: ${await page.title()}`);
   await settle(page);
   for (const p of await axeProblems(page, 'dropped map')) fail(p);
 

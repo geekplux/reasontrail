@@ -21,7 +21,7 @@ export async function run({ page, baseURL, root, log, fail }) {
   await offer.waitFor({ timeout: 5_000 }).catch(() => fail('unsupported file: no link to the paste page'));
   await offer.click();
   await page.waitForFunction(() => document.activeElement?.id === 'chat-text').catch(() => fail('the paste page did not focus the paste box'));
-  if ((await page.title()) !== 'Map a chat · Reasontrail') fail(`chat title: ${await page.title()}`);
+  if ((await page.title()) !== 'Map a chat – Reasontrail') fail(`chat title: ${await page.title()}`);
   const box = await page.locator('#chat-text').boundingBox();
   if (!box || box.y + box.height > 900) fail(`CL1: the paste box is not inside the first viewport (${JSON.stringify(box)})`);
   for (const p of await axeProblems(page, 'chat paste')) fail(p);

@@ -10,8 +10,8 @@ import type { SiteView } from '../app/urlState';
 import { SOURCE_URL } from '../components/AppShell';
 
 export const PRIVACY = 'Parsed in your browser. Nothing is uploaded.';
-/** The tab title of a page other than home: "Install · Reasontrail". */
-export const pageTitle = (what: string) => `${what} · Reasontrail`;
+/** The tab title of a page other than home: "Install – Reasontrail" (an en dash). */
+export const pageTitle = (what: string) => `${what} – Reasontrail`;
 const hasFiles = (e: DragEvent) => e.dataTransfer?.types.includes('Files') ?? false;
 
 /** Shows the overlay while files are dragged over the window, and hands a dropped file to `onFile`. */
