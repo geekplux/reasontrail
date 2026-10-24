@@ -9,7 +9,7 @@
 //       each as `<name>.webp` (full page) and `<name>-fold.webp` (first screen only).
 //   shoot --url <url> --out <file.webp> [--width 1440] [--height 900] [--theme light|dark] [--full]
 //       Screenshots any page (the app) at the same viewport and theme as a canvas frame.
-//   pair --canvas <file> --app <file> --out <file.webp> [--title <text>]
+//   pair --canvas <file> --app <file> --out <file.webp> [--title <short text, at most 24 characters>]
 //       Puts the canvas frame (left) and the app screenshot (right) side by side in one WebP.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
@@ -65,10 +65,12 @@ try {
   } else if (command === 'pair') {
     if (!opts.canvas || !opts.app || !opts.out) throw new Error('pair needs --canvas, --app and --out');
     const src = (file) => `data:image/${extname(file).slice(1) === 'png' ? 'png' : 'webp'};base64,${readFileSync(resolve(file)).toString('base64')}`;
-    const title = (opts.title ?? '').replace(/[<&]/g, '');
-    const html = `<!doctype html><html><body style="margin:0;background:#fff;font:600 28px system-ui">
+    // The captions are "Canvas" and "App"; a short title (e.g. "Home 1440 light") may follow the first one.
+    const title = (opts.title ?? '').replace(/[<&]/g, '').trim();
+    const caption = title && title.length <= 24 ? `Canvas: ${title}` : 'Canvas';
+    const html = `<!doctype html><html><body style="margin:0;background:#fff;color:#1c2024;font:600 28px Geist, system-ui, -apple-system, 'Segoe UI', sans-serif">
       <div style="display:flex;gap:24px;padding:24px;align-items:flex-start">
-        <figure style="margin:0"><figcaption style="padding:0 0 12px">Canvas${title ? ` (${title})` : ''}</figcaption><img id="a" src="${src(opts.canvas)}" style="display:block;outline:1px solid #ccc"></figure>
+        <figure style="margin:0"><figcaption style="padding:0 0 12px">${caption}</figcaption><img id="a" src="${src(opts.canvas)}" style="display:block;outline:1px solid #ccc"></figure>
         <figure style="margin:0"><figcaption style="padding:0 0 12px">App</figcaption><img id="b" src="${src(opts.app)}" style="display:block;outline:1px solid #ccc"></figure>
       </div></body></html>`;
     const ctx = await browser.newContext({ viewport: { width: 800, height: 600 } });
