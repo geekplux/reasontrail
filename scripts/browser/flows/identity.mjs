@@ -1,8 +1,11 @@
 // Identity flow (phase 2): fonts, favicon, wordmark, landmarks, layout at both viewports, dark theme, CVD previews.
 import { axeProblems } from '../axe.mjs';
 import { applyCvd, MATRICES } from '../cvd.mjs';
+import { BUDGETS } from '../../check-size.mjs';
 
-const FONT_BUDGET = 45 * 1024;
+const FONT_BUDGET = BUDGETS.fontBytes;
+// The garden SVG can scale by a hair under 1 (e.g. 0.99998), so allow sub-pixel rounding below 12px.
+const MIN_LABEL_PX = 11.95;
 
 async function ready(page) {
   await page.waitForSelector('[data-testid="garden"][data-ready="true"]', { timeout: 10_000 });
@@ -121,7 +124,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   log(`mobile: ${JSON.stringify(mobile)}`);
   if (mobile.pageOverflow > 0) fail(`mobile: page overflows horizontally by ${mobile.pageOverflow}px`);
   if (mobile.outside.length) fail(`mobile: overflowing outside the garden scroller: ${mobile.outside.join(', ')}`);
-  if (mobile.label < 12) fail(`mobile: token labels render at ${mobile.label.toFixed(1)}px (< 12px)`);
+  if (mobile.label < MIN_LABEL_PX) fail(`mobile: token labels render at ${mobile.label.toFixed(2)}px (< ${MIN_LABEL_PX}px)`);
   await checkScrollStop('mobile');
   for (const p of await axeProblems(page, 'light mobile')) fail(p);
   await shot('identity-mobile');
