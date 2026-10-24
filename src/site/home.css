@@ -9,7 +9,7 @@
 .v7 .code { font-family: var(--font-mono); font-size: var(--text-12); }
 .v7 .muted { color: var(--slate-11); }
 .v7 .strong { font-weight: 500; }
-.v7 .ic { flex: none; display: block; }
+:is(.v7, .page) .ic { flex: none; display: block; }
 .v7 .g { flex: none; display: block; color: var(--slate-12); }
 .v7 a, .v7 button { transition: color var(--motion), background-color var(--motion), opacity var(--motion); }
 
@@ -23,8 +23,8 @@
 .v7 .btn.primary { background: var(--slate-12); color: var(--slate-1); }
 .v7 .btn.ghost { box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); }
 .v7 .btn.ghost:hover { background: var(--slate-3); }
-.v7 .iconbtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--radius-6); color: var(--slate-11); }
-.v7 .iconbtn:hover { background: var(--slate-3); color: var(--slate-12); }
+:is(.v7, .page) .iconbtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--radius-6); color: var(--slate-11); }
+:is(.v7, .page) .iconbtn:hover { background: var(--slate-3); color: var(--slate-12); }
 .v7 .link { color: var(--slate-11); font-weight: 500; text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
 
 /* Hero: the promise, then the tree itself as the picture */
@@ -32,8 +32,8 @@
 .v7 .hero-top { display: flex; align-items: last baseline; justify-content: space-between; gap: 32px; }
 .v7 h1 { font-size: var(--text-32); line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; text-wrap: balance; }
 .v7 .lede { margin-top: 12px; font-size: var(--text-20); line-height: 1.4; letter-spacing: -0.01em; color: var(--slate-11); max-width: 34ch; }
-.v7 .cmdbox { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 14px; border-radius: var(--radius-10); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-6); }
-.v7 .cmdbox .code { color: var(--slate-12); white-space: nowrap; }
+:is(.v7, .page) .cmdbox { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 14px; border-radius: var(--radius-10); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-6); }
+:is(.v7, .page) .cmdbox .code { color: var(--slate-12); white-space: nowrap; }
 .v7 .hero-tree { position: relative; margin-top: 32px; }
 .v7 .hero-tree > .legend { position: absolute; top: 0; right: 0; }
 .v7 .legend { display: flex; gap: 16px; color: var(--slate-11); font-size: var(--text-12); white-space: nowrap; }
@@ -116,7 +116,7 @@
 .v7 .install { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; margin: 96px var(--gutter) 0; padding-top: 40px; border-top: var(--hair-soft); }
 .v7 .install h2, .v7 .maker h2 { font-size: var(--text-20); font-weight: 600; letter-spacing: -0.015em; }
 .v7 .install .muted { margin-top: 8px; max-width: 44ch; }
-.v7 .cmdbox.big { height: 48px; width: 100%; justify-content: space-between; padding: 0 8px 0 16px; }
+:is(.v7, .page) .cmdbox.big { height: 48px; width: 100%; justify-content: space-between; padding: 0 8px 0 16px; }
 .v7 .agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
 .v7 .agents dt { color: var(--slate-11); font-size: var(--text-12); }
 .v7 .agents dd { margin-top: 2px; }

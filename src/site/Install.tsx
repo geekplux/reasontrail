@@ -6,11 +6,10 @@ import { COMMANDS, SKILL_CALL, SKILL_HOMES } from '../../shared/commands';
 
 const SAID_MS = 2500;
 
-/** A command in a mono box with a Copy button, and a visible status line after it ("Copied"). On failure the command
- * is selected so the keyboard copy works. */
-/** `big`: the page's focal command (the skill install), set larger than the rest (DESIGN §18.1). `box`: the v7 command
- * box (§4.2): mono text and a copy icon button that turns into a check while "Copied" is said to screen readers. */
-export function CommandLine({ command, label, big = false, box }: { command: string; label?: string; big?: boolean; box?: 'hero' | 'big' }) {
+/** The v7 command box (§4.2): mono text and a copy icon button that turns into a check while "Copied" is said to
+ * screen readers. On failure the command is selected so the keyboard copy works. `big`: the page's focal command, the
+ * full-width 48px box. */
+export function CommandLine({ command, label, big = false }: { command: string; label?: string; big?: boolean }) {
   const [said, setSaid] = useState('');
   const code = useRef<HTMLElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -41,23 +40,13 @@ export function CommandLine({ command, label, big = false, box }: { command: str
         say('Copy failed; the command is selected — press Ctrl or Cmd+C');
       },
     );
-  if (box)
-    return (
-      <div className={box === 'big' ? 'cmdbox big' : 'cmdbox'}>
-        <code ref={code} className="code">{command}</code>
-        <button type="button" className="iconbtn" onClick={copy} aria-label={`Copy ${label ?? 'command'}`}>
-          {said === 'Copied' ? <CheckIcon /> : <CopyIcon />}
-        </button>
-        <span className="visually-hidden" role="status">{said}</span>
-      </div>
-    );
   return (
-    <div className={big ? 'command is-big' : 'command'}>
-      <code ref={code} data-command="">{command}</code>
-      <button type="button" className="text-button" onClick={copy} aria-label={`Copy ${label ?? 'command'}`}>
-        Copy
+    <div className={big ? 'cmdbox big' : 'cmdbox'}>
+      <code ref={code} className="code" data-command="">{command}</code>
+      <button type="button" className="iconbtn" onClick={copy} aria-label={`Copy ${label ?? 'command'}`}>
+        {said === 'Copied' ? <CheckIcon /> : <CopyIcon />}
       </button>
-      <span className="copy-said" role="status">{said}</span>
+      <span className="visually-hidden" role="status">{said}</span>
     </div>
   );
 }
@@ -87,7 +76,7 @@ export function Install() {
     <div className="page install">
       <h1 className="page-title" tabIndex={-1}>Install</h1>
       <section aria-labelledby="h-skill">
-        <h2 id="h-skill" className="section-label">The skill</h2>
+        <h2 id="h-skill" className="install-h">The skill</h2>
         <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
         <p>{callLine}</p>
         <details>
@@ -102,7 +91,7 @@ export function Install() {
         </details>
       </section>
       <section aria-labelledby="h-cli">
-        <h2 id="h-cli" className="section-label">Or run it yourself</h2>
+        <h2 id="h-cli" className="install-h">Or run it yourself</h2>
         <CommandLine command={COMMANDS.open} label="the map command" />
         <p>Maps the newest session for this folder and opens it in your browser. Nothing is uploaded.</p>
         <details>

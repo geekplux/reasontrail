@@ -3,6 +3,9 @@
 
 .site-main { flex: 1; }
 
+/* Inline code, keys and output: Geist Mono 12, never the browser's generic monospace at 14 (rule 8). */
+code, kbd, samp { font-family: var(--font-mono); font-size: var(--text-12); }
+
 
 .site-footer {
   display: flex;

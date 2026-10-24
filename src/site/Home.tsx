@@ -73,7 +73,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
             <h1 id="hero-h" tabIndex={-1}>See how your coding agent got there.</h1>
             <p className="lede">Every session as a tree: subagents are limbs, episodes are branches, tool calls are twigs.</p>
           </div>
-          <CommandLine command={COMMANDS.installSkill} label="the skill install command" box="hero" />
+          <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
         </div>
         <figure className="hero-tree" id={TREE_ID}>
           {/* TEMPORARY: the canvas's static tree for the default sample; the tree renderer replaces it in phase 32. */}
@@ -92,7 +92,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
           <p className="muted">Install the skill once, then ask your agent to map the current session. It opens in your browser; nothing is uploaded.</p>
         </div>
         <div>
-          <CommandLine command={COMMANDS.installSkill} label="the skill install command" box="big" />
+          <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
           <dl className="agents">
             <div><dt>Claude Code</dt><dd className="code">{SKILL_CALL.slash}</dd></div>
             <div><dt>Grok Build</dt><dd className="code">{SKILL_CALL.slash}</dd></div>
