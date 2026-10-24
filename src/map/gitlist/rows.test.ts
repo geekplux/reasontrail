@@ -47,6 +47,7 @@ describe('listRows (v7 §6)', () => {
     const [errored, ok] = rows.filter((r): r is VerdictRow => r.kind === 'verdict');
     expect(errored).toMatchObject({ tone: 'fail', text: 'Failed' });
     expect(errored?.episodeId).toBeUndefined();
+    expect(errored?.dur).toBeUndefined(); // failed at once: no "after 0 min"
     expect(ok).toMatchObject({ tone: 'done', episodeId: 'e11' });
     expect(rows[1]).toMatchObject({ title: 'Change request from the maintainer' });
   });
@@ -66,6 +67,20 @@ describe('episodeSteps', () => {
     expect(steps[1]).toMatchObject({ mark: 'call', exit: 'Exit 0' });
     expect(steps[2]).toMatchObject({ mark: 'thinking', label: 'Thinking' });
     expect(steps.filter((s) => s.mark === 'failed')).toHaveLength(1);
+  });
+
+  it('times steps from the first timestamped step when the source has no start, like the episode rows', () => {
+    const g = structuredClone(IMPL);
+    delete g.source.startedAt;
+    const ep = listRows(g).find((r): r is EpisodeRow => r.kind === 'episode' && r.episodeId === 'e10')!;
+    expect(ep.at).toBe(listRows(IMPL).find((r): r is EpisodeRow => r.kind === 'episode' && r.episodeId === 'e10')!.at);
+    const steps = episodeSteps(g, 'e10');
+    expect(steps.map((s) => s.at)).toEqual(episodeSteps(IMPL, 'e10').map((s) => s.at));
+    expect(steps[0]?.at).toMatch(/^\d+ min$/);
+  });
+
+  it('marks an episode with nothing to list as a leaf', () => {
+    expect(listRows(IMPL).filter((r): r is EpisodeRow => r.kind === 'episode' && r.leaf === true).map((r) => r.episodeId)).toEqual(['e11']);
   });
 });
 

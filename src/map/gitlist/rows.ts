@@ -31,6 +31,8 @@ export interface EpisodeRow extends RowBase {
   wait?: string;
   steps: number;
   at: string;
+  /** No tool call or thinking step to list: the episode does not open (an answer, say). */
+  leaf?: true;
 }
 export interface VerdictRow extends RowBase { kind: 'verdict'; tone: VerdictTone; text: string; dur?: string; steps?: number; at: string; episodeId?: string }
 export interface EndRow extends RowBase { kind: 'end'; at: string }
@@ -62,6 +64,13 @@ export function shortTitle(title: string): string {
 }
 
 const time = (s: Step | undefined) => (s?.t ? Date.parse(s.t) : Number.NaN);
+/** The session start: `source.startedAt`, else the first timestamped step. */
+const startOf = (g: SessionGraph, steps: readonly Step[]) => {
+  const t = Date.parse(g.source.startedAt ?? '');
+  return Number.isFinite(t) ? t : (steps.map(time).find(Number.isFinite) ?? 0);
+};
+/** A step the open episode lists as a row (results fold into their call). */
+const listed = (s: Step) => s.kind === 'tool-call' || s.kind === 'thinking';
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** A commit hash in a `git commit` (`[main cceb2d5] …`) or `git log --oneline` (`cceb2d5 …`) output. */
@@ -99,7 +108,7 @@ export function listRows(g: SessionGraph): ListRow[] {
   if (!main) return [];
   const steps = [...g.steps].sort((a, b) => a.seq - b.seq);
   const byId = new Map(steps.map((s) => [s.id, s]));
-  const t0 = Number.isFinite(Date.parse(g.source.startedAt ?? '')) ? Date.parse(g.source.startedAt ?? '') : steps.map(time).find(Number.isFinite) ?? 0;
+  const t0 = startOf(g, steps);
   const at = (s: Step | undefined) => (Number.isFinite(time(s)) ? minutes(time(s) - t0) : '');
   // The pause before each step, in session order across lanes.
   const pause = new Map<string, number>();
@@ -115,12 +124,14 @@ export function listRows(g: SessionGraph): ListRow[] {
   const episodeRow = (e: Episode, onMain: boolean): EpisodeRow => {
     const waits = e.stepIds.map((id) => pause.get(id) ?? 0);
     const wait = Math.max(0, ...waits);
-    const failed = stepRows(g, e.stepIds).filter((r) => r.step.kind === 'tool-call' && rowStatus(r) === 'error').length;
+    const sr = stepRows(g, e.stepIds);
+    const failed = sr.filter((r) => r.step.kind === 'tool-call' && rowStatus(r) === 'error').length;
     const row: EpisodeRow = {
       kind: 'episode', key: `ep:${e.id}`, laneId: e.laneId, main: onMain, episodeId: e.id, glyph: e.kind === 'delegate' ? 'discuss' : e.kind,
       n: ++n, title: shortTitle(e.title), failed, steps: e.stepIds.length, at: at(byId.get(e.stepIds[0] ?? '')),
     };
     if (wait > 0) row.wait = `${minutes(wait)} wait`;
+    if (!sr.some((r) => listed(r.step))) row.leaf = true;
     return row;
   };
   const placed = new Set<string>([main.id]);
@@ -139,7 +150,8 @@ export function listRows(g: SessionGraph): ListRow[] {
     const back = spawn?.tool?.callId ? steps.find((s) => s.kind === 'tool-result' && s.laneId !== lane.id && s.tool?.callId === spawn.tool?.callId) : undefined;
     const vr: VerdictRow = { kind: 'verdict', key: `verdict:${lane.id}`, laneId: lane.id, main: false, ...laneVerdict(g, lane, own), at: answer ? at(byId.get(answer.stepIds[0] ?? '')) : at(last) };
     const until = time(back) || time(last);
-    if (Number.isFinite(until - from)) vr.dur = minutes(until - from);
+    // A run that failed at once says so without "after 0 min".
+    if (Number.isFinite(until - from) && !(vr.tone === 'fail' && minutes(until - from) === '0 min')) vr.dur = minutes(until - from);
     if (answer) {
       n++;
       vr.episodeId = answer.id;
@@ -162,9 +174,9 @@ export function listRows(g: SessionGraph): ListRow[] {
 export function episodeSteps(g: SessionGraph, episodeId: string): StepRow[] {
   const e = g.episodes.find((x) => x.id === episodeId);
   if (!e) return [];
-  const t0 = Date.parse(g.source.startedAt ?? '');
+  const t0 = startOf(g, [...g.steps].sort((a, b) => a.seq - b.seq));
   return stepRows(g, e.stepIds)
-    .filter((r) => r.step.kind === 'tool-call' || r.step.kind === 'thinking')
+    .filter((r) => listed(r.step))
     .map((r) => {
       const status = rowStatus(r);
       const code = exitCode(r);
