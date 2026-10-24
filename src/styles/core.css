@@ -23,6 +23,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+  font-size: var(--text-14); /* hidden headings too stay inside the four sizes */
 }
 
 /* Header: fixed height so the font swap never shifts the page. */
