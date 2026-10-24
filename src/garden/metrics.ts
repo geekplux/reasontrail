@@ -1,6 +1,6 @@
 /** Every size of the garden drawing, in px (docs/viz/garden.md §4). The only place these numbers live. */
 export const TOKEN_PX = 14; // token labels, all viewports (never scaled; mobile scrolls)
-export const VALUE_PX = 12.8; // value label, remainder label (--tg-text-sm)
+export const VALUE_PX = 12; // value label, remainder label (--text-12)
 export const GLYPH_EM = 0.6; // monospace advance: layout never measures text
 export const ROW = 40; // sibling pitch
 export const COUSIN_SEPARATION = 1.25; // in rows, between nodes with different parents

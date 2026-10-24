@@ -4,17 +4,17 @@
 /* Control row (PLAN §3.3, DESIGN §18.1 GA1): the sample picker as quiet text radios; the chosen one is 600, underlined. */
 .controls { padding: var(--tg-space-4) var(--tg-space-8) 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
-.picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--tg-ink-muted); }
+.picker-legend { padding: 0; margin-bottom: var(--tg-space-1); font: 500 var(--text-12) / 1.2 var(--font-sans); color: var(--slate-11); }
 .picker-options { display: flex; flex-wrap: wrap; gap: var(--tg-space-1) var(--tg-space-5); }
-.picker-option { position: relative; display: inline-flex; align-items: center; min-height: 28px; font-size: 13.5px; color: var(--tg-ink-muted); white-space: nowrap; border-bottom: 2px solid transparent; cursor: pointer; }
+.picker-option { position: relative; display: inline-flex; align-items: center; min-height: 28px; font-size: var(--text-14); color: var(--slate-11); white-space: nowrap; border-bottom: 0.5px solid transparent; cursor: pointer; }
 .picker-option input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
-.picker-option:has(input:checked) { font-weight: 600; color: var(--tg-ink); border-bottom-color: var(--tg-ink); }
-.picker-option:has(input:focus-visible) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
+.picker-option:has(input:checked) { font-weight: 600; color: var(--slate-12); border-bottom-color: var(--slate-12); }
+.picker-option:has(input:focus-visible) { outline: 2px solid var(--blue-9); outline-offset: 2px; }
 .controls-row, .temperature { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-2) var(--tg-space-4); }
-.controls-row { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); }
-.temperature input { width: 9rem; margin: 0; accent-color: var(--tg-ink); }
-.temperature output { min-width: 7.5em; font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
-.temperature-note { color: var(--tg-ink-muted); }
+.controls-row { margin-top: var(--tg-space-2); font-size: var(--text-12); }
+.temperature input { width: 9rem; margin: 0; accent-color: var(--slate-12); }
+.temperature output { min-width: 7.5em; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.temperature-note { color: var(--slate-11); }
 
 /* Plate: specimen label on the left edge, the garden growing to the right, full bleed. */
 
@@ -30,29 +30,28 @@
 
 .specimen-kicker {
   margin: 0;
-  font: 500 var(--tg-text-sm) / 1.2 var(--tg-font-mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--tg-ink-muted);
+  font: 500 var(--text-12) / 1.2 var(--font-sans);
+  color: var(--slate-11);
 }
 
 .specimen-title {
   margin: var(--tg-space-1) 0 var(--tg-space-2);
-  font: italic 400 var(--tg-text-2xl) / 1.1 var(--tg-font-serif);
+  font: 600 var(--text-32) / 1.1 var(--font-sans);
+  letter-spacing: -0.025em;
 }
 .specimen-fields { margin: 0; }
-.specimen-fields dt { margin-top: var(--tg-space-2); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.specimen-fields dt { margin-top: var(--tg-space-2); font-size: var(--text-12); color: var(--slate-11); }
 .specimen-fields dd { margin: 0; }
 .specimen > .specimen-prompt { margin: 0 0 var(--tg-space-2); overflow-wrap: anywhere; }
 
 .specimen-fields abbr { text-decoration: none; }
-.specimen-prompt { font-family: var(--tg-font-mono); font-weight: 500; }
-.specimen-num { font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
-.specimen-note { margin: var(--tg-space-2) 0 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.specimen-prompt { font-family: var(--font-mono); font-weight: 500; }
+.specimen-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.specimen-note { margin: var(--tg-space-2) 0 0; font-size: var(--text-12); color: var(--slate-11); }
 .garden-figure { margin: 0; min-width: 0; }
 
 /* Narrow screens scroll the drawing sideways; labels are never shrunk below their size. */
-.garden-scroll { overflow-x: auto; overflow-y: hidden; border-radius: var(--tg-radius); }
+.garden-scroll { overflow-x: auto; overflow-y: hidden; border-radius: var(--radius-6); }
 .garden-canvas { position: relative; width: max-content; }
 .garden-note { position: absolute; display: flex; pointer-events: none; }
 .garden-note .inline-note { height: 18px; margin: 0; padding-block: 0; line-height: 16px; white-space: nowrap; }
@@ -60,55 +59,55 @@
 .garden-figure figcaption {
   max-width: var(--tg-measure);
   margin-top: var(--tg-space-2);
-  font-size: var(--tg-text-sm);
-  color: var(--tg-ink-muted);
+  font-size: var(--text-12);
+  color: var(--slate-11);
 }
-.scroll-cue { margin: 0 0 var(--tg-space-1); font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
+.scroll-cue { margin: 0 0 var(--tg-space-1); font-size: var(--text-12); color: var(--slate-11); }
 
 /* Garden encoding (docs/viz/garden.md). Sizes come from metrics.ts; colour is only ever a second channel. */
 .garden { display: block; }
-.garden .seed { fill: var(--tg-ink); }
-[data-band='lo'] { --tg-band: var(--tg-branch-lo); }
-[data-band='mid'] { --tg-band: var(--tg-branch-mid); }
-[data-band='hi'] { --tg-band: var(--tg-branch-hi); }
+.garden .seed { fill: var(--slate-12); }
+[data-band='lo'] { --tg-band: var(--slate-9); }
+[data-band='mid'] { --tg-band: var(--slate-11); }
+[data-band='hi'] { --tg-band: var(--slate-12); }
 .garden path, .legend line { fill: none; stroke: var(--tg-band); stroke-linecap: butt; stroke-linejoin: round; }
 .garden .branch path { pointer-events: visibleStroke; }
 .garden .branch { cursor: pointer; }
 /* Dash patterns of garden strokes are attributes from dashArray(): they scale with the stroke width. */
-.garden [data-state='not-recorded'] > [data-role='branch-stroke'] { stroke: var(--tg-ink-muted); }
-.garden .on-path > [data-role='branch-stroke'] { stroke: var(--tg-ink); }
-.garden .on-path > [data-role='casing'] { stroke: var(--tg-paper); }
-.garden [data-role='remainder'] path { stroke: var(--tg-ink-muted); }
+.garden [data-state='not-recorded'] > [data-role='branch-stroke'] { stroke: var(--slate-11); }
+.garden .on-path > [data-role='branch-stroke'] { stroke: var(--slate-12); }
+.garden .on-path > [data-role='casing'] { stroke: var(--slate-1); }
+.garden [data-role='remainder'] path { stroke: var(--slate-11); }
 /* The "other tokens" remainder is a light, short-dashed band (capped at its fork's widest branch); its label says the number. */
 .garden [data-role='remainder-stroke'], .legend [data-role='legend-other'] { stroke-opacity: 0.55; }
 /* Sampled path (spec §3, §10.3): ink underlay + accent stroke + diamond tips, so it reads without colour. */
-.garden path[data-role='sampled-underlay'] { stroke: var(--tg-ink); }
-.garden path[data-role='sampled-stroke'] { stroke: var(--tg-accent); }
+.garden path[data-role='sampled-underlay'] { stroke: var(--slate-12); }
+.garden path[data-role='sampled-stroke'] { stroke: var(--blue-9); }
 /* Dark: an ink (light) underlay is too close to the accent, so the outline is paper there (contrast vs accent). */
-@media (prefers-color-scheme: dark) { .garden path[data-role='sampled-underlay'] { stroke: var(--tg-paper); } }
-.marker-diamond { fill: var(--tg-accent); stroke: var(--tg-ink); stroke-width: 1; }
-.legend [data-role='legend-other'] { stroke: var(--tg-ink-muted); }
-.legend [data-role='legend-not-recorded'] { stroke: var(--tg-ink-muted); stroke-dasharray: 4 3; }
-.garden [data-role='remainder'] text, .garden-empty { fill: var(--tg-ink-muted); }
+@media (prefers-color-scheme: dark) { .garden path[data-role='sampled-underlay'] { stroke: var(--slate-1); } }
+.marker-diamond { fill: var(--blue-9); stroke: var(--slate-12); stroke-width: 1; }
+.legend [data-role='legend-other'] { stroke: var(--slate-11); }
+.legend [data-role='legend-not-recorded'] { stroke: var(--slate-11); stroke-dasharray: 4 3; }
+.garden [data-role='remainder'] text, .garden-empty { fill: var(--slate-11); }
 .marker-bud { fill: var(--tg-band); }
 .marker-knot { fill: none; stroke: var(--tg-band); stroke-width: 1.5; }
-.marker-ring { fill: var(--tg-paper); stroke: var(--tg-ink-muted); stroke-width: 1.5; }
-.garden .selected-ring { fill: none; stroke: var(--tg-ink); stroke-width: 2; }
-.garden .selected-underline { stroke: var(--tg-ink); stroke-width: 1; }
+.marker-ring { fill: var(--slate-1); stroke: var(--slate-11); stroke-width: 1.5; }
+.garden .selected-ring { fill: none; stroke: var(--slate-12); stroke-width: 2; }
+.garden .selected-underline { stroke: var(--slate-12); stroke-width: 1; }
 .garden [data-role='hit'] { fill: transparent; scroll-margin: 4px; /* the focus ring is never clipped by the sideways scroller */ }
 /* Keyboard focus (A1): the global ring is drawn around the row's hit rect, on top of the selected style. */
 .garden .branch:focus { outline: none; box-shadow: none; }
-.garden .branch:focus-visible > [data-role='hit'] { stroke: var(--tg-focus); stroke-width: 2; }
-.garden [data-role='value-label'] rect { fill: var(--tg-surface); stroke: var(--tg-ink-muted); stroke-width: 1; pointer-events: fill; }
+.garden .branch:focus-visible > [data-role='hit'] { stroke: var(--blue-9); stroke-width: 2; }
+.garden [data-role='value-label'] rect { fill: var(--slate-2); stroke: var(--slate-11); stroke-width: 1; pointer-events: fill; }
 
 .garden text {
-  font-family: var(--tg-font-mono);
+  font-family: var(--font-mono);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  fill: var(--tg-ink);
+  fill: var(--slate-12);
   white-space: pre;
 }
-.garden [data-ws], .readout [data-ws] { fill: var(--tg-ink-muted); color: var(--tg-ink-muted); }
+.garden [data-ws], .readout [data-ws] { fill: var(--slate-11); color: var(--slate-11); }
 
 /* Motion (PLAN §3.4, spec §6): only newly grown branches animate (data-ready is set after the first view, so that
    one is already grown); everything else jumps. Nothing waits for transitionend. Reduced motion zeroes it all below. */
@@ -126,42 +125,42 @@
 }
 
 /* Path readout under the drawing: token boundaries are breaks in the underline. Sticky at the bottom on mobile. */
-.readout { margin: var(--tg-space-2) 0 0; padding: var(--tg-space-2) 0; font-family: var(--tg-font-mono); font-weight: 500; }
-.readout-kicker { font-family: var(--tg-font-ui); font-weight: 400; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-.readout-prompt { color: var(--tg-ink-muted); white-space: pre-wrap; }
-.readout-token { margin-left: 2px; border-bottom: 1px solid var(--tg-ink-muted); white-space: pre; }
-.readout-p { font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
-.readout-sampled { margin: 0 0 var(--tg-space-2); font-family: var(--tg-font-mono); font-weight: 500; }
-.readout-token-sampled { border-bottom-color: var(--tg-accent); border-bottom-width: 2px; }
-.readout-note { margin: 0 0 0 var(--tg-space-2); font-family: var(--tg-font-ui); font-weight: 400; vertical-align: middle; }
+.readout { margin: var(--tg-space-2) 0 0; padding: var(--tg-space-2) 0; font-family: var(--font-mono); font-weight: 500; }
+.readout-kicker { font-family: var(--font-sans); font-weight: 400; font-size: var(--text-12); color: var(--slate-11); }
+.readout-prompt { color: var(--slate-11); white-space: pre-wrap; }
+.readout-token { margin-left: 2px; border-bottom: 0.5px solid var(--slate-11); white-space: pre; }
+.readout-p { font-size: var(--text-12); font-variant-numeric: tabular-nums; }
+.readout-sampled { margin: 0 0 var(--tg-space-2); font-family: var(--font-mono); font-weight: 500; }
+.readout-token-sampled { border-bottom-color: var(--blue-9); border-bottom-width: 2px; }
+.readout-note { margin: 0 0 0 var(--tg-space-2); font-family: var(--font-sans); font-weight: 400; vertical-align: middle; }
 
 /* Table view (A3) and More options: one quiet text-button row under the readout (L5). Quiet text buttons (CL11): muted,
    no border and no fill, underlined on hover and focus; a pressed one is 600 with a 2 px ink underline. */
 .view-toggle-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-2) 0; }
-.view-toggle { min-height: 24px; padding: 0 var(--tg-space-1); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); background: none; border: 0; border-radius: var(--tg-radius); text-underline-offset: 4px; cursor: pointer; }
-.view-toggle:is(:hover, :focus-visible) { color: var(--tg-ink); text-decoration: underline; }
-.view-toggle[aria-pressed='true'] { font-weight: 600; color: var(--tg-ink); text-decoration: underline 2px; }
+.view-toggle { min-height: 24px; padding: 0 var(--tg-space-1); font: inherit; font-size: var(--text-12); color: var(--slate-11); background: none; border: 0; border-radius: var(--radius-6); text-underline-offset: 4px; cursor: pointer; }
+.view-toggle:is(:hover, :focus-visible) { color: var(--slate-12); text-decoration: underline; }
+.view-toggle[aria-pressed='true'] { font-weight: 600; color: var(--slate-12); text-decoration: underline 2px; }
 .table-scroll { overflow-x: auto; margin-bottom: var(--tg-space-2); }
-.garden-table { border-collapse: collapse; font-size: var(--tg-text-sm); font-variant-numeric: tabular-nums; }
-.garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--tg-ink-muted); }
-.garden-table th, .garden-table td { padding: 2px var(--tg-space-2); border-bottom: var(--tg-hairline); text-align: start; vertical-align: top; }
-.garden-table tbody th { font-family: var(--tg-font-mono); font-weight: 500; white-space: pre; }
+.garden-table { border-collapse: collapse; font-size: var(--text-12); font-variant-numeric: tabular-nums; }
+.garden-table caption { text-align: start; padding-bottom: var(--tg-space-1); color: var(--slate-11); }
+.garden-table th, .garden-table td { padding: 2px var(--tg-space-2); border-bottom: var(--hair-soft); text-align: start; vertical-align: top; }
+.garden-table tbody th { font-family: var(--font-mono); font-weight: 500; white-space: pre; }
 .garden-table td:nth-child(-n + 5) { text-align: end; }
-.garden-table [data-ws], .table-prefix { color: var(--tg-ink-muted); }
+.garden-table [data-ws], .table-prefix { color: var(--slate-11); }
 
-.legend { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-:is(.garden-key, .specimen-about) summary { min-height: 24px; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); cursor: pointer; }
+.legend { font-size: var(--text-12); color: var(--slate-11); }
+:is(.garden-key, .specimen-about) summary { min-height: 24px; font-size: var(--text-12); color: var(--slate-11); cursor: pointer; }
 .legend-lead { margin: var(--tg-space-1) 0; }
 .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-4); margin: var(--tg-space-1) 0; padding: 0; list-style: none; }
-.legend-title { color: var(--tg-ink); }
-.legend-item { display: inline-flex; align-items: center; gap: var(--tg-space-2); font-family: var(--tg-font-mono); font-variant-numeric: tabular-nums; }
+.legend-title { color: var(--slate-12); }
+.legend-item { display: inline-flex; align-items: center; gap: var(--tg-space-2); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 47.99rem) {
   .plate { grid-template-columns: minmax(0, 1fr); gap: var(--tg-space-4); padding: var(--tg-space-4); }
   /* The garden follows the controls directly, so the slider's effect is in view; the label has nothing focusable. */
   .specimen { order: 1; }
   .controls { padding: var(--tg-space-2) var(--tg-space-4) 0; }
-  .readout { position: sticky; bottom: 0; background: var(--tg-paper); border-top: var(--tg-hairline); }
+  .readout { position: sticky; bottom: 0; background: var(--slate-1); border-top: var(--hair-soft); }
   /* GA1: one sideways-scrolling line of samples. */
   .picker-options { flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px var(--tg-space-1); }
   html.tg-lens { scroll-padding-bottom: var(--tg-readout-h, 0px); }

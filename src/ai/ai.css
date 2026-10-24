@@ -1,15 +1,15 @@
 /* AI labels overlay (DESIGN §8.7, §13.6, §18): quiet chrome, dashed = suggested. No hue: ink and muted only. */
 .route-head .ai-control, .route-head > .ai-button { margin-left: auto; }
-.ai-control { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-2); font-size: 12.8px; color: var(--tg-ink-muted); }
-.ai-button[aria-pressed='true'] { color: var(--tg-ink); font-weight: 600; text-decoration-thickness: 2px; }
+.ai-control { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--tg-space-1) var(--tg-space-2); font-size: var(--text-12); color: var(--slate-11); }
+.ai-button[aria-pressed='true'] { color: var(--slate-12); font-weight: 600; text-decoration-thickness: 2px; }
 .ai-status { display: inline-flex; align-items: center; gap: var(--tg-space-1); }
 .ai-toggle { white-space: nowrap; }
 .ai-toggle .ai-swatch { vertical-align: middle; margin-right: 2px; }
 .ai-model { display: inline-block; max-width: 18ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; text-decoration: inherit; }
 .ai-status .glyph { width: 14px; height: 14px; flex: none; }
 
-/* The tag: italic serif in a dashed 1.5 px outline (no border, no fill: CL11). */
-.ai-tag { display: inline-flex; max-width: 100%; padding: 0 var(--tg-space-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: italic 400 12.8px / 16px var(--tg-font-serif); color: var(--tg-ink-muted); background: transparent; border: none; outline: 1.5px dashed var(--tg-ink-muted); outline-offset: -1.5px; border-radius: var(--tg-radius); }
+/* The tag: a dashed 1.5 px outline (no border, no fill: CL11). */
+.ai-tag { display: inline-flex; max-width: 100%; padding: 0 var(--tg-space-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 var(--text-12) / 16px var(--font-sans); color: var(--slate-11); background: transparent; border: none; outline: 1.5px dashed var(--slate-11); outline-offset: -1.5px; border-radius: var(--radius-6); }
 .ai-tag-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ai-more { flex: none; margin-left: 0.3em; }
 .ai-swatch { display: inline-block; width: 18px; height: 12px; padding: 0; }
@@ -20,26 +20,26 @@
 .vrow > .ai-tag { flex: none; margin-left: var(--tg-space-2); }
 
 .ai-links { position: absolute; inset: 0 auto auto 0; overflow: visible; pointer-events: none; }
-.ai-link { fill: none; stroke: var(--tg-ink-muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.ai-link { fill: none; stroke: var(--slate-11); stroke-width: 1; stroke-dasharray: 4 3; }
 
 .ai-note { margin: var(--tg-space-4) 0 0; }
 .ai-note p { margin: 0 0 var(--tg-space-2); }
 .ai-supports { margin: 0; padding: 0; list-style: none; }
 .ai-supports li { margin: 0 0 var(--tg-space-1); }
-.ai-supports .ai-button { color: var(--tg-ink); text-align: left; }
+.ai-supports .ai-button { color: var(--slate-12); text-align: left; }
 .ai-all { margin-top: var(--tg-space-1); }
 
 /* The V3 consent dialog: one of the allowed frames (§18.3). */
-.ai-dialog { max-width: min(36rem, calc(100vw - 2 * var(--tg-space-4))); padding: var(--tg-space-5); color: var(--tg-ink); background: var(--tg-paper); border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); font: 400 14px / 1.5 var(--tg-font-ui); }
-.ai-dialog::backdrop { background: color-mix(in srgb, var(--tg-ink) 35%, transparent); }
-.ai-dialog-title { margin: 0 0 var(--tg-space-2); font: 600 17px / 1.3 var(--tg-font-ui); }
+.ai-dialog { max-width: min(36rem, calc(100vw - 2 * var(--tg-space-4))); padding: var(--tg-space-5); color: var(--slate-12); background: var(--slate-1); border: 0.5px solid var(--slate-7); border-radius: var(--radius-6); font: 400 var(--text-14) / 1.5 var(--font-sans); }
+.ai-dialog::backdrop { background: color-mix(in srgb, var(--slate-12) 35%, transparent); }
+.ai-dialog-title { margin: 0 0 var(--tg-space-2); font: 600 var(--text-20) / 1.3 var(--font-sans); }
 .ai-dialog p { margin: 0 0 var(--tg-space-4); }
-.ai-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--tg-space-2) var(--tg-space-4); margin: 0 0 var(--tg-space-5); font-size: 13.5px; }
-.ai-facts dt { color: var(--tg-ink-muted); }
+.ai-facts { display: grid; grid-template-columns: max-content 1fr; gap: var(--tg-space-2) var(--tg-space-4); margin: 0 0 var(--tg-space-5); font-size: var(--text-14); }
+.ai-facts dt { color: var(--slate-11); }
 .ai-facts dd { margin: 0; overflow-wrap: anywhere; }
 .ai-dialog-actions { display: flex; gap: var(--tg-space-2); }
-.ai-dialog-actions button { min-height: 32px; padding: 0 var(--tg-space-4); font: 500 13.5px var(--tg-font-ui); color: var(--tg-ink); background: transparent; border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); cursor: pointer; }
-.ai-dialog-actions .ai-primary { font-weight: 600; border-width: 2px; }
+.ai-dialog-actions button { min-height: 32px; padding: 0 var(--tg-space-4); font: 500 var(--text-14) var(--font-sans); color: var(--slate-12); background: transparent; border: 0.5px solid var(--slate-7); border-radius: var(--radius-6); cursor: pointer; }
+.ai-dialog-actions .ai-primary { font-weight: 600; }
 @media (max-width: 767px) {
   .ai-facts { grid-template-columns: 1fr; gap: 0; }
   .ai-facts dd { margin-bottom: var(--tg-space-2); }

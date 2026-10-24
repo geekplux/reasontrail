@@ -31,7 +31,7 @@ export function remainderWidth(rest: number, siblingPs: readonly number[]): numb
 
 export type Band = 'lo' | 'mid' | 'hi';
 
-/** Probability band, the secondary colour channel (`--tg-branch-<band>`). */
+/** Probability band, the secondary colour channel (garden.css: lo slate-9, mid slate-11, hi slate-12). */
 export function band(p: number): Band {
   return p < 0.1 ? 'lo' : p < 0.4 ? 'mid' : 'hi';
 }
