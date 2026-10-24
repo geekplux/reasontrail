@@ -159,14 +159,16 @@ Geist and Geist Mono, self-hosted (`src/styles/fonts.css`; the viewer inlines a 
 | Size | Use | Weight, line height, tracking |
 |---|---|---|
 | 32 | the one headline | 600, 1.1, −0.025em |
-| 20 | hero lede (400, slate-11); session, panel and section titles | 600 for titles, 1.3, −0.015em |
-| 14 | body, rows, controls, lane names | 400 / 500 / 600 |
+| 20 | hero lede | 400, 1.4, −0.01em, slate-11 |
+| 20 | session, page, panel, dialog and section titles | 600, 1.3, −0.015em |
+| 14 | body, rows, controls, lane names | 400 / 500 / 600, 1.5 |
 | 12 | labels, meta, numbers, code (Geist Mono) | 400 / 500 |
 
 - Only these four sizes (`--text-12/14/20/32`); 12 is the minimum. Hierarchy comes from weight, colour and space.
 - No uppercase, no letter-spaced labels; the only tracking is the display tracking above and the wordmark's −0.01em.
 - No eyebrows or overlines: nothing small sits above a heading unless it says something the heading does not (rule 11).
 - Layout never measures text: Geist Mono is 0.6em a character (7.2px at 12px).
+- The lens's visible-space glyph "·" is a data glyph (the editor "render whitespace" convention), not a separator: Geist Mono, slate-11, `aria-hidden` (the branch's label names the token).
 
 ## 6. Colour (v7)
 
@@ -213,12 +215,12 @@ Every colour is a Radix Colors 3.0 step of **slate**, **blue** or **orange** (`s
 ## 7. Shape, space and motion (v7)
 
 - **Lines are 0.5px:** `box-shadow: inset 0 0 0 0.5px var(--slate-7)` for frames (`--hair` for a rule), `0.5px solid` for rules (`--hair-soft`).
-- **Radii, concentric:** 6 inner control; 10 outer control with 4px padding (segmented tabs) and the outcome box; 14 detail panel; 16 session frame. Outer radius = inner radius + padding.
+- **Radii, concentric:** 4 the Sample tag; 6 inner control and `pre`; 10 outer control with 4px padding (segmented tabs), the outcome box and command boxes; 14 detail panel and dialogs; 16 session frame and drop zone. Outer radius = inner radius + padding.
 - **No shadows** except the 0.5px ring on the selected tab. No card with a coloured left-edge stripe; never a card inside a card.
 - **Container:** 1200px content, 120px gutters at 1440 that grow wider beyond it; 16px gutters on phones.
 - **Vertical rhythm (home):** header 64; hero padding-top 64; 12 between headline and lede; 32 above the tree; 24 above the tabs; 32 above the frame; frame padding 32; 72–96 between sections.
 - **Hit targets:** ≥ 24×24px on desktop, ≥ 44×44px on phones.
-- **Motion:** colour and opacity only, 250ms ease-out; none under `prefers-reduced-motion`. The garden lens keeps its own growth motion (its encoding is unchanged).
+- **Motion:** colour and opacity only, 250ms ease-out; none under `prefers-reduced-motion`.
 
 ### Sean's UI rules (binding)
 
