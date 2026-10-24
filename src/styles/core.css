@@ -1,10 +1,13 @@
 /* Core elements shared by the app and the local viewer: page, focus, header, wordmark. Colours only via tokens.css. */
+@import './legacy.css';
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
-  background: var(--tg-paper);
-  color: var(--tg-ink);
-  font: 400 var(--tg-text-md) / 1.5 var(--tg-font-ui);
+  background: var(--slate-1);
+  color: var(--slate-12);
+  font: 400 var(--text-14) / 1.5 var(--font-sans);
+  font-feature-settings: 'tnum' 1;
+  -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -12,8 +15,8 @@ body { margin: 0; }
 #root { display: flex; flex-direction: column; min-height: 100vh; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
 
-/* Focus: 2 px cornflower ring with a 2 px paper gap, on every focusable thing. */
-:focus-visible { outline: 2px solid var(--tg-focus); outline-offset: 2px; box-shadow: 0 0 0 2px var(--tg-paper); }
+/* Focus: a 2 px blue-9 ring 2 px outside every focusable thing. */
+:focus-visible { outline: 2px solid var(--blue-9); outline-offset: 2px; }
 
 .visually-hidden {
   position: absolute;
@@ -61,10 +64,7 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .header-link { font-size: var(--tg-text-sm); }
 /* The current page's header link (DESIGN §18.1): ink, with a 2 px underline. */
 .header-link[aria-current='page'] { color: var(--tg-ink); text-decoration-thickness: 2px; }
-/* Wordmark (DESIGN §4.2): mono 20 / serif 25 (16 / 20 on mobile), shared baseline, no space; mark 1.6x the mono cap height. */
-.wordmark { display: inline-flex; align-items: center; gap: 0.4em; font-size: 20px; line-height: 1; }
-.logo-mark { width: 1.12em; height: 1.12em; flex: none; color: var(--tg-ink); }
-.wordmark-text { display: inline-flex; align-items: baseline; }
-.wordmark-reason { font-family: var(--tg-font-mono); font-weight: 500; letter-spacing: -0.01em; }
-.wordmark-trail { font-family: var(--tg-font-serif); font-style: italic; font-weight: 400; font-size: 1.25em; }
-@media (max-width: 767px) { .wordmark { font-size: 16px; } }
+/* Wordmark (v7 §3.4): the leaf at 20px, an 8px gap, "Reasontrail" in Geist 600 14px; the mark sits 1px left (optical). */
+.wordmark { display: inline-flex; align-items: center; gap: 8px; font: 600 var(--text-14) / 20px var(--font-sans); letter-spacing: -0.01em; color: var(--slate-12); }
+.logo-mark { display: block; width: 20px; height: 20px; flex: none; }
+.wordmark .logo-mark { margin-left: -1px; }

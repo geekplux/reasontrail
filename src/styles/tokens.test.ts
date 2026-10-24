@@ -1,83 +1,40 @@
 import { describe, expect, it } from 'vitest';
 import { contrast, deltaE, parseHex, type Cvd } from './colorMath';
 import css from './tokens.css?raw';
+import homeCss from '../site/home.css?raw';
 import favicon from '../../public/favicon.svg?raw';
-import logo from '../../public/logo.svg?raw';
 import indexHtml from '../../index.html?raw';
 
-/** Extracts `--tg-*: #hex` declarations from a CSS fragment. */
-function colours(fragment: string): Record<string, string> {
-  return Object.fromEntries([...fragment.matchAll(/--tg-([\w-]+):\s*(#[0-9a-f]{3,6})\s*;/gi)].map((m) => [m[1], m[2]]));
-}
-const darkStart = css.indexOf('@media (prefers-color-scheme: dark)');
-const themes = { light: colours(css.slice(0, darkStart)), dark: colours(css.slice(darkStart)) };
-type Theme = keyof typeof themes;
-const c = (theme: Theme, name: string) => {
-  const hex = themes[theme][name];
-  if (!hex) throw new Error(`--tg-${name} missing in ${theme} theme`);
-  return hex;
-};
-
-// PLAN §3.2: contrast of each token on --tg-paper.
-const CONTRAST: Record<Theme, Record<string, number>> = {
+// Radix Colors 3.0, exactly as in docs/design/v7/PROMPT.md §3.1 (steps 1–12).
+const RADIX = {
   light: {
-    surface: 1.09, ink: 14.1, 'ink-muted': 6.5, rule: 1.35, 'branch-lo': 4.1, 'branch-mid': 6.3,
-    'branch-hi': 9.7, accent: 4.5, focus: 5.6, error: 6.5, ok: 4.95, trouble: 6.51, wash: 1.13, lane: 4.08, 'lane-band': 1.07,
+    slate: '#fcfcfd #f9f9fb #f0f0f3 #e8e8ec #e0e1e6 #d9d9e0 #cdced6 #b9bbc6 #8b8d98 #80838d #60646c #1c2024',
+    blue: '#fbfdff #f4faff #e6f4fe #d5efff #c2e5ff #acd8fc #8ec8f6 #5eb1ef #0090ff #0588f0 #0d74ce #113264',
+    orange: '#fefcfb #fff7ed #ffefd6 #ffdfb5 #ffd19a #ffc182 #f5ae73 #ec9455 #f76b15 #ef5f00 #cc4e00 #582d1d',
   },
   dark: {
-    surface: 1.09, ink: 15.3, 'ink-muted': 8.4, rule: 1.46, 'branch-lo': 6.5, 'branch-mid': 10.4,
-    'branch-hi': 14.4, accent: 8.5, focus: 8.4, error: 8.2, ok: 5.58, trouble: 4.87, wash: 1.25, lane: 6.54, 'lane-band': 1.05,
+    slate: '#111113 #18191b #212225 #272a2d #2e3135 #363a3f #43484e #5a6169 #696e77 #777b84 #b0b4ba #edeef0',
+    blue: '#0d1520 #111927 #0d2847 #003362 #004074 #104d87 #205d9e #2870bd #0090ff #3b9eff #70b8ff #c2e6ff',
+    orange: '#17120e #1e160f #331e0b #462100 #562800 #66350c #7e451d #a35829 #f76b15 #ff801f #ffa057 #ffe0c2',
   },
+} as const;
+type Theme = keyof typeof RADIX;
+type Scale = keyof (typeof RADIX)['light'];
+const THEMES: Theme[] = ['light', 'dark'];
+const SCALES: Scale[] = ['slate', 'blue', 'orange'];
+const step = (theme: Theme, token: string) => {
+  const [, scale, n] = /^(slate|blue|orange)-(\d+)$/.exec(token) ?? [];
+  const hex = RADIX[theme][scale as Scale]?.split(' ')[Number(n) - 1];
+  if (!hex) throw new Error(`not a Radix token: ${token}`);
+  return hex;
 };
-const TEXT = ['ink', 'ink-muted', 'accent', 'error'];
-const MARKS = ['branch-lo', 'branch-mid', 'branch-hi', 'focus', 'ok', 'trouble', 'lane'];
+const ALL_VALUES = new Set(THEMES.flatMap((t) => SCALES.flatMap((s) => RADIX[t][s].split(' '))));
 
-// PLAN §3.2 CVD table: the rows that must stay >= 20 under every vision type.
-const DISTINCT: [Theme, string, string][] = [
-  ['light', 'accent', 'branch-hi'],
-  ['light', 'accent', 'branch-lo'],
-  ['light', 'focus', 'branch-hi'],
-  ['dark', 'accent', 'branch-hi'],
-  ['dark', 'focus', 'branch-hi'],
-  // DESIGN §6.3: did it pass, and where did it struggle?
-  ['light', 'ok', 'trouble'],
-  ['dark', 'ok', 'trouble'],
-  ['light', 'ok', 'ink'],
-  ['dark', 'ok', 'ink'],
-  ['light', 'trouble', 'ink'],
-  ['dark', 'trouble', 'ink'],
-  // DESIGN §6.3: side trails against the route and the two hues (ok / lane light tritan is 16: cued by shape, not listed)
-  ['light', 'trouble', 'lane'],
-  ['dark', 'trouble', 'lane'],
-  ['light', 'lane', 'ink'],
-  ['dark', 'lane', 'ink'],
-];
-
-// DESIGN §6.2: text on the wash background and glyph interiors (paper) on the ok and trouble plates.
-const ON: [Theme, string, string, number][] = [
-  ['light', 'error', 'wash', 5.74],
-  ['dark', 'error', 'wash', 6.53],
-  ['light', 'ink', 'wash', 12.39],
-  ['light', 'ink-muted', 'wash', 5.76],
-  ['dark', 'ink', 'wash', 12.23],
-  ['dark', 'ink-muted', 'wash', 6.7],
-  ['light', 'surface', 'ok', 5.4],
-  ['light', 'surface', 'trouble', 7.1],
-  ['dark', 'paper', 'ok', 5.58],
-  ['dark', 'paper', 'trouble', 4.87],
-  // The expanded-lane band: its 3 px stroke (mark) and the text and glyphs on it (§6.2)
-  ['light', 'lane', 'lane-band', 3.8],
-  ['dark', 'lane', 'lane-band', 6.23],
-  ['light', 'ink', 'lane-band', 13.08],
-  ['light', 'ink-muted', 'lane-band', 6.08],
-  ['light', 'ok', 'lane-band', 4.61],
-  ['light', 'trouble', 'lane-band', 6.06],
-  ['dark', 'ink', 'lane-band', 14.62],
-  ['dark', 'ink-muted', 'lane-band', 8.01],
-  ['dark', 'ok', 'lane-band', 5.32],
-  ['dark', 'trouble', 'lane-band', 4.64],
-];
-const VISION: (Cvd | undefined)[] = [undefined, 'protanopia', 'deuteranopia', 'tritanopia'];
+/** `--name: #hex` declarations in a CSS fragment. */
+const declared = (fragment: string) => Object.fromEntries([...fragment.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3,6})\s*;/gi)].map((m) => [m[1], m[2]!.toLowerCase()]));
+const darkStart = css.indexOf('@media (prefers-color-scheme: dark)');
+const tokens = { light: declared(css.slice(0, darkStart)), dark: declared(css.slice(darkStart)) };
+const resolve = step;
 
 describe('colorMath', () => {
   it('computes WCAG contrast at the known extremes', () => {
@@ -87,57 +44,93 @@ describe('colorMath', () => {
   });
 
   it('keeps greys grey under every simulation and separates red from green in normal vision only', () => {
-    for (const v of VISION) expect(deltaE('#808080', '#808080', v)).toBeLessThan(1e-9);
+    for (const v of [undefined, 'protanopia', 'deuteranopia', 'tritanopia'] as const) expect(deltaE('#808080', '#808080', v)).toBeLessThan(1e-9);
     expect(deltaE('#d62728', '#2ca02c')).toBeGreaterThan(deltaE('#d62728', '#2ca02c', 'deuteranopia'));
   });
 });
 
-describe.each(Object.keys(themes) as Theme[])('tokens.css %s theme', (theme) => {
-  it.each(Object.entries(CONTRAST[theme]))('--tg-%s has contrast %s on paper (±0.1)', (name, expected) => {
-    expect(Math.abs(contrast(c(theme, name), c(theme, 'paper')) - expected)).toBeLessThanOrEqual(0.1);
+describe.each(THEMES)('tokens.css, %s theme', (theme) => {
+  it.each(SCALES)('declares --%s-1 … 12 with the Radix values', (scale) => {
+    const expected = Object.fromEntries(RADIX[theme][scale].split(' ').map((hex, i) => [`${scale}-${i + 1}`, hex]));
+    const actual = Object.fromEntries(Object.entries(tokens[theme]).filter(([k]) => k.startsWith(`${scale}-`)));
+    expect(actual).toEqual(expected);
   });
 
-  const pairs = ['paper', 'surface'].flatMap((bg) => [
-    ...TEXT.map((fg) => [fg, bg, 4.5] as const),
-    ...MARKS.map((fg) => [fg, bg, 3] as const),
-  ]);
-  it.each(pairs)('--tg-%s on --tg-%s reaches %s:1 (text AA, marks 3:1)', (fg, bg, min) => {
-    expect(contrast(c(theme, fg), c(theme, bg))).toBeGreaterThanOrEqual(min);
+  it('declares no other colour token', () => {
+    expect(Object.keys(tokens[theme]).filter((k) => !/^(slate|blue|orange)-\d+$/.test(k))).toEqual([]);
   });
-});
 
-describe('map tokens on their backgrounds (DESIGN §6.2)', () => {
-  it.each(ON)('%s --tg-%s on --tg-%s is %s:1 (±0.1)', (theme, fg, bg, expected) => {
-    expect(Math.abs(contrast(c(theme, fg), c(theme, bg)) - expected)).toBeLessThanOrEqual(0.1);
+  // Text roles (§3.1): ink slate-12 and muted slate-11 on the page and soft fills; blue-11 text sits on slate-1 and
+  // slate-2 only (in light it is 4.19:1 on slate-3 and 4.25:1 on blue-3, below AA, so text there stays slate-12).
+  const TEXT: [string, string][] = [
+    ...['slate-1', 'slate-2', 'slate-3'].flatMap((bg) => [['slate-12', bg], ['slate-11', bg]] as [string, string][]),
+    ['blue-11', 'slate-1'],
+    ['blue-11', 'slate-2'],
+    ['orange-12', 'orange-3'], // a deleted diff line
+    ['slate-1', 'slate-12'], // inverted badge numbers
+    ['slate-11', 'blue-3'],
+    ['slate-12', 'blue-3'],
+    ['slate-12', 'slate-2'],
+  ];
+  it.each(TEXT)('%s text on %s reaches AA (4.5:1)', (fg, bg) => {
+    expect(contrast(resolve(theme, fg), resolve(theme, bg))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // Non-text marks (WCAG 1.4.11): the selected path and the hollow or dotted outlines.
+  const GRAPHIC: [string, string][] = [['blue-9', 'slate-1'], ['blue-9', 'slate-2'], ['slate-9', 'slate-1'], ['slate-9', 'slate-2']];
+  it.each(GRAPHIC)('%s marks on %s reach 3:1', (fg, bg) => {
+    expect(contrast(resolve(theme, fg), resolve(theme, bg))).toBeGreaterThanOrEqual(3);
   });
 });
 
 describe('CVD distance (CIE76 ΔE after Machado 2009 simulation)', () => {
-  const cases = DISTINCT.flatMap(([theme, a, b]) => VISION.map((v) => [theme, a, b, v ?? 'normal'] as const));
-  it.each(cases)('%s --tg-%s vs --tg-%s stays >= 20 (%s vision)', (theme, a, b, v) => {
-    expect(deltaE(c(theme, a), c(theme, b), v === 'normal' ? undefined : v)).toBeGreaterThanOrEqual(20);
+  const PAIRS = [['blue-9', 'orange-9'], ['blue-9', 'slate-12'], ['orange-9', 'slate-12']] as const;
+  const VISION: (Cvd | 'normal')[] = ['normal', 'protanopia', 'deuteranopia', 'tritanopia'];
+  const cases = THEMES.flatMap((t) => PAIRS.flatMap(([a, b]) => VISION.map((v) => [t, a, b, v] as const)));
+  it.each(cases)('%s %s vs %s stays >= 20 (%s vision)', (theme, a, b, v) => {
+    expect(deltaE(step(theme, a), step(theme, b), v === 'normal' ? undefined : v)).toBeGreaterThanOrEqual(20);
   });
 });
 
-// Static assets cannot read CSS variables, so they carry copies of the palette; keep them in step with tokens.css.
-describe('static assets match tokens.css', () => {
-  const lower = (hex: string) => hex.toLowerCase();
-  it.each([['favicon.svg', favicon], ['logo.svg', logo]])('%s draws in --tg-ink per theme (DESIGN §4.1)', (_, svg) => {
-    const light = /svg\s*\{\s*color:\s*(#[0-9a-f]{3,6})/i.exec(svg.slice(0, svg.indexOf('@media')))?.[1];
-    const dark = /prefers-color-scheme:\s*dark\)\s*\{\s*svg\s*\{\s*color:\s*(#[0-9a-f]{3,6})/i.exec(svg)?.[1];
-    expect([light && lower(light), dark && lower(dark)]).toEqual([lower(c('light', 'ink')), lower(c('dark', 'ink'))]);
-  });
-
-  it.each(Object.keys(themes) as Theme[])('index.html theme-color for %s is --tg-paper', (theme) => {
-    const meta = new RegExp(`name="theme-color"\\s+content="(#[0-9a-f]{3,6})"\\s+media="\\(prefers-color-scheme: ${theme}\\)"`, 'i');
-    expect(lower(meta.exec(indexHtml)?.[1] ?? 'missing')).toBe(lower(c(theme, 'paper')));
+// The tokens and the v7 site page; widened to every stylesheet in src/ in phase 29b, once the rest is restyled.
+describe('every colour in tokens.css and the site page CSS is a Radix token or value', () => {
+  const sources = { 'tokens.css': css, 'home.css': homeCss };
+  const files = Object.keys(sources) as (keyof typeof sources)[];
+  const KEYWORDS = new Set(['transparent', 'currentcolor', 'inherit', 'none']);
+  const COLOUR_PROPS = /(?:^|[;{\s])((?:background|background-color|color|fill|stroke|outline|outline-color|border(?:-(?:top|right|bottom|left))?(?:-color)?|box-shadow|text-decoration(?:-color)?|accent-color|caret-color|border-image)\s*:\s*[^;}]+)/gi;
+  it.each(files)('%s', (file) => {
+    const text = sources[file]!.replace(/\/\*[\s\S]*?\*\//g, '');
+    const bad: string[] = [];
+    // Local aliases of a Radix step (e.g. the garden's `--tg-band`) count as Radix.
+    const aliases = new Set([...text.matchAll(/--([\w-]+):\s*var\(--(?:slate|blue|orange)-(?:[1-9]|1[0-2])\)/g)].map((m) => m[1]));
+    // Literal colours anywhere (outside the Radix values the token file declares).
+    for (const m of text.matchAll(/#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(/gi)) {
+      if (!ALL_VALUES.has(m[0].toLowerCase())) bad.push(m[0]);
+    }
+    // Every var() in a colour property names a Radix step or a token built from them (--hair, --frame).
+    for (const [, decl] of text.matchAll(COLOUR_PROPS)) {
+      for (const [, name] of decl!.matchAll(/var\(--([\w-]+)/g)) {
+        if (!/^(slate|blue|orange)-([1-9]|1[0-2])$|^(hair|hair-soft|bg)$/.test(name!) && !aliases.has(name)) bad.push(`var(--${name})`);
+      }
+      // Named colours: any bare word that is not a keyword, unit, or known non-colour value.
+      const words = decl!.replace(/var\([^)]*\)|url\([^)]*\)|[\w-]+\(/g, ' ').split(':').slice(1).join(':').match(/\b[a-z]+\b/gi) ?? [];
+      for (const w of words) if (/^(red|green|blue|black|white|gray|grey|orange|yellow|purple|pink|navy|teal|silver)$/i.test(w) && !KEYWORDS.has(w.toLowerCase())) bad.push(w);
+    }
+    expect(bad).toEqual([]);
   });
 });
 
-describe('the lane colour is never text (DESIGN §6.2, DM3)', () => {
-  const sources = import.meta.glob(['../**/*.css', '../**/*.tsx'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
-  it.each(Object.keys(sources))('%s', (file) => {
-    expect(sources[file]).not.toMatch(/(^|[^-])color:\s*var\(--tg-lane\)/);
-    expect(sources[file]).not.toMatch(/fill:\s*var\(--tg-lane\)/);
+describe('static assets', () => {
+  it('index.html theme-color is --slate-1 per theme', () => {
+    for (const theme of THEMES) {
+      const meta = new RegExp(`name="theme-color"\\s+content="(#[0-9a-f]{3,6})"\\s+media="\\(prefers-color-scheme: ${theme}\\)"`, 'i');
+      expect(meta.exec(indexHtml)?.[1]?.toLowerCase()).toBe(step(theme, 'slate-1'));
+    }
+  });
+
+  it('the favicon is the veined leaf in blue-9 and orange-9 with the vein cut out', () => {
+    expect(favicon).toContain('<path d="M6 58C6 28 28 6 58 6Z" fill="#0090ff"/>');
+    expect(favicon).toContain('<path d="M6 58C36 58 58 36 58 6Z" fill="#f76b15"/>');
+    expect(favicon).toMatch(/<mask id="vein">[\s\S]*stroke="#000" stroke-width="2.8"/);
   });
 });

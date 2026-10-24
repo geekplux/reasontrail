@@ -1,23 +1,25 @@
-/* Local viewer and outline (DESIGN §5, §8, §10.2, §13.1). Colours only via tokens.css; fonts inlined (woff2 only). */
+/* Local viewer and outline (DESIGN §5, §8, §10.2, §13.1). Geist and Geist Mono are inlined as data URLs: weights
+   400–600, Latin only (scripts/subset-viewer-fonts.sh), 29 KB together, so the one-file page works offline inside its
+   300 KB budget (v7 §3.2, DECISIONS 2026-10-24). */
 @font-face {
-  font-family: 'IBM Plex Mono';
+  font-family: 'Geist';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 400 600;
   font-display: swap;
-  src: url('@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+  src: url('./fonts/geist-400-600.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Instrument Serif';
-  font-style: italic;
-  font-weight: 400;
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400 600;
   font-display: swap;
-  src: url('@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2') format('woff2');
+  src: url('./fonts/geist-mono-400-600.woff2') format('woff2');
 }
 
 .viewer-footer { margin: 0; font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
 .viewer-footer { padding: var(--tg-space-5) var(--tg-space-8) var(--tg-space-8); border-top: var(--tg-hairline); }
 /* The shared-copy line (SO2): one muted mono line on paper, no fill and no rule (CL10). */
-.shared-ribbon { display: block; width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-2) var(--tg-space-8) 0; font: 500 12.8px var(--tg-font-mono); color: var(--tg-ink-muted); }
+.shared-ribbon { display: block; width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-2) var(--tg-space-8) 0; font: 500 var(--text-12) var(--font-mono); color: var(--tg-ink-muted); }
 .viewer-main { --tg-frame-top: var(--tg-space-5); width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-5) var(--tg-space-8) var(--tg-space-8); }
 .viewer-error { padding: var(--tg-space-8) var(--tg-space-5); max-width: 65ch; }
 .bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--tg-paper); background: var(--tg-trouble); font-weight: 700; }

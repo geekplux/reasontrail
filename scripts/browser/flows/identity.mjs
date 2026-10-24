@@ -1,8 +1,11 @@
 // Identity flow (phase 2): fonts, favicon, wordmark, landmarks, layout at both viewports, dark theme, CVD previews.
 import { axeProblems } from '../axe.mjs';
 import { applyCvd, MATRICES } from '../cvd.mjs';
+import { BUDGETS } from '../../check-size.mjs';
 
-const FONT_BUDGET = 45 * 1024;
+const FONT_BUDGET = BUDGETS.fontBytes;
+// The garden SVG can scale by a hair under 1 (e.g. 0.99998), so allow sub-pixel rounding below 12px.
+const MIN_LABEL_PX = 11.95;
 
 async function ready(page) {
   await page.waitForSelector('[data-testid="garden"][data-ready="true"]', { timeout: 10_000 });
@@ -39,17 +42,14 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
     };
     return {
       logo: Boolean(document.querySelector('header .wordmark svg.logo-mark')),
-      reason: style('header .wordmark-reason'),
-      trail: style('header .wordmark-trail'),
-      loaded: document.fonts.check('500 16px "IBM Plex Mono"') && document.fonts.check('italic 400 16px "Instrument Serif"'),
+      name: style('header .wordmark > span'),
+      loaded: document.fonts.check('600 14px "Geist"') && document.fonts.check('400 12px "Geist Mono"'),
       landmarks: ['header', 'main', 'footer'].map((t) => document.querySelectorAll(t).length),
     };
   });
   log(`wordmark: ${JSON.stringify(mark)}`);
   if (!mark.logo) fail('header wordmark has no logo mark');
-  if (mark.reason?.text !== 'reason' || !mark.reason.family.startsWith('"IBM Plex Mono"')) fail('"reason" is not set in IBM Plex Mono');
-  if (mark.trail?.text !== 'trail' || !mark.trail.family.startsWith('"Instrument Serif"') || mark.trail.italic !== 'italic')
-    fail('"trail" is not set in Instrument Serif Italic');
+  if (mark.name?.text !== 'Reasontrail' || !/^"?Geist\b/.test(mark.name.family)) fail('the wordmark name is not set in Geist');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
   // One name for the brand link; the header also links to the source.
@@ -101,7 +101,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   // Dark theme.
   await page.emulateMedia({ colorScheme: 'dark' });
   const bg = await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor);
-  if (bg !== 'rgb(17, 24, 19)') fail(`dark: page background is ${bg}, expected --tg-paper #111813`);
+  if (bg !== 'rgb(17, 17, 19)') fail(`dark: page background is ${bg}, expected --slate-1 #111113`);
   for (const p of await axeProblems(page, 'dark desktop')) fail(p);
   await shot('identity-dark');
   await page.emulateMedia({ colorScheme: 'light' });
@@ -124,7 +124,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   log(`mobile: ${JSON.stringify(mobile)}`);
   if (mobile.pageOverflow > 0) fail(`mobile: page overflows horizontally by ${mobile.pageOverflow}px`);
   if (mobile.outside.length) fail(`mobile: overflowing outside the garden scroller: ${mobile.outside.join(', ')}`);
-  if (mobile.label < 12) fail(`mobile: token labels render at ${mobile.label.toFixed(1)}px (< 12px)`);
+  if (mobile.label < MIN_LABEL_PX) fail(`mobile: token labels render at ${mobile.label.toFixed(2)}px (< ${MIN_LABEL_PX}px)`);
   await checkScrollStop('mobile');
   for (const p of await axeProblems(page, 'light mobile')) fail(p);
   await shot('identity-mobile');
