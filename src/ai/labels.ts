@@ -32,9 +32,9 @@ export function episodeOfStep(g: SessionGraph): (stepId: string) => string | und
   return (id) => find(id);
 }
 
-/** One tag per labelled top-level episode, keyed by episode id. */
-export function episodeTags(g: SessionGraph, overlay: LabelOverlay): Map<string, EpisodeTag> {
-  const of = episodeOfStep(g);
+/** One tag per labelled top-level episode, keyed by episode id. `of` maps a step to its episode: by default the
+ * main-route episode (a subagent's steps count for the episode that spawned it). */
+export function episodeTags(g: SessionGraph, overlay: LabelOverlay, of: (stepId: string) => string | undefined = episodeOfStep(g)): Map<string, EpisodeTag> {
   const counts = new Map<string, Map<string, number>>();
   for (const l of overlay.labels) {
     const ep = of(l.stepId);
