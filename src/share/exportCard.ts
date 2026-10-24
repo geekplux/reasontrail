@@ -9,6 +9,7 @@ import { glanceLayout } from '../map/layout';
 import { glance } from '../map/outline';
 import { LEAF } from '../brand/LogoMark';
 import { PLACEHOLDER } from './exportHtml';
+import { contrast } from '../styles/colorMath';
 
 export const CARD_W = 1200;
 export const CARD_H = 630;
@@ -61,12 +62,22 @@ function markShapes(x: number, y: number, k: number, paper: string): Shape[] {
   return [{ t: 'path', d: LEAF.blue.d, fill: LEAF.blue.fill, ...at }, { t: 'path', d: LEAF.orange.d, fill: LEAF.orange.fill, ...at }, { t: 'path', d: LEAF.vein, ...at, fill: 'none', stroke: paper, width: LEAF.veinWidth }];
 }
 
+/** Ink or paper, whichever reads better on the trouble fill (orange-9: ink in light, paper in dark). Colours that are
+ * not hex (e.g. CSS variables in tests) fall back to paper. */
+export function onTrouble(c: CardColors): string {
+  try {
+    return contrast(c.ink, c.trouble) >= contrast(c.paper, c.trouble) ? c.ink : c.paper;
+  } catch {
+    return c.paper;
+  }
+}
+
 /** The map's square glance glyphs (SC2), centred at (`x`, `y`): "!" on a plate (trouble-filled while a pattern is open,
  * else paper in an ink frame), or a filled ink square for the files row. */
 function square(kind: 'open' | 'neutral' | 'files', x: number, y: number, c: CardColors): Shape[] {
   const h = 10;
   if (kind === 'files') return [{ t: 'rect', x: x - 7, y: y - 7, w: 14, h: 14, fill: c.ink }];
-  const [fill, mark] = kind === 'open' ? [c.trouble, c.paper] : [c.paper, c.ink];
+  const [fill, mark] = kind === 'open' ? [c.trouble, onTrouble(c)] : [c.paper, c.ink];
   const frame: Shape[] = kind === 'open' ? [{ t: 'rect', x: x - h, y: y - h, w: 2 * h, h: 2 * h, fill }] : [{ t: 'rect', x: x - h, y: y - h, w: 2 * h, h: 2 * h, fill: c.ink }, { t: 'rect', x: x - h + 2, y: y - h + 2, w: 2 * h - 4, h: 2 * h - 4, fill }];
   return [...frame, { t: 'line', x1: x, y1: y - 5.5, x2: x, y2: y + 1.5, stroke: mark, width: 2.5 }, { t: 'circle', cx: x, cy: y + 5.5, r: 1.6, fill: mark, stroke: mark, width: 0 }];
 }
@@ -75,7 +86,8 @@ function square(kind: 'open' | 'neutral' | 'files', x: number, y: number, c: Car
 function glyph(status: 'ok' | 'error' | 'unknown', x: number, y: number, c: CardColors): Shape[] {
   const r = 11;
   if (status === 'unknown') return [{ t: 'circle', cx: x, cy: y, r, fill: c.paper, stroke: c.muted, width: 2 }];
-  const ln = (x1: number, y1: number, x2: number, y2: number): Shape => ({ t: 'line', x1: x + x1, y1: y + y1, x2: x + x2, y2: y + y2, stroke: c.paper, width: 2.5 });
+  const mark = status === 'ok' ? c.paper : onTrouble(c);
+  const ln = (x1: number, y1: number, x2: number, y2: number): Shape => ({ t: 'line', x1: x + x1, y1: y + y1, x2: x + x2, y2: y + y2, stroke: mark, width: 2.5 });
   const disc: Shape = { t: 'circle', cx: x, cy: y, r, fill: status === 'ok' ? c.ok : c.trouble, stroke: c.paper, width: 0 };
   return status === 'ok' ? [disc, ln(-5, 0.5, -1.5, 4), ln(-1.5, 4, 5, -4)] : [disc, ln(-4.5, -4.5, 4.5, 4.5), ln(-4.5, 4.5, 4.5, -4.5)];
 }
@@ -136,7 +148,7 @@ export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Sh
     prev = { x, up };
     s.push({ t: 'line', x1: x, y1: ROUTE_Y - 4, x2: x, y2: ROUTE_Y - 26 - up, stroke: b.resolved ? c.ink : c.trouble, width: 4 });
     s.push({ t: 'circle', cx: x, cy: ROUTE_Y - 46 - up, r: 20, fill: b.resolved ? c.paper : c.trouble, stroke: b.resolved ? c.ink : c.trouble, width: 3 });
-    s.push({ t: 'text', x, y: ROUTE_Y - 40 - up, text: b.badge, font: badge, fill: b.resolved ? c.ink : c.paper, anchor: 'middle' });
+    s.push({ t: 'text', x, y: ROUTE_Y - 40 - up, text: b.badge, font: badge, fill: b.resolved ? c.ink : onTrouble(c), anchor: 'middle' });
   }
 
   const lead: Font = { family: 'sans', size: 24, weight: 600 };

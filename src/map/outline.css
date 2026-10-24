@@ -41,15 +41,17 @@
 .glyph .g-ok { fill: var(--blue-9); }
 .glyph .g-bad { fill: var(--orange-9); }
 .glyph .g-mark { fill: none; stroke: var(--slate-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.glyph .g-bad + .g-mark { stroke: var(--on-orange-9); }
 .glyph .g-muted { fill: none; stroke: var(--slate-11); stroke-width: 1.5; }
 .glyph-plate .g-plate { fill: var(--orange-9); stroke: var(--orange-9); stroke-width: 2; }
 .glyph-plate .g-plate-mark { fill: none; stroke: var(--slate-1); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.glyph-plate.is-open .g-plate-mark { stroke: var(--on-orange-9); }
 .glyph-plate.is-resolved .g-plate { fill: var(--slate-1); }
 .glyph-plate.is-resolved .g-plate-mark { stroke: var(--orange-9); }
 .glyph-plate.is-neutral .g-plate { fill: var(--slate-1); stroke: var(--slate-12); }
 .glyph-plate.is-neutral .g-plate-mark { stroke: var(--slate-12); }
 .glyph-plate .g-plate-dot { fill: var(--slate-12); }
-.glyph-plate.is-open .g-plate-dot { fill: var(--slate-1); }
+.glyph-plate.is-open .g-plate-dot { fill: var(--on-orange-9); }
 
 /* At a glance */
 .glance-rows { display: grid; gap: var(--tg-space-2); margin: 0; padding: 0; list-style: none; }

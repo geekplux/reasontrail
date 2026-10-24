@@ -33,6 +33,11 @@ const ALL_VALUES = new Set(THEMES.flatMap((t) => SCALES.flatMap((s) => RADIX[t][
 const declared = (fragment: string) => Object.fromEntries([...fragment.matchAll(/--([\w-]+):\s*(#[0-9a-f]{3,6})\s*;/gi)].map((m) => [m[1], m[2]!.toLowerCase()]));
 const darkStart = css.indexOf('@media (prefers-color-scheme: dark)');
 const tokens = { light: declared(css.slice(0, darkStart)), dark: declared(css.slice(darkStart)) };
+/** `--name: var(--step)` aliases in a CSS fragment (e.g. `--on-orange-9`), resolved per theme by `resolve`. */
+const aliased = (fragment: string) => Object.fromEntries([...fragment.matchAll(/--([\w-]+):\s*var\(--((?:slate|blue|orange)-\d+)\)\s*;/g)].map((m) => [m[1], m[2]!]));
+const themeAliases = { light: aliased(css.slice(0, darkStart)), dark: { ...aliased(css.slice(0, darkStart)), ...aliased(css.slice(darkStart)) } };
+/** A Radix step or a tokens.css alias of one, as hex in `theme`. */
+const resolve = (theme: Theme, token: string) => step(theme, themeAliases[theme][token] ?? token);
 
 describe('colorMath', () => {
   it('computes WCAG contrast at the known extremes', () => {
@@ -65,9 +70,20 @@ describe.each(THEMES)('tokens.css, %s theme', (theme) => {
     ['blue-11', 'slate-1'],
     ['blue-11', 'slate-2'],
     ['orange-12', 'orange-3'], // a deleted diff line
+    ['slate-1', 'slate-12'], // inverted badge numbers
+    ['slate-11', 'blue-3'],
+    ['slate-12', 'blue-3'],
+    ['slate-12', 'slate-2'],
+    ['on-orange-9', 'orange-9'], // marks and "!" on a trouble fill
   ];
   it.each(TEXT)('%s text on %s reaches AA (4.5:1)', (fg, bg) => {
-    expect(contrast(step(theme, fg), step(theme, bg))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(resolve(theme, fg), resolve(theme, bg))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // Non-text marks (WCAG 1.4.11): the selected path and the hollow or dotted outlines.
+  const GRAPHIC: [string, string][] = [['blue-9', 'slate-1'], ['blue-9', 'slate-2'], ['slate-9', 'slate-1'], ['slate-9', 'slate-2']];
+  it.each(GRAPHIC)('%s marks on %s reach 3:1', (fg, bg) => {
+    expect(contrast(resolve(theme, fg), resolve(theme, bg))).toBeGreaterThanOrEqual(3);
   });
 });
 
@@ -98,7 +114,7 @@ describe('every colour in src/**/*.css is a Radix token or value', () => {
     // Every var() in a colour property names a Radix step or a token built from them (--hair, --frame).
     for (const [, decl] of text.matchAll(COLOUR_PROPS)) {
       for (const [, name] of decl!.matchAll(/var\(--([\w-]+)/g)) {
-        if (!/^(slate|blue|orange)-([1-9]|1[0-2])$|^(hair|hair-soft|frame)$/.test(name!) && !aliases.has(name)) bad.push(`var(--${name})`);
+        if (!/^(slate|blue|orange)-([1-9]|1[0-2])$|^(hair|hair-soft|frame|on-orange-9)$/.test(name!) && !aliases.has(name)) bad.push(`var(--${name})`);
       }
       // Named colours: any bare word that is not a keyword, unit, or known non-colour value.
       const words = decl!.replace(/var\([^)]*\)|url\([^)]*\)|[\w-]+\(/g, ' ').split(':').slice(1).join(':').match(/\b[a-z]+\b/gi) ?? [];

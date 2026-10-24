@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSessionGraph } from '../sessions/samples';
-import { CARD_H, CARD_W, balance, cardLabel, cardShapes, cardSvg, cardTitle, fit, wrap, type Measure, type Shape } from './exportCard';
+import { CARD_H, CARD_W, balance, cardLabel, cardShapes, cardSvg, cardTitle, fit, onTrouble, wrap, type Measure, type Shape } from './exportCard';
 
 const measure: Measure = (text, font) => text.length * font.size * 0.5;
 const colors = { paper: 'var(--p)', ink: 'var(--i)', muted: 'var(--m)', trouble: 'var(--t)', ok: 'var(--o)' };
@@ -114,5 +114,21 @@ describe('card polish (phase 25)', () => {
     const shapes = cardShapes(defaultSessionGraph, colors, measure);
     expect(shapes.filter((x) => x.t === 'rect' && x.w === 14 && x.fill === 'var(--i)')).toHaveLength(1);
     expect(shapes.some((x) => x.t === 'rect' && x.w === 20)).toBe(true);
+  });
+});
+
+describe('marks on the trouble fill', () => {
+  const light = { paper: '#fcfcfd', ink: '#1c2024', muted: '#60646c', trouble: '#f76b15', ok: '#0090ff' };
+  const dark = { paper: '#111113', ink: '#edeef0', muted: '#b0b4ba', trouble: '#f76b15', ok: '#0090ff' };
+  it('uses whichever of ink and paper contrasts more with orange-9', () => {
+    expect(onTrouble(light)).toBe(light.ink);
+    expect(onTrouble(dark)).toBe(dark.paper);
+  });
+  it('draws the open blaze numbers in ink in the light theme', () => {
+    const g = structuredClone(defaultSessionGraph);
+    g.trouble = g.trouble.map((t) => ({ ...t, resolved: false }));
+    const badges = texts(cardShapes(g, light, measure)).filter((t) => t.font.size === 18 && t.font.family === 'sans');
+    expect(badges.length).toBeGreaterThan(0);
+    expect(badges.every((b) => b.fill === light.ink)).toBe(true);
   });
 });

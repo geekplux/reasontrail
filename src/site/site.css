@@ -67,7 +67,7 @@
 .intake-alert { margin-top: var(--tg-space-5); }
 .intake-alert:empty { margin: 0; } /* present and empty from load, so the first message is announced */
 .intake-error { display: flex; align-items: center; flex-wrap: wrap; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); }
-.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--slate-1); background: var(--orange-9); font-weight: 700; }
+.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--on-orange-9); background: var(--orange-9); font-weight: 600; }
 .open-session .trail-stub { margin-top: var(--tg-space-5); }
 .open-session > .muted { margin-top: var(--tg-space-4); }
 .quiet-details summary { color: var(--slate-11); }

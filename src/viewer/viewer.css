@@ -22,7 +22,7 @@
 .shared-ribbon { display: block; width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-2) var(--tg-space-8) 0; font: 500 var(--text-12) var(--font-mono); color: var(--slate-11); }
 .viewer-main { --tg-frame-top: var(--tg-space-5); width: 100%; max-width: 1280px; margin: 0 auto; padding: var(--tg-space-5) var(--tg-space-8) var(--tg-space-8); }
 .viewer-error { padding: var(--tg-space-8) var(--tg-space-5); max-width: 65ch; }
-.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--slate-1); background: var(--orange-9); font-weight: 700; }
+.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--on-orange-9); background: var(--orange-9); font-weight: 600; }
 
 @media (max-width: 767px) {
   .viewer-header { padding: var(--tg-space-2) var(--tg-space-4); }
