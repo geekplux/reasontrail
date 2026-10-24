@@ -3,9 +3,9 @@
 .site[hidden] { display: none; }
 
 .button {
-  display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; gap: 8px;
-  border: var(--hair); border-radius: var(--radius-6); background: transparent; color: var(--slate-12);
-  font: 500 var(--text-12) var(--font-sans); text-decoration: none; cursor: pointer;
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; gap: 8px;
+  border: 0; border-radius: var(--radius-6); box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); color: var(--slate-12);
+  font: 500 var(--text-14) / 1 var(--font-sans); text-decoration: none; cursor: pointer;
 }
 .button.primary { background: var(--slate-12); color: var(--slate-1); }
 .button:has(input:focus) { outline: 2px solid var(--blue-9); outline-offset: 2px; }
@@ -82,7 +82,7 @@
 .paste-box textarea { width: 100%; min-height: 14rem; padding: 8px; border: 0.5px dashed var(--slate-8); border-radius: var(--radius-6); background: var(--slate-1); color: var(--slate-12); font: 400 var(--text-12) / 1.5 var(--font-mono); resize: vertical; }
 .paste-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 8px; }
 /* CI4: the view's one ink action; disabled it is a muted outline, never a grey fill. */
-.paste-actions .button:disabled { border-color: var(--slate-6); background: transparent; color: var(--slate-11); cursor: not-allowed; }
+.paste-actions .button:disabled { box-shadow: inset 0 0 0 0.5px var(--slate-6); background: transparent; color: var(--slate-11); cursor: not-allowed; }
 .paste-box .paste-label { margin: 0; font: 600 var(--text-14) / 1.5 var(--font-sans); color: var(--slate-12); }
 .file-link { position: relative; color: var(--slate-11); }
 .file-link input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }

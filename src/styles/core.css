@@ -1,5 +1,7 @@
 /* Core elements shared by the app and the local viewer: page, focus, header, wordmark. Colours only via tokens.css. */
 *, *::before, *::after { box-sizing: border-box; }
+/* tnum on every element: a `font:` shorthand resets the inherited feature settings. */
+*, *::before, *::after { font-feature-settings: 'tnum' 1; }
 
 html {
   background: var(--slate-1);

@@ -31,7 +31,7 @@ export function PasteBox({ onText, onFile, onShareLink, invalid = false, ref }: 
       <div className="paste-actions">
         <button type="submit" className="button primary" disabled={!text.trim()}>Map this conversation</button>
         <label className="text-button file-link">
-          or choose an export file (conversations.json)
+          Choose an export file (conversations.json)
           <input type="file" accept=".json,application/json" onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = '';
