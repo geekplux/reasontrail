@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { defaultSessionGraph } from '../sessions/samples';
+import type { SessionGraph } from '../../shared/session/types';
+import implementerChecks from '../sessions/samples/implementer-checks.graph.json';
+
+/** The sample with trouble patterns and a long first request (the bundled default before v7). */
+const defaultSessionGraph = implementerChecks as SessionGraph;
 import { CARD_H, CARD_W, balance, cardLabel, cardShapes, cardSvg, cardTitle, fit, pathSegments, wrap, type Measure, type Shape } from './exportCard';
 
 const measure: Measure = (text, font) => text.length * font.size * 0.5;

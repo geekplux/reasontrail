@@ -1,7 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { defaultSessionGraph } from '../sessions/samples';
+import type { SessionGraph } from '../../shared/session/types';
+import implementerChecks from '../sessions/samples/implementer-checks.graph.json';
+
+/** The sample with trouble patterns and a long first request (the bundled default before v7). */
+const defaultSessionGraph = implementerChecks as SessionGraph;
 import { TaskCard } from './TaskCard';
 import { taskCard } from './outline';
 
