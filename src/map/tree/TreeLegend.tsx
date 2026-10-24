@@ -9,12 +9,12 @@ const mark = (w: number, children: ReactNode) => <svg className="g" width={w} he
 
 export function TreeLegend() {
   return (
-    <p className="legend">
+    <p className="legend" aria-hidden="true">
       {KINDS.map(([k, name]) => <span key={k}><KindGlyph kind={k} />{name}</span>)}
       <span className="lg-gap" />
       <span>{mark(14, <><path d="M2 10 7 5" stroke="var(--slate-12)" strokeWidth="1" /><path d="M0 0Q2.6 -2 5.2 0Q2.6 2 0 0Z" transform="translate(7 5) rotate(-45)" fill="var(--slate-12)" /></>)}Command</span>
       <span>{mark(14, <path d="M2 10 5.5 6.5" stroke="var(--slate-9)" strokeWidth="1" />)}Thinking</span>
-      <span>{mark(14, <><path d="M2 10 8 4" stroke="var(--orange-9)" strokeWidth="1" /><path d="M8 1.5l4 4M12 1.5l-4 4" stroke="var(--orange-9)" strokeWidth="1.4" /></>)}Failed</span>
+      <span>{mark(14, <><path d="M2 10 8 4" stroke="var(--orange-10)" strokeWidth="1" /><path d="M8 1.5l4 4M12 1.5l-4 4" stroke="var(--orange-10)" strokeWidth="1.4" /></>)}Failed</span>
       <span>{mark(18, <path d="M1 3.5 17 5.6v.8L1 8.5z" fill="var(--slate-11)" />)}Width: tool calls</span>
     </p>
   );

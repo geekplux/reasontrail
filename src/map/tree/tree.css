@@ -6,15 +6,16 @@
 .tree .tw { stroke: var(--slate-12); stroke-width: 1; stroke-linecap: round; }
 /* slate-9, not the canvas's slate-8: 3.22:1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
 .tree .tw.th { stroke: var(--slate-9); }
-.tree .tw.fail { stroke: var(--orange-9); }
+/* orange-10, not the canvas's orange-9: 3.26:1 on slate-1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
+.tree .tw.fail { stroke: var(--orange-10); }
 .tree :is(.leaf, .root, .dot) { fill: var(--slate-12); }
 .tree .bud { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1; }
-.tree .x { stroke: var(--orange-9); stroke-width: 1.5; stroke-linecap: round; }
+.tree .x { stroke: var(--orange-10); stroke-width: 1.5; stroke-linecap: round; }
 .tree .back { fill: none; stroke: var(--slate-8); stroke-width: 1; stroke-dasharray: 2 3; }
 .tree .back-end { fill: var(--slate-1); stroke: var(--slate-9); stroke-width: 1; }
 .tree .halo { fill: var(--slate-1); }
 .tree .g { color: var(--slate-12); }
-.tree .g.tip-fail { color: var(--orange-9); }
+.tree .g.tip-fail { color: var(--orange-10); }
 .tree .g.tip-ok { color: var(--blue-9); }
 
 /* Text: numbers carry a 4px background halo so twigs never cut through them. */

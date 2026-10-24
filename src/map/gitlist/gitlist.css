@@ -20,7 +20,8 @@
 .gl-svg .m-end { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1.5; }
 /* slate-9, not the canvas's slate-8: 3:1 for a mark that carries meaning (DECISIONS 2026-10-24). */
 .gl-svg .m-think { fill: var(--slate-9); }
-.gl-svg .x { stroke: var(--orange-9); stroke-width: 1.5; }
+/* orange-10, not the canvas's orange-9: 3.26:1 on slate-1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
+.gl-svg .x { stroke: var(--orange-10); stroke-width: 1.5; }
 .gl-svg .halo { fill: var(--slate-1); transition: fill var(--motion); }
 .gl-svg .halo.hv { fill: var(--slate-3); }
 .gl-svg .halo.on { fill: var(--blue-3); }
@@ -28,7 +29,7 @@
 .gl-svg .ring { fill: none; stroke: var(--blue-11); stroke-width: 1.5; }
 .gl-svg .g.t-node { display: inline; color: var(--slate-12); --bg: var(--slate-1); transition: color var(--motion); }
 .gl-svg .g.t-node.on { color: var(--blue-11); }
-.gl-svg .g.tip-fail { color: var(--orange-9); }
+.gl-svg .g.tip-fail { color: var(--orange-10); }
 .gl-svg .g.tip-ok { color: var(--blue-9); }
 
 /* Rows: hover and states bleed 12px past the content on both sides; the text stays on its columns. */
