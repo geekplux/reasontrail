@@ -19,7 +19,7 @@ describe('check-size', () => {
 
   it('flags every budget it exceeds', () => {
     expect(checkBudgets({ jsGzip: 1000, cssGzip: 1000, fontBytes: 1000, fontFiles: 2 })).toEqual([]);
-    expect(checkBudgets({ jsGzip: 200_000, cssGzip: 20_000, fontBytes: 50_000, fontFiles: 3 })).toHaveLength(4);
+    expect(checkBudgets({ jsGzip: 200_000, cssGzip: 20_000, fontBytes: 60_000, fontFiles: 3 })).toHaveLength(4);
   });
 
   it('allows only relative and type-only imports in the Worker', () => {

@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 /** Runtime dependencies allowed in package.json; adding one needs a DECISIONS.md entry and an edit here. */
-export const RUNTIME_ALLOWLIST = ['@fontsource/ibm-plex-mono', '@fontsource/instrument-serif', 'd3-hierarchy', 'react', 'react-dom'];
+export const RUNTIME_ALLOWLIST = ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', 'd3-hierarchy', 'react', 'react-dom'];
 /** `jsGzip`: PLAN G2 (≤ 170 KB gzip with the default sample), which supersedes P1's 130 KB for the website first view
  * (PLAN §4.1). The default sample now carries its raw records for "Show raw" (phase 17). */
-export const BUDGETS = { jsGzip: 170 * 1024, cssGzip: 15 * 1024, fontBytes: 45 * 1024, fontFiles: 2 };
+export const BUDGETS = { jsGzip: 170 * 1024, cssGzip: 15 * 1024, fontBytes: 55 * 1024, fontFiles: 2 };
 
 /** Problems with the runtime dependency list: anything missing from or extra to the allowlist. */
 export function checkDependencies(deps = {}) {

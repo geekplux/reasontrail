@@ -10,13 +10,13 @@
   justify-content: space-between;
   gap: var(--tg-space-2) var(--tg-space-5);
   padding: var(--tg-space-4) var(--tg-space-8);
-  border-top: var(--tg-hairline);
-  font-size: var(--tg-text-sm);
-  color: var(--tg-ink-muted);
+  border-top: var(--hair-soft);
+  font-size: var(--text-12);
+  color: var(--slate-11);
 }
 .site-footer p { margin: 0; }
 .how-to-read { flex-basis: 100%; max-width: var(--tg-measure); }
-.how-to-read summary { cursor: pointer; color: var(--tg-ink); }
+.how-to-read summary { cursor: pointer; color: var(--slate-12); }
 
 @media (max-width: 47.99rem) {
   .site-header, .site-footer { padding-inline: var(--tg-space-4); }
