@@ -124,6 +124,30 @@ describe('GitList keyboard (WAI-ARIA tree)', () => {
     expect(items().some((el) => el.getAttribute('aria-level') === '2')).toBe(false);
   });
 
+  it('rings a selected leaf episode, not only tints it', () => {
+    const { container } = render(<GitList g={IMPL} />);
+    const rings = () => container.querySelectorAll('.gl-svg .ring[r="10.5"]').length;
+    expect(rings()).toBe(0);
+    fireEvent.click(row('Episode 12:'));
+    expect(rings()).toBe(1);
+    fireEvent.click(row('Episode 2:'));
+    expect(rings()).toBe(0); // an episode with steps shows them instead
+  });
+
+  it('keeps the hover tint on the halo after a click opens and closes the episode', () => {
+    const { container } = render(<GitList g={G} />);
+    const ep = row('Episode 6: Read');
+    fireEvent.mouseEnter(ep);
+    const key = [...container.querySelectorAll('[data-halo]')].find((h) => h.classList.contains('hv'))!.getAttribute('data-halo')!;
+    const tint = () => container.querySelector(`[data-halo="${key}"]`)!.getAttribute('class');
+    fireEvent.click(ep);
+    expect(tint()).toBe('halo on hv'); // .on wins in the CSS
+    fireEvent.click(row('Episode 6: Read'));
+    expect(tint()).toBe('halo hv');
+    fireEvent.mouseLeave(row('Episode 6: Read'));
+    expect(tint()).toBe('halo');
+  });
+
   it('reads a failure and a wait as one line: "1 failed command, 12 min wait"', () => {
     render(<GitList g={IMPL} />);
     const sub = row('Episode 4:').querySelector('.gl-sub')!;
@@ -170,9 +194,14 @@ describe('GitList long episodes', () => {
     expect(level2()).toHaveLength(STEP_ROWS_MAX + 1);
     const more = level2().at(-1)!;
     expect(name(more)).toBe(`Show ${all.length - STEP_ROWS_MAX} more steps`);
+    const ep = row('Episode 2:');
+    const total = g.episodes.find((e) => e.id === 'e1')!.stepIds.length;
+    expect(name(ep)).toContain(`, ${total} steps, ${STEP_ROWS_MAX} shown,`);
+    expect(shown(ep)).not.toContain('shown');
     act(() => more.focus());
     press('Enter');
     expect(level2()).toHaveLength(all.length);
+    expect(name(row('Episode 2:'))).toContain(`, ${total} steps${all.length < total ? `, ${all.length} shown` : ''},`);
     expect(focused()).toBe(level2()[STEP_ROWS_MAX]);
     expect(focused().getAttribute('aria-posinset')).toBe(String(STEP_ROWS_MAX + 1));
   });

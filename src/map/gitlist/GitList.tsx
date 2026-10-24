@@ -3,7 +3,7 @@
 // parent row), Home/End, Enter opens an episode or selects a step, Esc clears the step, then closes the episode. One
 // episode is open at a time. Levels: lane, main-lane episode and end rows 1; a subagent's episodes and verdict 2, under
 // their lane row; steps one below their episode.
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../../shared/session/types';
 import { episodeTags, tagName } from '../../ai/labels';
 import { AlertIcon, KindGlyph, VerdictIcon } from './marks';
@@ -80,6 +80,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
   const els = useRef(new Map<string, HTMLDivElement>());
   const svg = useRef<SVGSVGElement>(null);
   const moved = useRef(false);
+  const hovered = useRef<string | undefined>(undefined);
 
   const steps = useMemo(() => (sel.episodeId ? episodeSteps(g, sel.episodeId) : []), [g, sel.episodeId]);
   const shown: (StepRow | MoreRow)[] = useMemo(() => {
@@ -88,6 +89,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
     if (all || steps.length <= STEP_ROWS_MAX + 5 || at >= STEP_ROWS_MAX) return steps;
     return [...steps.slice(0, STEP_ROWS_MAX), { kind: 'more', key: `more:${sel.episodeId}`, episodeId: sel.episodeId ?? '', more: steps.length - STEP_ROWS_MAX }];
   }, [steps, all, sel]);
+  const listedSteps = shown.filter((s) => s.kind === 'step').length;
   const target = sel.stepId ? `step:${sel.stepId}` : sel.episodeId ? `ep:${sel.episodeId}` : undefined;
   // A leaf episode (nothing to list) is selected in place: no step rows, no gap under it.
   const L = useMemo(() => layoutList(rows, sel.episodeId && shown.length > 0 ? { episodeId: sel.episodeId, steps: shown } : undefined, target), [rows, sel.episodeId, shown, target]);
@@ -165,7 +167,16 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
   };
 
   // Hover only tints the episode's halo: toggled on the SVG node, so it does not re-render every row.
-  const hover = (key: string, on: boolean) => svg.current?.querySelector(`[data-halo="${key}"]`)?.classList.toggle('hv', on);
+  const halo = (key: string) => svg.current?.querySelector(`[data-halo="${key}"]`);
+  const hover = (key: string, on: boolean) => {
+    if (on) hovered.current = key;
+    else if (hovered.current === key) hovered.current = undefined;
+    halo(key)?.classList.toggle('hv', on);
+  };
+  // A re-render (a click that opens or closes the episode) rewrites the halo's class: put the tint back before paint.
+  useLayoutEffect(() => {
+    if (hovered.current) halo(hovered.current)?.classList.add('hv');
+  });
 
   const mark = (p: Placed) => {
     const r = p.row;
@@ -175,6 +186,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
         <g key={r.key}>
           <circle cx={p.x} cy={p.cy} r="8" className={`halo${on ? ' on' : ''}`} data-halo={r.key} />
           <KindGlyph kind={r.glyph} x={p.x} y={p.cy} className={`t-node${on ? ' on' : ''}`} />
+          {on && r.leaf && <circle cx={p.x} cy={p.cy} r="10.5" className="ring" />}
         </g>
       );
     }
@@ -198,7 +210,8 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
 
   const content = (r: AnyRow) => {
     const at = (word: string, text: string) => text && <span className="gl-main gl-at">{vh(word)}{text}</span>;
-    const count = (n: number | undefined) => n !== undefined && <span className="gl-main gl-steps">{vh(', ')}{n}{vh(n === 1 ? ' step' : ' steps')}</span>;
+    // An open episode lists fewer rows than its steps (results fold into their calls, long ones cut off): say how many.
+    const count = (n: number | undefined, listed?: number) => n !== undefined && <span className="gl-main gl-steps">{vh(', ')}{n}{vh(n === 1 ? ' step' : ' steps')}{listed !== undefined && listed < n && vh(`, ${listed} shown`)}</span>;
     switch (r.kind) {
       case 'lane':
         return (<><span className="gl-main gl-title t-lane"><span className="gl-text">{r.name}</span></span>{r.agent && <span className="gl-sub gl-title">{vh(', ')}{r.agent}</span>}{count(r.steps)}{at(', starts at ', r.at)}</>);
@@ -218,7 +231,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
                 <span>{r.failed > 0 && <b>{plural(r.failed, 'failed command')}</b>}{r.failed > 0 && r.wait ? `, ${r.wait}` : r.wait}</span>
               </span>
             )}
-            {count(r.steps)}
+            {count(r.steps, sel.episodeId === r.episodeId && !r.leaf ? listedSteps : undefined)}
             {at(', starts at ', r.at)}
           </>
         );
