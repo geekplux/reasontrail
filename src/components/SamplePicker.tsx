@@ -9,7 +9,7 @@ export function SamplePicker(props: { samples: readonly SampleGarden[]; value: s
   const { samples, value, onChange } = props;
   return (
     <fieldset className="picker">
-      <legend className="picker-legend">Recorded gardens</legend>
+      <legend className="visually-hidden">Recorded gardens</legend>
       <div className="picker-options">
         {samples.map((s) => (
           <label key={s.id} className="picker-option">

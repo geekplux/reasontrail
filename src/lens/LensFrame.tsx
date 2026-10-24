@@ -100,7 +100,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     if (!recorded) setMount((n) => n + 1); // nothing grown yet: a new garden asks for its first fork, live
   };
 
-  // The sentence moves from where it was in the panel to its place here (DESIGN §11, 240 ms; instant under reduced
+  // Opened from the panel, the sentence fades in at its place here (rule 7: opacity only; instant under reduced
   // motion, where the duration token is 0). Nothing waits for the animation.
   const quote = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
@@ -109,9 +109,8 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     const from = target.from;
     if (!el || !from || typeof el.animate !== 'function') return;
     const ms = parseFloat(getComputedStyle(el).getPropertyValue('--motion-ms')) || 0;
-    const to = el.getBoundingClientRect();
     const easing = getComputedStyle(el).getPropertyValue('--motion-ease').trim() || 'ease-out';
-    if (ms > 0) el.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)` }, { transform: 'none' }], { duration: ms, easing });
+    if (ms > 0) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing });
   }, [target]);
   useEffect(() => {
     if (focusOnOpen) document.getElementById('lens-title')?.focus({ preventScroll: true });

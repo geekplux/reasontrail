@@ -39,9 +39,6 @@ export function SpecimenLabel({ sample, live = false, level = 'h1' }: { sample: 
   const Heading = level;
   return (
     <section className="specimen" aria-labelledby="specimen-title">
-      <p className="specimen-kicker" aria-hidden="true">
-        Specimen
-      </p>
       <Heading id="specimen-title" className="specimen-title" tabIndex={-1}>
         {sample.title}
       </Heading>

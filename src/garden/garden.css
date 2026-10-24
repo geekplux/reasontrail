@@ -4,7 +4,6 @@
 /* Control row (PLAN §3.3, DESIGN §18.1 GA1): the sample picker as quiet text radios; the chosen one is 600, underlined. */
 .controls { padding: 16px 40px 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
-.picker-legend { padding: 0; margin-bottom: 4px; font: 500 var(--text-12) / 1.2 var(--font-sans); color: var(--slate-11); }
 .picker-options { display: flex; flex-wrap: wrap; gap: 4px 24px; }
 .picker-option { position: relative; display: inline-flex; align-items: center; min-height: 28px; font-size: var(--text-14); color: var(--slate-11); white-space: nowrap; border-bottom: 0.5px solid transparent; cursor: pointer; }
 .picker-option input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
@@ -28,14 +27,8 @@
 
 .specimen { max-width: 72ch; }
 
-.specimen-kicker {
-  margin: 0;
-  font: 500 var(--text-12) / 1.2 var(--font-sans);
-  color: var(--slate-11);
-}
-
 .specimen-title {
-  margin: 4px 0 8px;
+  margin: 0 0 8px;
   font: 600 var(--text-32) / 1.1 var(--font-sans);
   letter-spacing: -0.025em;
 }
@@ -79,14 +72,13 @@
 .garden .on-path > [data-role='casing'] { stroke: var(--slate-1); }
 .garden [data-role='remainder'] path { stroke: var(--slate-11); }
 /* The "other tokens" remainder is a light, short-dashed band (capped at its fork's widest branch); its label says the number. */
-.garden [data-role='remainder-stroke'], .legend [data-role='legend-other'] { stroke-opacity: 0.55; }
+.garden [data-role='remainder'] [data-role='remainder-stroke'], .legend [data-role='legend-other'] { stroke: var(--slate-9); }
 /* Sampled path (spec §3, §10.3): ink underlay + accent stroke + diamond tips, so it reads without colour. */
 .garden path[data-role='sampled-underlay'] { stroke: var(--slate-12); }
 .garden path[data-role='sampled-stroke'] { stroke: var(--blue-9); }
 /* Dark: an ink (light) underlay is too close to the accent, so the outline is paper there (contrast vs accent). */
 @media (prefers-color-scheme: dark) { .garden path[data-role='sampled-underlay'] { stroke: var(--slate-1); } }
 .marker-diamond { fill: var(--blue-9); stroke: var(--slate-12); stroke-width: 1; }
-.legend [data-role='legend-other'] { stroke: var(--slate-11); }
 .legend [data-role='legend-not-recorded'] { stroke: var(--slate-11); stroke-dasharray: 4 3; }
 .garden [data-role='remainder'] text, .garden-empty { fill: var(--slate-11); }
 .marker-bud { fill: var(--band); }
@@ -98,7 +90,7 @@
 /* Keyboard focus (A1): the global ring is drawn around the row's hit rect, on top of the selected style. */
 .garden .branch:focus { outline: none; box-shadow: none; }
 .garden .branch:focus-visible > [data-role='hit'] { stroke: var(--blue-9); stroke-width: 2; }
-.garden [data-role='value-label'] rect { fill: var(--slate-2); stroke: var(--slate-11); stroke-width: 1; pointer-events: fill; }
+.garden [data-role='value-label'] rect { fill: var(--slate-1); stroke: var(--slate-7); stroke-width: 0.5; pointer-events: fill; }
 
 .garden text {
   font-family: var(--font-mono);
@@ -109,19 +101,15 @@
 }
 .garden [data-ws], .readout [data-ws] { fill: var(--slate-11); color: var(--slate-11); }
 
-/* Motion (PLAN §3.4, spec §6): only newly grown branches animate (data-ready is set after the first view, so that
-   one is already grown); everything else jumps. Nothing waits for transitionend. Reduced motion zeroes it all below. */
-.garden .branch { clip-path: inset(-40px); transition: clip-path var(--motion-ms) var(--motion-ease); }
+/* Motion (rule 7: colour and opacity only): newly grown branches fade in (data-ready is set after the first view, so
+   that one is already there); everything else jumps. Nothing waits for transitionend. Reduced motion zeroes it all. */
+.garden .branch { transition: opacity var(--motion-ms) var(--motion-ease); }
 .garden .branch text { transition: opacity var(--motion-ms) ease-out 60ms; }
-.garden :is([data-role='branch-stroke'], [data-role='remainder-stroke'], [data-role='casing'], [data-role='sampled-underlay'], [data-role='sampled-stroke']) { transition: stroke-width var(--motion-ms) ease-out; }
-/* The sampled walk: CSS only, edge i drawn after i steps; diamonds and the "other" stub fade in at their edge's end. */
+/* The sampled walk: CSS only, edge i fades in after i steps, then its diamond and the "other" stub. */
 .garden[data-walk] [data-walk] { animation: tg-fade var(--motion-ms) linear calc(var(--i) * var(--step-ms)) backwards; }
-.garden[data-walk] [data-walk='draw'] { animation: tg-draw var(--step-ms) linear calc(var(--i) * var(--step-ms)) backwards; }
-@keyframes tg-draw { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
 @keyframes tg-fade { from { opacity: 0; } }
 @starting-style {
-  .garden[data-ready] .branch { clip-path: inset(-40px 100% -40px -40px); }
-  .garden[data-ready] .branch text { opacity: 0; }
+  .garden[data-ready] .branch, .garden[data-ready] .branch text { opacity: 0; }
 }
 
 /* Path readout under the drawing: token boundaries are breaks in the underline. Sticky at the bottom on mobile. */

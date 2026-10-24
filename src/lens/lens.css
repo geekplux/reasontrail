@@ -40,7 +40,6 @@
 .lens-options .specimen-fields dt { margin-top: 0; padding-top: 4px; border-bottom: var(--hair-soft); }
 .lens-options .specimen-fields dd { padding-top: 4px; }
 .lens-offer-options { margin-bottom: 16px; }
-.lens-live:focus-visible { outline: 2px solid var(--slate-12); outline-offset: 2px; }
 .lens-options[open] summary { margin-bottom: 8px; }
 
 /* The detail panel's bottom-sheet padding belongs to the hidden map, not to the lens. */
