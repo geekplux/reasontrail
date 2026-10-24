@@ -1460,3 +1460,25 @@ Good-first-issue candidates (phase 26, `docs/GOOD-FIRST-ISSUES.md`):
 | RAM: Chrome, the recorder (phase 22), ffmpeg (phase 27), other agents | OOM, flaky checks | One browser at a time; heavy tools run alone; harness cleanup; `ps` check in every verify; CLI tests use small fixtures |
 | Workers AI JSON-schema support or label quality unverified (placeholder token) | AI overlay weak | Optional by design; schema validation; fakes in tests; smoke step before deploy; OpenAI-compatible fallback |
 | Lens (garden) risks from phases 1–9 (top-k temperature approximation, SVG ARIA support, tokenizer artefacts, timing flakes, soft KV cap) | As before | Mitigations unchanged (see §4.2 criteria and DECISIONS.md) |
+
+---
+
+## Redesign v7 (phases 29–37, added 2026-10-23)
+
+Sean rejected the shipped look. The v7 refactor redraws the product as a **tree** (trunk = main agent, limbs = subagents, branches = episodes, twigs = tool calls, leaves = successful calls) with a **git-style list** below it, on a new visual system (Radix Colors slate/blue/orange, Geist, 0.5px lines, four type sizes 12/14/20/32) and a new "veined leaf" logo. The authoritative spec is `docs/design/v7/PROMPT.md` (copied verbatim from Sean's brief); the design reference (previews, shots, generator `.mjs`) is `docs/design/v7/`. Where the spec and earlier sections of this plan or `docs/DESIGN.md` disagree, the spec wins. No new product features.
+
+Per phase: lint, typecheck, unit tests, build (plus `build:cli` when the viewer or CLI is touched); the headless-browser suite at most once, under `flock /workspace/gx-projects/logs/browser.lock`; exactly two review rounds; `lead-designer` and `a11y-reviewer` on every UI phase, `dataviz-designer` on 31–32. The global checks of spec §9 (type sizes, Radix-only colours, 0.5px lines, no "·", alignment, axe, CVD, size budgets) run in every UI phase once they exist.
+
+| # | Branch | Goal | Acceptance (besides lint, typecheck, test, build) |
+|---|---|---|---|
+| 29 | `phase-29-v7-tokens-logo` | Radix tokens, Geist, the four sizes, 0.5px lines, radii; new LogoMark, Wordmark, favicon; remove the old fonts and palette; rewrite `docs/DESIGN.md` identity/type/colour/shape from the spec; copy the reference to `docs/design/v7/` | Token test passes (Radix-only colours, AA, CVD); grep finds no Instrument Serif or Plex; the logo renders correctly in light and dark at 16/20/32 |
+| 30 | `phase-30-v7-gitlist` | Git-style list component with rails, rows, states and keyboard (WAI-ARIA tree), spec §6 | Unit tests for the row model on all three samples; keyboard test; axe clean |
+| 31 | `phase-31-v7-tree-engine` | Pure tree layout engine in `src/map/tree/`, generalised (spec §5.2–5.3), with label placement | Zero-overlap test for the 3 samples plus a synthetic 8-lane graph; determinism test; one twig per call; monotonic widths; root at x = r |
+| 32 | `phase-32-v7-tree-render` | SVG renderer: wood ribbons, leaves, buds, failures, glyphs, labels, legend, hover, selection, callout; linked to the list (spec §5.1, §5.4) | Screenshot comparison with `Home.webp`, `Hover.webp`, `Step.webp` reviewed by lead-designer and dataviz-designer; hit testing within 12px |
+| 33 | `phase-33-v7-site-layout` | Website page: header, hero (tree as hero), tabs, frame, outcome box, detail panel, install, Made by GeekPlux, footer; URL state (spec §4) | At 1440 × 900 the whole tree is above the fold; header, hero, tabs, frame and footer left edges equal; no "·" in rendered text |
+| 34 | `phase-34-v7-phone-dark` | Phone 390 and dark mode for everything in 33 | 390 has no horizontal page scroll; dark contrast AA; matches `Phone.webp` and `HomeDark.webp` |
+| 35 | `phase-35-v7-viewer-features` | Local viewer on the new design; AI labels, Share, drop zone, garden lens and HowToReadMap restyled; browser checks updated (spec §7) | `pnpm build:cli` passes; viewer under budget and offline (no network requests with the network blocked); skill audit and evals pass |
+| 36 | `phase-36-v7-polish-docs` | Full before/after set (1440 and 390, light and dark), README hero and wordmarks, social preview, examples gallery, CHANGELOG | lead-designer sign-off against every reference shot; all docs checks pass |
+| 37 | `phase-37-v7-deploy-prep` | `pnpm build:prod` (if present) and `pnpm run check:deploy` | Dry run passes; `STATE: DONE`, "awaiting Sean's approval to deploy" |
+
+Each phase stays at about 400 changed lines or fewer (lockfiles, fixtures, images and the copied reference excluded); a phase that grows larger is split (for example 32a/32b) and the split recorded in `docs/DECISIONS.md`.
