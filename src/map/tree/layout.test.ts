@@ -208,7 +208,7 @@ describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
     for (const m of t.tips.filter((x) => x.episodeId)) expect(t.hits.some((h) => h.id === m.episodeId && h.points.length === 1 && h.points[0] === m.at)).toBe(true);
     // A tip without an episode of its own (an errored lane, the trunk's end dot) is its lane's last episode.
     for (const m of t.tips) expect(t.hits.some((h) => h.kind === 'episode' && h.points.length === 1 && h.points[0] === m.at), `tip ${m.laneId}`).toBe(true);
-    for (const l of t.labels.filter((x) => x.key.startsWith('num:'))) expect(t.hits.some((h) => h.kind === 'episode' && h.id === l.key.slice(4) && h.points.length === 1)).toBe(true);
+    for (const l of t.labels.filter((x) => x.key.startsWith('num:'))) expect(t.hits.some((h) => h.kind === 'episode' && h.id === l.key.slice(4) && h.points.length === 2 && (h.pad ?? 0) > 0)).toBe(true);
     const leaf = t.twigs.find((w) => w.mark === 'leaf') as TreeLayout['twigs'][number];
     const a = (leaf.angle * Math.PI) / 180;
     expect(t.hits.find((h) => h.id === leaf.stepId)?.points).toHaveLength(3);
@@ -403,6 +403,43 @@ describe('layoutTree: generalised (§5.3)', () => {
     expect(nearest(t, { x: 600, y: 20 })).toBeUndefined();
     const e = t.episodes[0]!;
     expect(nearest(t, { x: e.at.x + 9, y: e.at.y + 0.1 })?.episodeId).toBe(e.episodeId);
+  });
+});
+
+describe('hit testing: marks by their edges, text by its box', () => {
+  const PLAN = GRAPHS[2]![1];
+  const cases = GRAPHS.slice(0, 3).map(([name, g]) => [name, g, layoutTree(g, DESKTOP)] as const);
+  const model = (g: SessionGraph) => treeModel(g);
+  it.each(cases)('%s: a number\'s text picks its own episode, anywhere on it', (_, __, t) => {
+    for (const l of t.labels.filter((x) => x.key.startsWith('num:'))) {
+      const b = labelBox(l);
+      const ym = (b.y0 + b.y1) / 2;
+      for (const p of [{ x: (b.x0 + b.x1) / 2, y: ym }, { x: b.x0 + 1, y: b.y0 + 1 }, { x: b.x1 - 1, y: b.y1 - 1 }]) expect(nearest(t, p)?.episodeId, `${l.key}`).toBe(l.key.slice(4));
+    }
+  });
+  it.each(cases)('%s: the edge of a glyph\'s ring or of a tip picks that glyph or tip', (_, g, t) => {
+    for (const e of t.episodes) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) expect(nearest(t, { x: e.at.x + dx! * e.r, y: e.at.y + dy! * e.r })?.episodeId, `glyph ${e.n}`).toBe(e.episodeId);
+    const last = model(g).lastEpisode;
+    for (const m of t.tips) for (const [dx, dy] of [[1, 0], [0, 1], [0, -1]]) expect(nearest(t, { x: m.at.x + dx! * m.r, y: m.at.y + dy! * m.r })?.episodeId, `tip ${m.laneId}`).toBe(m.episodeId ?? last[m.laneId]);
+  });
+  it.each(cases)('%s: a lane block picks its lane, as its tip does', (_, g, t) => {
+    const last = model(g).lastEpisode;
+    expect(t.blocks.length).toBeGreaterThan(0);
+    for (const b of t.blocks) {
+      const tip = t.tips.find((m) => m.laneId === b.laneId)!;
+      const hit = nearest(t, { x: (b.box.x0 + b.box.x1) / 2, y: (b.box.y0 + b.box.y1) / 2 });
+      expect(hit?.episodeId, `block ${b.laneId}`).toBe(tip.episodeId ?? last[b.laneId]);
+      expect(hit?.tipLane).toBe(tip.episodeId ? undefined : b.laneId);
+    }
+  });
+  it('a twig of an episode with no path (planner-pivot\'s delegate e2) is no hit target', () => {
+    const t = layoutTree(PLAN, DESKTOP);
+    const s11 = t.twigs.find((w) => w.stepId === 's11')!;
+    expect(s11.episodeId).toBe('e2');
+    expect(t.paths.e2).toBeUndefined();
+    expect(t.hits.filter((h) => h.episodeId === 'e2')).toEqual([]);
+    for (const h of t.hits) expect(t.paths[h.episodeId], `hit ${h.id}`).toBeDefined();
+    expect(nearest(t, s11.tip)?.episodeId).not.toBe('e2');
   });
 });
 

@@ -84,13 +84,17 @@ export interface Block { laneId: string; box: Box; lines: Label[] }
 export interface HandBack { laneId: string; d: string; from: Pt; c: Pt; to: Pt }
 
 export interface HitTarget {
-  /** The episode or step id. Episodes are hit on their branch and glyph, their number and an answer tip; steps on
-   * their twig and its leaf. */
+  /** The episode or step id. Episodes are hit on their branch and glyph, their number, their lane's tip and
+   * lane block; steps on their twig and its leaf. */
   id: string;
   kind: 'episode' | 'step';
   episodeId: string;
   /** Polyline (or a single point) to measure the pointer's distance to. */
   points: Pt[];
+  /** Subtracted from the distance: the radius of a glyph or tip, half the height of a number or lane block. */
+  pad?: number;
+  /** A lane tip without an episode of its own (its ◉ or lane block): the tooltip is that lane's verdict, at its tip. */
+  tipLane?: string;
 }
 
 /** A stretch of a ribbon from its root end to point index `to` (inclusive). */

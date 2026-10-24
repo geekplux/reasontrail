@@ -25,8 +25,8 @@ const segDist = (p: Pt, a: Pt, b: Pt) => {
 };
 
 /**
- * The hit target closest to `p` within `max`, in layout px (the box given to `layoutTree`); steps win ties over the
- * episode they belong to. A renderer drawn at another scale passes 12 / renderScale to keep 12 screen px.
+ * The hit target closest to `p` within `max`, in layout px (the box given to `layoutTree`), measured from a target's
+ * edge where it has a `pad`; steps win ties over the episode they belong to. A renderer drawn at another scale passes 12 / renderScale to keep 12 screen px.
  */
 export function nearest(t: TreeLayout, p: Pt, max = 12): HitTarget | undefined {
   let best: HitTarget | undefined;
@@ -35,6 +35,8 @@ export function nearest(t: TreeLayout, p: Pt, max = 12): HitTarget | undefined {
     const pts = h.points;
     let d = pts.length === 1 ? Math.hypot(p.x - (pts[0] as Pt).x, p.y - (pts[0] as Pt).y) : Infinity;
     for (let i = 1; i < pts.length; i++) d = Math.min(d, segDist(p, pts[i - 1] as Pt, pts[i] as Pt));
+    // Measured from the mark's edge (a glyph's ring, a number's text box): inside it, the nearest centre wins.
+    d -= h.pad ?? 0;
     if (d < bestD || (d === bestD && best?.kind === 'episode' && h.kind === 'step')) {
       best = h;
       bestD = d;

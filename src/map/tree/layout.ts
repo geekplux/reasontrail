@@ -6,7 +6,7 @@ import type { SessionGraph } from '../../../shared/session/types';
 import { labelBox, placeLabels } from './labels';
 import { textWidth } from './text';
 import { treeModel, type EpisodeSrc, type PartSrc, type TwigSrc } from './model';
-import type { EpisodeMark, HandBack, HitTarget, PathPart, Pt, Ribbon, TipMark, TreeLayout, TreeOptions, Twig } from './types';
+import type { Box, EpisodeMark, HandBack, HitTarget, PathPart, Pt, Ribbon, TipMark, TreeLayout, TreeOptions, Twig } from './types';
 
 const DESIGN_H = 520;
 const ROOT_R = 5.5;
@@ -190,13 +190,26 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   // A lane block that found no free spot goes before the numbers on a second pass (they have more places to go).
   if (text.stuck.length) text = placeLabels(input, new Set(text.stuck));
   const byPart = new Map(ribbons.map((r) => [r.id, r]));
-  const episodeHit = (id: string, points: Pt[]): HitTarget => ({ id, kind: 'episode', episodeId: id, points });
+  const episodeHit = (id: string, points: Pt[], pad = 0, tipLane?: string): HitTarget => ({ id, kind: 'episode', episodeId: id, points, ...(pad ? { pad } : {}), ...(tipLane ? { tipLane } : {}) });
+  /** A text box hit as the segment through its vertical middle, padded by half its height; a lane block's segment
+   * is inset by that much at both ends, so its hit area does not reach far past the text. */
+  const boxHit = (id: string, b: Box, tipLane?: string, inset = false) => {
+    const y = r1((b.y0 + b.y1) / 2);
+    const pad = (b.y1 - b.y0) / 2;
+    const d = inset ? Math.min(pad, (b.x1 - b.x0) / 2) : 0;
+    return episodeHit(id, [{ x: b.x0 + d, y }, { x: b.x1 - d, y }], pad, tipLane);
+  };
+  // A tip without an episode of its own (an errored lane's ◉, the trunk's end dot) hits its lane's last episode, and
+  // its tooltip is the lane's verdict; the lane block beside a tip hits the same episode.
+  const tipOf = (laneId: string) => { const t = tips.find((x) => x.laneId === laneId); const id = t?.episodeId ?? m.lastEpisode[laneId]; return id ? { id, ...(t && !t.episodeId ? { lane: t.laneId } : {}) } : undefined; };
   const hits: HitTarget[] = [
     ...episodes.map((e) => episodeHit(e.episodeId, [...(byPart.get(`branch:${e.episodeId}`)?.line ?? []), e.at])),
-    // A tip without an episode of its own (an errored lane's ◉, the trunk's end dot) hits its lane's last episode.
-    ...tips.flatMap((t) => { const id = t.episodeId ?? m.lastEpisode[t.laneId]; return id ? [episodeHit(id, [t.at])] : []; }),
-    ...text.labels.filter((l) => l.key.startsWith('num:')).map((l) => episodeHit(l.key.slice(4), [{ x: l.x, y: r1(l.y - 4) }])),
-    ...twigs.map((t) => {
+    ...episodes.map((e) => episodeHit(e.episodeId, [e.at], e.r)),
+    ...tips.flatMap((t) => { const o = tipOf(t.laneId); return o ? [episodeHit(o.id, [t.at], t.r, o.lane)] : []; }),
+    ...text.labels.filter((l) => l.key.startsWith('num:')).map((l) => boxHit(l.key.slice(4), labelBox(l))),
+    ...text.blocks.flatMap((b) => { const o = tipOf(b.laneId); return o ? [boxHit(o.id, b.box, o.lane, true)] : []; }),
+    // A twig of an episode the tree draws no path to (a delegate's thinking on the trunk) picks nothing.
+    ...twigs.filter((t) => out.paths[t.episodeId]).map((t) => {
       const a = rad(t.angle);
       const far = { x: r1(t.tip.x + 11 * t.scale * Math.cos(a)), y: r1(t.tip.y + 11 * t.scale * Math.sin(a)) };
       return { id: t.stepId, kind: 'step' as const, episodeId: t.episodeId, points: t.mark === 'leaf' ? [t.base, t.tip, far] : [t.base, t.tip] };
