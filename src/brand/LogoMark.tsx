@@ -1,33 +1,29 @@
 /**
- * The Reasontrail mark (DESIGN §4.1): a trailhead dot (the task), a route that turns 45° (the route), a thinner spur
- * that ends in a bar (a dead end) and a destination ring (the outcome). Follows the theme via currentColor.
+ * The Reasontrail mark, "veined leaf" (docs/design/v7/PROMPT.md §3.4): a leaf split along its midrib into a blue half
+ * and an orange half (Radix blue-9 and orange-9, the same in light and dark), with a branching vein cut out of it in
+ * the page background (`--slate-1`), so it adapts to the theme. Each tool call is a leaf; the leaf holds the trail.
  * public/favicon.svg and public/logo.svg carry the same geometry; keep them in sync.
  */
+export const LEAF = {
+  blue: { d: 'M6 58C6 28 28 6 58 6Z', fill: '#0090ff' },
+  orange: { d: 'M6 58C36 58 58 36 58 6Z', fill: '#f76b15' },
+  vein: 'M8 56L56 8M20 44C17 38 16 31 17 25M31 33C37 35 43 35 49 33M41 23C39 19 39 15 40 11',
+  veinWidth: 2.8,
+} as const;
+
+/** TEMPORARY: the pre-v7 trail mark, still drawn by the share card (src/share/exportCard.ts) until its restyle. */
 export const TRAIL_MARK = {
   route: 'M4.5 20 H11 L19 12 H22',
   spur: 'M11 20 H19.5',
   bar: 'M21.5 16.5 V23.5',
 } as const;
 
-/** @deprecated The seed mark lives on as the lens icon; import it from `../lens/LensIcon`. */
-export { MARK_BRANCHES } from '../lens/LensIcon';
-
-export function LogoMark({ className = 'logo-mark', title }: { className?: string; title?: string }) {
+export function LogoMark({ className = 'logo-mark' }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      {...(title ? { role: 'img', 'aria-label': title } : { 'aria-hidden': true, focusable: false })}
-    >
-      <circle cx={4.5} cy={20} r={3.5} fill="currentColor" stroke="none" />
-      <path d={TRAIL_MARK.route} strokeWidth={3.5} strokeLinejoin="round" />
-      <path d={TRAIL_MARK.spur} strokeWidth={2} />
-      <path d={TRAIL_MARK.bar} strokeWidth={2} />
-      <circle cx={26.5} cy={12} r={4} strokeWidth={2.5} />
-      <circle cx={26.5} cy={12} r={1.5} fill="currentColor" stroke="none" />
+    <svg className={className} viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path d={LEAF.blue.d} fill={LEAF.blue.fill} />
+      <path d={LEAF.orange.d} fill={LEAF.orange.fill} />
+      <path d={LEAF.vein} fill="none" stroke="var(--slate-1)" strokeWidth={LEAF.veinWidth} strokeLinecap="round" />
     </svg>
   );
 }
