@@ -60,20 +60,17 @@
 .v7 .tree .tw.fail { stroke: var(--orange-9); }
 .v7 .tree .leaf, .v7 .tree .root { fill: var(--slate-12); }
 .v7 .tree .bud { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1; }
-.v7 .tree .x, .v7 .glist .x { stroke: var(--orange-9); stroke-width: 1.5; stroke-linecap: round; }
+.v7 .tree .x { stroke: var(--orange-9); stroke-width: 1.5; stroke-linecap: round; }
 .v7 .tree .back { fill: none; stroke: var(--slate-8); stroke-width: 1; stroke-dasharray: 2 3; }
 .v7 .tree .back-end { fill: var(--slate-1); stroke: var(--slate-9); stroke-width: 1; }
-.v7 .tree .halo, .v7 .glist .halo { fill: var(--slate-1); }
-.v7 .tree .tip-fail, .v7 .glist .tip-fail { color: var(--orange-9); }
-.v7 .tree .tip-ok, .v7 .glist .tip-ok { color: var(--blue-9); }
+.v7 .tree .halo { fill: var(--slate-1); }
+.v7 .tree .tip-fail { color: var(--orange-9); }
+.v7 .tree .tip-ok { color: var(--blue-9); }
 .v7 .tree .t-num { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
-.v7 .t-lane { font: 600 var(--text-14) var(--font-sans); fill: var(--slate-12); }
-.v7 .t-ep { font: 500 var(--text-14) var(--font-sans); fill: var(--slate-12); }
-.v7 .t-warn { fill: var(--slate-12); font-weight: 500; }
+.v7 .tree .t-lane { font: 600 var(--text-14) var(--font-sans); fill: var(--slate-12); }
 .v7 .t-num { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-11); }
 .v7 .t-lab { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-12); }
 .v7 .t-sub { font: 400 var(--text-12) var(--font-sans); fill: var(--slate-11); }
-.v7 .t-head { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-11); }
 
 /* The session card */
 .v7 .frame { margin: 32px var(--gutter) 0; border-radius: var(--radius-16); background: var(--slate-1); box-shadow: inset 0 0 0 0.5px var(--slate-7); padding: 32px; }
@@ -87,17 +84,6 @@
 .v7 .details { margin-top: 16px; }
 .v7 .details .request { margin-top: 8px; max-width: 72ch; }
 .v7 .cols { display: grid; grid-template-columns: 680px 360px; justify-content: space-between; gap: 48px; margin-top: 24px; align-items: start; }
-
-/* The list (TEMPORARY static port; the classes of docs/design/v7/gitlist.mjs) */
-.v7 .glist { display: block; overflow: visible; }
-.v7 .list-empty { display: grid; place-items: center; min-height: 520px; }
-.v7 .glist .rule { stroke: var(--slate-6); stroke-width: 0.5; }
-.v7 .glist .r-main, .v7 .glist .r-sub, .v7 .glist .r-wait { fill: none; stroke-linecap: round; }
-.v7 .glist .r-main { stroke: var(--slate-12); stroke-width: 2; }
-.v7 .glist .r-sub { stroke: var(--slate-12); stroke-width: 1.5; }
-.v7 .glist .r-wait { stroke: var(--slate-8); stroke-width: 1.5; stroke-dasharray: 0.5 4; }
-.v7 .glist .m-root, .v7 .glist .m-fork { fill: var(--slate-12); }
-.v7 .glist .m-end { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1.5; }
 
 /* The outcome column: one bordered box with hairline rows, then the final answer */
 .v7 .side { display: grid; gap: 28px; }
@@ -140,7 +126,6 @@
   .v7 .cols { grid-template-columns: minmax(0, 1fr); }
   .v7 .hero-tree > .legend { position: static; flex-wrap: wrap; white-space: normal; margin-bottom: 16px; }
   .v7 .tree-wrap { min-height: 0; overflow-x: auto; }
-  .v7 .list-empty { min-height: 0; }
   .v7 .tabs { overflow-x: auto; }
   .v7 .nav { display: none; }
   .v7.bar { justify-content: space-between; }

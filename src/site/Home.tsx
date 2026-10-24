@@ -13,7 +13,7 @@ import { LEGEND_HTML, TREE_SVG } from './static/reference';
 
 const CARD_ID = 'session';
 const TREE_ID = 'hero-tree';
-const DRAWN = sessionSamples[0]?.id; // TEMPORARY: the one sample with a static tree and list until phases 30 and 32
+const DRAWN = sessionSamples[0]?.id; // TEMPORARY: the one sample with a static tree until phase 32
 
 /** The sample tabs (§4.4): a segmented control under the tree, WAI-ARIA tabs with automatic activation. */
 function SampleTabs({ current, onChoose }: { current: string; onChoose(id: string): void }) {
@@ -85,7 +85,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
         </div>
       </section>
       {unknown && <InlineNote variant="info">That session isn&apos;t here, so here is “{sample.title}”.</InlineNote>}
-      {graph ? <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} drawn={drawn} /> : <p className="frame muted" id={CARD_ID}>Loading the sample…</p>}
+      {graph ? <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} /> : <p className="frame muted" id={CARD_ID}>Loading the sample…</p>}
       <section className="install" id="install" tabIndex={-1} aria-labelledby="install-h">
         <div>
           <h2 id="install-h">Map your own sessions</h2>
