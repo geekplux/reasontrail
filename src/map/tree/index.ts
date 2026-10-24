@@ -35,7 +35,8 @@ export function nearest(t: TreeLayout, p: Pt, max = 12): HitTarget | undefined {
     const pts = h.points;
     let d = pts.length === 1 ? Math.hypot(p.x - (pts[0] as Pt).x, p.y - (pts[0] as Pt).y) : Infinity;
     for (let i = 1; i < pts.length; i++) d = Math.min(d, segDist(p, pts[i - 1] as Pt, pts[i] as Pt));
-    // Measured from the mark's edge (a glyph's ring, a number's text box): inside it, the nearest centre wins.
+    // Measured from the mark's edge (a glyph's ring, a number's text box): the distance less the pad, so anywhere
+    // inside a mark is 0 or below and the deepest inside (the most negative) wins over a mark merely nearby.
     d -= h.pad ?? 0;
     if (d < bestD || (d === bestD && best?.kind === 'episode' && h.kind === 'step')) {
       best = h;

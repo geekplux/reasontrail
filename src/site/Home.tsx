@@ -68,20 +68,29 @@ export function Home({ session, onSession }: { session: string | null; onSession
     };
   }, [graph, sample]);
   // The hovered episode, from the tree (pointer) or the list (pointer or focus); a tab switch clears it. When the
-  // pointer leaves, the focused list row's episode (if any) is shown again.
+  // pointer leaves, the focused list row's episode (if any) is shown again; when focus leaves the rows, the episode
+  // under the pointer (if any).
   type Active = { id: string; episodeId: string } | undefined;
   const [hover, setHover] = useState<Active>();
+  const [pointer, setPointer] = useState<Active>();
   const [focused, setFocused] = useState<Active>();
+  // A tab switch drops the focused row too (adjusted during render, not in an effect).
+  const [focusedOn, setFocusedOn] = useState(sample.id);
+  if (focusedOn !== sample.id) {
+    setFocusedOn(sample.id);
+    setFocused(undefined);
+  }
   const hovered = hover?.id === sample.id ? hover.episodeId : undefined;
   const of = (episodeId: string | undefined): Active => (episodeId ? { id: sample.id, episodeId } : undefined);
-  const onHover = (episodeId: string | undefined) => setHover(of(episodeId) ?? (focused?.id === sample.id ? focused : undefined));
+  const current = (a: Active): Active => (a?.id === sample.id ? a : undefined);
   const onActive = (episodeId: string | undefined, via: 'focus' | 'pointer') => {
     if (via === 'pointer') {
-      onHover(episodeId);
+      setPointer(of(episodeId));
+      setHover(of(episodeId) ?? current(focused));
       return;
     }
     setFocused(of(episodeId));
-    setHover(of(episodeId));
+    setHover(of(episodeId) ?? current(pointer));
   };
   const card = graph ? (
     <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)} />
@@ -102,7 +111,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
           </div>
           <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
         </div>
-        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={onHover} />
+        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} />
         <div className="under">
           <SampleTabs current={sample.id} onChoose={onSession} />
         </div>

@@ -30,6 +30,7 @@
 .tree :is(.tw, .bud) { transition: stroke var(--motion); }
 .tree.hvmode .b:not(.hv), .tree.hvmode .leaf:not(.hv), .tree.hvmode .dot { fill: var(--slate-8); }
 .tree.hvmode .tw:not(.hv, .fail, .th), .tree.hvmode .bud:not(.hv) { stroke: var(--slate-8); }
+.tree.hvmode .tw.th:not(.hv) { stroke: var(--slate-8); }
 .tree .hv-path { opacity: 0; transition: opacity var(--motion); pointer-events: none; }
 .tree .hv-path.on { opacity: 1; }
 .tree .tip { pointer-events: none; }

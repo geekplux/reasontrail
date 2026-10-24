@@ -204,7 +204,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
     if (r.kind !== 'step') return null;
     return (
       <g key={r.key}>
-        {r.mark === 'failed' ? <path d={`M${p.x - 3} ${p.cy - 3}l6 6m0 -6l-6 6`} className="x" />
+        {r.mark === 'failed' ? <><circle cx={p.x} cy={p.cy} r="5" className="halo" /><path d={`M${p.x - 3} ${p.cy - 3}l6 6m0 -6l-6 6`} className="x" /></>
           : <circle cx={p.x} cy={p.cy} r={r.mark === 'thinking' ? 2 : 2.5} className={r.mark === 'thinking' ? 'm-think' : 'm-step'} />}
         {sel.stepId === r.stepId && <circle cx={p.x} cy={p.cy} r="7.5" className="ring" />}
       </g>

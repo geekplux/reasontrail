@@ -191,8 +191,8 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   if (text.stuck.length) text = placeLabels(input, new Set(text.stuck));
   const byPart = new Map(ribbons.map((r) => [r.id, r]));
   const episodeHit = (id: string, points: Pt[], pad = 0, tipLane?: string): HitTarget => ({ id, kind: 'episode', episodeId: id, points, ...(pad ? { pad } : {}), ...(tipLane ? { tipLane } : {}) });
-  /** A text box hit as the segment through its vertical middle, padded by half its height; a lane block's segment
-   * is inset by that much at both ends, so its hit area does not reach far past the text. */
+  /** A text box hit as the segment through its vertical middle, padded by half its height; inset by that much at
+   * both ends (numbers and lane blocks alike), so its hit area does not reach far past the text. */
   const boxHit = (id: string, b: Box, tipLane?: string, inset = false) => {
     const y = r1((b.y0 + b.y1) / 2);
     const pad = (b.y1 - b.y0) / 2;
@@ -206,7 +206,7 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
     ...episodes.map((e) => episodeHit(e.episodeId, [...(byPart.get(`branch:${e.episodeId}`)?.line ?? []), e.at])),
     ...episodes.map((e) => episodeHit(e.episodeId, [e.at], e.r)),
     ...tips.flatMap((t) => { const o = tipOf(t.laneId); return o ? [episodeHit(o.id, [t.at], t.r, o.lane)] : []; }),
-    ...text.labels.filter((l) => l.key.startsWith('num:')).map((l) => boxHit(l.key.slice(4), labelBox(l))),
+    ...text.labels.filter((l) => l.key.startsWith('num:')).map((l) => boxHit(l.key.slice(4), labelBox(l), undefined, true)),
     ...text.blocks.flatMap((b) => { const o = tipOf(b.laneId); return o ? [boxHit(o.id, b.box, o.lane, true)] : []; }),
     // A twig of an episode the tree draws no path to (a delegate's thinking on the trunk) picks nothing.
     ...twigs.filter((t) => out.paths[t.episodeId]).map((t) => {

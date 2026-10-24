@@ -110,6 +110,21 @@ describe('Home (v7 §4, §12)', () => {
     expect(svg.classList.contains('hvmode')).toBe(false);
   });
 
+  it('falls back to the episode under the pointer when focus leaves the list', () => {
+    const { container } = render(<Home session={null} onSession={() => {}} />);
+    const svg = container.querySelector('.hero-tree svg.tree')!;
+    const tipNum = () => container.querySelector('.tip text')?.textContent;
+    const item = screen.getAllByRole('treeitem').find((el) => el.textContent?.startsWith('Episode 6:'))!;
+    const twig = treeFor(defaultSessionGraph, 1200, 520).twigs.find((w) => w.episodeId === 'e19')!;
+    fireEvent.pointerMove(svg, { clientX: twig.tip.x, clientY: twig.tip.y, pointerType: 'mouse' });
+    act(() => item.focus());
+    expect(tipNum()).toBe('6');
+    act(() => item.blur());
+    expect(tipNum()).toBe('7');
+    fireEvent.pointerLeave(svg);
+    expect(svg.classList.contains('hvmode')).toBe(false);
+  });
+
   it('clears an in-progress hover when the tab changes', async () => {
     const { container, rerender } = render(<Home session={null} onSession={() => {}} />);
     const svg = () => container.querySelector('.hero-tree svg.tree')!;

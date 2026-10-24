@@ -422,6 +422,15 @@ describe('hit testing: marks by their edges, text by its box', () => {
     const last = model(g).lastEpisode;
     for (const m of t.tips) for (const [dx, dy] of [[1, 0], [0, 1], [0, -1]]) expect(nearest(t, { x: m.at.x + dx! * m.r, y: m.at.y + dy! * m.r })?.episodeId, `tip ${m.laneId}`).toBe(m.episodeId ?? last[m.laneId]);
   });
+  it.each(cases)('%s: a number\'s hit is inset like a lane block\'s, so it does not reach far past the text', (_, __, t) => {
+    for (const l of t.labels.filter((x) => x.key.startsWith('num:'))) {
+      const b = labelBox(l);
+      const pad = (b.y1 - b.y0) / 2;
+      const d = Math.min(pad, (b.x1 - b.x0) / 2);
+      const h = t.hits.find((x) => x.kind === 'episode' && x.id === l.key.slice(4) && x.points.length === 2 && x.pad === pad)!;
+      expect(h.points.map((p) => p.x), `${l.key}`).toEqual([b.x0 + d, b.x1 - d]);
+    }
+  });
   it.each(cases)('%s: a lane block picks its lane, as its tip does', (_, g, t) => {
     const last = model(g).lastEpisode;
     expect(t.blocks.length).toBeGreaterThan(0);

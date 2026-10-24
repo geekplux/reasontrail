@@ -65,26 +65,30 @@ interface Circle extends Pt { r: number }
 const circleIn = (b: Box, c: Circle) => Math.hypot(Math.max(b.x0 - c.x, 0, c.x - b.x1), Math.max(b.y0 - c.y, 0, c.y - b.y1)) < c.r;
 const boxIn = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 
-/** What the tooltip of an episode must not cover: its glyph or tip with the halo, number, branch, twig tips and its
- * lane's block. */
-function ownMarks(t: TreeLayout, episodeId: string | undefined, at: Pt, laneId: string | undefined): { circles: Circle[]; boxes: Box[] } {
+/** What the tooltip of an episode must not cover: its glyph (and the tip it was opened from) with the halo, the
+ * highlighted path's last part, number, twig tips and its lane's block. A lane tip passes the episode it highlights. */
+function ownMarks(t: TreeLayout, episodeId: string, at: Pt, laneId: string | undefined): { circles: Circle[]; boxes: Box[] } {
   const glyph = t.episodes.find((m) => m.episodeId === episodeId);
-  const circles: Circle[] = [{ ...at, r: (glyph?.r ?? t.tips.find((m) => m.at === at)?.r ?? 5.5) + 3 }];
-  const branch = t.ribbons.find((r) => r.id === `branch:${episodeId}`);
-  branch?.line.forEach((p, i) => circles.push({ ...p, r: (branch.widths[i] ?? 0) / 2 + 1 }));
+  const circles: Circle[] = [{ ...at, r: (t.tips.find((m) => m.at === at)?.r ?? glyph?.r ?? 5.5) + 3 }];
+  if (glyph && glyph.at !== at) circles.push({ ...glyph.at, r: glyph.r + 3 });
+  const last = t.paths[episodeId]?.at(-1);
+  const part = last && t.ribbons.find((r) => r.id === last.part);
+  if (last && part) part.line.slice(0, last.to + 1).forEach((p, i) => circles.push({ ...p, r: (part.widths[i] ?? 0) / 2 + 1 }));
   for (const w of t.twigs) if (w.episodeId === episodeId) circles.push({ ...w.tip, r: 3 });
-  const boxes = [...t.labels.filter((l) => l.key === `num:${episodeId}`).map(labelBox), ...t.blocks.filter((b) => b.laneId === laneId).map((b) => b.box)];
+  const grow = (b: Box): Box => ({ x0: b.x0 - 3, y0: b.y0 - 3, x1: b.x1 + 3, y1: b.y1 + 3 });
+  const boxes = [...t.labels.filter((l) => l.key === `num:${episodeId}`).map(labelBox), ...t.blocks.filter((b) => b.laneId === laneId).map((b) => b.box)].map(grow);
   return { circles, boxes };
 }
 
 /** The tooltip for `episodeId` (an episode row's or a lane answer's), beside its glyph or tip: right and below as on
- * the canvas, else right-above, left-above or left-below, the first that keeps clear of the episode's own marks inside
+ * the canvas, else right-above, left-above or left-below, else right of the tip under or over its lane's block, the
+ * first that keeps clear of the episode's own marks inside
  * the box and off the legend (else the one covering the fewest). Undefined for an id the tree does not draw. */
 export function treeTip(g: SessionGraph, t: TreeLayout, episodeId: string, opts: TreeTipOptions = {}): TreeTip | undefined {
   const { rows = listRows(g), tipLane, reserve = [] } = opts;
   const lane = tipLane ? rows.find((r): r is VerdictRow => r.kind === 'verdict' && r.laneId === tipLane) : undefined;
   const tipAt = lane ? t.tips.find((m) => m.laneId === tipLane)?.at : undefined;
-  // The tip stands for its lane, not for the episode it highlights: only the tip and the lane block are its own.
+  // The tip stands for its lane: its title and facts are the lane's; it keeps clear of the episode it highlights.
   if (lane && tipAt) return place(t, episodeId, undefined, lane.text, laneFacts(g, rows, lane), tipAt, tipLane, reserve);
   const row = rows.find((r): r is EpisodeRow | VerdictRow => (r.kind === 'episode' || r.kind === 'verdict') && r.episodeId === episodeId);
   const at: Pt | undefined = t.episodes.find((m) => m.episodeId === episodeId)?.at ?? t.tips.find((m) => m.episodeId === episodeId)?.at;
@@ -117,9 +121,12 @@ function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: 
   const w = Math.ceil(left + Math.max(textWidth(title, 14, 500), textWidth(facts, 12, 400)) / 1.04 + 14);
   const right = at.x + TIP_GAP.x;
   const below = at.y + TIP_GAP.y;
-  const cands: Box[] = [[right, below], [right, at.y - TIP_GAP.y - TIP_H], [at.x - TIP_GAP.x - w, at.y - TIP_GAP.y - TIP_H], [at.x - TIP_GAP.x - w, below]].map(([x, y]) => ({ x0: x as number, y0: y as number, x1: (x as number) + w, y1: (y as number) + TIP_H }));
+  const block = t.blocks.find((b) => b.laneId === laneId)?.box;
+  const spots: [number, number][] = [[right, below], [right, at.y - TIP_GAP.y - TIP_H], [at.x - TIP_GAP.x - w, at.y - TIP_GAP.y - TIP_H], [at.x - TIP_GAP.x - w, below]];
+  if (block) spots.push([right, block.y1 + 6], [right, block.y0 - 6 - TIP_H]);
+  const cands: Box[] = spots.map(([x, y]) => ({ x0: x, y0: y, x1: x + w, y1: y + TIP_H }));
   const fits = (b: Box) => b.x0 >= 0 && b.y0 >= 0 && b.x1 <= t.width && b.y1 <= t.height && !reserve.some((r) => boxIn(b, r));
-  const own = ownMarks(t, n === undefined ? undefined : episodeId, at, laneId);
+  const own = ownMarks(t, episodeId, at, laneId);
   const covered = (b: Box) => own.circles.filter((c) => circleIn(b, c)).length + own.boxes.filter((o) => boxIn(b, o)).length;
   let best: Box | undefined;
   let bestC = Infinity;

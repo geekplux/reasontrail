@@ -107,10 +107,29 @@ describe('treeTip', () => {
     const tip = treeTip(PLAN, tp, 'e7', { tipLane: m.laneId })!;
     expect(tip).toMatchObject({ episodeId: 'e7', title: 'Failed', facts: '15 steps, 5 tool calls, 1 min' });
     expect(tip.n).toBeUndefined();
-    const d = Math.hypot(Math.max(tip.box.x0 - m.at.x, 0, m.at.x - tip.box.x1), Math.max(tip.box.y0 - m.at.y, 0, m.at.y - tip.box.y1));
-    expect(d).toBeLessThanOrEqual(Math.hypot(16, 10) + 0.1);
+    // Each spot beside the tip covers the episode's own marks, so it sits right of the tip, under the lane's block.
+    const block = tp.blocks.find((b) => b.laneId === m.laneId)!.box;
+    expect(tip.box.x0).toBeCloseTo(m.at.x + 16, 5);
+    expect(tip.box.y0).toBeCloseTo(block.y1 + 6, 5);
     expect(inBox(tip.box, m.at, m.r + 3)).toBe(false);
     expect(boxesHit(tip.box, tp.blocks.find((b) => b.laneId === m.laneId)!.box)).toBe(false);
+  });
+
+  /** The points of the path highlighted for `id` that `box` covers (with half the ribbon's width), by part. */
+  const pathCovered = (tg: ReturnType<typeof treeFor>, id: string, box: { x0: number; y0: number; x1: number; y1: number }) =>
+    tg.paths[id]!.flatMap(({ part, to }) => {
+      const r = tg.ribbons.find((x) => x.id === part)!;
+      return r.line.slice(0, to + 1).flatMap((p, i) => (inBox(box, p, (r.widths[i] ?? 0) / 2) ? [`${part}[${i}]`] : []));
+    });
+  it('covers none of the path it highlights: the failed planner tip and answer tip 13', () => {
+    const tp = treeFor(PLAN, 1200, 520);
+    const m = tp.tips.find((x) => x.tone === 'fail' && !x.episodeId)!;
+    const failed = treeTip(PLAN, tp, 'e7', { tipLane: m.laneId })!;
+    expect(pathCovered(tp, 'e7', failed.box)).toEqual([]);
+    const tip13 = treeTip(VFF, t, 'e12')!;
+    expect([tip13.n, tip13.title]).toEqual([13, 'Committed cceb2d5']);
+    expect(pathCovered(t, 'e12', tip13.box)).toEqual([]);
+    expect(inBox(tip13.box, t.tips.find((x) => x.episodeId === 'e12')!.at, 8.5)).toBe(false);
   });
 
   it('is undefined for an id the tree does not draw', () => {
