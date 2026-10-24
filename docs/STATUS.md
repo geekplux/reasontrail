@@ -5,14 +5,14 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 29b `phase-29b-v7-brand-cleanup`, step: PR
+- Current phase: 30 `phase-30-v7-gitlist`, step: implement
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
 |---|---|---|---|---|---|
 | 29 | `phase-29-v7-canvas-page` | [#32](https://github.com/geekplux/reasontrail/pull/32) | done, PR open | 2 | MATCH (R1, R2) |
-| 29b | `phase-29b-v7-brand-cleanup` | (opening) | done, PR open | 2 | MATCH (R1, R2) |
-| 30 | `phase-30-v7-gitlist` | – | pending | – | – |
+| 29b | `phase-29b-v7-brand-cleanup` | [#33](https://github.com/geekplux/reasontrail/pull/33) | done, PR open | 2 | MATCH (R1, R2) |
+| 30 | `phase-30-v7-gitlist` | – | implementing | 0 | – |
 | 31 | `phase-31-v7-tree-engine` | – | pending | – | – |
 | 32 | `phase-32-v7-tree-render` | – | pending | – | – |
 | 33 | `phase-33-v7-phone-dark` | – | pending | – | – |
