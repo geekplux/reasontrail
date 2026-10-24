@@ -23,10 +23,10 @@ Contents:
 1. Concept
 2. References (principles only)
 3. Audit of the current UI
-4. Name, wordmark and mark
-5. Type
-6. Colour
-7. Spacing, grid and breakpoints
+4. Identity: name, mark and wordmark (v7)
+5. Type (v7)
+6. Colour (v7)
+7. Shape, space and motion (v7)
 8. The map's visual grammar
 9. Glance layouts
 10. Detail panel, outline view, keyboard and screen readers
@@ -133,178 +133,109 @@ Screenshots: `docs/screenshots/phase-10/audit-garden-desktop.png` (1280×800, li
 
 ---
 
-## 4. Name, wordmark and mark [13]
+## 4. Identity: name, mark and wordmark (v7)
 
-**Decision: the mark changes; the type pairing stays.**
+Rewritten in phase 29b from `docs/design/v7/PROMPT.md` §2–§3 and the canvas `CSS` constant (`docs/design/v7/gen7.mjs`); the canvas wins where they differ (§13.2 there). The full rewrite of this file is phase 35. Elsewhere in this file, old token names map as in §6.3.
 
-The seed-and-fork mark says "branching possibilities". That is exactly the lens, not the session map. A product called Reasontrail needs a mark that tells the map's story. The new mark keeps the old one's DNA: a filled start dot, stroked paths, round caps, `currentColor`, no text and a 32×32 box. The identity therefore evolves rather than breaks, and the old mark lives on as the **lens icon** (§13.5). The decision is recorded in DECISIONS.md by the main agent.
-
-![mark](screenshots/phase-10/wireframe-mark.png)
-
-### 4.1 The mark: a trail with a dead end (`docs/design/mark.svg`)
-
-It draws the four questions as one glyph:
-
-- a trailhead dot (the task);
-- a route that turns 45° (the route);
-- a thinner straight spur that ends in a bar (a dead end: where it got stuck);
-- a destination ring with a centre dot (the outcome).
+**The mark: a veined leaf** (`src/brand/LogoMark.tsx`, `public/favicon.svg`, `public/logo.svg`). A leaf split along its midrib into a blue half (Radix blue-9) and an orange half (orange-9), the same in light and dark. The vein is a branching tree cut out in the page colour (`--slate-1`), so it adapts to the theme. Each tool call is a leaf; the leaf holds the trail.
 
 ```svg
-<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round">
-  <circle cx="4.5" cy="20" r="3.5" fill="currentColor" stroke="none"/>
-  <path d="M4.5 20 H11 L19 12 H22" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M11 20 H19.5" stroke-width="2"/><path d="M21.5 16.5 V23.5" stroke-width="2"/>
-  <circle cx="26.5" cy="12" r="4" stroke-width="2.5"/><circle cx="26.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+<svg viewBox="0 0 64 64" aria-hidden="true">
+  <path d="M6 58C6 28 28 6 58 6Z" fill="#0090ff"/>
+  <path d="M6 58C36 58 58 36 58 6Z" fill="#f76b15"/>
+  <path d="M8 56L56 8M20 44C17 38 16 31 17 25M31 33C37 35 43 35 49 33M41 23C39 19 39 15 40 11"
+        fill="none" stroke="var(--slate-1)" stroke-width="2.8" stroke-linecap="round"/>
 </svg>
 ```
 
-- **Small sizes (≤ 20 px, favicon).** Drop the bar, keep the spur, and set the spur stroke to 2.5. At 16 px the bar merges into the ring.
-- **Colour.**
-  - Light theme: ink `#1c2620`.
-  - Dark theme: `#e9eee7`.
-  - The favicon keeps its embedded `prefers-color-scheme` style. The old favicon used `#1f4535` / `#d4ebdc`; the new one uses ink for maximum contrast at 16 px.
-- **Files to update:** `public/favicon.svg`, `public/logo.svg` and `src/brand/LogoMark.tsx`. The component exports `TRAIL_MARK` paths in place of `MARK_BRANCHES`. `MARK_BRANCHES` moves to `src/lens/LensIcon.tsx` in phase 22. Phase 13 may keep a re-export until then.
+**Wordmark** (`src/brand/Wordmark.tsx`): the mark at 20px, an 8px gap, then "Reasontrail" in Geist 600 14px, −0.01em, line height 21px. The mark sits 1px left for optical alignment. Written "Reasontrail" everywhere; no byline beside it, never monochrome.
 
-### 4.2 Wordmark
+**Where it appears:** header and footer of the site and the local viewer; favicon (SVG plus a 32px PNG); `docs/brand/wordmark-{light,dark}.png` (the wordmark flow, `pnpm check:browser --flows wordmark`); the share card; the social preview (phase 35).
 
-- The mark, then "reason" in IBM Plex Mono 500, then "trail" in Instrument Serif Italic. The serif is set at 1.25× the mono size, both share a baseline, and there is **no space**: the change of typeface is the join.
-- It is set lowercase, like the old wordmark. In running text the name is always "Reasontrail".
-- Accessibility: `role="img" aria-label="Reasontrail"`. No hidden hyphen is needed.
-- Sizes:
-  - header: mono 20 px / serif 25 px;
-  - mobile header: 16 / 20;
-  - README, social: 40 / 50.
-- The mark-to-text gap is 0.4em, and the mark height is 1.6× the mono cap height.
-- The concept is the same as before: a machine word and a human word.
+## 5. Type (v7)
 
----
+Geist and Geist Mono, self-hosted (`src/styles/fonts.css`; the viewer inlines a 400–600 Latin subset). No other faces. Tabular figures on everywhere (`font-feature-settings: 'tnum'`).
 
-## 5. Type [13]
-
-The faces and budget are unchanged from PLAN §3.1: ≤ 45 KB, two woff2 files, inlined in the viewer (D32).
-
-| Role | Face | Size / weight | Where |
-|---|---|---|---|
-| Task title | Instrument Serif Italic | 31 px desktop, 25 px at < 768, 22 px compact in detail mode; line-height 1.15; ≤ 2 lines, then "more" | Trailhead card |
-| Section labels | Plex Mono 500, uppercase, letter-spacing 0.12em | 11.5 px, `--tg-ink-muted` | "TASK ·", "ROUTE ·", "WHERE IT GOT STUCK ·", "DESTINATION ·" |
-| Episode titles | System UI 600 | 13 px desktop, 14 px mobile; ≤ 2 lines | Above the route |
-| Counts, durations, provenance, commands, file paths, lane names | Plex Mono 500, `tabular-nums` | 11.5–12.8 px (never under 11.5; 12 on mobile) | Everywhere data is shown |
-| Body, summaries, buttons | System UI 400 / 600 | 13–13.5 px; panel title 20 px / 600 | Panels and cards |
-| AI label tags [21] | Instrument Serif Italic | 12.8 px | Overlay only, so suggestions read as annotations and not as data |
-
-Rules:
-
-- Text never takes a series colour. Status words are ink; the glyph next to them carries the hue.
-- Layout never measures text. Mono width is 0.6em per character. UI text is estimated at 0.55em per character, plus a 12 px safety margin.
-
----
-
-## 6. Colour [13 tokens for the outline; 16 for the map]
-
-### 6.1 Jobs
-
-| Job | Token(s) | Paired non-colour cue |
+| Size | Use | Weight, line height, tracking |
 |---|---|---|
-| Main route and all text | `--tg-ink`, `--tg-ink-muted` (existing) | 4 px width; the position (top) |
-| Side trails (subagents) | `--tg-lane` (strokes only, never text) | 2 px width, below the route, 45° joins, a mono agent name in ink |
-| Verified / ok | `--tg-ok` (lake) | ✓ inside a circle + the word ("passed", "done", "approved") |
-| Trouble and error | `--tg-trouble` (blaze); `--tg-error` stays the **text** colour for error notes | A square plate with a kind glyph (§8.5), a number badge, a text label, ✕ inside a circle for error status |
-| Interrupted | `--tg-ink-muted` (no hue) | ‖ inside a muted circle outline + "interrupted" (circles are status; squares are trouble) |
-| Evidence highlight | `--tg-wash` (background) | Selected item inverted; the selected step gets a 4 px ink bar |
-| Lane band, expanded lane background | `--tg-lane-band` | Decorative only |
-| Focus | `--tg-focus` (existing) | 2 px ring with a 2 px paper gap |
-| Lens selection | `--tg-accent` (existing, lens only) | Unchanged |
+| 32 | the one headline | 600, 1.1, −0.025em |
+| 20 | hero lede (400, slate-11); session, panel and section titles | 600 for titles, 1.3, −0.015em |
+| 14 | body, rows, controls, lane names | 400 / 500 / 600 |
+| 12 | labels, meta, numbers, code (Geist Mono) | 400 / 500 |
 
-There is deliberately **no categorical hue per agent type**. Sessions on this box use seven agent types, so colour would run out or cycle. Lanes are identified by their written name. Two hues are enough for the questions that matter: did it pass, and where did it struggle?
+- Only these four sizes (`--text-12/14/20/32`); 12 is the minimum. Hierarchy comes from weight, colour and space.
+- No uppercase, no letter-spaced labels; the only tracking is the display tracking above and the wordmark's −0.01em.
+- No eyebrows or overlines: nothing small sits above a heading unless it says something the heading does not (rule 11).
+- Layout never measures text: Geist Mono is 0.6em a character (7.2px at 12px).
 
-### 6.2 New tokens (add to `src/styles/tokens.css`)
+## 6. Colour (v7)
 
-| Token | Light | on paper | on surface | Dark | on paper | on surface | Use |
-|---|---|---|---|---|---|---|---|
-| `--tg-lane` | `#5f7d6c` | 4.08 | 4.45 | `#7fa48f` | 6.54 | 5.98 | side-trail strokes (mark) |
-| `--tg-ok` | `#1a6fa0` | 4.95 | 5.40 | `#4a95cf` | 5.58 | 5.10 | ok glyph fill (mark; also passes text AA) |
-| `--tg-trouble` | `#a3292b` | 6.51 | 7.10 | `#e5534b` | 4.87 | 4.46 | blaze plates, error glyph fill (mark) |
-| `--tg-wash` | `#f3e3cf` | 1.13 | — | `#33281a` | 1.25 | — | evidence row background (decorative; text on it: ink 12.39 / 12.23, muted 5.76 / 6.70) |
-| `--tg-lane-band` | `#efebdf` | 1.07 | — | `#151d18` | 1.05 | — | expanded-lane band (decorative; ink 13.08 / 14.62, muted 6.08 / 8.01, ok 4.61 / 5.32, trouble 6.06 / 4.64 on it) |
-| `--tg-lane` on `--tg-lane-band` | `#5f7d6c` | 3.80 | — | `#7fa48f` | 6.23 | — | the expanded lane's 3 px stroke (mark ≥ 3:1) |
-| `--tg-error` on `--tg-wash` (existing token) | `#a3292b` | 5.74 | — | `#ff8f87` | 6.53 | — | edit-diff old lines (text ≥ 4.5:1), §10.1 |
+### 6.1 Radix roles
 
-Notes:
+Every colour is a Radix Colors 3.0 step of **slate**, **blue** or **orange** (`src/styles/tokens.css`, light and dark), used by role:
 
-- `--tg-lane` is **never text**. Lane names and lane counts are `--tg-ink` / `--tg-ink-muted`.
-- In the two added rows the "on paper" column holds the contrast on the named background.
-- `--tg-lane` uses the same values as `--tg-branch-lo` on purpose: side trails are the garden's branch colour. It is a separate token so the two can diverge later.
-- The glyph interiors use paper (`--tg-surface` light, `--tg-paper` dark).
-  - Paper on `--tg-ok`: 5.40 light / 5.58 dark.
-  - Paper on `--tg-trouble`: 7.10 light / 4.87 dark.
-  - All are ≥ 3:1 for the glyph inside the plate.
-- All marks are ≥ 3:1 and all text is ≥ 4.5:1 in both themes, on both paper and surface. `--tg-trouble` on the dark surface is 4.46. It is a mark and is never used for text, because the text colour for errors stays `--tg-error` `#ff8f87`.
-
-### 6.3 CVD rows
-
-These use CIE76 ΔE (CIELAB) with Machado et al. 2009 at severity 1.0, the same method as `src/styles/colorMath.ts`. Columns are normal / protan / deutan / tritan. A pair below 20 needs a written non-colour cue.
-
-| Pair | Theme | normal | protan | deutan | tritan | Below 20? Cue |
-|---|---|---|---|---|---|---|
-| ok / trouble | light | 84 | 52 | 70 | 99 | — |
-| ok / trouble | dark | 95 | 59 | 80 | 116 | — |
-| ok / lane | light | 40 | 38 | 42 | **16** | ok is always a ✓ circle glyph; a lane is a 2 px line. They never share a shape |
-| ok / lane | dark | 45 | 43 | 46 | 20 | — |
-| trouble / lane | light | 69 | 23 | 30 | 83 | — |
-| trouble / lane | dark | 79 | 23 | 36 | 97 | — |
-| ok / ink | light | 47 | 47 | 48 | 40 | — |
-| ok / ink | dark | 52 | 49 | 56 | 47 | — |
-| trouble / ink | light | 66 | 21 | 42 | 78 | — |
-| trouble / ink | dark | 77 | 50 | 51 | 91 | — |
-| lane / ink (route) | light | 37 | 36 | 35 | 37 | — (also 2 px vs 4 px) |
-| lane / ink (route) | dark | 33 | 29 | 30 | 33 | — |
-| ok / focus | light | 53 | 37 | 37 | **12** | Focus is a ring with a 2 px paper gap around a control, never a fill or glyph |
-| ok / focus | dark | 20 | **13** | **14** | **14** | as above |
-| trouble / accent | light | 30 | 32 | 23 | **13** | Never in the same view: accent appears only inside the lens frame |
-| trouble / accent | dark | 43 | 36 | 22 | 38 | — |
-| trouble / focus | both | ≥ 69 in every column | | | | — |
-
-### 6.4 Validator (dataviz skill, `validate_palette.js`, `--pairs all`)
-
-Scales differ: §6.3 is CIE76 ΔE (threshold 20); the validator reports OKLab ΔE × 100 (CVD floor 6, target 8; normal-vision floor 15). The numbers are not comparable across the two sections.
-
-The two semantic hues are treated as a categorical set, because any two marks can sit side by side:
-
-- **Light**, `#1a6fa0,#a3292b` on `#f6f3ea` (and on `#fffdf7`): **all PASS**.
-  - L band 0.43–0.77, chroma ≥ 0.10.
-  - Worst CVD ΔE 18.0 (deutan), worst normal-vision ΔE 25.8.
-  - Contrast ≥ 3:1.
-- **Dark**, `#4a95cf,#e5534b` on `#111813`: **all PASS**.
-  - L band 0.48–0.67, chroma ≥ 0.10.
-  - Worst CVD ΔE 19.9 (protan), worst normal-vision ΔE 28.3.
-  - Contrast ≥ 3:1.
-
-`--tg-lane` is a low-chroma secondary ink, not an identity hue, so it is outside the categorical check by design (OKLCH C ≈ 0.04). Rejected candidates are kept as a record of the method:
-
-| Candidate | Why it was rejected |
+| Steps | Role |
 |---|---|
-| Blue / violet / rose lane hues | Blue and violet collapse under deutan (ΔE 2.7) |
-| Green ok + red error + orange trouble | Red and green under deutan (4.7–5.7); red and orange at normal vision (10.2) |
+| 1–2 | backgrounds (`--slate-1` page, `--slate-2` soft fill) |
+| 3–5 | component backgrounds (`--slate-3` hover and tab track, `--blue-3` row highlight) |
+| 6–8 | borders and lines (`--slate-6` soft, `--slate-7` frames) |
+| 9–10 | solid fills and marks (`--blue-9` selected, passed; `--orange-9` failure) |
+| 11–12 | text (`--slate-11` muted, `--slate-12` ink, `--blue-11` links in focus) |
+
+- **Selected, passed:** blue (`--blue-9` fills and strokes, `--blue-11` text, `--blue-3` row highlight).
+- **Failure:** `--orange-9` marks, always with a ✕ or ⚠ shape; marks on an orange-9 fill use `--on-orange-9` (slate-12 light, slate-1 dark).
+- **Never colour alone:** every hue repeats a shape or a word. Blue-9 and orange-9 are the CVD-safe pair and also differ in lightness.
+- **Focus:** a 2px `--blue-9` ring, 2px outside.
+
+### 6.2 Checks (`src/styles/tokens.test.ts`)
+
+- The token values equal PROMPT §3.1 in both themes.
+- Text pairs reach AA (4.5:1); marks reach 3:1.
+- Blue-9, orange-9 and slate-12 stay ≥ 20 ΔE apart under protanopia, deuteranopia and tritanopia (Machado 2009, CIE76).
+- Every colour in `src/**/*.css` and every colour literal in `src/**/*.ts(x)` is a Radix token or value; no `--tg-*` token remains.
+- Font sizes in `src/**/*.css` are only 12/14/20/32; no `text-transform`, no tracking outside the display values.
+
+### 6.3 Old names (sections 8–18 of this file predate v7)
+
+| Old | Now |
+|---|---|
+| `--tg-paper`, `--tg-surface` | `--slate-1`, `--slate-2` |
+| `--tg-ink`, `--tg-ink-muted` | `--slate-12`, `--slate-11` |
+| `--tg-rule`, `--tg-hairline` | `--slate-6`, `--hair-soft` (0.5px) |
+| `--tg-lane`, `--tg-branch-lo/mid/hi` | `--slate-9`, `--slate-9/11/12` |
+| `--tg-ok`, `--tg-focus` | `--blue-9` |
+| `--tg-trouble`, `--tg-error` | `--orange-9` (marks), `--orange-11` (text) |
+| `--tg-wash`, `--tg-lane-band` | `--orange-3` / `--blue-3`, `--slate-2` |
+| `--tg-accent` (lens) | `--blue-9` (the sampled path is selected) |
+| `--tg-space-1/2/4/5/8/9` | 4/8/16/24/40/64px |
+| `--tg-dur-*`, `--tg-ease-*` | `--motion-ms` (250ms, 0 under reduced motion), `--motion-ease` |
+
+## 7. Shape, space and motion (v7)
+
+- **Lines are 0.5px:** `box-shadow: inset 0 0 0 0.5px var(--slate-7)` for frames (`--hair` for a rule), `0.5px solid` for rules (`--hair-soft`).
+- **Radii, concentric:** 6 inner control; 10 outer control with 4px padding (segmented tabs) and the outcome box; 14 detail panel; 16 session frame. Outer radius = inner radius + padding.
+- **No shadows** except the 0.5px ring on the selected tab. No card with a coloured left-edge stripe; never a card inside a card.
+- **Container:** 1200px content, 120px gutters at 1440 that grow wider beyond it; 16px gutters on phones.
+- **Vertical rhythm (home):** header 64; hero padding-top 64; 12 between headline and lede; 32 above the tree; 24 above the tabs; 32 above the frame; frame padding 32; 72–96 between sections.
+- **Hit targets:** ≥ 24×24px on desktop, ≥ 44×44px on phones.
+- **Motion:** colour and opacity only, 250ms ease-out; none under `prefers-reduced-motion`. The garden lens keeps its own growth motion (its encoding is unchanged).
+
+### Sean's UI rules (binding)
+
+1. No middle dot "·" as a separator in UI copy, aria-labels or the README.
+2. No redundant explanatory text.
+3. Copy for developers who use coding agents: clear, not chatty, no coined words.
+4. Every colour from Radix slate, blue and orange by step role.
+5. Optical alignment; nested radii concentric.
+6. Lines and borders 0.5px.
+7. Minimal motion: colour and opacity, 250ms ease-out, none under reduced motion.
+8. Four type sizes (12/14/20/32), no uppercase, no letter-spaced labels.
+9. Minimise the decisions the user must make.
+10. No casual radius or shadow, no coloured left-edge stripe, never a card inside a card.
+11. No habitual eyebrows or overlines.
 
 ---
 
-## 7. Spacing, grid and breakpoints
-
-- **Spacing:** the existing 4/8/12/16/24/32/48 scale. Radius 2 px. Hairlines (`--tg-hairline`) instead of shadows. The only shadow-like device is the 1 px ink top rule of a sticky bar.
-- **Desktop (≥ 1024 px):**
-  - 12 columns, 32 px outer margins, 24 px gutters. At 1280 a column is 79.3 px.
-  - Regions at 1280×800:
-    - header 0–56;
-    - trailhead 72–196 (task: columns 1–8; "At a glance": columns 9–12, x 896–1248);
-    - route band 212–460;
-    - bottom band 470–776 ("Where it got stuck": x 32–540; destination: x 560–1248).
-- **Tablet (768–1023 px):** the route stays horizontal. The bottom band stacks: the stuck list goes above the destination, both full width. The detail panel becomes a 400 px overlay from the right with a scrim of `--tg-paper` at 60 %.
-- **Mobile (< 768 px):** 16 px margins, single column, vertical route (§9.2), and the detail panel becomes a bottom sheet.
-- **Hit targets:** ≥ 24×24 px on desktop (WCAG 2.2 target size) and ≥ 44×44 px on mobile, for episodes, blazes, lanes, list rows and buttons. Visual marks can be smaller than their hit area.
-- **Control height:** 32 px desktop, 44 px mobile. A segmented toggle has an ink border and the selected segment is ink-filled.
-
----
 
 ## 8. The map's visual grammar
 
@@ -728,25 +659,9 @@ Verified (pnpm check:browser passed) · 3 trouble spots, 1 resolved · 22 files 
 
 ## 14. Build notes
 
-### 14.1 Tokens block (phase 16 adds it; phase 13 adds `--tg-ok`, `--tg-trouble` and `--tg-wash` for the outline)
+### 14.1 Tokens
 
-```css
-:root {
-  --tg-lane: #5f7d6c; --tg-ok: #1a6fa0; --tg-trouble: #a3292b; --tg-wash: #f3e3cf; --tg-lane-band: #efebdf;
-  --tg-ease-out: cubic-bezier(0.2, 0, 0, 1);
-  --tg-dur-route: 320ms; --tg-dur-lane: 200ms; --tg-dur-panel: 160ms; --tg-dur-lens: 240ms;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --tg-lane: #7fa48f; --tg-ok: #4a95cf; --tg-trouble: #e5534b; --tg-wash: #33281a; --tg-lane-band: #151d18; }
-}
-@media (prefers-reduced-motion: reduce) {
-  :root { --tg-dur-route: 0ms; --tg-dur-lane: 0ms; --tg-dur-panel: 0ms; --tg-dur-lens: 0ms; }
-}
-```
-
-`tokens.test.ts` gains the contrast rows from §6.2 (including `--tg-lane` on `--tg-lane-band` and `--tg-error` on `--tg-wash` in both themes) and the ΔE rows from §6.3 with values ≥ 20, so the palette cannot silently regress.
-
-The `--tg-` prefix stays after the rename. It is internal, and renaming it would churn every phase 1–9 file for no user value. The main agent records this in DECISIONS.md.
+The v7 tokens are `src/styles/tokens.css`: the Radix steps (§6), `--on-orange-9`, the type sizes and families (§5), `--hair`, `--hair-soft`, the radii and `--motion-ms` / `--motion-ease` (§7). Nothing else defines a colour.
 
 ### 14.2 Test hooks (in addition to PLAN §6.0a)
 
