@@ -8,8 +8,9 @@ const SAID_MS = 2500;
 
 /** A command in a mono box with a Copy button, and a visible status line after it ("Copied"). On failure the command
  * is selected so the keyboard copy works. */
-/** `big`: the page's focal command (the skill install), set larger than the rest (DESIGN §18.1). */
-export function CommandLine({ command, label, big = false }: { command: string; label?: string; big?: boolean }) {
+/** `big`: the page's focal command (the skill install), set larger than the rest (DESIGN §18.1). `box`: the v7 command
+ * box (§4.2): mono text and a copy icon button that turns into a check while "Copied" is said to screen readers. */
+export function CommandLine({ command, label, big = false, box }: { command: string; label?: string; big?: boolean; box?: 'hero' | 'big' }) {
   const [said, setSaid] = useState('');
   const code = useRef<HTMLElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -40,6 +41,16 @@ export function CommandLine({ command, label, big = false }: { command: string; 
         say('Copy failed; the command is selected — press Ctrl or Cmd+C');
       },
     );
+  if (box)
+    return (
+      <div className={box === 'big' ? 'cmdbox big' : 'cmdbox'}>
+        <code ref={code} className="code">{command}</code>
+        <button type="button" className="iconbtn" onClick={copy} aria-label={`Copy ${label ?? 'command'}`}>
+          {said === 'Copied' ? <CheckIcon /> : <CopyIcon />}
+        </button>
+        <span className="visually-hidden" role="status">{said}</span>
+      </div>
+    );
   return (
     <div className={big ? 'command is-big' : 'command'}>
       <code ref={code} data-command="">{command}</code>
@@ -51,25 +62,24 @@ export function CommandLine({ command, label, big = false }: { command: string; 
   );
 }
 
+const CopyIcon = () => (
+  <svg className="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+    <rect x="5.25" y="5.25" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
+    <path d="M10.5 3.5v-.25A1.5 1.5 0 0 0 9 1.75H3.25a1.5 1.5 0 0 0-1.5 1.5V9a1.5 1.5 0 0 0 1.5 1.5h.25" fill="none" stroke="currentColor" strokeWidth="1.3" />
+  </svg>
+);
+const CheckIcon = () => (
+  <svg className="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+    <path d="m3.5 8.5 3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const callLine = (
   <>
     Then ask your agent to “map this session”, or type <code>{SKILL_CALL.slash}</code> in Claude Code or Grok Build,{' '}
     <code>{SKILL_CALL.codex}</code> in Codex.
   </>
 );
-
-/** The home page's one install line, after the map. */
-export function InstallLine() {
-  return (
-    <section className="install-line" aria-labelledby="h-install-line">
-      <h2 id="h-install-line" className="section-label">Install the skill</h2>
-      <CommandLine command={COMMANDS.installSkill} label="the skill install command" big />
-      <p className="muted">
-        {callLine} <a href="?view=install">All install options</a>
-      </p>
-    </section>
-  );
-}
 
 /** `?view=install`. */
 export function Install() {

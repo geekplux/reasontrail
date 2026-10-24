@@ -1,17 +1,18 @@
-// The website (PLAN phases 16, 19): the showcase home with a live sample map (`?session=<id>`, `?view=outline`), the
-// drop zone (`?view=open`), the chat paste page (`?view=chat`) and install (`?view=install`). Garden links (`?sample=…`) open the zoom-in lens (phase 22),
+// The website (PLAN phases 16, 19; v7 §4): the home with the sample tabs (`?session=<id>`), the drop zone (`?view=open`),
+// the chat paste page (`?view=chat`), install (`?view=install`) and how to read a map (`?view=how`). Garden links (`?sample=…`) open the zoom-in lens (phase 22),
 // and so does "Zoom into this sentence" in the map's detail panel: the map stays mounted, hidden, under the lens, so
 // Back (the lens's button or the browser's) shows it again with the same selection and focus (Z3).
 // Internal links change the URL in place, and everything the site can need later is fetched once it is idle, so the
 // gallery and the drop zone keep working offline after the first load (PLAN phase 19, AC3).
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
-import { lensSearch, mapSearch, readSiteState, writeView, type SiteView } from './app/urlState';
+import { lensSearch, mapSearch, readSiteState, writeView } from './app/urlState';
 import { loadDetailPanel } from './map/MapView';
 import { loadShareDialog } from './share/ShareAction';
 import { LensContext, type LensOpener, type LensTarget } from './lens/lensTarget';
 import { sessionSamples } from './sessions/samples';
+import { HowToReadMap } from './map/HowToReadMap';
+import { Home } from './site/Home';
 import { Install } from './site/Install';
-import { Showcase } from './site/Showcase';
 import { SiteShell, pageTitle } from './site/SiteShell';
 
 const Lens = lazy(() => import('./lens/LensFrame').then((m) => ({ default: m.LensFrame })));
@@ -59,7 +60,7 @@ export function Site() {
   useEffect(focusTitle, [search, focusTitle]);
   // The drop zone names its own tab (the file's name once it is mapped).
   useEffect(() => {
-    if (!lensView && state.view !== 'open' && state.view !== 'chat' && !saved.current) document.title = state.view === 'install' ? pageTitle('Install') : HOME_TITLE;
+    if (!lensView && state.view !== 'open' && state.view !== 'chat' && !saved.current) document.title = state.view === 'install' ? pageTitle('Install') : state.view === 'how' ? pageTitle('How to read a map') : HOME_TITLE;
   }, [lensView, state.view]);
   useEffect(() => {
     const sync = () => {
@@ -146,7 +147,6 @@ export function Site() {
       } else el?.focus();
     });
   };
-  const setView = (v: SiteView) => go(writeView(window.location.search, v), false);
   const page =
     state.view === 'open' || state.view === 'chat' ? (
       <Suspense fallback={<p className="page muted">Loading…</p>}>
@@ -154,13 +154,10 @@ export function Site() {
       </Suspense>
     ) : state.view === 'install' ? (
       <Install />
+    ) : state.view === 'how' ? (
+      <div className="page"><HowToReadMap page /></div>
     ) : (
-      <Showcase
-        session={state.session}
-        view={state.view}
-        onView={setView}
-        onSession={(id) => go(`?session=${encodeURIComponent(id)}${state.view === 'outline' ? '&view=outline' : ''}`)}
-      />
+      <Home session={state.session} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} />
     );
   return (
     <>
@@ -168,7 +165,7 @@ export function Site() {
         // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- delegated link clicks; links keep their own keyboard behaviour
         <div className="site" onClick={onClick} hidden={lensView}>
           <LensContext.Provider value={opener}>
-            <SiteShell onFile={onFile} home={state.view === 'map' && !state.session} view={state.view}>{page}</SiteShell>
+            <SiteShell onFile={onFile} view={state.view}>{page}</SiteShell>
           </LensContext.Provider>
         </div>
       ) : null}

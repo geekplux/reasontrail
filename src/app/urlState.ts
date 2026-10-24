@@ -39,10 +39,10 @@ export function writeUrlState(search: string, s: UrlState): string {
   return out ? `?${out}` : '';
 }
 
-/** The website's pages (PLAN phases 16, 19, 23): the showcase with a sample's map or outline, the drop zone, the chat
- * paste page, install. */
-export type SiteView = 'map' | 'outline' | 'open' | 'chat' | 'install';
-const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'chat', 'install'];
+/** The website's pages (PLAN phases 16, 19, 23; v7 §4): home with a sample (`outline` is an old link to it), the drop
+ * zone, the chat paste page, install, and how to read a map. */
+export type SiteView = 'map' | 'outline' | 'open' | 'chat' | 'install' | 'how';
+const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'chat', 'install', 'how'];
 
 const GARDEN_PARAMS = ['sample', 'path', 't', 'seed'];
 

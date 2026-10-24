@@ -1,0 +1,143 @@
+/* The v7 website page (docs/design/v7/PROMPT.md §4, §13; every size, gap and state from the `CSS` constant of
+   docs/design/v7/gen7.mjs). Scoped to `.v7` (the header bar, the home and the footer). Colours are Radix steps only;
+   lines 0.5px; type 12/14/20/32. 1200px content with gutters that grow on wider screens (120 at 1440). */
+.v7 { --gutter: max(16px, calc((100% - 1200px) / 2)); --bg: var(--slate-1); }
+.v7 h1, .v7 h2, .v7 h3, .v7 p, .v7 ol, .v7 ul, .v7 dl, .v7 dd, .v7 figure { margin: 0; padding: 0; }
+.v7 ol, .v7 ul { list-style: none; }
+.v7 a { color: inherit; text-decoration: none; }
+.v7 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.v7 .code { font-family: var(--font-mono); font-size: var(--text-12); }
+.v7 .muted { color: var(--slate-11); }
+.v7 .strong { font-weight: 500; }
+.v7 .ic { flex: none; display: block; }
+.v7 .g { flex: none; display: block; color: var(--slate-12); }
+.v7 a, .v7 button { transition: color var(--motion), background-color var(--motion), opacity var(--motion); }
+
+/* Header bar */
+.v7.bar { height: 64px; display: flex; align-items: center; gap: 32px; padding: 0 var(--gutter); border-bottom: var(--hair-soft); }
+.v7 .brand { display: inline-flex; border-radius: var(--radius-6); }
+.v7 .nav { margin-left: auto; display: flex; gap: 24px; color: var(--slate-11); }
+.v7 .nav a:hover, .v7.foot nav a:hover { color: var(--slate-12); }
+.v7 .nav a[aria-current='page'] { color: var(--slate-12); }
+.v7 .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-6); font-weight: 500; white-space: nowrap; }
+.v7 .btn.primary { background: var(--slate-12); color: var(--slate-1); }
+.v7 .btn.ghost { box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); }
+.v7 .btn.ghost:hover { background: var(--slate-3); }
+.v7 .iconbtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--radius-6); color: var(--slate-11); }
+.v7 .iconbtn:hover { background: var(--slate-4); color: var(--slate-12); }
+.v7 .link { color: var(--slate-11); font-weight: 500; text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+
+/* Hero: the promise, then the tree itself as the picture */
+.v7 .hero { padding: 64px var(--gutter) 0; }
+.v7 .hero-top { display: flex; align-items: last baseline; justify-content: space-between; gap: 32px; }
+.v7 h1 { font-size: var(--text-32); line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; text-wrap: balance; }
+.v7 .lede { margin-top: 12px; font-size: var(--text-20); line-height: 1.4; letter-spacing: -0.01em; color: var(--slate-11); max-width: 34ch; }
+.v7 .cmdbox { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 14px; border-radius: var(--radius-10); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-6); }
+.v7 .cmdbox .code { color: var(--slate-12); white-space: nowrap; }
+.v7 .hero-tree { position: relative; margin-top: 32px; }
+.v7 .hero-tree > .legend { position: absolute; top: 0; right: 0; }
+.v7 .legend { display: flex; gap: 16px; color: var(--slate-11); font-size: var(--text-12); white-space: nowrap; }
+.v7 .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.v7 .legend .g { color: var(--slate-11); }
+.v7 .lg-gap { width: 8px; }
+.v7 .tree-wrap { display: grid; place-items: center; min-height: 520px; }
+.v7 .tree-wrap > svg { display: block; width: 100%; height: auto; overflow: visible; }
+.v7 .under { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 24px; }
+
+/* Sample tabs: a segmented control, outer radius 10 = inner radius 6 + padding 4 */
+.v7 .tabs { display: flex; width: fit-content; max-width: 100%; padding: 4px; border-radius: var(--radius-10); background: var(--slate-3); }
+.v7 .tab { height: 32px; padding: 0 12px; border-radius: var(--radius-6); color: var(--slate-11); font-weight: 500; white-space: nowrap; }
+.v7 .tab:hover { color: var(--slate-12); }
+.v7 .tab[aria-selected='true'] { background: var(--slate-1); color: var(--slate-12); box-shadow: 0 0 0 0.5px var(--slate-7); }
+
+/* The tree (TEMPORARY static port; the classes of docs/design/v7/tree.mjs) */
+.v7 .tree .b { fill: var(--slate-12); }
+.v7 .tree .tw { stroke: var(--slate-12); stroke-width: 1; stroke-linecap: round; }
+.v7 .tree .tw.th { stroke: var(--slate-8); }
+.v7 .tree .tw.fail { stroke: var(--orange-9); }
+.v7 .tree .leaf, .v7 .tree .root { fill: var(--slate-12); }
+.v7 .tree .bud { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1; }
+.v7 .tree .x, .v7 .glist .x { stroke: var(--orange-9); stroke-width: 1.5; stroke-linecap: round; }
+.v7 .tree .back { fill: none; stroke: var(--slate-8); stroke-width: 1; stroke-dasharray: 2 3; }
+.v7 .tree .back-end { fill: var(--slate-1); stroke: var(--slate-9); stroke-width: 1; }
+.v7 .tree .halo, .v7 .glist .halo { fill: var(--slate-1); }
+.v7 .tree .tip-fail, .v7 .glist .tip-fail { color: var(--orange-9); }
+.v7 .tree .tip-ok, .v7 .glist .tip-ok { color: var(--blue-9); }
+.v7 .tree .t-num { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.v7 .t-lane { font: 600 var(--text-14) var(--font-sans); fill: var(--slate-12); }
+.v7 .t-ep { font: 500 var(--text-14) var(--font-sans); fill: var(--slate-12); }
+.v7 .t-warn { fill: var(--slate-12); font-weight: 500; }
+.v7 .t-num { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-11); }
+.v7 .t-lab { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-12); }
+.v7 .t-sub { font: 400 var(--text-12) var(--font-sans); fill: var(--slate-11); }
+.v7 .t-head { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-11); }
+
+/* The session card */
+.v7 .frame { margin: 32px var(--gutter) 0; border-radius: var(--radius-16); background: var(--slate-1); box-shadow: inset 0 0 0 0.5px var(--slate-7); padding: 32px; }
+.v7 .sess { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.v7 .sess h2 { font-size: var(--text-20); line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+.v7 .meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 20px; margin-top: 8px; color: var(--slate-11); }
+.v7 .meta b { color: var(--slate-12); font-weight: 500; }
+.v7 .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; background: var(--slate-3); color: var(--slate-11); font: 500 var(--text-12) / 1 var(--font-sans); }
+.v7 .sess-r { display: flex; gap: 8px; }
+.v7 .details { margin-top: 16px; }
+.v7 .details .request { margin-top: 8px; max-width: 72ch; }
+.v7 .cols { display: grid; grid-template-columns: 680px 360px; justify-content: space-between; gap: 48px; margin-top: 24px; align-items: start; }
+
+/* The list (TEMPORARY static port; the classes of docs/design/v7/gitlist.mjs) */
+.v7 .glist { display: block; overflow: visible; }
+.v7 .glist .rule { stroke: var(--slate-6); stroke-width: 0.5; }
+.v7 .glist .r-main, .v7 .glist .r-sub, .v7 .glist .r-wait { fill: none; stroke-linecap: round; }
+.v7 .glist .r-main { stroke: var(--slate-12); stroke-width: 2; }
+.v7 .glist .r-sub { stroke: var(--slate-12); stroke-width: 1.5; }
+.v7 .glist .r-wait { stroke: var(--slate-8); stroke-width: 1.5; stroke-dasharray: 0.5 4; }
+.v7 .glist .m-root, .v7 .glist .m-fork { fill: var(--slate-12); }
+.v7 .glist .m-end { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1.5; }
+
+/* The outcome column: one bordered box with hairline rows, then the final answer */
+.v7 .side { display: grid; gap: 28px; }
+.v7 .res { display: grid; border-radius: var(--radius-10); box-shadow: inset 0 0 0 0.5px var(--slate-7); }
+.v7 .res-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; }
+.v7 .res-row + .res-row { border-top: var(--hair-soft); }
+.v7 .res-row .ic { margin-top: 2px; }
+.v7 .res-row p + p { margin-top: 2px; }
+.v7 .block { display: grid; gap: 12px; }
+.v7 h3 { font-size: var(--text-14); font-weight: 600; }
+.v7 .answer { color: var(--slate-12); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.v7 .answer.is-full { display: block; white-space: pre-line; }
+.v7 .block .link { justify-self: start; font-size: var(--text-12); }
+
+/* Install */
+.v7 .install { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; margin: 96px var(--gutter) 0; padding-top: 40px; border-top: var(--hair-soft); }
+.v7 .install h2, .v7 .maker h2 { font-size: var(--text-20); font-weight: 600; letter-spacing: -0.015em; }
+.v7 .install .muted { margin-top: 8px; max-width: 44ch; }
+.v7 .cmdbox.big { height: 48px; width: 100%; justify-content: space-between; padding: 0 8px 0 16px; }
+.v7 .agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.v7 .agents dt { color: var(--slate-11); font-size: var(--text-12); }
+.v7 .agents dd { margin-top: 2px; }
+
+/* Made by GeekPlux */
+.v7 .more { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; margin: 72px var(--gutter) 0; padding-top: 40px; border-top: var(--hair-soft); }
+.v7 .maker { display: grid; gap: 8px; align-content: start; justify-items: start; }
+.v7 .url { font: 400 var(--text-12) var(--font-mono); color: var(--slate-11); }
+.v7 .maker .url { color: var(--slate-12); text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+.v7 .sites { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 48px; }
+.v7 .sites a { display: grid; gap: 2px; border-radius: var(--radius-6); }
+.v7 .sites a:hover .strong { text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+.v7 .sites .url { margin-top: 4px; }
+
+/* Footer */
+.v7.foot { display: flex; align-items: center; justify-content: space-between; margin: 72px var(--gutter) 0; padding: 24px 0 40px; border-top: var(--hair-soft); }
+.v7.foot nav { display: flex; gap: 24px; color: var(--slate-11); }
+
+@media (max-width: 1023px) {
+  .v7 .hero-top, .v7 .sess, .v7 .install, .v7 .more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .v7 .cols { grid-template-columns: minmax(0, 1fr); }
+  .v7 .hero-tree > .legend { position: static; flex-wrap: wrap; white-space: normal; margin-bottom: 16px; }
+  .v7 .tree-wrap { min-height: 0; overflow-x: auto; }
+  .v7 .tabs { overflow-x: auto; }
+  .v7 .nav { display: none; }
+  .v7.bar { justify-content: space-between; }
+  .v7.foot { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .v7.foot nav { flex-wrap: wrap; gap: 8px 16px; }
+}

@@ -1,9 +1,7 @@
-/* The website (DESIGN §13.3, §13.4, §18): calm chrome, one focal point per page, space instead of boxes. Tokens only. */
+/* The website's pages other than home (DESIGN §13.3, §18); restyled to v7 in phase 29b. The home and the chrome: home.css. */
 .site { display: contents; }
 .site[hidden] { display: none; }
 
-.showcase-header { gap: var(--tg-space-5); padding: var(--tg-space-2) var(--tg-space-8); }
-.site-nav { display: flex; gap: var(--tg-space-5); margin-inline-start: auto; }
 .button {
   display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--tg-space-4); gap: var(--tg-space-2);
   border: 1px solid var(--tg-ink); border-radius: var(--tg-radius); background: transparent; color: var(--tg-ink);
@@ -13,33 +11,14 @@
 .button:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
 .text-button { border: 0; padding: var(--tg-space-1) var(--tg-space-2); background: none; color: var(--tg-ink); font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 
-.showcase, .page { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 var(--tg-space-8) var(--tg-space-8); }
-.hero { padding: var(--tg-space-9) 0 var(--tg-space-8); }
-.headline { margin: 0 0 var(--tg-space-2); font: 400 2.441rem / 1.1 var(--tg-font-serif); letter-spacing: -0.01em; }
-.sub-line { margin: 0; max-width: 64rem; color: var(--tg-ink-muted); }
-.showcase .site-map { padding: 0; max-width: none; }
-/* CL1, CL9, CL14: the task is one line beside its "more" so the route band stays the focal point; the headline is the one large text */
-.showcase .task-request { display: flex; align-items: baseline; gap: var(--tg-space-2); }
-.showcase .task-title { min-width: 0; font-size: var(--tg-text-lg); }
-.showcase-controls { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--tg-space-4) var(--tg-space-5); margin-top: var(--tg-space-8); }
-
-.gallery { margin: 0; padding: 0; border: 0; min-width: 0; }
-.gallery legend { padding: 0; }
-.gallery-segments { display: flex; flex-wrap: wrap; gap: var(--tg-space-5); }
-.gallery-segments label { display: inline-flex; align-items: center; min-height: 32px; border-bottom: 2px solid transparent; cursor: pointer; }
-.gallery-segments input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.gallery-segments label:has(input:checked) { border-bottom-color: var(--tg-ink); font-weight: 600; }
-.gallery-segments label:has(input:focus) { outline: 2px solid var(--tg-focus); outline-offset: 2px; }
-.gallery-segments label:not(:has(input:checked)) { color: var(--tg-ink-muted); }
-.gallery-select { display: none; }
-.view-switch.narrow-only { display: none; }
+.page { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 var(--tg-space-8) var(--tg-space-8); }
 
 .command { display: inline-flex; align-items: center; gap: var(--tg-space-2); max-width: 100%; padding: var(--tg-space-2) var(--tg-space-2) var(--tg-space-2) var(--tg-space-4); background: var(--tg-surface); border-radius: var(--tg-radius); }
 .command code { font: 500 15px var(--tg-font-mono); overflow-wrap: anywhere; }
 /* The focal command (I1): mono 18 against 15 for the rest, so the two boxes do not read as equals. */
 .command.is-big code { font-size: 18px; }
-.install-line, .how-to-read-map { margin-top: var(--tg-space-8); max-width: var(--tg-measure); }
-.install-line p, .page p { margin: var(--tg-space-2) 0 0; }
+.how-to-read-map { margin-top: var(--tg-space-8); max-width: var(--tg-measure); }
+.page p { margin: var(--tg-space-2) 0 0; }
 .how-to-read-map ol { margin: 0; padding-inline-start: var(--tg-space-5); display: grid; gap: var(--tg-space-2); }
 .how-to-read-map summary { min-height: 24px; cursor: pointer; color: var(--tg-ink-muted); }
 .how-to-read-map summary .section-label { display: inline; }
@@ -54,8 +33,6 @@
 .page summary { cursor: pointer; }
 .plain-list { margin: var(--tg-space-2) 0; padding-inline-start: var(--tg-space-5); }
 
-/* The footer sits in the same 1280 px column as the page, on one line at 1440 (X6). */
-.showcase-footer { justify-content: flex-start; padding: var(--tg-space-5) max(var(--tg-space-8), calc((100% - 1280px) / 2 + var(--tg-space-8))); }
 
 /* Drop zone */
 .drop-target { display: grid; justify-items: center; gap: var(--tg-space-4); max-width: 40rem; padding: var(--tg-space-8) var(--tg-space-5); border: 2px dashed var(--tg-ink-muted); border-radius: var(--tg-radius); text-align: center; }
@@ -93,16 +70,7 @@
 .drop-overlay .logo-mark { width: 64px; height: 64px; }
 
 @media (max-width: 767px) {
-  .showcase-header { padding: var(--tg-space-2) var(--tg-space-4); }
-  .site-nav { display: none; }
-  .showcase, .page { padding: 0 var(--tg-space-4) var(--tg-space-8); }
-  .hero { padding: var(--tg-space-5) 0 var(--tg-space-4); }
-  .headline { font-size: var(--tg-text-xl); }
-  .gallery-segments { display: none; }
-  .view-switch.wide-only { display: none; }
-  .view-switch.narrow-only { display: inline-flex; }
-  .gallery-select { display: block; min-height: 36px; max-width: 100%; font: inherit; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
-  .showcase-footer { padding: var(--tg-space-5) var(--tg-space-4); }
+  .page { padding: 0 var(--tg-space-4) var(--tg-space-8); }
   /* Phone hit areas of at least 44 px (WCAG 2.5.5) without moving the layout. */
   .how-to-read-map summary { position: relative; }
   .how-to-read-map summary::before { content: ''; position: absolute; inset: -10px -4px; }
