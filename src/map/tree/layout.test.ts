@@ -8,7 +8,8 @@ import vff from '../../sessions/samples/verify-fail-fix.graph.json';
 import { listRows, type EpisodeRow, type VerdictRow } from '../gitlist/rows';
 import { highlight, layoutTree, nearest, type Box, type Pt, type TreeLayout, type TreeOptions } from '.';
 import { boxesHit, labelBox } from './labels';
-import { eightLanes, longSession } from './synthetic';
+import { treeModel } from './model';
+import { eightLanes, longSession, synthGraph } from './synthetic';
 import { textWidth } from './text';
 
 const VFF = vff as unknown as SessionGraph;
@@ -18,9 +19,22 @@ const GRAPHS: [string, SessionGraph][] = [
   ['planner-pivot', planner as unknown as SessionGraph],
   ['eight lanes', eightLanes()],
   ['one lane, 12 episodes, ~1000 records', longSession()],
+  ['one call', synthGraph([{ main: { kind: 'change', calls: 1 } }])],
+  ['three calls', synthGraph([{ main: { kind: 'explore', calls: 3, reads: 2 } }])],
+  ['three concurrent lanes', synthGraph([
+    { main: { kind: 'explore', calls: 3, reads: 2 } },
+    { spawn: [{ name: 'Check the parser', agentType: 'reviewer', episodes: [{ kind: 'explore', calls: 5, reads: 3 }] }, { name: 'Check the renderer', agentType: 'reviewer', episodes: [{ kind: 'explore', calls: 4 }, { kind: 'verify', calls: 3, failed: 1 }] }, { name: 'Check the docs', agentType: 'reviewer', episodes: [{ kind: 'explore', calls: 6, reads: 6 }] }] },
+    { main: { kind: 'change', calls: 4 } },
+  ])],
+  ['five concurrent lanes, three on one side', synthGraph([
+    { main: { kind: 'explore', calls: 2 } },
+    { spawn: ['one', 'two', 'three', 'four', 'five'].map((x, i) => ({ name: `Review part ${x}`, agentType: 'reviewer', episodes: [{ kind: 'explore' as const, calls: 3 + i, reads: 2 }, { kind: 'verify' as const, calls: 2 }] })) },
+    { main: { kind: 'change', calls: 3 } },
+  ])],
 ];
 const DESKTOP: TreeOptions = { width: 1200, height: 520 };
-const PHONE: TreeOptions = { width: 358, height: 190, k: 0.95, labels: false };
+// The canvas's phone tree is the desktop tree (k = 1.45) at 980 design units, scaled by 0.365.
+const PHONE: TreeOptions = { width: 358, height: 190, labels: false };
 
 /** Text as placed: the root's two lines are one label, a block is one label. */
 const textBoxes = (t: TreeLayout) => {
@@ -34,8 +48,33 @@ const textBoxes = (t: TreeLayout) => {
 /** The corner points of a ribbon's outline. */
 const outline = (d: string) => (d.match(/-?[\d.]+ -?[\d.]+/g) ?? []).map((xy) => { const [x, y] = xy.split(' ').map(Number); return { x: x as number, y: y as number, r: 0 }; });
 const hitsCircle = (b: Box, c: Pt, r: number) => Math.hypot(Math.max(b.x0 - c.x, 0, c.x - b.x1), Math.max(b.y0 - c.y, 0, c.y - b.y1)) < r;
+const segDist = (p: Pt, a: Pt, b: Pt) => {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const l = dx * dx + dy * dy;
+  const s = l ? Math.min(1, Math.max(0, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l)) : 0;
+  return Math.hypot(p.x - a.x - s * dx, p.y - a.y - s * dy);
+};
+const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
+/** Points along a segment or a quadratic, every `step` px. */
+const sample = (pts: Pt[], step: number): Pt[] => {
+  const [a, c, b] = pts.length === 3 ? pts as [Pt, Pt, Pt] : [pts[0] as Pt, pts[0] as Pt, pts[1] as Pt];
+  const n = Math.max(1, Math.ceil((dist(a, c) + dist(c, b)) / step));
+  return Array.from({ length: n + 1 }, (_, i) => { const s = i / n; return { x: (1 - s) ** 2 * a.x + 2 * s * (1 - s) * c.x + s * s * b.x, y: (1 - s) ** 2 * a.y + 2 * s * (1 - s) * c.y + s * s * b.y }; });
+};
+/** How far the box sits above or below `y` (0 when it spans it). */
+const vGap = (b: Box, y: number) => Math.max(0, b.y0 - y, y - b.y1);
 
-describe.each(GRAPHS)('layoutTree: %s', (_, g) => {
+/**
+ * Known gaps of the two stress cases: where lanes spawned together all hand back across each other's tips, nothing
+ * near the tip is free, so the text crosses a dotted hand-back (the last resort) or, once, a twig.
+ */
+const KNOWN: Record<string, string[]> = {
+  'eight lanes': ['wait:agent-1 × hand-back agent-1'],
+  'five concurrent lanes, three on one side': ['block:agent-3 × twig s88', 'block:agent-4 × hand-back agent-2'],
+};
+
+describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
   const t = layoutTree(g, DESKTOP);
 
   it('places no label over another label, a block, a glyph, a tip, the root or a ribbon', () => {
@@ -43,12 +82,67 @@ describe.each(GRAPHS)('layoutTree: %s', (_, g) => {
     const clashes: string[] = [];
     boxes.forEach((a, i) => boxes.slice(i + 1).forEach((b) => boxesHit(a.box, b.box) && clashes.push(`${a.key} × ${b.key}`)));
     for (const { key, box } of boxes) {
-      for (const e of t.episodes) if (hitsCircle(box, e.at, e.r + 2.5)) clashes.push(`${key} × glyph ${e.n}`);
+      // A number has its own background halo and sits beside its own glyph.
+      for (const e of t.episodes) if (key !== `num:${e.episodeId}` && hitsCircle(box, e.at, e.r + 2.5)) clashes.push(`${key} × glyph ${e.n}`);
       for (const m of t.tips) if (hitsCircle(box, m.at, m.r + 3)) clashes.push(`${key} × tip ${m.laneId}`);
       if (hitsCircle(box, t.root.at, t.root.r)) clashes.push(`${key} × root`);
       for (const r of t.ribbons) if (r.line.some((p, i) => hitsCircle(box, p, (r.widths[i] ?? 0) / 2))) clashes.push(`${key} × ${r.id}`);
     }
     expect(clashes).toEqual([]);
+  });
+
+  it('keeps text other than numbers off twigs, leaves, buds, ✕ and hand-backs', () => {
+    const clashes: string[] = [];
+    for (const { key, box } of textBoxes(t).filter((b) => !b.key.startsWith('num:'))) {
+      for (const w of t.twigs) {
+        const a = (w.angle * Math.PI) / 180;
+        const mark = w.mark === 'leaf' ? { x: w.tip.x + 5.5 * w.scale * Math.cos(a), y: w.tip.y + 5.5 * w.scale * Math.sin(a), r: 6 * w.scale } : { ...w.tip, r: w.mark === 'none' ? 0 : 2.8 * w.scale };
+        if (sample([w.base, w.tip], 1).some((p) => hitsCircle(box, p, 0.5)) || hitsCircle(box, mark, mark.r)) clashes.push(`${key} × twig ${w.stepId}`);
+      }
+      for (const b of t.handBacks) if (sample([b.from, b.c, b.to], 2).some((p) => hitsCircle(box, p, 0.5)) || hitsCircle(box, b.to, 2.5)) clashes.push(`${key} × hand-back ${b.laneId}`);
+    }
+    expect(clashes).toEqual(KNOWN[name] ?? []);
+  });
+
+  it('keeps every glyph off other glyphs, tips, ✕ and every ribbon but its own branch', () => {
+    const clashes: string[] = [];
+    for (const e of t.episodes) {
+      const halo = e.r + 2.5;
+      for (const o of t.episodes) if (o !== e && dist(o.at, e.at) < 2 * halo - 0.5) clashes.push(`${e.n} × glyph ${o.n}`);
+      for (const m of t.tips) if (dist(m.at, e.at) < halo + m.r + 3 - 0.5) clashes.push(`${e.n} × tip ${m.laneId}`);
+      for (const r of t.ribbons) {
+        if (r.id === `branch:${e.episodeId}`) continue;
+        if (r.line.some((p, i) => i > 0 && segDist(e.at, r.line[i - 1] as Pt, p) < halo + Math.max(r.widths[i - 1] ?? 0, r.widths[i] ?? 0) / 2 - 0.5)) clashes.push(`${e.n} × ${r.id}`);
+      }
+      for (const w of t.twigs) if (w.mark === 'x' && dist(w.tip, e.at) < e.r + 6) clashes.push(`${e.n} × ✕ ${w.stepId}`);
+    }
+    expect(clashes).toEqual([]);
+  });
+
+  it('spaces same-side twigs on a branch at least 5.5 × their mark scale apart', () => {
+    const close: string[] = [];
+    for (const r of t.ribbons.filter((x) => x.kind === 'branch')) {
+      const on = t.twigs.filter((w) => w.part === r.id);
+      for (let i = 2; i < on.length; i++) {
+        const [a, b] = [on[i - 2] as TreeLayout['twigs'][number], on[i] as TreeLayout['twigs'][number]];
+        // Same side: the two twigs point within 60° of each other (opposite sides are about 104° apart).
+        const sameSide = Math.abs(((b.angle - a.angle + 540) % 360) - 180) < 60;
+        if (sameSide && b.scale > 0.5 * (t.root.r / 5.5) && dist(a.base, b.base) < 5.5 * b.scale - 0.15) close.push(`${b.stepId} ${dist(a.base, b.base).toFixed(1)} < ${(5.5 * b.scale).toFixed(1)}`);
+      }
+    }
+    expect(close).toEqual([]);
+  });
+
+  it('puts every lane block within 24px of its tip, vertically', () => {
+    for (const b of t.blocks) {
+      const tip = t.tips.find((m) => m.laneId === b.laneId) as TreeLayout['tips'][number];
+      expect(vGap(b.box, tip.at.y), `block ${b.laneId}`).toBeLessThanOrEqual(24);
+    }
+  });
+
+  it('keeps wait texts at least 32px apart left to right (16px above or below)', () => {
+    const waits = t.labels.filter((l) => l.key.startsWith('wait:')).map(labelBox);
+    waits.forEach((a, i) => waits.slice(i + 1).forEach((b) => expect(Math.max(b.x0 - a.x1, a.x0 - b.x1) >= 32 || Math.max(b.y0 - a.y1, a.y0 - b.y1) >= 16).toBe(true)));
   });
 
   it('grows exactly one twig per tool call and thinking step (a spawn call is its limb)', () => {
@@ -72,8 +166,8 @@ describe.each(GRAPHS)('layoutTree: %s', (_, g) => {
     const pts = [...u.ribbons.flatMap((r) => outline(r.d)), ...u.twigs.map((w) => ({ ...w.tip, r: 0 })), ...u.episodes.map((e) => ({ ...e.at, r: e.r })), ...u.tips.map((m) => ({ ...m.at, r: m.r }))];
     const outside = pts.filter((p) => p.x - p.r < -0.5 || p.y - p.r < -0.5 || p.x + p.r > opts.width + 0.5 || p.y + p.r > opts.height + 0.5);
     expect(outside).toEqual([]);
-    // Text boxes carry 2px of padding around the ink.
-    expect(textBoxes(u).filter(({ box }) => box.x0 < -2 || box.y0 < -2 || box.x1 > opts.width + 2 || box.y1 > opts.height + 2)).toEqual([]);
+    // Text boxes carry 1px of padding around the ink.
+    expect(textBoxes(u).filter(({ box }) => box.x0 < -1 || box.y0 < -1 || box.x1 > opts.width + 1 || box.y1 > opts.height + 1)).toEqual([]);
     expect(textBoxes(u).length > 0).toBe(opts.labels !== false);
   });
 
@@ -99,6 +193,20 @@ describe.each(GRAPHS)('layoutTree: %s', (_, g) => {
       expect(highlight(t, id).length).toBe(t.paths[id]?.length);
     }
     for (const w of t.twigs.slice(0, 20)) expect(nearest(t, { x: w.tip.x + 0.5, y: w.tip.y })?.id).toBeDefined();
+    // A tip that is an episode (an answer) ends the whole path of its part.
+    for (const m of t.tips.filter((x) => x.episodeId)) {
+      const last = t.paths[m.episodeId as string]?.at(-1);
+      expect(last?.to).toBe((t.ribbons.find((r) => r.id === last?.part)?.line.length ?? 0) - 1);
+    }
+  });
+
+  it('hits an answer tip, an episode number and a leaf\'s far end', () => {
+    for (const m of t.tips.filter((x) => x.episodeId)) expect(t.hits.some((h) => h.id === m.episodeId && h.points.length === 1 && h.points[0] === m.at)).toBe(true);
+    for (const l of t.labels.filter((x) => x.key.startsWith('num:'))) expect(t.hits.some((h) => h.kind === 'episode' && h.id === l.key.slice(4) && h.points.length === 1)).toBe(true);
+    const leaf = t.twigs.find((w) => w.mark === 'leaf') as TreeLayout['twigs'][number];
+    const a = (leaf.angle * Math.PI) / 180;
+    expect(t.hits.find((h) => h.id === leaf.stepId)?.points).toHaveLength(3);
+    expect(nearest(t, { x: leaf.tip.x + 10.5 * leaf.scale * Math.cos(a), y: leaf.tip.y + 10.5 * leaf.scale * Math.sin(a) }, 0.6)?.id).toBe(leaf.stepId);
   });
 });
 
@@ -113,17 +221,38 @@ describe('layoutTree: verify-fail-fix against the canvas (docs/design/v7/tree.mj
     expect(t.tips.map((m) => m.tone)).toEqual(['ok', 'fail', 'commit']);
   });
 
-  it('puts the limb tips within 6px and the lane label blocks within 12px of the canvas', () => {
-    // The engine places every record of the graph where tree.mjs used a trimmed copy and hand-set constants, and it
-    // centres the tree by its measured extent instead of a fixed trunk line (y 300): the tips land within 4.5px.
+  // The canvas's marks, read from tree.mjs's SVG: episode numbers (`t-num`) and glyph halos in drawing order.
+  const refNums = [...svg.matchAll(/<text x="([\d.-]+)" y="([\d.-]+)" text-anchor="middle" class="t-num">(\d+)<\/text>/g)].map((x) => ({ n: Number(x[3]), x: Number(x[1]), y: Number(x[2]) }));
+  const refGlyphs = [...svg.matchAll(/<circle cx="([\d.-]+)" cy="([\d.-]+)" r="8" class="halo"\/>/g)].map((x) => ({ x: Number(x[1]), y: Number(x[2]) }));
+  const lanes = [VFF.lanes[3]?.id, VFF.lanes[2]?.id, VFF.lanes[1]?.id];
+
+  it('puts the lane tips within 1.5px and the lane names within 2px of the canvas', () => {
     const tipOf = (laneId: string | undefined) => t.tips.find((m) => m.laneId === laneId)?.at as Pt;
-    const lanes = [VFF.lanes[3]?.id, VFF.lanes[2]?.id, VFF.lanes[1]?.id];
-    lanes.forEach((id, i) => expect(Math.hypot(tipOf(id).x - ref[i]!.tip.x, tipOf(id).y - ref[i]!.tip.y)).toBeLessThan(6));
-    // tree.mjs: the name's baseline at tip + (20, -22 + 14); Re-verify was moved up by hand to -42 to clear 16 and 18.
-    // The placement pass moves it 30px up instead of 20 (10px steps): its number 18 sits 6px further right, so -42 would touch it.
+    lanes.forEach((id, i) => expect(dist(tipOf(id), ref[i]!.tip), `tip ${i}`).toBeLessThan(1.5));
+    // tree.mjs: the name's baseline at tip + (20, -22 + 14); Re-verify was moved up by hand to -42 (tip + (20, -28)) to
+    // clear 16 and 18, which the placement pass finds as its fourth candidate.
     const name = (id: string | undefined) => t.blocks.find((b) => b.laneId === id)?.lines[0] as Pt;
     const want = [-8, -8, -28];
-    lanes.forEach((id, i) => expect(Math.hypot(name(id).x - (ref[i]!.tip.x + 20), name(id).y - (ref[i]!.tip.y + want[i]!))).toBeLessThan(12));
+    lanes.forEach((id, i) => expect(dist(name(id), { x: ref[i]!.tip.x + 20, y: ref[i]!.tip.y + want[i]! }), `name ${i}`).toBeLessThan(2));
+  });
+
+  it('puts glyphs and numbers within 2px of the canvas, except 1, 3, 14 and 16, which move off a ribbon', () => {
+    const moved = new Set([1, 3, 14, 16]);
+    expect(refNums).toHaveLength(16);
+    refNums.forEach((r, i) => {
+      if (moved.has(r.n)) return;
+      const e = t.episodes.find((x) => x.n === r.n) as TreeLayout['episodes'][number];
+      const num = t.labels.find((l) => l.key === `num:${e.episodeId}`) as Pt;
+      expect(dist(e.at, refGlyphs[i] as Pt), `glyph ${r.n}`).toBeLessThan(2);
+      expect(dist(num, r), `number ${r.n}`).toBeLessThan(2);
+    });
+  });
+
+  it('sets the waits on the trunk like the canvas: below its flat line, and above the trunk\'s edge', () => {
+    const refWaits = [...svg.matchAll(/<text x="([\d.-]+)" y="([\d.-]+)" text-anchor="middle" class="t-sub">/g)].map((x) => ({ x: Number(x[1]), y: Number(x[2]) }));
+    const waits = t.labels.filter((l) => l.key.startsWith('wait:'));
+    expect(waits).toHaveLength(2);
+    waits.forEach((w, i) => expect(dist(w, refWaits[i] as Pt), `wait ${w.text}`).toBeLessThan(2.5));
   });
 
   it('keeps a stable snapshot of key numbers', () => {
@@ -138,22 +267,22 @@ describe('layoutTree: verify-fail-fix against the canvas (docs/design/v7/tree.mj
         "root": {
           "at": {
             "x": 5.5,
-            "y": 299.5,
+            "y": 299.8,
           },
           "r": 5.5,
         },
         "tips": [
           {
             "x": 984.3,
-            "y": 296.4,
+            "y": 296.7,
           },
           {
             "x": 499.9,
-            "y": 139.9,
+            "y": 140.2,
           },
           {
             "x": 738.7,
-            "y": 439.2,
+            "y": 443.4,
           },
         ],
         "trunkWidth": 21.1,
@@ -169,6 +298,48 @@ describe('layoutTree: verify-fail-fix against the canvas (docs/design/v7/tree.mj
 
 describe('layoutTree: generalised (§5.3)', () => {
   const trunkY = (t: TreeLayout) => t.root.at.y;
+  /** The vertical span of the drawn marks (ribbons, twig tips, glyphs and tips). */
+  const marks = (t: TreeLayout) => {
+    const ys = [...t.ribbons.flatMap((r) => outline(r.d).map((p) => p.y)), ...t.twigs.map((w) => w.tip.y), ...t.episodes.flatMap((e) => [e.at.y - e.r, e.at.y + e.r]), ...t.tips.flatMap((m) => [m.at.y - m.r, m.at.y + m.r])];
+    return { top: Math.min(...ys), bottom: Math.max(...ys) };
+  };
+
+  it.each([[GRAPHS[1]![1]], [GRAPHS[4]![1]]])('one lane: the branches grow to use the height, centred (%#)', (g) => {
+    const t = layoutTree(g, DESKTOP);
+    const { top, bottom } = marks(t);
+    expect(bottom - top).toBeGreaterThanOrEqual(300);
+    expect(Math.abs(top - (DESKTOP.height - bottom))).toBeLessThanOrEqual(40);
+  });
+
+  it('keeps the trunk and every limb inside the along-axis for a one-call session', () => {
+    const t = layoutTree(GRAPHS[5]![1], DESKTOP);
+    for (const r of t.ribbons.filter((x) => x.kind !== 'branch')) expect((r.line.at(-1) as Pt).x).toBeLessThanOrEqual(DESKTOP.width - 210 + 12);
+  });
+
+  it('keeps a reserved zone (the legend) free', () => {
+    const zone = { x0: 600, y0: 0, x1: 1200, y1: 20 };
+    const t = layoutTree(eightLanes(), { ...DESKTOP, reserve: [zone] });
+    const inside = (p: Pt, r = 0) => hitsCircle(zone, p, r) || (p.x > zone.x0 && p.x < zone.x1 && p.y < zone.y1);
+    expect(t.ribbons.flatMap((r) => outline(r.d)).filter((p) => inside(p))).toEqual([]);
+    expect([...t.twigs.map((w) => w.tip), ...t.episodes.map((e) => e.at), ...t.tips.map((m) => m.at)].filter((p) => inside(p, 6))).toEqual([]);
+    expect(textBoxes(t).filter(({ box }) => boxesHit(box, zone))).toEqual([]);
+  });
+
+  it('returns an empty tree for an empty box', () => {
+    for (const [width, height] of [[0, 520], [1200, 0], [-5, 100], [Number.NaN, 520]]) {
+      const t = layoutTree(VFF, { width: width as number, height: height as number });
+      expect([t.ribbons, t.twigs, t.labels, t.hits]).toEqual([[], [], [], []]);
+    }
+    expect(layoutTree(VFF, { width: 60, height: 520 }).ribbons.length).toBeGreaterThan(0);
+  });
+
+  it('models a session with an episode of 200,000 records (no argument-spread overflow)', () => {
+    const g = synthGraph([{ main: { kind: 'explore', calls: 3 } }]);
+    const e = g.episodes[1]!;
+    const extra = Array.from({ length: 200_000 }, (_, i) => ({ ...g.steps[1]!, id: `x${i}`, kind: 'assistant' as const, seq: g.steps.length + i, text: 'More' }));
+    const big = { ...g, steps: [...g.steps, ...extra], episodes: g.episodes.map((x) => (x === e ? { ...x, stepIds: [...x.stepIds, ...extra.map((s) => s.id)] } : x)) };
+    expect(() => treeModel(big)).not.toThrow();
+  });
 
   it('one lane: a trunk with branches alternating below and above, the answer as its tip, "Session ends" beside it', () => {
     const t = layoutTree(GRAPHS[1]![1], DESKTOP);
@@ -194,6 +365,13 @@ describe('layoutTree: generalised (§5.3)', () => {
     const down = limbs.filter((v) => v > 0);
     expect([up.length, down.length]).toEqual([4, 4]);
     for (const side of [up, down]) for (let i = 1; i < side.length; i++) expect(side[i]).toBeLessThan(side[i - 1] as number);
+  });
+
+  it.each([[GRAPHS[7]![1], 2], [GRAPHS[8]![1], 3]])('concurrent lanes on one side stack with decreasing amplitude (%#)', (g, n) => {
+    const t = layoutTree(g, DESKTOP);
+    const up = t.ribbons.filter((r) => r.kind === 'limb' && (r.line.at(-1) as Pt).y < trunkY(t)).map((r) => Math.max(...r.line.map((p) => trunkY(t) - p.y)));
+    expect(up).toHaveLength(n);
+    for (let i = 1; i < up.length; i++) expect(up[i]).toBeLessThan((up[i - 1] as number) - 20);
   });
 
   it('hit testing: the nearest twig within 12px, else its episode; nothing farther', () => {
