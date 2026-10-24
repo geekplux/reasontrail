@@ -5,7 +5,8 @@ import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
 import { boxesHit } from './labels';
 import { textWidth } from './text';
-import { treeFor, treeSummary, treeTip } from './view';
+import { treeCallout, treeFor, treeSummary, treeTip } from './view';
+import { labelBox } from './labels';
 
 const VFF = vff as unknown as SessionGraph;
 const IMPL = implementer as unknown as SessionGraph;
@@ -134,5 +135,47 @@ describe('treeTip', () => {
 
   it('is undefined for an id the tree does not draw', () => {
     expect(treeTip(VFF, t, 'nope')).toBeUndefined();
+  });
+});
+
+describe('treeCallout (phase 32b, Step.html)', () => {
+  const reserve = [{ x0: 470, y0: 0, x1: 1200, y1: 24 }];
+  const t = treeFor(VFF, 1200, 520, true, reserve);
+  const lines: [string, string] = ['Inspect vitest config for log suppression', 'Exit code 2, 16 min'];
+
+  it('puts the selected step\'s callout above and left of it at the top edge, as the canvas does', () => {
+    const c = treeCallout(t, 's41', lines, reserve)!;
+    // Canvas: ring (235.9, 133.7), text end (211.9, 9.7), leader (230.9, 124.7) → (217.9, 29.7).
+    expect(Math.abs(c.ring.x - 235.9)).toBeLessThan(2);
+    expect(Math.abs(c.ring.y - 133.7)).toBeLessThan(2);
+    expect([c.anchor, c.y, Math.round(c.x - c.ring.x)]).toEqual(['end', 9.7, -24]);
+    expect(c.leader[1]).toEqual({ x: Math.round((c.ring.x - 18) * 10) / 10, y: 29.7 });
+    expect(Math.hypot(c.leader[0].x - c.ring.x, c.leader[0].y - c.ring.y)).toBeCloseTo(10.3, 0);
+    expect(c.lines).toEqual(lines);
+  });
+
+  it('keeps clear of the tree\'s text and the legend for every drawn step of every sample', () => {
+    for (const g of [VFF, IMPL, PLAN]) {
+      const tt = treeFor(g, 1200, 520, true, reserve);
+      const texts = [...tt.labels.map(labelBox), ...tt.blocks.map((b) => b.box), ...reserve];
+      let clear = 0;
+      for (const w of tt.twigs) {
+        const c = treeCallout(tt, w.stepId, ['A step', 'Exit code 0, 1 min'], reserve)!;
+        expect(c.box.y0).toBeGreaterThanOrEqual(0);
+        if (!texts.some((b) => boxesHit(b, c.box))) clear++;
+      }
+      expect(clear / tt.twigs.length).toBeGreaterThan(0.95);
+    }
+  });
+
+  it('cuts a long summary with an ellipsis, and is undefined for a step the tree does not draw', () => {
+    const c = treeCallout(t, 's41', ['x'.repeat(200), lines[1]], reserve)!;
+    expect(c.lines[0].endsWith('…')).toBe(true);
+    expect(textWidth(c.lines[0], 12, 500)).toBeLessThanOrEqual(360);
+    expect(treeCallout(t, 'nope', lines)).toBeUndefined();
+  });
+
+  it('runs the highlighted path from the root through the limb to the step\'s branch', () => {
+    expect(t.paths.s41?.map((p) => p.part)).toEqual(['trunk', 'limb:agent-ad0e51f3501a3ddc3', 'branch:e18']);
   });
 });

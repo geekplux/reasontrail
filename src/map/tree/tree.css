@@ -35,3 +35,16 @@
 .tree .hv-path.on { opacity: 1; }
 .tree .tip { pointer-events: none; }
 .tree .tip-box { fill: var(--slate-1); stroke: var(--slate-7); stroke-width: 0.5; }
+
+/* Selection (Step.html): the selected step's path from the root turns blue-9, everything else dims to slate-9 (colour
+   only); its episode's glyph and number turn blue-11; the step gets a blue ring and a callout with a 0.5px leader. */
+.tree.pickable { cursor: pointer; }
+.tree.dim .b:not(.hi, .hv), .tree.dim :is(.leaf, .dot):not(.hi, .hv) { fill: var(--slate-9); }
+.tree.dim .tw:not(.fail, .th, .hi, .hv), .tree.dim .bud:not(.hi, .hv) { stroke: var(--slate-9); }
+.tree :is(.b, .leaf).hi, .tree.hvmode :is(.b, .leaf).hi { fill: var(--blue-9); }
+.tree :is(.tw, .bud).hi:not(.fail), .tree.hvmode :is(.tw, .bud).hi:not(.fail) { stroke: var(--blue-9); }
+.tree .g.t-node.on { color: var(--blue-11); }
+.tree .t-num.on { fill: var(--blue-11); font-weight: 600; }
+.tree .ring { fill: none; stroke: var(--blue-9); stroke-width: 1.5; }
+.tree .lead { fill: none; stroke: var(--slate-9); stroke-width: 0.5; }
+.tree .callout { pointer-events: none; }
