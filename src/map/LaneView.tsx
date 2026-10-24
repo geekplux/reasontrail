@@ -22,7 +22,7 @@ export function LanePath({ l, expanded = false }: { l: LaneItem; expanded?: bool
   const y = lineY(l.track);
   return (
     <g className={expanded ? 'lane-mark is-expanded' : 'lane-mark'}>
-      <path className="lane-line draw" d={lanePath(l)} pathLength={1} />
+      <path className="lane-line draw" d={lanePath(l)} />
       {l.status === 'interrupted' && <path className="lane-line" d={`M${l.x2} ${y - 8} V${y + 8}`} />}
       {/* No recorded result and no rejoin: the trail ends in an 8 px hollow status circle. */}
       {l.status === 'unknown' && !l.rejoins && <circle className="lane-end" cx={l.x2 + 4} cy={y} r={4} />}

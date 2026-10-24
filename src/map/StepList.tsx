@@ -72,7 +72,7 @@ export function StepList({ g, rows, selected, evidence, heading, onPick, onClose
               }}>
                 <RowGlyph row={r} />
                 <span className="mono step-label">{rowLabel(r)}</span>
-                <span className="step-word">{rowWords(r)}{ev ? <span className="visually-hidden">, evidence</span> : null}</span>
+                <span className="step-word">{rowWords(r)}{ev ? <span className="step-ev"><span className="visually-hidden">, </span>evidence</span> : null}</span>
                 <span className="mono muted step-where">{t}</span>
               </button>
             </li>

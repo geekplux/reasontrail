@@ -234,7 +234,7 @@ function Horizontal({ L, ai, epProps, laneProps, blazeProps, foldProps, open, le
       <div className="route-canvas" style={{ width: L.width, height: L.height }}>
         <svg className="route-svg" width={L.width} height={L.height} aria-hidden="true" focusable="false">
           {L.lanes.map((l) => <LanePath key={l.id} l={l} expanded={open?.lane === l.id} />)}
-          {L.pieces.map(([a, b]) => <path key={a} className="route-line draw" d={`M${a} ${Y} H${b}`} pathLength={1} />)}
+          {L.pieces.map(([a, b]) => <path key={a} className="route-line draw" d={`M${a} ${Y} H${b}`} />)}
           {L.breaks.map((b) => (
             <g key={b.before} className="idle-break" data-idle-ms={b.ms}>
               <path className="slash" d={`M${b.x + 12} ${Y + 9} L${b.x + 20} ${Y - 9} M${b.x + 24} ${Y + 9} L${b.x + 32} ${Y - 9}`} />
@@ -346,8 +346,8 @@ function Vertical({ L, ai, all, epProps, laneProps, blazeProps, foldProps, open,
   return <div className="vroute">{rows}</div>;
 }
 
-/** Draw-in on the page's first map render only (DESIGN §11; a sample switch or Outline round trip does not replay it): route and lanes stroke in over --motion-ms, items fade in, all done by
- * 400 ms. Web Animations with no fill, so the dash pattern exists only while it runs; nothing waits for it to end. */
+/** Draw-in on the page's first map render only (DESIGN §11; a sample switch or Outline round trip does not replay it): route and lanes fade in over --motion-ms, items fade in, all done by
+ * 400 ms (rule 7: opacity only). Web Animations; nothing waits for them to end. */
 let drawn = false;
 function useDrawIn(ref: RefObject<HTMLDivElement | null>): void {
   useLayoutEffect(() => {
@@ -357,7 +357,7 @@ function useDrawIn(ref: RefObject<HTMLDivElement | null>): void {
     const ms = parseFloat(getComputedStyle(root).getPropertyValue('--motion-ms')) || 0;
     if (ms <= 0 || typeof root.animate !== 'function') return;
     const ease = getComputedStyle(root).getPropertyValue('--motion-ease').trim() || 'ease-out';
-    root.querySelectorAll('.draw').forEach((p) => p.animate([{ strokeDasharray: '1 1', strokeDashoffset: 1 }, { strokeDasharray: '1 1', strokeDashoffset: 0 }], { duration: ms, easing: ease }));
+    root.querySelectorAll('.draw').forEach((p) => p.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing: ease }));
     root.querySelectorAll('.map-item, .idle-label, .mark').forEach((el, i) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: Math.min(280, 120 + i * 6), fill: 'backwards' }));
   }, [ref]);
 }
