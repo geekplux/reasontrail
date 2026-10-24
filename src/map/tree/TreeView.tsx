@@ -42,13 +42,17 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   const t = useMemo(() => treeFor(g, width, height, labels, reserve), [g, width, height, labels, reserve]);
   const rows = useMemo(() => listRows(g), [g]);
   const summary = useMemo(() => treeSummary(g, rows), [g, rows]);
-  // The last hovered path stays drawn (transparent) after the pointer leaves, so it fades out instead of vanishing.
-  const [last, setLast] = useState<string>();
-  if (hover && t.paths[hover] && hover !== last) setLast(hover);
-  const shown = last && t.paths[last] ? last : undefined;
+  // The last hovered path stays drawn (transparent) after the pointer leaves, so it fades out instead of vanishing;
+  // another graph (a tab switch) forgets it.
+  const [last, setLast] = useState<{ g: SessionGraph; id: string }>();
+  if (hover && t.paths[hover] && (hover !== last?.id || g !== last.g)) setLast({ g, id: hover });
+  const shown = last && last.g === g && t.paths[last.id] ? last.id : undefined;
   const path = useMemo(() => (shown ? highlight(t, shown) : []), [t, shown]);
   const on = hover !== undefined && t.paths[hover] !== undefined;
-  const tip = useMemo(() => (on && labels && hover ? treeTip(g, t, hover, rows) : undefined), [on, labels, hover, g, t, rows]);
+  // A lane tip without an episode of its own, under the pointer: its tooltip is the lane's verdict.
+  const [via, setVia] = useState<{ episodeId: string; lane: string }>();
+  const tipLane = via && via.episodeId === hover ? via.lane : undefined;
+  const tip = useMemo(() => (on && labels && hover ? treeTip(g, t, hover, { rows, tipLane, reserve }) : undefined), [on, labels, hover, g, t, rows, tipLane, reserve]);
   if (t.ribbons.length === 0) return null;
 
   const move = (e: PointerEvent<SVGSVGElement>) => {
@@ -56,6 +60,8 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
     const r = e.currentTarget.getBoundingClientRect();
     const s = r.width > 0 ? t.width / r.width : 1; // layout px per screen px
     const hit = nearest(t, { x: (e.clientX - r.left) * s, y: (e.clientY - r.top) * s }, HIT_PX * s);
+    const lane = hit?.tipLane;
+    if (lane !== via?.lane || hit?.episodeId !== via?.episodeId) setVia(hit && lane ? { episodeId: hit.episodeId, lane } : undefined);
     if (hit?.episodeId !== hover) onHover(hit?.episodeId);
   };
   const hv = (episodeId: string) => (on && episodeId === hover ? ' hv' : '');
@@ -69,7 +75,10 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
       role="img"
       aria-label={summary}
       onPointerMove={move}
-      onPointerLeave={() => hover !== undefined && onHover?.(undefined)}
+      onPointerLeave={() => {
+        setVia(undefined);
+        if (hover !== undefined) onHover?.(undefined);
+      }}
     >
       {t.handBacks.map((b) => <g key={b.laneId}><path d={b.d} className="back" /><circle cx={b.to.x} cy={b.to.y} r={2.5 * z} className="back-end" /></g>)}
       {t.twigs.map((w) => <path key={w.stepId} d={`M${w.base.x} ${w.base.y}L${w.tip.x} ${w.tip.y}`} className={`tw${w.kind === 'thinking' ? ' th' : w.kind === 'failed' ? ' fail' : ''}${hv(w.episodeId)}`} />)}
@@ -95,10 +104,10 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
       {t.blocks.map((b) => b.lines.map((l) => <Text key={l.key} l={l} />))}
       {tip && (
         <g className="tip" transform={`translate(${tip.box.x0} ${tip.box.y0})`}>
-          <rect width={tip.box.x1 - tip.box.x0} height={tip.box.y1 - tip.box.y0} rx="10" className="tip-box" />
-          <text x="12" y="23" className="t-num">{tip.n}</text>
-          <text x="34" y="23" className="t-ep">{tip.title}</text>
-          <text x="34" y="42" className="t-sub">{tip.facts}</text>
+          <rect width={tip.box.x1 - tip.box.x0} height={tip.box.y1 - tip.box.y0} rx="8" className="tip-box" />
+          {tip.n !== undefined && <text x="12" y="23" className="t-num">{tip.n}</text>}
+          <text x={tip.n === undefined ? 12 : 34} y="23" className="t-ep">{tip.title}</text>
+          <text x={tip.n === undefined ? 12 : 34} y="42" className="t-sub">{tip.facts}</text>
         </g>
       )}
     </svg>

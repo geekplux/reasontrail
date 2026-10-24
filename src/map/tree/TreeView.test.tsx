@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { SessionGraph } from '../../../shared/session/types';
 import implementer from '../../sessions/samples/implementer-checks.graph.json';
+import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
 import { MIN_BOX } from '.';
 import { TreeLegend } from './TreeLegend';
@@ -12,6 +13,7 @@ import { treeFor, treeSummary } from './view';
 
 afterEach(cleanup);
 const VFF = vff as unknown as SessionGraph;
+const PLAN = planner as unknown as SessionGraph;
 const t = treeFor(VFF, 1200, 520);
 
 /** The tree with its hover state held like the home holds it. */
@@ -61,7 +63,7 @@ describe('TreeView', () => {
     expect([...container.querySelectorAll('path.b.hv')].length).toBeGreaterThan(0);
     expect(container.querySelectorAll('path.tw.hv')).toHaveLength(t.twigs.filter((w) => w.episodeId === 'e19').length);
     expect([...container.querySelectorAll('.tip text')].map((el) => el.textContent)).toEqual(['7', 'Edit zz-verify-scratch.test.ts +8 more', '20 steps, 6 tool calls, 15 min wait, 17 min']);
-    expect(container.querySelector('.tip-box')?.getAttribute('rx')).toBe('10');
+    expect(container.querySelector('.tip-box')?.getAttribute('rx')).toBe('8');
     fireEvent.pointerLeave(svg);
     expect(svg.classList.contains('hvmode')).toBe(false);
     expect(container.querySelector('.tip')).toBeNull();
@@ -79,6 +81,28 @@ describe('TreeView', () => {
     expect(svg.classList.contains('hvmode')).toBe(false);
   });
 
+  it('hover: a failed lane tip without its own episode shows the lane\'s verdict and lights the lane\'s last episode', () => {
+    const tp = treeFor(PLAN, 1200, 520);
+    const m = tp.tips.find((x) => x.tone === 'fail' && !x.episodeId)!;
+    const { container } = render(<Hovered g={PLAN} />);
+    const svg = container.querySelector('svg.tree')!;
+    fireEvent.pointerMove(svg, { clientX: m.at.x + 1, clientY: m.at.y, pointerType: 'mouse' });
+    expect(container.querySelector('.hv-path.on')?.children.length).toBe(tp.paths.e7?.length);
+    expect([...container.querySelectorAll('.tip text')].map((el) => el.textContent)).toEqual(['Failed', '15 steps, 5 tool calls, 1 min']);
+    // The lane's last episode itself, from its glyph, has its own tooltip.
+    const e7 = tp.episodes.find((e) => e.episodeId === 'e7')!;
+    fireEvent.pointerMove(svg, { clientX: e7.at.x, clientY: e7.at.y, pointerType: 'mouse' });
+    expect(container.querySelector('.tip text')?.textContent).toBe(String(e7.n));
+  });
+
+  it('forgets the last hovered path when the graph changes', () => {
+    const { container, rerender } = render(<TreeView g={VFF} width={1200} height={520} hover="e19" onHover={() => {}} />);
+    rerender(<TreeView g={VFF} width={1200} height={520} hover={undefined} onHover={() => {}} />);
+    expect(container.querySelector('.hv-path')?.children.length).toBe(t.paths.e19?.length);
+    rerender(<TreeView g={PLAN} width={1200} height={520} hover={undefined} onHover={() => {}} />);
+    expect(container.querySelector('.hv-path')?.children.length).toBe(0);
+  });
+
   it('draws another sample from its own data', () => {
     const { container } = render(<TreeView g={implementer as unknown as SessionGraph} width={1200} height={520} />);
     expect(screen.getByRole('img').getAttribute('aria-label')).toMatch(/^Tree: 12 episodes, .*all by the main agent\.$/);
@@ -87,8 +111,9 @@ describe('TreeView', () => {
 });
 
 describe('TreeLegend', () => {
-  it('lists the five glyphs, the three twigs and the width rule, as on the canvas', () => {
+  it('lists the five glyphs, the three twigs and the width rule, as on the canvas, hidden from screen readers', () => {
     const { container } = render(<TreeLegend />);
+    expect(container.querySelector('.legend')?.getAttribute('aria-hidden')).toBe('true');
     expect([...container.querySelectorAll('.legend > span')].map((s) => s.textContent).filter(Boolean)).toEqual(['Task', 'Explore', 'Change', 'Verify', 'Answer', 'Command', 'Thinking', 'Failed', 'Width: tool calls']);
     expect(container.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(9);
   });
