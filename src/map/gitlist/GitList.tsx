@@ -23,6 +23,8 @@ export interface GitListProps {
   onSelect?(selection: ListSelection): void;
   /** The focused or hovered row's episode and step, for the tree's highlight; undefined when none. */
   onActive?(active: ListSelection | undefined): void;
+  /** The episode hovered in the tree: its row (episode or lane verdict) gets the hover background. */
+  hover?: string | undefined;
 }
 
 const KIND: Record<GlyphKind, string> = { discuss: 'task', explore: 'explore', change: 'change', verify: 'verify', answer: 'answer' };
@@ -63,7 +65,7 @@ const activeOf = (row: AnyRow): ListSelection => {
   return sel;
 };
 
-export function GitList({ g, overlay, selection, onSelect, onActive }: GitListProps) {
+export function GitList({ g, overlay, selection, onSelect, onActive, hover: treeHover }: GitListProps) {
   const rows = useMemo(() => listRows(g), [g]);
   const [own, setOwn] = useState<ListSelection>({});
   const sel = selection ?? own;
@@ -184,7 +186,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
       const on = sel.episodeId === r.episodeId;
       return (
         <g key={r.key}>
-          <circle cx={p.x} cy={p.cy} r="8" className={`halo${on ? ' on' : ''}`} data-halo={r.key} />
+          <circle cx={p.x} cy={p.cy} r="8" className={`halo${on ? ' on' : ''}${treeHover === r.episodeId ? ' hv' : ''}`} data-halo={r.key} />
           <KindGlyph kind={r.glyph} x={p.x} y={p.cy} className={`t-node${on ? ' on' : ''}`} />
           {on && r.leaf && <circle cx={p.x} cy={p.cy} r="10.5" className="ring" />}
         </g>
@@ -263,7 +265,8 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
           const r = p.row;
           const at = tree.get(r.key);
           const open = r.kind === 'episode' && sel.episodeId === r.episodeId;
-          const cls = ['gl-row', `gl-${r.kind}`, open && 'is-open', r.key === target && 'is-sel', r.kind === 'step' && r.mark === 'thinking' && 'is-think'].filter(Boolean).join(' ');
+          const hv = treeHover !== undefined && (r.kind === 'episode' || r.kind === 'verdict') && r.episodeId === treeHover;
+          const cls = ['gl-row', `gl-${r.kind}`, open && 'is-open', hv && 'is-hv', r.key === target && 'is-sel', r.kind === 'step' && r.mark === 'thinking' && 'is-think'].filter(Boolean).join(' ');
           return (
             <div
               key={r.key}
@@ -290,6 +293,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
                 setFocusKey(r.key);
                 onActive?.(activeOf(r));
               }}
+              onBlur={() => onActive?.(undefined)}
               onMouseEnter={() => {
                 hover(r.key, true);
                 onActive?.(activeOf(r));

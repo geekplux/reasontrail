@@ -8,12 +8,11 @@ import { InlineNote } from '../components/states/InlineNote';
 import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
 import { CommandLine } from './Install';
 import { MAKER, MORE_SITES, shownUrl } from './moreSites';
+import { HeroTree } from './HeroTree';
 import { SessionCard } from './SessionCard';
-import { LEGEND_HTML, TREE_SVG } from './static/reference';
 
 const CARD_ID = 'session';
 const TREE_ID = 'hero-tree';
-const DRAWN = sessionSamples[0]?.id; // TEMPORARY: the one sample with a static tree until phase 32
 
 /** The sample tabs (§4.4): a segmented control under the tree, WAI-ARIA tabs with automatic activation. */
 function SampleTabs({ current, onChoose }: { current: string; onChoose(id: string): void }) {
@@ -64,7 +63,10 @@ export function Home({ session, onSession }: { session: string | null; onSession
       live = false;
     };
   }, [graph, sample]);
-  const drawn = sample.id === DRAWN;
+  // The hovered episode, from the tree (pointer) or the list (pointer or focus); a tab switch clears it.
+  const [hover, setHover] = useState<{ id: string; episodeId: string }>();
+  const hovered = hover?.id === sample.id ? hover.episodeId : undefined;
+  const onHover = (episodeId: string | undefined) => setHover(episodeId ? { id: sample.id, episodeId } : undefined);
   return (
     <div className="v7 home">
       <section className="hero" aria-labelledby="hero-h">
@@ -75,17 +77,13 @@ export function Home({ session, onSession }: { session: string | null; onSession
           </div>
           <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
         </div>
-        <figure className="hero-tree" id={TREE_ID}>
-          {/* TEMPORARY: the canvas's static tree for the default sample; the tree renderer replaces it in phase 32. */}
-          <p className="legend" dangerouslySetInnerHTML={{ __html: LEGEND_HTML }} />
-          {drawn ? <div className="tree-wrap" dangerouslySetInnerHTML={{ __html: TREE_SVG }} /> : <p className="tree-wrap muted">This sample&apos;s tree is not drawn yet.</p>}
-        </figure>
+        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={onHover} />
         <div className="under">
           <SampleTabs current={sample.id} onChoose={onSession} />
         </div>
       </section>
       {unknown && <InlineNote variant="info">That session isn&apos;t here, so here is “{sample.title}”.</InlineNote>}
-      {graph ? <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} /> : <p className="frame muted" id={CARD_ID}>Loading the sample…</p>}
+      {graph ? <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a) => onHover(a?.episodeId)} /> : <p className="frame muted" id={CARD_ID}>Loading the sample…</p>}
       <section className="install" id="install" tabIndex={-1} aria-labelledby="install-h">
         <div>
           <h2 id="install-h">Map your own sessions</h2>

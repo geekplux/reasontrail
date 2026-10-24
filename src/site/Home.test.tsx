@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { treeFor } from '../map/tree/view';
 import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
 import { Home } from './Home';
 import { SessionCard } from './SessionCard';
@@ -19,7 +20,8 @@ describe('Home (v7 §4, §12)', () => {
       ['Lint and typecheck fail, then pass', 'false'],
       ['A change request rewrites the plan', 'false'],
     ]);
-    expect(container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label')).toMatch(/^Tree: /);
+    expect(container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label')).toMatch(/^Tree: 19 episodes, 60 tool calls, 47 min\. /);
+    expect(container.querySelector('.hero-tree > .legend')?.textContent).toBe('TaskExploreChangeVerifyAnswerCommandThinkingFailedWidth: tool calls');
     const labels = [...container.querySelectorAll('[aria-label]')].map((el) => el.getAttribute('aria-label'));
     expect(`${container.textContent}${labels.join('')}`).not.toContain('·');
   });
@@ -47,6 +49,44 @@ describe('Home (v7 §4, §12)', () => {
       expect(document.body.textContent).not.toContain('not drawn yet');
       unmount();
     }
+  });
+
+  it('draws each sample\'s tree: a tab switch swaps the tree with the list and the outcome', async () => {
+    const { container, rerender } = render(<Home session={null} onSession={() => {}} />);
+    const label = () => container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label');
+    expect(label()).toContain('Verify phase 12 (failed: 1 gap)');
+    rerender(<Home session="implementer-checks" onSession={() => {}} />);
+    await waitFor(() => expect(label()).toBe('Tree: 12 episodes, 51 tool calls, 49 min, all by the main agent.'));
+    expect(document.getElementById('sess-title')?.textContent).toBe('Build keyboard navigation and a screen-reader table (phase 5)');
+    rerender(<Home session="planner-pivot" onSession={() => {}} />);
+    await waitFor(() => expect(label()).toMatch(/spawns 2 subagents: Rewrite plan for pivot \(failed\)/));
+    expect(document.body.textContent).not.toContain('not drawn yet');
+  });
+
+  it('links hover both ways: a tree branch tints its list row, a list row lights its path in the tree', () => {
+    const { container } = render(<Home session={null} onSession={() => {}} />);
+    const svg = container.querySelector('.hero-tree svg.tree')!;
+    const twig = treeFor(defaultSessionGraph, 1200, 520).twigs.find((w) => w.episodeId === 'e19')!;
+    fireEvent.pointerMove(svg, { clientX: twig.tip.x, clientY: twig.tip.y, pointerType: 'mouse' });
+    expect(svg.classList.contains('hvmode')).toBe(true);
+    expect(container.querySelector('.tip')?.textContent).toContain('Edit zz-verify-scratch.test.ts +8 more');
+    const row = () => container.querySelector('.gl-row.is-hv');
+    expect(row()?.textContent).toMatch(/^Episode 7: Edit zz-verify-scratch\.test\.ts \+8 more/);
+    expect(container.querySelector('.gl-svg .halo.hv')).not.toBeNull();
+    fireEvent.pointerLeave(svg);
+    expect(row()).toBeNull();
+    expect(svg.classList.contains('hvmode')).toBe(false);
+
+    const item = screen.getAllByRole('treeitem').find((el) => el.textContent?.startsWith('Episode 6:'))!;
+    fireEvent.mouseEnter(item);
+    expect(svg.classList.contains('hvmode')).toBe(true);
+    expect(container.querySelector('.tip')?.textContent).toContain('Read redact.test.ts +8 more');
+    fireEvent.mouseLeave(item);
+    expect(svg.classList.contains('hvmode')).toBe(false);
+    act(() => item.focus());
+    expect(svg.classList.contains('hvmode')).toBe(true);
+    act(() => item.blur());
+    expect(svg.classList.contains('hvmode')).toBe(false);
   });
 
   it('names the tab of another page with an en dash, not a middle dot', () => {

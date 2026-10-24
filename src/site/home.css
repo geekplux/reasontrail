@@ -40,8 +40,7 @@
 .v7 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .v7 .legend .g { color: var(--slate-11); }
 .v7 .lg-gap { width: 8px; }
-.v7 .tree-wrap { display: grid; place-items: center; min-height: 520px; }
-.v7 .tree-wrap > svg { display: block; width: 100%; height: auto; overflow: visible; }
+.v7 .tree-wrap { min-height: 520px; }
 .v7 .under { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 24px; }
 
 /* Sample tabs: a segmented control, outer radius 10 = inner radius 6 + padding 4 */
@@ -51,26 +50,6 @@
 .v7 .tab[aria-selected='true'] { background: var(--slate-1); color: var(--slate-12); box-shadow: 0 0 0 0.5px var(--slate-7); }
 /* The ring drawn inside the tab, on its slate-1 face: 3.18:1, where outside on the slate-3 track it would be 2.87:1. */
 .v7 .tab:focus-visible { outline-offset: -2px; }
-
-/* The tree (TEMPORARY static port; the classes of docs/design/v7/tree.mjs) */
-.v7 .tree .b { fill: var(--slate-12); }
-.v7 .tree .tw { stroke: var(--slate-12); stroke-width: 1; stroke-linecap: round; }
-/* slate-9, not the canvas's slate-8: 3.22:1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
-.v7 .tree .tw.th { stroke: var(--slate-9); }
-.v7 .tree .tw.fail { stroke: var(--orange-9); }
-.v7 .tree .leaf, .v7 .tree .root { fill: var(--slate-12); }
-.v7 .tree .bud { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1; }
-.v7 .tree .x { stroke: var(--orange-9); stroke-width: 1.5; stroke-linecap: round; }
-.v7 .tree .back { fill: none; stroke: var(--slate-8); stroke-width: 1; stroke-dasharray: 2 3; }
-.v7 .tree .back-end { fill: var(--slate-1); stroke: var(--slate-9); stroke-width: 1; }
-.v7 .tree .halo { fill: var(--slate-1); }
-.v7 .tree .tip-fail { color: var(--orange-9); }
-.v7 .tree .tip-ok { color: var(--blue-9); }
-.v7 .tree .t-num { paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
-.v7 .tree .t-lane { font: 600 var(--text-14) var(--font-sans); fill: var(--slate-12); }
-.v7 .t-num { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-11); }
-.v7 .t-lab { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-12); }
-.v7 .t-sub { font: 400 var(--text-12) var(--font-sans); fill: var(--slate-11); }
 
 /* The session card */
 .v7 .frame { margin: 32px var(--gutter) 0; border-radius: var(--radius-16); background: var(--slate-1); box-shadow: inset 0 0 0 0.5px var(--slate-7); padding: 32px; }
@@ -125,7 +104,7 @@
   .v7 .hero-top, .v7 .sess, .v7 .install, .v7 .more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .v7 .cols { grid-template-columns: minmax(0, 1fr); }
   .v7 .hero-tree > .legend { position: static; flex-wrap: wrap; white-space: normal; margin-bottom: 16px; }
-  .v7 .tree-wrap { min-height: 0; overflow-x: auto; }
+  .v7 .tree-wrap { min-height: 0; }
   .v7 .tabs { overflow-x: auto; }
   .v7 .nav { display: none; }
   .v7.bar { justify-content: space-between; }

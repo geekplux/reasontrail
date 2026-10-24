@@ -61,9 +61,9 @@ function Outcome({ g }: { g: SessionGraph }) {
 }
 
 /** `sample`: a built-in sample, so the meta line ends with the "Sample" tag (never on a user's own session). `branch`:
- * the sample's branch where the recorded one is the main checkout. `onSelect` / `onActive`: the list's selection and
- * focus, for the tree and the detail panel (phase 32). */
-export function SessionCard({ g, sample = false, branch, id, onSelect, onActive }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string } & Pick<GitListProps, 'onSelect' | 'onActive'>) {
+ * the sample's branch where the recorded one is the main checkout. `onSelect` / `onActive` / `hover`: the list's
+ * selection, its focused or hovered row, and the episode hovered in the tree. */
+export function SessionCard({ g, sample = false, branch, id, onSelect, onActive, hover }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string } & Pick<GitListProps, 'onSelect' | 'onActive' | 'hover'>) {
   const [message, announce] = useAnnouncer();
   const [aiLoaded, setAiLoaded] = useState(false);
   const [details, setDetails] = useState(false);
@@ -95,7 +95,7 @@ export function SessionCard({ g, sample = false, branch, id, onSelect, onActive 
         <p className="muted request">{card.request.replace(/\*\*|`/g, '')}</p>
       </div>
       <div className="cols">
-        <GitList g={g} overlay={overlay} {...(onSelect ? { onSelect } : {})} {...(onActive ? { onActive } : {})} />
+        <GitList g={g} overlay={overlay} hover={hover} {...(onSelect ? { onSelect } : {})} {...(onActive ? { onActive } : {})} />
         <Outcome g={g} />
       </div>
       <LiveRegion message={message} />

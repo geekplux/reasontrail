@@ -40,7 +40,7 @@
 .gl-step::before, .gl-step::after, .gl-more::before, .gl-more::after { inset: 1px -12px; }
 .gl-row:focus-visible::after { outline: 2px solid var(--blue-11); }
 .gl-episode, .gl-step, .gl-more { cursor: pointer; }
-.gl-episode:hover::before, .gl-step:hover::before, .gl-more:hover::before { background: var(--slate-3); }
+.gl-episode:hover::before, .gl-step:hover::before, .gl-more:hover::before, .gl-row.is-hv::before { background: var(--slate-3); }
 .gl-episode.is-open::before { background: var(--blue-3); }
 .gl-step.is-sel::before { background: var(--slate-3); }
 .gl-row > span { z-index: 2; }
