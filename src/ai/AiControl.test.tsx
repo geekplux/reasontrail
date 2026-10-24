@@ -97,6 +97,20 @@ describe('AI labels (phase 21)', () => {
     expect(announce.mock.calls.map(([t]) => t)).toEqual(['Asking a model for AI labels']);
   });
 
+  it('keeps the home card\'s name "AI titles" after the dialog is dismissed and after a run, with no middle dot', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => Response.json(reply(JSON.parse(String(init.body))))));
+    render(<AiControl g={graph} source={{ live: true }} onOverlay={() => {}} announce={() => {}} label="AI titles" buttonClass="btn ghost" />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' })); // the consent dialog's Cancel
+    const idle = screen.getByRole('button', { name: 'AI titles' });
+    expect(idle.className).toBe('btn ghost');
+    fireEvent.click(idle);
+    await act(async () => fireEvent.click(await screen.findByRole('button', { name: 'Send' })));
+    const toggle = await screen.findByRole('button', { name: 'AI titles' });
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(toggle.textContent).toBe('AI titles');
+    expect(document.body.textContent).not.toContain('·');
+  });
+
   it('lists the first 5 supporting steps, then all of them on request', () => {
     const ids = graph.steps.slice(0, 7).map((s) => s.id);
     const overlay: LabelOverlay = { model: 'fake-model', createdAt: '', labels: [{ stepId: last, label: 'answer', confidence: 1 }], links: [{ claimStepId: last, supportStepIds: ids }] };

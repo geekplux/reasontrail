@@ -1,4 +1,4 @@
-// The route header's quiet "AI labels" control (DESIGN §13.6, PLAN phase 21), loaded only when it is first used.
+// The route header's quiet "AI labels" control ("AI titles" on the home's session card) (DESIGN §13.6, PLAN phase 21), loaded only when it is first used.
 // Website: consent dialog → "Labelling k of n" + Cancel → an overlay toggle, or a calm note. Local viewer (`--ai`):
 // the overlay is already in the page, so it is only a toggle. Off by default; off restores the deterministic map.
 import { useEffect, useRef, useState, type RefObject } from 'react';
@@ -15,13 +15,18 @@ interface Props {
   source: AiSource;
   onOverlay(overlay: LabelOverlay | undefined): void;
   announce(text: string): void;
+  /** The home's session card: the control keeps this one name ("AI titles") in every state, styled by `buttonClass`. */
+  label?: string | undefined;
+  buttonClass?: string | undefined;
 }
 
-export default function AiControl({ g, source, onOverlay, announce }: Props) {
-  return 'overlay' in source ? <Toggle overlay={source.overlay} onOverlay={onOverlay} /> : <Live g={g} onOverlay={onOverlay} announce={announce} />;
+export default function AiControl({ g, source, onOverlay, announce, label, buttonClass }: Props) {
+  return 'overlay' in source ? <Toggle overlay={source.overlay} onOverlay={onOverlay} label={label} buttonClass={buttonClass} /> : <Live g={g} onOverlay={onOverlay} announce={announce} label={label} buttonClass={buttonClass} />;
 }
 
-function Toggle({ overlay, onOverlay, initial = false, focusRef }: { overlay: LabelOverlay; onOverlay: Props['onOverlay']; initial?: boolean; focusRef?: RefObject<HTMLButtonElement | null> }) {
+type Named = Pick<Props, 'label' | 'buttonClass'>;
+
+function Toggle({ overlay, onOverlay, initial = false, focusRef, label, buttonClass }: Named & { overlay: LabelOverlay; onOverlay: Props['onOverlay']; initial?: boolean; focusRef?: RefObject<HTMLButtonElement | null> }) {
   const [on, setOn] = useState(initial);
   // Shown on arrival when the user just asked for it (website); off by default otherwise (the viewer, DM34).
   useEffect(() => {
@@ -31,6 +36,13 @@ function Toggle({ overlay, onOverlay, initial = false, focusRef }: { overlay: La
     setOn(!on);
     onOverlay(on ? undefined : overlay);
   };
+  if (label) {
+    return (
+      <span className="ai-home">
+        <button ref={focusRef} type="button" className={buttonClass} aria-pressed={on} onClick={flip}>{label}</button>
+      </span>
+    );
+  }
   return (
     <span className="ai-control">
       {/* One button, so the key never adds a header row: the dashed swatch says what a suggested label looks like. */}
@@ -41,7 +53,7 @@ function Toggle({ overlay, onOverlay, initial = false, focusRef }: { overlay: La
   );
 }
 
-function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
+function Live({ g, onOverlay, announce, label, buttonClass }: Omit<Props, 'source'>) {
   const ai = useStructure(g);
   const { state } = ai;
   const button = useRef<HTMLButtonElement>(null);
@@ -76,10 +88,11 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
     said.current = say;
   }, [state, announce]);
 
-  if (state.status === 'ready') return <Toggle overlay={state.overlay} onOverlay={onOverlay} initial focusRef={button} />;
+  if (state.status === 'ready') return <Toggle overlay={state.overlay} onOverlay={onOverlay} initial focusRef={button} label={label} buttonClass={buttonClass} />;
+  const wrap = label ? 'ai-home' : 'ai-control'; // the home's wrapper keeps the card's 14px type
   if (state.status === 'sending') {
     return (
-      <span className="ai-control">
+      <span className={wrap}>
         <span className="ai-status"><span className="ai-tag ai-swatch" aria-hidden="true" /> Labelling {Math.min(state.done + 1, state.total)} of {state.total}…</span>
         <button ref={button} type="button" className="ai-button" onClick={ai.cancel}>Cancel</button>
       </span>
@@ -87,11 +100,11 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
   }
   const note = state.status === 'unavailable' || state.status === 'error' ? state.message : '';
   return (
-    <span className="ai-control">
+    <span className={wrap}>
       {note ? <span ref={status} tabIndex={-1} className="ai-status" data-ai-note={state.status}><InfoGlyph />{note}</span> : null}
       {state.status !== 'unavailable' && (
-        <button ref={button} type="button" className="ai-button" aria-haspopup="dialog" onClick={() => ai.request()}>
-          {state.status === 'error' ? 'Try AI labels again' : 'AI labels…'}
+        <button ref={button} type="button" className={label ? buttonClass : 'ai-button'} aria-haspopup="dialog" onClick={() => ai.request()}>
+          {label ?? (state.status === 'error' ? 'Try AI labels again' : 'AI labels…')}
         </button>
       )}
       {state.status === 'consent-needed' && (
