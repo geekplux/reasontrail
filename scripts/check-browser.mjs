@@ -14,7 +14,7 @@ import { killGroup, killGroupSync, parseArgs, startPreview, viteBin, waitForHttp
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const flowsDir = join(root, 'scripts', 'browser', 'flows');
-const BRAND_FLOWS = new Set(['hero', 'gallery', 'brand', 'polish']); // write to committed paths; never part of "all"
+const BRAND_FLOWS = new Set(['hero', 'gallery', 'brand', 'polish', 'wordmark']); // write to committed paths; never part of "all"
 // Suspended while the v7 home has no website map (DECISIONS 2026-10-24): they open `/` or `/?session=…&step=…` and wait
 // for the removed map, detail panel or gallery. Never part of "all" until the v7 phase that restores what they test:
 // map and details with the git-style list and the detail view (phases 30 and 32); site (the home's map, gallery and
@@ -30,6 +30,7 @@ const fileURL = opts.file ? pathToFileURL(resolve(opts.file)).href : undefined;
 if (opts.file && !existsSync(resolve(opts.file))) throw new Error(`--file: no such file: ${opts.file}`);
 const flows = opts.file ? ['file'] : opts.flows === 'all' ? available.filter((f) => !BRAND_FLOWS.has(f) && !SUSPENDED_FLOWS.has(f) && f !== 'file') : opts.flows.split(',');
 for (const f of flows) if (!available.includes(f)) throw new Error(`unknown flow: ${f} (have: ${available.join(', ')})`);
+if (flows.includes('file') && !opts.file) throw new Error('flow "file" needs --file <path>');
 
 let server;
 let browser;
