@@ -116,7 +116,7 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   const dim = await page.evaluate(() => {
     const low = [...document.querySelectorAll('.route-app *')].filter((e) => Number(getComputedStyle(e).opacity) < 1).length;
     const line = document.querySelector('.route-canvas .route-line');
-    const muted = getComputedStyle(document.documentElement).getPropertyValue('--tg-ink-muted').trim();
+    const muted = getComputedStyle(document.documentElement).getPropertyValue('--slate-11').trim();
     return { low, stroke: line ? getComputedStyle(line).stroke : '', muted };
   });
   if (dim.low > 0) fail(`${dim.low} map elements have opacity < 1`);

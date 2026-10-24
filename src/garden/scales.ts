@@ -31,7 +31,7 @@ export function remainderWidth(rest: number, siblingPs: readonly number[]): numb
 
 export type Band = 'lo' | 'mid' | 'hi';
 
-/** Probability band, the secondary colour channel (`--tg-branch-<band>`). */
+/** Probability band, the secondary colour channel (garden.css: lo slate-9, mid slate-11, hi slate-12). */
 export function band(p: number): Band {
   return p < 0.1 ? 'lo' : p < 0.4 ? 'mid' : 'hi';
 }
@@ -44,8 +44,8 @@ export function formatPct(p: number): string {
 
 /** The value label: the branch's own chance, the whole continuation's chance below the first fork, the entropy once open. */
 export function formatValue(b: { p: number; pathP: number; depth: number; next?: Pick<Fork, 'entropy'> | undefined }): string {
-  const value = b.depth > 1 ? `${formatPct(b.p)} · path ${formatPct(b.pathP)}` : formatPct(b.p);
-  return b.next ? `${value} · next ${formatEntropy(b.next.entropy)}` : value;
+  const value = b.depth > 1 ? `${formatPct(b.p)}, path ${formatPct(b.pathP)}` : formatPct(b.p);
+  return b.next ? `${value}, next ${formatEntropy(b.next.entropy)}` : value;
 }
 
 const WS: Record<string, string> = { ' ': '·', '\n': '↵', '\t': '⇥', '\u00a0': '⍽' };

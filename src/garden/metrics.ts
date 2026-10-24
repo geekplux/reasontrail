@@ -1,6 +1,6 @@
 /** Every size of the garden drawing, in px (docs/viz/garden.md §4). The only place these numbers live. */
 export const TOKEN_PX = 14; // token labels, all viewports (never scaled; mobile scrolls)
-export const VALUE_PX = 12.8; // value label, remainder label (--tg-text-sm)
+export const VALUE_PX = 12; // value label, remainder label (--text-12)
 export const GLYPH_EM = 0.6; // monospace advance: layout never measures text
 export const ROW = 40; // sibling pitch
 export const COUSIN_SEPARATION = 1.25; // in rows, between nodes with different parents
@@ -22,6 +22,6 @@ export const SELECTED_R = 9;
 export const VALUE_PAD_X = 6;
 export const VALUE_PAD_Y = 2;
 export const NOTE_H = 18; // a branch note (InlineNote): fits the gap between two rows' labels
-export const NOTE_PAD_X = 8; // a branch note's inline padding (--tg-space-2)
+export const NOTE_PAD_X = 8; // a branch note's inline padding (8px)
 export const DASH_FROM = 8; // dash patterns scale with stroke width above this, so thick dashes stay dashes
 export const LEGEND_P = [0.05, 0.25, 0.75] as const;

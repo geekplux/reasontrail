@@ -159,8 +159,8 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(`${baseURL}/`, { waitUntil: 'load' });
   await page.waitForSelector('[data-testid="map"][data-ready="true"]');
-  const motion = await page.evaluate(() => ({ dur: getComputedStyle(document.documentElement).getPropertyValue('--tg-dur-route').trim(), running: document.getAnimations().length }));
-  if (!/^0m?s$/.test(motion.dur) || motion.running > 0) fail(`reduced motion: --tg-dur-route ${motion.dur}, ${motion.running} animations`);
+  const motion = await page.evaluate(() => ({ dur: getComputedStyle(document.documentElement).getPropertyValue('--motion-ms').trim(), running: document.getAnimations().length }));
+  if (!/^0m?s$/.test(motion.dur) || motion.running > 0) fail(`reduced motion: --motion-ms ${motion.dur}, ${motion.running} animations`);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
 
   // DM26: mobile, vertical route, sticky destination bar, no sideways scroll; vertical keys.

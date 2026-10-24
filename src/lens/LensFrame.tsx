@@ -108,9 +108,9 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     const el = quote.current;
     const from = target.from;
     if (!el || !from || typeof el.animate !== 'function') return;
-    const ms = parseFloat(getComputedStyle(el).getPropertyValue('--tg-dur-lens')) || 0;
+    const ms = parseFloat(getComputedStyle(el).getPropertyValue('--motion-ms')) || 0;
     const to = el.getBoundingClientRect();
-    const easing = getComputedStyle(el).getPropertyValue('--tg-ease-out').trim() || 'cubic-bezier(0.2, 0, 0, 1)';
+    const easing = getComputedStyle(el).getPropertyValue('--motion-ease').trim() || 'ease-out';
     if (ms > 0) el.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)` }, { transform: 'none' }], { duration: ms, easing });
   }, [target]);
   useEffect(() => {
@@ -127,7 +127,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       <p className="lens-sentence-text">{target.sentence}</p>
       <figcaption className="mono muted">
         Step {target.stepId}
-        {target.where ? ` · ${target.where}` : ''}
+        {target.where ? `, ${target.where}` : ''}
       </figcaption>
     </LensHeader>
   );
@@ -160,7 +160,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     <div className="lens-bar">
       {live ? (
         <p id="lens-live" className="lens-live muted" tabIndex={-1}>
-          Live growth on · {modelLabel({ provider: '', name: provider!.model })} · {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep ·{' '}
+          Live growth on, {modelLabel({ provider: '', name: provider!.model })}, {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep,{' '}
           {provider!.callsLeft} of {LIVE_MAX_CALLS} live calls left in this tab
         </p>
       ) : rec ? null : (

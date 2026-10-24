@@ -200,7 +200,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
         viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
         width={box.width}
         height={box.height}
-        style={{ fontSize: M.TOKEN_PX, '--tg-step': `${stepMs}ms` } as CSSProperties}
+        style={{ fontSize: M.TOKEN_PX, '--step-ms': `${stepMs}ms` } as CSSProperties}
         data-walk={animate ? 'on' : undefined}
       >
         <circle className="seed" cx={0} cy={0} r={M.SEED_R} />
@@ -221,7 +221,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
               {drew ? <SampledLink key={walk} d={link} w={w} i={steps.size} dash={dash} /> : null}
               <text x={r.tipX + M.LABEL_DX} y={r.y} dominantBaseline="middle" fontSize={M.VALUE_PX}>
                 {remainderLabel(p)}
-                {drew ? ' · sampled' : ''}
+                {drew ? ', sampled' : ''}
               </text>
             </g>
           );

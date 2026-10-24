@@ -1,5 +1,4 @@
 /* Core elements shared by the app and the local viewer: page, focus, header, wordmark. Colours only via tokens.css. */
-@import './legacy.css';
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
@@ -33,38 +32,38 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   align-items: center;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--tg-space-4);
+  gap: 16px;
   min-height: 56px;
-  padding: 0 var(--tg-space-8);
-  border-bottom: var(--tg-hairline);
+  padding: 0 40px;
+  border-bottom: var(--hair-soft);
 }
-.brand { text-decoration: none; border-radius: var(--tg-radius); }
-.header-actions { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: flex-end; gap: var(--tg-space-2) var(--tg-space-5); }
-.share { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--tg-space-2); min-width: 0; }
-.share-button { border: 0; background: none; font: inherit; font-size: var(--tg-text-sm); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; cursor: pointer; }
-.share-status { font-size: var(--tg-text-sm); color: var(--tg-ink-muted); }
-.share-field { width: min(14rem, 100%); font: inherit; font-size: var(--tg-text-sm); color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
+.brand { text-decoration: none; border-radius: var(--radius-6); }
+.header-actions { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: flex-end; gap: 8px 24px; }
+.share { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.share-button { border: 0; background: none; font: inherit; font-size: var(--text-12); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; cursor: pointer; }
+.share-status { font-size: var(--text-12); color: var(--slate-11); }
+.share-field { width: min(14rem, 100%); font: inherit; font-size: var(--text-12); color: var(--slate-12); background: var(--slate-2); border: var(--hair); border-radius: var(--radius-6); }
 
 /* Inline notes (PLAN §3.6): a glyph names the kind, the text says it; colour only repeats it. */
-.inline-note { display: inline-flex; align-items: center; gap: var(--tg-space-2); margin: 0 0 var(--tg-space-2); padding: 2px var(--tg-space-2); font-size: var(--tg-text-sm); line-height: 16px; color: var(--tg-ink); background: var(--tg-surface); border: 1px solid var(--tg-ink-muted); border-radius: var(--tg-radius); }
-.inline-note-glyph { font-family: var(--tg-font-mono); font-weight: 500; color: var(--tg-ink-muted); }
+.inline-note { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 2px 8px; font-size: var(--text-12); line-height: 16px; color: var(--slate-12); background: var(--slate-2); border: var(--hair); border-radius: var(--radius-6); }
+.inline-note-glyph { font-family: var(--font-mono); font-weight: 500; color: var(--slate-11); }
 .inline-note-ring { display: block; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.inline-note[data-variant='error'] .inline-note-glyph { color: var(--tg-error); }
+.inline-note[data-variant='error'] .inline-note-glyph { color: var(--orange-11); }
 
 /* Header and footer links: muted ink, underlined, with a hit area at least 24 px tall. */
 .header-link, .footer-link {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  padding: var(--tg-space-1) var(--tg-space-2);
-  margin-inline: calc(-1 * var(--tg-space-2)); /* the padding widens the hit area, not the gap to the page edge */
-  border-radius: var(--tg-radius);
-  color: var(--tg-ink-muted);
+  padding: 4px 8px;
+  margin-inline: -8px; /* the padding widens the hit area, not the gap to the page edge */
+  border-radius: var(--radius-6);
+  color: var(--slate-11);
 }
-.header-link { font-size: var(--tg-text-sm); }
-/* The current page's header link (DESIGN §18.1): ink, with a 2 px underline. */
-.header-link[aria-current='page'] { color: var(--tg-ink); text-decoration-thickness: 2px; }
+.header-link { font-size: var(--text-12); }
+/* The current page's header link: ink and 500. */
+.header-link[aria-current='page'] { color: var(--slate-12); font-weight: 500; }
 /* Wordmark (v7 §3.4): the leaf at 20px, an 8px gap, "Reasontrail" in Geist 600 14px; the mark sits 1px left (optical). */
-.wordmark { display: inline-flex; align-items: center; gap: 8px; font: 600 var(--text-14) / 20px var(--font-sans); letter-spacing: -0.01em; color: var(--slate-12); }
+.wordmark { display: inline-flex; align-items: center; gap: 8px; font: 600 var(--text-14) / 21px var(--font-sans); letter-spacing: -0.01em; color: var(--slate-12); }
 .logo-mark { display: block; width: 20px; height: 20px; flex: none; }
 .wordmark .logo-mark { margin-left: -1px; }

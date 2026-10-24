@@ -201,7 +201,7 @@ function OpenLane({ open, word, lepProps }: { open: NonNullable<ViewProps['open'
   const eps = inner(open.L);
   return (
     <div className="lane-route" style={{ width: open.L.width }} data-lane-route={open.lane}>
-      <p className="mono lane-route-head" aria-hidden="true">{[open.name, word, eps.length === 1 ? '1 episode' : `${eps.length} episodes`, 'expanded below'].filter(Boolean).join(' · ')}</p>
+      <p className="mono lane-route-head" aria-hidden="true">{[open.name, word, eps.length === 1 ? '1 episode' : `${eps.length} episodes`, 'expanded below'].filter(Boolean).join(', ')}</p>
       <svg className="route-svg" width={open.L.width} height={96} aria-hidden="true" focusable="false">
         <rect className="lane-band" x={0} y={LANE_Y - 12} width={open.L.width} height={24} />
         {eps[0] && <path className="lane-route-line" d={`M${x(eps[0])} ${LANE_Y} H${x(eps[eps.length - 1] as RouteEpisode)}`} />}
@@ -267,7 +267,7 @@ function Horizontal({ L, ai, epProps, laneProps, blazeProps, foldProps, open, le
         {ai?.links}
         {L.fold && (
           <div className="map-item fold-chip mono" style={{ left: L.fold.x - 4, top: Y - 12 }} {...foldProps()}>
-            ··· {L.fold.episodes.length} episodes · {L.fold.steps} steps
+            … {L.fold.episodes.length} episodes, {L.fold.steps} steps
           </div>
         )}
         {L.lanes.map((l) => (
@@ -299,7 +299,7 @@ function Vertical({ L, ai, all, epProps, laneProps, blazeProps, foldProps, open,
   );
   all.forEach((r, i) => {
     if (L.fold && i === G.keepFirst) {
-      rows.push(<div key="fold" className="vrow"><div className="map-item vitem fold-chip mono" {...foldProps()}>··· {L.fold.episodes.length} episodes · {L.fold.steps} steps</div></div>);
+      rows.push(<div key="fold" className="vrow"><div className="map-item vitem fold-chip mono" {...foldProps()}>… {L.fold.episodes.length} episodes, {L.fold.steps} steps</div></div>);
     }
     const br = L.breaks.find((b) => b.before === r.episode.id);
     if (br) rows.push(<div key={`idle-${r.episode.id}`} className="vbreak mono" data-idle-ms={br.ms} aria-hidden="true"><span className="vslash" />{br.label}</div>);
@@ -346,7 +346,7 @@ function Vertical({ L, ai, all, epProps, laneProps, blazeProps, foldProps, open,
   return <div className="vroute">{rows}</div>;
 }
 
-/** Draw-in on the page's first map render only (DESIGN §11; a sample switch or Outline round trip does not replay it): route and lanes stroke in over --tg-dur-route, items fade in, all done by
+/** Draw-in on the page's first map render only (DESIGN §11; a sample switch or Outline round trip does not replay it): route and lanes stroke in over --motion-ms, items fade in, all done by
  * 400 ms. Web Animations with no fill, so the dash pattern exists only while it runs; nothing waits for it to end. */
 let drawn = false;
 function useDrawIn(ref: RefObject<HTMLDivElement | null>): void {
@@ -354,9 +354,9 @@ function useDrawIn(ref: RefObject<HTMLDivElement | null>): void {
     const root = ref.current;
     if (drawn || !root) return;
     drawn = true;
-    const ms = parseFloat(getComputedStyle(root).getPropertyValue('--tg-dur-route')) || 0;
+    const ms = parseFloat(getComputedStyle(root).getPropertyValue('--motion-ms')) || 0;
     if (ms <= 0 || typeof root.animate !== 'function') return;
-    const ease = getComputedStyle(root).getPropertyValue('--tg-ease-grow').trim() || 'ease-out';
+    const ease = getComputedStyle(root).getPropertyValue('--motion-ease').trim() || 'ease-out';
     root.querySelectorAll('.draw').forEach((p) => p.animate([{ strokeDasharray: '1 1', strokeDashoffset: 1 }, { strokeDasharray: '1 1', strokeDashoffset: 0 }], { duration: ms, easing: ease }));
     root.querySelectorAll('.map-item, .idle-label, .mark').forEach((el, i) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: Math.min(280, 120 + i * 6), fill: 'backwards' }));
   }, [ref]);

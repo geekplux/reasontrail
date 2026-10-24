@@ -13,6 +13,9 @@
   --orange-1: #fefcfb; --orange-2: #fff7ed; --orange-3: #ffefd6; --orange-4: #ffdfb5; --orange-5: #ffd19a; --orange-6: #ffc182;
   --orange-7: #f5ae73; --orange-8: #ec9455; --orange-9: #f76b15; --orange-10: #ef5f00; --orange-11: #cc4e00; --orange-12: #582d1d;
 
+  /* Marks and text on an orange-9 fill: slate-12 in light (5.52:1), slate-1 in dark (6.35:1). */
+  --on-orange-9: var(--slate-12);
+
   /* Type (§3.2): Geist and Geist Mono, self-hosted (fonts.css); four sizes only, tabular figures everywhere. */
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
@@ -30,8 +33,15 @@
   --radius-14: 14px;
   --radius-16: 16px;
 
-  /* Motion (§2 rule 7): colour and opacity only, zeroed under prefers-reduced-motion (base.css). */
-  --motion: 250ms ease-out;
+  /* Motion (§2 rule 7): colour and opacity only, 250ms ease-out; zeroed under prefers-reduced-motion (below, and
+     base.css for every transition). Script-driven motion reads --motion-ms and --motion-ease. */
+  --motion-ms: 250ms;
+  --motion-ease: ease-out;
+  --motion: var(--motion-ms) var(--motion-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion-ms: 0ms; }
 }
 
 /* Dark: the Radix dark scales (blue-9 and orange-9 are the same in both themes). */
@@ -43,5 +53,6 @@
     --blue-7: #205d9e; --blue-8: #2870bd; --blue-9: #0090ff; --blue-10: #3b9eff; --blue-11: #70b8ff; --blue-12: #c2e6ff;
     --orange-1: #17120e; --orange-2: #1e160f; --orange-3: #331e0b; --orange-4: #462100; --orange-5: #562800; --orange-6: #66350c;
     --orange-7: #7e451d; --orange-8: #a35829; --orange-9: #f76b15; --orange-10: #ff801f; --orange-11: #ffa057; --orange-12: #ffe0c2;
+    --on-orange-9: var(--slate-1);
   }
 }

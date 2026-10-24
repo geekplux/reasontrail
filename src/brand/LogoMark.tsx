@@ -11,13 +11,6 @@ export const LEAF = {
   veinWidth: 2.8,
 } as const;
 
-/** TEMPORARY: the pre-v7 trail mark, still drawn by the share card (src/share/exportCard.ts) until its restyle. */
-export const TRAIL_MARK = {
-  route: 'M4.5 20 H11 L19 12 H22',
-  spur: 'M11 20 H19.5',
-  bar: 'M21.5 16.5 V23.5',
-} as const;
-
 export function LogoMark({ className = 'logo-mark' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 64 64" aria-hidden="true" focusable="false">

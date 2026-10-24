@@ -212,7 +212,7 @@ function Garden({ view, lens, heading, announce, more }: { view: View; lens: Len
   useEffect(() => {
     const readout = document.querySelector<HTMLElement>('[data-role="readout"]');
     if (!readout || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(() => document.documentElement.style.setProperty('--tg-readout-h', `${readout.offsetHeight}px`));
+    const observer = new ResizeObserver(() => document.documentElement.style.setProperty('--readout-h', `${readout.offsetHeight}px`));
     observer.observe(readout);
     return () => observer.disconnect();
   }, []);
