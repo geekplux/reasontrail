@@ -31,7 +31,7 @@ describe('html', () => {
   it('fills both slots, keeps $ patterns literal, and refuses a template without slots', () => {
     const graph = { title: 'Cost $& and $1 <b>' } as never;
     const html = renderHtml('<title>__REASONTRAIL_TITLE__</title><script>__REASONTRAIL_DATA__</script>', { graph, meta: { version: '1' } });
-    expect(html).toContain('<title>Cost $&#38; and $1 &#60;b&#62; · Reasontrail</title>');
+    expect(html).toContain('<title>Cost $&#38; and $1 &#60;b&#62; – Reasontrail</title>');
     expect(() => renderHtml('<p></p>', { graph, meta: { version: '1' } })).toThrow(/slot/);
   });
 });
