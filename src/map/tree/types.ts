@@ -9,10 +9,17 @@ export interface Box { x0: number; y0: number; x1: number; y1: number }
 export interface TreeOptions {
   width: number;
   height: number;
-  /** Leonardo's constant: width = k·√(tool calls still ahead). 1.45 on desktop, 0.95 for the phone silhouette. */
+  /**
+   * Leonardo's constant: width = k·√(tool calls still ahead), in design units. 1.45 at every size: a box shorter than
+   * 520px draws the desktop tree scaled down (the canvas's phone tree is the 980 × 520 tree at 0.365), so it needs no
+   * thinner k. Override only on purpose.
+   */
   k?: number;
   /** Text labels (numbers, lane blocks, waits, root). Off for the phone silhouette. */
   labels?: boolean;
+  /** Zones (px) the tree and its text keep clear of, such as the legend; one touching the top or bottom edge pushes
+   * whatever lies under it inward. */
+  reserve?: Box[];
 }
 
 /** A filled part of the tree around its centreline. */
@@ -70,10 +77,11 @@ export interface TipMark { laneId: string; kind: 'answer' | 'end'; tone: Verdict
 export interface Block { laneId: string; box: Box; lines: Label[] }
 
 /** Dotted quadratic from a limb tip back to the trunk where the main agent resumed, ending in a hollow dot. */
-export interface HandBack { laneId: string; d: string; from: Pt; to: Pt }
+export interface HandBack { laneId: string; d: string; from: Pt; c: Pt; to: Pt }
 
 export interface HitTarget {
-  /** The episode or step id. */
+  /** The episode or step id. Episodes are hit on their branch and glyph, their number and an answer tip; steps on
+   * their twig and its leaf. */
   id: string;
   kind: 'episode' | 'step';
   episodeId: string;

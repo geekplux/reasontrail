@@ -4,21 +4,37 @@
 // scales the whole drawing down, like the canvas does.
 import type { SessionGraph } from '../../../shared/session/types';
 import { labelBox, placeLabels } from './labels';
+import { textWidth } from './text';
 import { treeModel, type EpisodeSrc, type PartSrc, type TwigSrc } from './model';
 import type { EpisodeMark, HandBack, HitTarget, PathPart, Pt, Ribbon, TipMark, TreeLayout, TreeOptions, Twig } from './types';
 
 const DESIGN_H = 520;
 const ROOT_R = 5.5;
+const GLYPH_R = 5.5;
 /** The smallest along-axis step per record (design units) before records are packed closer. */
 const MIN_UNIT = 1.2;
 const RISE = 96;
 /** The thickest the trunk gets before its root flare (design units). */
 const MAX_W = 16;
 const PAD = 4;
+/** How far (design units) a part's 2-unit tail may reach past the along-axis into the label room. */
+const TAIL = 12;
+/** The share of the height a one-lane tree grows to. */
+const FILL = 0.7;
+const N = 40;
 const rad = (d: number) => (d * Math.PI) / 180;
 const r1 = (v: number) => Math.round(v * 10) / 10;
-const fall = (u: number, b: number, d = 10) => Math.min(1, Math.max(0, (b + d - u) / d));
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const fall = (u: number, b: number, d = 10) => clamp((b + d - u) / d, 0, 1);
 const angleOf = (a: Pt, b: Pt) => Math.atan2(b.y - a.y, b.x - a.x);
+const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
+const segDist = (p: Pt, a: Pt, b: Pt) => {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const l = dx * dx + dy * dy;
+  const s = l ? clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / l, 0, 1) : 0;
+  return Math.hypot(p.x - a.x - s * dx, p.y - a.y - s * dy);
+};
 
 /** A filled ribbon around a centreline with the given full widths (tree.mjs `ribbon()`). */
 export function ribbonPath(pts: readonly Pt[], widths: readonly number[]): string {
@@ -38,16 +54,40 @@ export function ribbonPath(pts: readonly Pt[], widths: readonly number[]): strin
 }
 
 interface Line { pts: (Pt & { h?: number })[]; widths: number[] }
-/** The point of a centreline at along-position `u`, its index and heading. */
+type Part = Pick<Ribbon, 'id' | 'kind' | 'laneId' | 'episodeId'> & { line: Line };
+type TwigD = Omit<Twig, 'scale'> & { s: number };
+/** An episode's branch as grown: its ribbon, twigs, glyph position and the heading at its tip. */
+interface Branch { e: EpisodeSrc; side: number; laneId: string; parent: Line; base: PathPart[]; len: number; part: Part; twigs: TwigD[]; at: Pt; h: number; steps: Record<string, PathPart[]> }
+
+/** The point of a centreline at along-position `u` (the first at or past it, else the last), its index and heading. */
 function pointAt(line: Line, u: number) {
-  const i = Math.max(1, line.pts.findIndex((p) => p.x >= u));
-  const p = (line.pts[i] ?? line.pts.at(-1)) as Pt;
-  const q = line.pts[Math.min(i, line.pts.length - 1) - 1] ?? p;
-  return { x: p.x, y: p.y, a: angleOf(q, p), i: line.pts[i] ? i : line.pts.length - 1 };
+  const k = line.pts.findIndex((p) => p.x >= u);
+  const i = Math.min(line.pts.length - 1, k < 0 ? line.pts.length - 1 : Math.max(1, k));
+  const p = line.pts[i] as Pt;
+  const q = line.pts[i - 1] ?? p;
+  return { x: p.x, y: p.y, a: angleOf(q, p), i };
+}
+/** The centreline interpolated at along-position `u`, with its heading. */
+function lerpAt(line: Line, u: number): Pt & { h: number } {
+  const k = clamp(line.pts.findIndex((p) => p.x >= u), 1, line.pts.length - 1);
+  const a = line.pts[k - 1] ?? (line.pts[0] as Pt);
+  const b = line.pts[k] ?? a;
+  const t = b.x > a.x ? clamp((u - a.x) / (b.x - a.x), 0, 1) : 1;
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, h: angleOf(a, b) };
+}
+/** Does a circle at `c` with radius `r` touch the ribbon (centreline segments, widened by their half widths)? */
+function touches(line: Line, c: Pt, r: number): boolean {
+  const { pts, widths } = line;
+  if (pts.length === 1) return dist(c, pts[0] as Pt) < r + (widths[0] ?? 0) / 2;
+  for (let i = 1; i < pts.length; i++) if (segDist(c, pts[i - 1] as Pt, pts[i] as Pt) < r + Math.max(widths[i - 1] ?? 0, widths[i] ?? 0) / 2) return true;
+  return false;
 }
 
+const EMPTY = (width: number, height: number): TreeLayout => ({ width, height, ribbons: [], twigs: [], episodes: [], tips: [], handBacks: [], root: { at: { x: 0, y: 0 }, r: 0 }, blocks: [], labels: [], hits: [], paths: {} });
+
 export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
-  const { width, height, k = 1.45, labels = true } = opts;
+  const { width, height, k = 1.45, labels = true, reserve = [] } = opts;
+  if (!(width > 0) || !(height > 0)) return EMPTY(width, height);
   const z = Math.min(1, height / DESIGN_H);
   const W = width / z;
   const H = height / z;
@@ -56,19 +96,27 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   // Room on the right for the tip's text block (about 210px on the canvas).
   const blockW = Math.max(0, ...m.trunk.block.map((l) => labelBox({ key: '', x: 0, y: 0, anchor: 'start', ...l }).x1));
   // As tree.mjs: 28 units on the left (root, flare), the label room on the right.
-  const along = W - 28 - (labels ? Math.max(210, blockW + 26) / z : 48);
-  // Along-axis: one unit per record, +9 after a spawn, +4 on return to main; packed closer below MIN_UNIT.
+  const along = Math.max(1, W - 28 - (labels ? Math.max(210, blockW + 26) / z : 48));
+  // Along-axis: one unit per record, +9 after a spawn, +4 on return to main, packed closer below MIN_UNIT. Each part
+  // ends 2 units after its last record; that tail may reach TAIL units into the label room (one unit of it on the
+  // canvas), so a short session with huge units still ends inside the box.
+  const uMax = U0 + along + TAIL;
   const gaps = m.records.reduce((a, r) => a + r.gap, 0);
   const n = Math.max(1, m.records.length);
-  let w = 1;
-  let unit = along / (gaps + n);
-  if (unit < MIN_UNIT) {
-    w = Math.max(0.15, (along / MIN_UNIT - gaps) / n);
-    unit = along / (gaps + n * w);
-  }
+  let unit = 1;
   const U = new Map<number, number>();
-  let acc = 0;
-  m.records.forEach((r, i) => { acc += r.gap + (i ? w : 0); U.set(r.seq, U0 + acc * unit); });
+  /** Lays the records along `a` units. */
+  const axis = (a: number) => {
+    let w = 1;
+    unit = Math.min(a / (gaps + n), (a + TAIL) / (gaps + n + 1));
+    if (unit < MIN_UNIT) {
+      w = Math.max(0.15, (a / MIN_UNIT - gaps - 2) / n);
+      unit = a / (gaps + n * w + 2);
+    }
+    let acc = 0;
+    m.records.forEach((r, i) => { acc += r.gap + (i ? w : 0); U.set(r.seq, U0 + acc * unit); });
+  };
+  axis(along);
   const uOf = (seq: number) => U.get(seq) ?? U0;
   const callsOf = (twigs: TwigSrc[]) => twigs.filter((t) => t.kind !== 'thinking').length;
   const partCalls = (p: PartSrc) => p.episodes.reduce((a, e) => a + e.calls, 0) + callsOf(p.twigs);
@@ -77,9 +125,30 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   const kk = Math.min(k, MAX_W / Math.sqrt(total));
   const W0 = (c: number) => kk * Math.sqrt(Math.max(c, 1));
   const ahead = (p: PartSrc, u: number) => p.episodes.reduce((a, e) => a + e.calls * fall(u, uOf(e.first)), 0) + p.twigs.reduce((a, t) => a + (t.kind === 'thinking' ? 0 : fall(u, uOf(t.seq))), 0);
+  const noLimbs = m.limbs.length === 0;
+  // A side stacks its limbs (decreasing amplitude) when there are more than four limbs or two limbs on it run at once.
+  const sideOf = (i: number) => (i % 2 === 0 ? -1 : 1);
+  const overlap = (a: PartSrc, b: PartSrc) => a.from <= b.last && b.from <= a.last;
+  const stacked = [0, 1].map((s) => m.limbs.length > 4 || m.limbs.some((a, i) => i % 2 === s && m.limbs.some((b, j) => j > i && j % 2 === s && overlap(a, b))));
 
   let vs = 1;
+  let gs = 1;
   let out = grow();
+  // One lane: no limbs fill the height, so the branches grow longer (up to 2×) until the tree, with its labels, uses
+  // about FILL of it (only the branches scale, so a few passes converge on it).
+  for (let i = 0; i < (noLimbs ? 3 : 0); i++) {
+    const [top, bottom] = out.extent;
+    const next = clamp((gs * FILL * (H - 2 * PAD)) / Math.max(1, bottom - top), 1, 2);
+    if (Math.abs(next - gs) < 0.02) break;
+    gs = next;
+    out = grow();
+  }
+  // One lane: a branch shortened to end before the trunk's tip makes the records pack closer, to give it the room.
+  for (let i = 0, a = along; i < (noLimbs ? 2 : 0) && out.short > 1; i++) {
+    a = Math.max(1, a - out.short);
+    axis(a);
+    out = grow();
+  }
   for (let i = 0; i < 4; i++) {
     const [top, bottom] = out.extent;
     if (bottom - top <= H - 2 * PAD) break;
@@ -87,164 +156,293 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
     out = grow();
   }
   const [top, bottom] = out.extent;
-  // Spare height splits about 1:2 above:below, so the tree sits a little high in its box, as on the canvas.
-  const MID = PAD - top + Math.max(0, H - 2 * PAD - (bottom - top)) * 0.35;
+  // Spare height splits about 1:2 above:below with limbs, so the tree sits a little high in its box as on the canvas
+  // (0.38 puts verify-fail-fix's trunk line on the canvas's y 300); evenly for one lane.
+  const MID = PAD - top + Math.max(0, H - 2 * PAD - (bottom - top)) * (noLimbs ? 0.5 : 0.38);
   const S = (p: Pt): Pt => ({ x: r1(p.x * z), y: r1((MID + p.y) * z) });
   const ribbons: Ribbon[] = out.parts.map((p) => {
     const line = p.line.pts.map(S);
     const widths = p.line.widths.map((x) => r1(x * z));
     return { id: p.id, kind: p.kind, laneId: p.laneId, ...(p.episodeId ? { episodeId: p.episodeId } : {}), d: ribbonPath(line, widths), line, widths };
   });
-  const twigs: Twig[] = out.twigs.map((t) => ({ ...t, base: S(t.base), tip: S(t.tip), scale: r1(z * 100) / 100 }));
+  const twigs: Twig[] = out.twigs.map(({ s, ...t }) => ({ ...t, base: S(t.base), tip: S(t.tip), scale: Math.round(z * s * 100) / 100 }));
   const episodes: EpisodeMark[] = out.episodes.map((e) => ({ ...e, at: S(e.at), r: r1(e.r * z) }));
   const tips: TipMark[] = out.tips.map((t) => ({ ...t, at: S(t.at), r: r1(t.r * z) }));
   const handBacks: HandBack[] = out.handBacks.map((b) => {
     const [from, c, to] = [S(b.from), S(b.c), S(b.to)];
-    return { laneId: b.laneId, d: `M${from.x} ${from.y}Q${c.x} ${c.y} ${to.x} ${to.y}`, from, to };
+    return { laneId: b.laneId, d: `M${from.x} ${from.y}Q${c.x} ${c.y} ${to.x} ${to.y}`, from, c, to };
   });
   const root = { at: S({ x: ROOT_R, y: 0 }), r: r1(ROOT_R * z) };
+  const waits = out.waits.map((x) => {
+    const at = S({ x: x.x, y: x.edge });
+    return { laneId: x.laneId, text: x.text, x: at.x, above: r1(at.y - 2), below: r1(root.at.y + 24), preferBelow: x.below };
+  });
+  const input = { width, height, ribbons, twigs, episodes, tips, handBacks, root, rootAt: m.rootAt, waits, headings: out.headings, reserve, blocks: [m.trunk, ...m.limbs].map((p) => ({ laneId: p.tipLane, lines: p.block })) };
+  let text = labels ? placeLabels(input) : { labels: [], blocks: [], stuck: [] };
+  // A lane block that found no free spot goes before the numbers on a second pass (they have more places to go).
+  if (text.stuck.length) text = placeLabels(input, new Set(text.stuck));
   const byPart = new Map(ribbons.map((r) => [r.id, r]));
+  const episodeHit = (id: string, points: Pt[]): HitTarget => ({ id, kind: 'episode', episodeId: id, points });
   const hits: HitTarget[] = [
-    ...episodes.map((e) => ({ id: e.episodeId, kind: 'episode' as const, episodeId: e.episodeId, points: [...(byPart.get(`branch:${e.episodeId}`)?.line ?? []), e.at] })),
-    ...twigs.map((t) => ({ id: t.stepId, kind: 'step' as const, episodeId: t.episodeId, points: [t.base, t.tip] })),
+    ...episodes.map((e) => episodeHit(e.episodeId, [...(byPart.get(`branch:${e.episodeId}`)?.line ?? []), e.at])),
+    ...tips.flatMap((t) => (t.episodeId ? [episodeHit(t.episodeId, [t.at])] : [])),
+    ...text.labels.filter((l) => l.key.startsWith('num:')).map((l) => episodeHit(l.key.slice(4), [{ x: l.x, y: r1(l.y - 4) }])),
+    ...twigs.map((t) => {
+      const a = rad(t.angle);
+      const far = { x: r1(t.tip.x + 11 * t.scale * Math.cos(a)), y: r1(t.tip.y + 11 * t.scale * Math.sin(a)) };
+      return { id: t.stepId, kind: 'step' as const, episodeId: t.episodeId, points: t.mark === 'leaf' ? [t.base, t.tip, far] : [t.base, t.tip] };
+    }),
   ];
-  const text = labels ? placeLabels({ width, height, ribbons, twigs, episodes, tips, root, rootAt: m.rootAt, waits: out.waits.map((x) => ({ ...x, at: S(x.at) })), headings: out.headings, blocks: [m.trunk, ...m.limbs].map((p) => ({ laneId: p.tipLane, lines: p.block })) }) : { labels: [], blocks: [] };
   return { width, height, ribbons, twigs, episodes, tips, handBacks, root, blocks: text.blocks, labels: text.labels, hits, paths: out.paths };
 
   /** Every part's centreline, widths, twigs and marks in design units around a trunk at v = 0. */
   function grow() {
-    const parts: (Pick<Ribbon, 'id' | 'kind' | 'laneId' | 'episodeId'> & { line: Line })[] = [];
-    const tw: Omit<Twig, 'scale'>[] = [];
-    const eps: EpisodeMark[] = [];
-    const tps: TipMark[] = [];
-    const backs: { laneId: string; from: Pt; c: Pt; to: Pt }[] = [];
-    const waits: { laneId: string; text: string; at: Pt; below: boolean }[] = [];
-    const headings: Record<string, number> = {};
+    const groups: { part: Part; branches: Branch[]; twigs: TwigD[]; src: PartSrc; side: number; to: (u: number) => PathPart[]; at: (x: number) => { pt: Pt; w: number } }[] = [];
     const paths: Record<string, PathPart[]> = {};
-    const branchLen = (e: EpisodeSrc) => Math.min(Math.max(22, (uOf(e.last) - uOf(e.first) + unit) * 1.55), 150 * vs);
-    // The trunk's tip stays clear of a short last branch (its glyph would sit on the tip mark).
-    const tipU = (p: PartSrc) => Math.max(uOf(p.last) + 2 * unit, ...(p === m.trunk ? p.episodes.slice(-1).filter((e) => branchLen(e) < 40).map((e) => uOf(e.first) + branchLen(e) + 16) : []));
-    const trunkEnd = Math.max(tipU(m.trunk), ...m.limbs.map((l) => uOf(l.from) + 2 * unit));
+    const branchLen = (e: EpisodeSrc) => Math.min(Math.max(22, (uOf(e.last) - uOf(e.first) + unit) * 1.55 * gs), 150 * gs * vs);
+    // One lane: the trunk runs on past its last branch.
+    const lastEp = noLimbs ? m.trunk.episodes.at(-1) : undefined;
+    const trunkEnd = Math.min(uMax, Math.max(uOf(m.trunk.last) + 2 * unit, lastEp ? uOf(lastEp.first) + branchLen(lastEp) * 0.9 + 16 : 0));
+    let short = 0;
     const arch = (u: number) => -10 * vs * Math.sin((Math.PI * 0.9 * Math.max(0, u - U0)) / Math.max(1, trunkEnd - U0));
     const trunkCalls = (u: number) => m.limbs.reduce((a, l) => a + (partCalls(l) + 1) * fall(u, uOf(l.from)), 0) + ahead(m.trunk, u);
-    const trunk: Line = { pts: [], widths: [] };
-    for (let u = ROOT_R; u < trunkEnd + 2; u += 2) {
-      const x = Math.min(u, trunkEnd);
-      trunk.pts.push({ x, y: arch(x) });
-      trunk.widths.push(W0(trunkCalls(x)) + 10 * Math.exp(-(x - ROOT_R) / 16));
-    }
-    parts.push({ id: 'trunk', kind: 'trunk', laneId: m.trunk.laneId, line: trunk });
+    const trunkAt = (x: number) => ({ pt: { x, y: arch(x) }, w: W0(trunkCalls(x)) + 10 * Math.exp(-(x - ROOT_R) / 16) });
+    const trunk = line(ROOT_R, trunkEnd, trunkAt);
     const trunkTo = (u: number): PathPart[] => [{ part: 'trunk', to: pointAt(trunk, u).i }];
-    grown(m.trunk, trunk, -1, trunkTo);
-    // Limbs: first up, then down, alternating; more than four stack per side with decreasing amplitude.
+    groups.push({ part: { id: 'trunk', kind: 'trunk', laneId: m.trunk.laneId, line: trunk }, branches: [], twigs: [], src: m.trunk, side: -1, to: trunkTo, at: trunkAt });
+    // Limbs: first up, then down, alternating; a stacked side lowers the amplitude of each later limb.
     const perSide = [0, 0];
     m.limbs.forEach((l, i) => {
-      const side = i % 2 === 0 ? -1 : 1;
+      const side = sideOf(i);
       const j = perSide[i % 2] ?? 0;
       perSide[i % 2] = j + 1;
       const nSide = Math.ceil((m.limbs.length - (i % 2)) / 2);
-      const amp = (side < 0 ? 128 : 112) * vs * (m.limbs.length > 4 ? 1 - (0.5 * j) / Math.max(1, nSide - 1) : 1);
+      const full = (side < 0 ? 128 : 112) * vs;
+      const amp = full * (stacked[i % 2] && nSide > 1 ? 1 - (0.5 * j) / (nSide - 1) : 1);
       const uF = uOf(l.from);
-      const uE = Math.max(tipU(l), uF + 4);
+      const uE = Math.min(uMax, Math.max(uOf(l.last) + 2 * unit, uF + 4));
       const v0 = arch(uF);
-      const line: Line = { pts: [], widths: [] };
-      for (let u = uF; u < uE + 2; u += 2) {
-        const x = Math.min(u, uE);
+      const limbAt = (x: number) => {
         const t = (x - uF) / RISE;
         const t2 = Math.max(0, (x - uF - RISE) / Math.max(1, uE - uF - RISE));
-        const v = t < 1 ? amp * (1 - (1 - t) ** 2.1) : amp + 34 * (amp / 128) * Math.sin(t2 * Math.PI * 0.62);
-        line.pts.push({ x, y: side * v + v0 * Math.max(0, 1 - (x - uF) / 120) });
-        line.widths.push(W0(ahead(l, x)));
-      }
-      parts.push({ id: `limb:${l.laneId}`, kind: 'limb', laneId: l.laneId, line });
-      const limbTo = (u: number): PathPart[] => [...trunkTo(uF), { part: `limb:${l.laneId}`, to: pointAt(line, u).i }];
-      const tip = grown(l, line, side, limbTo);
-      if (l.resume !== undefined) {
-        const to = pointAt(trunk, uOf(l.resume));
-        const from = { x: tip.x, y: tip.y - side * 10 };
-        backs.push({ laneId: l.laneId, from, c: { x: to.x, y: from.y }, to });
-        if (l.wait) waits.push({ laneId: l.laneId, text: waits.length ? l.wait : `Main agent waits, ${l.wait}`, at: pointAt(trunk, (uF + to.x) / 2), below: side < 0 });
-      }
+        // The swing after the rise is 34 at full amplitude and shrinks with stacking.
+        const v = t < 1 ? amp * (1 - (1 - t) ** 2.1) : amp + 34 * (amp / full) * vs * Math.sin(t2 * Math.PI * 0.62);
+        return { pt: { x, y: side * v + v0 * Math.max(0, 1 - (x - uF) / 120) }, w: W0(ahead(l, x)) };
+      };
+      const ln = line(uF, Math.max(uE, uF + 0.5), limbAt);
+      const id = `limb:${l.laneId}`;
+      groups.push({ part: { id, kind: 'limb', laneId: l.laneId, line: ln }, branches: [], twigs: [], src: l, side, to: (u) => [...trunkTo(uF), { part: id, to: pointAt(ln, u).i }], at: limbAt });
     });
+    for (const gr of groups) grown(gr);
+    const branches = groups.flatMap((gr) => gr.branches);
+    const allTwigs = () => groups.flatMap((gr) => [...gr.branches.flatMap((b) => b.twigs), ...gr.twigs]);
+    // Each part's end grows (2 units at a time, up to the along-axis end) until its tip clears the glyphs on it.
+    for (const gr of groups) {
+      const tipR = gr.src.tip.kind === 'answer' ? 7 : 2.5;
+      const ln = gr.part.line;
+      const keep = ln.pts.length;
+      const clear = () => gr.branches.every((b) => dist(b.at, ln.pts.at(-1) as Pt) >= tipR + GLYPH_R + 6);
+      while (!clear() && (ln.pts.at(-1) as Pt).x + 2 <= uMax) push(ln, gr.at((ln.pts.at(-1) as Pt).x + 2));
+      if (!clear()) { ln.pts.length = keep; ln.widths.length = keep; }
+    }
+    // A glyph that lands on another ribbon, glyph, tip or ✕ (or whose branch runs over another glyph) grows its branch
+    // 4 units at a time, at most 40; failing that, the branch tries the other side (up to 60 longer there), then shorter.
+    const tipPts = groups.map((gr) => ({ at: gr.part.line.pts.at(-1) as Pt, r: gr.src.tip.kind === 'answer' ? 7 : 2.5 }));
+    const clash = (b: Branch) => {
+      let c = 0;
+      const xs = allTwigs().filter((t) => t.mark === 'x');
+      for (const gr of groups) {
+        if (touches(gr.part.line, b.at, GLYPH_R + 2.5)) c++;
+        for (const o of gr.branches) {
+          if (o === b) continue;
+          if (touches(o.part.line, b.at, GLYPH_R + 2.5) || touches(b.part.line, o.at, GLYPH_R + 2.5)) c++;
+          if (dist(o.at, b.at) < 2 * (GLYPH_R + 2.5)) c++;
+          for (const t of b.twigs) if (t.mark === 'x' && dist(t.tip, o.at) < GLYPH_R + 6) c++;
+        }
+      }
+      for (const t of tipPts) if (dist(t.at, b.at) < t.r + GLYPH_R + 6) c++;
+      for (const t of xs) if (!b.twigs.includes(t) && dist(t.tip, b.at) < GLYPH_R + 6) c++;
+      return c;
+    };
+    for (const b of branches) {
+      if (clash(b) === 0) continue;
+      const len0 = b.len;
+      const side0 = b.side;
+      let best = { len: len0, side: side0, c: clash(b) };
+      // Longer, then on the other side, then (last) shorter, down to 12 units.
+      const longer = Array.from({ length: 10 }, (_, i) => 4 * (i + 1));
+      const other = Array.from({ length: 16 }, (_, i) => 4 * i);
+      const shorter = Array.from({ length: Math.max(0, Math.floor((len0 - 12) / 4)) }, (_, i) => -4 * (i + 1));
+      const tries: [number, number][] = [...longer.map((d): [number, number] => [side0, d]), ...other.map((d): [number, number] => [-side0, d]), ...shorter.flatMap((d): [number, number][] => [[side0, d], [-side0, d]])];
+      for (const [side, d] of tries) {
+        if (best.c === 0) break;
+        b.side = side;
+        build(b, len0 + d);
+        const c = clash(b);
+        if (c < best.c) best = { len: len0 + d, side, c };
+      }
+      b.side = best.side;
+      build(b, best.len);
+    }
+    // Tips, hand-backs and waits.
+    const tps: TipMark[] = [];
+    const backs: { laneId: string; from: Pt; c: Pt; to: Pt }[] = [];
+    const waitSrc: { laneId: string; text: string; x: number; edge: number; below: boolean }[] = [];
+    for (const gr of groups) {
+      const p = gr.src;
+      const tip = gr.part.line.pts.at(-1) as Pt;
+      tps.push({ laneId: p.tipLane, kind: p.tip.kind, tone: p.tip.tone, at: { x: tip.x, y: tip.y }, r: p.tip.kind === 'answer' ? 7 : 2.5, ...(p.tip.episodeId ? { episodeId: p.tip.episodeId } : {}) });
+      if (p.tip.episodeId) paths[p.tip.episodeId] = gr.to(Infinity);
+      if (p === m.trunk || p.resume === undefined) continue;
+      const to = pointAt(trunk, uOf(p.resume));
+      const from = { x: tip.x, y: tip.y - gr.side * 10 };
+      backs.push({ laneId: p.laneId, from, c: { x: to.x, y: from.y }, to: { x: to.x, y: to.y } });
+      if (p.wait) {
+        // "Below" hangs from the flat baseline (tree.mjs `proj({u, v: 0})`); "above" sits on the trunk's upper edge
+        // under the text.
+        const x = pointAt(trunk, (uOf(p.from) + to.x) / 2).x;
+        const say = waitSrc.length ? p.wait : `Main agent waits, ${p.wait}`;
+        const half = (textWidth(say, 12, 400) / 2 + 2) / z;
+        let edge = Infinity;
+        trunk.pts.forEach((q, i) => { if (Math.abs(q.x - x) <= half) edge = Math.min(edge, q.y - (trunk.widths[i] ?? 0) / 2); });
+        waitSrc.push({ laneId: p.laneId, text: say, x, edge: Number.isFinite(edge) ? edge : 0, below: gr.side < 0 });
+      }
+    }
+    const parts = groups.flatMap((gr) => [gr.part, ...gr.branches.map((b) => b.part)]);
+    const tw = groups.flatMap((gr) => [...gr.branches.flatMap((b) => b.twigs), ...gr.twigs]);
+    const eps: EpisodeMark[] = branches.map((b) => ({ episodeId: b.e.id, laneId: b.laneId, n: b.e.n, kind: b.e.glyph, at: b.at, r: GLYPH_R }));
+    const headings: Record<string, number> = {};
+    for (const b of branches) {
+      headings[b.e.id] = b.h;
+      paths[b.e.id] = [...b.base, { part: b.part.id, to: N }];
+      Object.assign(paths, b.steps);
+    }
+
+    // The vertical extent, with label room: a number reaches about 18px from its glyph; a block runs from 24px above
+    // its tip to 38px below. A reserved zone on the top or bottom edge pushes whatever lies under it inward.
+    const rz = reserve.map((b) => ({ x0: b.x0 / z, x1: b.x1 / z, top: b.y0 <= 0 ? b.y1 / z : 0, bottom: b.y1 >= height ? (height - b.y0) / z : 0 }));
     let lo = Infinity;
     let hi = -Infinity;
-    const span = (y: number, r: number) => { lo = Math.min(lo, y - r); hi = Math.max(hi, y + r); };
-    for (const p of parts) p.line.pts.forEach((q, i) => span(q.y, (p.line.widths[i] ?? 0) / 2));
-    for (const t of tw) span(t.tip.y, 6);
-    // With labels: a number reaches about 18px from its glyph; a block runs from 24px above its tip to 38px below.
-    for (const e of eps) span(e.at.y, labels ? 18 / z : e.r + 2.5);
+    const span = (y: number, r: number, x0: number, x1 = x0) => {
+      let up = 0;
+      let down = 0;
+      for (const b of rz) if (x0 < b.x1 && b.x0 < x1) { up = Math.max(up, b.top); down = Math.max(down, b.bottom); }
+      lo = Math.min(lo, y - r - up);
+      hi = Math.max(hi, y + r + down);
+    };
+    for (const p of parts) p.line.pts.forEach((q, i) => { const r = (p.line.widths[i] ?? 0) / 2; span(q.y, r, q.x - r, q.x + r); });
+    for (const t of tw) span(t.tip.y, 6, t.tip.x - 12, t.tip.x + 12);
+    for (const e of eps) span(e.at.y, labels ? 18 / z : e.r + 2.5, e.at.x - 18 / z, e.at.x + 18 / z);
     for (const t of tps) {
-      span(t.at.y, t.r + 3);
-      if (labels) { span(t.at.y - 24 / z, 0); span(t.at.y + 38 / z, 0); }
+      span(t.at.y, t.r + 3, t.at.x - t.r - 3, t.at.x + t.r + 3);
+      if (labels) { span(t.at.y - 24 / z, 0, t.at.x, t.at.x + 220 / z); span(t.at.y + 38 / z, 0, t.at.x, t.at.x + 220 / z); }
     }
-    if (labels) span(46 / z, 0);
-    return { parts, twigs: tw, episodes: eps, tips: tps, handBacks: backs, waits, headings, paths, extent: [lo, hi] as const };
+    if (labels) span(46 / z, 0, 0, 60 / z);
+    return { parts, twigs: tw, episodes: eps, tips: tps, handBacks: backs, waits: waitSrc, headings, paths, extent: [lo, hi] as const, short };
 
-    /** A part's branches, its own tw and its tip; returns the tip. */
-    function grown(p: PartSrc, parent: Line, side: number, to: (u: number) => PathPart[]): Pt {
-      // Alternate sides; on the trunk, a branch that would grow into a limb spawned beside it takes the other side.
-      let next = -side;
+    function line(from: number, to: number, at: (x: number) => { pt: Pt; w: number }): Line {
+      const ln: Line = { pts: [], widths: [] };
+      for (let u = from; u < to + 2; u += 2) push(ln, at(Math.min(u, to)));
+      return ln;
+    }
+    function push(ln: Line, q: { pt: Pt; w: number }) {
+      ln.pts.push(q.pt);
+      ln.widths.push(q.w);
+    }
+    /** A part's branches (alternating sides) and its own twigs. */
+    function grown(gr: (typeof groups)[number]) {
+      const p = gr.src;
+      // On the trunk, a branch that would grow into a limb spawned beside it takes the other side.
+      let next = -gr.side;
       for (const e of p.episodes) {
         const u0 = uOf(e.first);
-        const near = (s: number) => p === m.trunk && m.limbs.some((l, i) => (i % 2 === 0 ? -1 : 1) === s && uOf(l.from) > u0 - 16 && uOf(l.from) < u0 + branchLen(e) * 0.8);
+        const near = (s: number) => p === m.trunk && m.limbs.some((l, i) => sideOf(i) === s && uOf(l.from) > u0 - 16 && uOf(l.from) < u0 + branchLen(e) * 0.8);
         const s = near(next) && !near(-next) ? -next : next;
-        branch(e, s, p.laneId, parent, to);
+        const b = { e, side: s, laneId: p.laneId, parent: gr.part.line, base: gr.to(u0) } as Branch;
+        build(b, branchLen(e));
+        gr.branches.push(b);
         next = -s;
       }
-      twigsOn(p.twigs, parent, p.id, (t) => to(uOf(t.seq)));
-      const tip = parent.pts.at(-1) as Pt;
-      tps.push({ laneId: p.tipLane, kind: p.tip.kind, tone: p.tip.tone, at: tip, r: p.tip.kind === 'answer' ? 7 : 2.5, ...(p.tip.episodeId ? { episodeId: p.tip.episodeId } : {}) });
-      if (p.tip.episodeId) paths[p.tip.episodeId] = to(Infinity);
-      return tip;
+      let side = 1;
+      for (const t of p.twigs) {
+        side = -side;
+        gr.twigs.push(twig(t, lerpAt(gr.part.line, uOf(t.seq)), side, gr.part.id, 1));
+        paths[t.stepId] = gr.to(uOf(t.seq));
+      }
     }
     /** An episode's branch: heading ±58° bending to ±10°, pulled 16% toward vertical-up; width by its calls ahead. */
-    function branch(e: EpisodeSrc, s: number, laneId: string, parent: Line, to: (u: number) => PathPart[]) {
+    function build(b: Branch, len0: number) {
+      const { e, side: s, parent } = b;
       const u0 = uOf(e.first);
-      const b = pointAt(parent, u0);
+      const at = pointAt(parent, u0);
       const slot = uOf(e.last) - u0 + unit;
-      const len = branchLen(e);
-      const N = 40;
-      const h0 = b.a + s * rad(58);
-      const h1 = b.a + s * rad(10) + (rad(-90) - (b.a + s * rad(10))) * 0.16;
-      const pts: (Pt & { h: number })[] = [{ x: b.x, y: b.y, h: h0 }];
-      for (let j = 1; j <= N; j++) {
-        const h = h0 + (h1 - h0) * (j / N);
-        const q = pts[j - 1] as Pt;
-        pts.push({ x: q.x + (len / N) * Math.cos(h), y: q.y + (len / N) * Math.sin(h), h });
+      const h0 = at.a + s * rad(58);
+      const h1 = at.a + s * rad(10) + (rad(-90) - (at.a + s * rad(10))) * 0.16;
+      const shape = (len: number) => {
+        const pts: (Pt & { h: number })[] = [{ x: at.x, y: at.y, h: h0 }];
+        for (let j = 1; j <= N; j++) {
+          const h = h0 + (h1 - h0) * (j / N);
+          const q = pts[j - 1] as Pt;
+          pts.push({ x: q.x + (len / N) * Math.cos(h), y: q.y + (len / N) * Math.sin(h), h });
+        }
+        return pts;
+      };
+      let len = len0;
+      let pts = shape(len);
+      // One lane: a branch's glyph stays 12 units short of the trunk's end.
+      const dx = (pts[N] as Pt).x - at.x;
+      if (noLimbs && dx > 0 && at.x + dx > trunkEnd - 12) {
+        short = Math.max(short, at.x + dx - (trunkEnd - 12));
+        len *= Math.max(0.2, (trunkEnd - 12 - at.x) / dx);
+        pts = shape(len);
       }
-      const fOf = (t: TwigSrc) => ((uOf(t.seq) - u0 + 0.6 * unit) / slot) * 0.92;
+      const fOf = (t: TwigSrc) => clamp(((uOf(t.seq) - u0 + 0.6 * unit) / slot) * 0.92, 0, 1);
       const calls = e.twigs.filter((t) => t.kind !== 'thinking').map(fOf);
-      const line: Line = { pts, widths: pts.map((_, i) => W0(calls.filter((f) => f >= i / N - 0.02).length)) };
       const id = `branch:${e.id}`;
-      parts.push({ id, kind: 'branch', laneId, episodeId: e.id, line });
-      const base = to(u0);
-      paths[e.id] = [...base, { part: id, to: N }];
-      let side = 1;
-      for (const t of e.twigs) {
-        const i = Math.min(N, Math.round(fOf(t) * N));
-        side = -side;
-        twig(t, pts[i] as Pt & { h: number }, side, id);
-        paths[t.stepId] = [...base, { part: id, to: i }];
-      }
       const end = pts[N] as Pt & { h: number };
-      eps.push({ episodeId: e.id, laneId, n: e.n, kind: e.glyph, at: { x: end.x, y: end.y }, r: 5.5 });
-      headings[e.id] = end.h;
+      const glyph = { x: end.x, y: end.y };
+      // A failed call's ✕ keeps clear of its glyph: on the other side, else further down the branch.
+      const fmax = Math.max(0, 1 - (GLYPH_R + 2.5 + 16) / len);
+      const sides: number[] = [];
+      const fs = e.twigs.map((t, i) => {
+        let side = i % 2 === 0 ? -1 : 1;
+        let f = fOf(t);
+        if (t.kind === 'failed') {
+          const xTip = (sd: number, ff: number) => { const q = alongBranch(pts, ff); const a = q.h + sd * rad(52); return { x: q.x + 16 * Math.cos(a), y: q.y + 16 * Math.sin(a) }; };
+          if (dist(xTip(side, f), glyph) < GLYPH_R + 6 + 1) side = -side;
+          if (dist(xTip(side, f), glyph) < GLYPH_R + 6 + 1) f = Math.min(f, fmax);
+        }
+        sides.push(side);
+        return f;
+      });
+      // Dense branches: the marks shrink with the spacing of same-side twigs (5.5 units at full size, half at most).
+      let gap = Infinity;
+      for (let i = 2; i < fs.length; i++) if (sides[i] === sides[i - 2]) gap = Math.min(gap, Math.abs((fs[i] as number) - (fs[i - 2] as number)) * len);
+      const sc = clamp(gap / 5.5, 0.5, 1);
+      b.len = len;
+      b.part = { id, kind: 'branch', laneId: b.laneId, episodeId: e.id, line: { pts, widths: pts.map((_, i) => W0(calls.filter((f) => f >= i / N - 0.02).length)) } };
+      b.twigs = e.twigs.map((t, i) => twig(t, alongBranch(pts, fs[i] as number), sides[i] as number, id, sc));
+      b.steps = Object.fromEntries(e.twigs.map((t, i) => [t.stepId, [...b.base, { part: id, to: Math.min(N, Math.ceil((fs[i] as number) * N)) }]]));
+      b.at = glyph;
+      b.h = end.h;
     }
-    function twigsOn(list: TwigSrc[], line: Line, part: string, to: (t: TwigSrc) => PathPart[]) {
-      let side = 1;
-      for (const t of list) {
-        const q = pointAt(line, uOf(t.seq));
-        side = -side;
-        twig(t, { x: q.x, y: q.y, h: q.a }, side, part);
-        paths[t.stepId] = to(t);
-      }
-    }
-    function twig(t: TwigSrc, q: Pt & { h: number }, side: number, part: string) {
+    function twig(t: TwigSrc, q: Pt & { h: number }, side: number, part: string, s: number): TwigD {
       const a = q.h + side * rad(t.kind === 'thinking' ? 70 : 52);
-      const l = t.kind === 'thinking' ? 5 : t.kind === 'failed' ? 16 : 7;
+      const l = (t.kind === 'thinking' ? 5 : t.kind === 'failed' ? 16 : 7) * s;
       const tip = { x: q.x + l * Math.cos(a), y: q.y + l * Math.sin(a) };
       const mark = t.kind === 'thinking' ? 'none' : t.kind === 'failed' ? 'x' : t.kind === 'read' ? 'bud' : 'leaf';
-      tw.push({ stepId: t.stepId, episodeId: t.episodeId, part, kind: t.kind, mark, base: { x: q.x, y: q.y }, tip, angle: r1((a * 180) / Math.PI) });
+      return { stepId: t.stepId, episodeId: t.episodeId, part, kind: t.kind, mark, base: { x: q.x, y: q.y }, tip, angle: r1((a * 180) / Math.PI), s };
     }
   }
 }
+
+/** A branch's centreline interpolated at fraction `f` of its length (its points are evenly spaced). */
+function alongBranch(pts: readonly (Pt & { h: number })[], f: number): Pt & { h: number } {
+  const x = clamp(f, 0, 1) * N;
+  const j = Math.min(N - 1, Math.floor(x));
+  const a = pts[j] as Pt & { h: number };
+  const b = pts[j + 1] as Pt & { h: number };
+  const t = x - j;
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, h: a.h + (b.h - a.h) * t };
+}
+

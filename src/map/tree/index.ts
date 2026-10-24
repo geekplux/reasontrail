@@ -6,6 +6,7 @@ import type { HitTarget, Pt, TreeLayout } from './types';
 export { layoutTree, ribbonPath } from './layout';
 export { textWidth } from './text';
 export type * from './types';
+export type { GlyphKind, VerdictTone } from '../gitlist/rows';
 
 /** Fill paths for the stretch of trunk, limb and branch from the root to an episode or step (empty when unknown). */
 export function highlight(t: TreeLayout, id: string): string[] {
@@ -23,7 +24,10 @@ const segDist = (p: Pt, a: Pt, b: Pt) => {
   return Math.hypot(p.x - a.x - s * dx, p.y - a.y - s * dy);
 };
 
-/** The hit target closest to `p` within `max` px; steps win ties over the episode they belong to. */
+/**
+ * The hit target closest to `p` within `max`, in layout px (the box given to `layoutTree`); steps win ties over the
+ * episode they belong to. A renderer drawn at another scale passes 12 / renderScale to keep 12 screen px.
+ */
 export function nearest(t: TreeLayout, p: Pt, max = 12): HitTarget | undefined {
   let best: HitTarget | undefined;
   let bestD = max;
