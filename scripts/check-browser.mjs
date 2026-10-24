@@ -15,11 +15,9 @@ import { killGroup, killGroupSync, parseArgs, startPreview, viteBin, waitForHttp
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const flowsDir = join(root, 'scripts', 'browser', 'flows');
 const BRAND_FLOWS = new Set(['hero', 'gallery', 'brand', 'polish', 'wordmark']); // write to committed paths; never part of "all"
-// Suspended while the v7 home has no website map (DECISIONS 2026-10-24): they open `/` or `/?session=…&step=…` and wait
-// for the removed map, detail panel or gallery. Never part of "all" until the v7 phase that restores what they test:
-// map and details with the git-style list and the detail view (phases 30 and 32); site (the home's map, gallery and
-// deep links, phases 30 and 32); lens, ai and share from the session card (phase 34).
-const SUSPENDED_FLOWS = new Set(['map', 'details', 'site', 'lens', 'ai', 'share']);
+// Suspended until the v7 phase that restores what they test (DECISIONS 2026-10-24): lens, ai and share from the session
+// card (phase 34). They open the pre-v7 map and wait for its controls. Never part of "all" until then.
+const SUSPENDED_FLOWS = new Set(['lens', 'ai', 'share']);
 
 const opts = parseArgs(process.argv.slice(2));
 const port = Number(process.env.TG_PORT ?? 4317);
