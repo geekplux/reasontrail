@@ -5,7 +5,7 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 31 `phase-31-v7-tree-engine`, step: implement
+- Current phase: 31 `phase-31-v7-tree-engine`, step: PR
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
@@ -13,14 +13,14 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 | 29 | `phase-29-v7-canvas-page` | [#32](https://github.com/geekplux/reasontrail/pull/32) | done, PR open | 2 | MATCH (R1, R2) |
 | 29b | `phase-29b-v7-brand-cleanup` | [#33](https://github.com/geekplux/reasontrail/pull/33) | done, PR open | 2 | MATCH (R1, R2) |
 | 30 | `phase-30-v7-gitlist` | [#35](https://github.com/geekplux/reasontrail/pull/35) | done, PR open | 2 | REJECT (R1, one sub-line gap), MATCH (R2) |
-| 31 | `phase-31-v7-tree-engine` | – | implementing | 0 | – |
+| 31 | `phase-31-v7-tree-engine` | (opening) | done, PR open | 2 | REJECT (R1), MATCH (R2); dataviz approved after fix 2 |
 | 32 | `phase-32-v7-tree-render` | – | pending | – | – |
 | 33 | `phase-33-v7-phone-dark` | – | pending | – | – |
 | 34 | `phase-34-v7-viewer-features` | – | pending | – | – |
 | 35 | `phase-35-v7-polish-docs` | – | pending | – | – |
 | 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
 
-Last updated: 2026-10-24 (phase 30 reviewed: lead-designer MATCH, a11y PASS, verifier PASS)
+Last updated: 2026-10-24 (phase 31 reviewed: lead-designer MATCH, dataviz one API fix (done), verifier PASS)
 
 Carry-overs to 29b: "·" in `src/intake/DropZone.tsx:183` and the viewer AI label (`src/ai/AiControl.tsx:50`); brand link line-height 20 vs 21px (0.5px); `file` browser flow needs a `--file` guard. Suspended browser flows (map, details, site, lens, ai, share) return in phases 30/32/34.
 
