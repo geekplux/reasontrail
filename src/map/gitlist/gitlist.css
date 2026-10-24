@@ -22,9 +22,10 @@
 .gl-svg .m-think { fill: var(--slate-9); }
 .gl-svg .x { stroke: var(--orange-9); stroke-width: 1.5; }
 .gl-svg .halo { fill: var(--slate-1); transition: fill var(--motion); }
-.gl-svg .halo.on { fill: var(--blue-3); }
 .gl-svg .halo.hv { fill: var(--slate-3); }
-.gl-svg .ring { fill: none; stroke: var(--blue-9); stroke-width: 1.5; }
+.gl-svg .halo.on { fill: var(--blue-3); }
+/* blue-11, not the canvas's blue-9: 3:1 against blue-3 and slate-3 (DECISIONS 2026-10-24). */
+.gl-svg .ring { fill: none; stroke: var(--blue-11); stroke-width: 1.5; }
 .gl-svg .g.t-node { display: inline; color: var(--slate-12); --bg: var(--slate-1); transition: color var(--motion); }
 .gl-svg .g.t-node.on { color: var(--blue-11); }
 .gl-svg .g.tip-fail { color: var(--orange-9); }
@@ -37,7 +38,7 @@
 .gl-row::before { z-index: 0; transition: background-color var(--motion); }
 .gl-row::after { z-index: 3; }
 .gl-step::before, .gl-step::after, .gl-more::before, .gl-more::after { inset: 1px -12px; }
-.gl-row:focus-visible::after { outline: 2px solid var(--blue-9); }
+.gl-row:focus-visible::after { outline: 2px solid var(--blue-11); }
 .gl-episode, .gl-step, .gl-more { cursor: pointer; }
 .gl-episode:hover::before, .gl-step:hover::before, .gl-more:hover::before { background: var(--slate-3); }
 .gl-episode.is-open::before { background: var(--blue-3); }
@@ -60,7 +61,8 @@
 .gl-step > .gl-main.gl-title { top: 5px; }
 .gl-step.is-think > .gl-main.gl-title, .gl-more > .gl-main.gl-small { top: 6px; }
 .gl-bad { color: var(--slate-12); font-weight: 500; }
-.gl-row.is-open .gl-title, .gl-row.is-open .gl-num, .gl-step.is-sel .gl-title { color: var(--blue-11); }
+/* blue-12, not the canvas's blue-11 (4.25:1 on blue-3, 4.19:1 on slate-3): AA text; the glyph keeps blue-11. */
+.gl-row.is-open .gl-title, .gl-row.is-open .gl-num, .gl-step.is-sel .gl-title { color: var(--blue-12); }
 .gl-row.is-open .gl-num { font-weight: 600; }
 .gl-row.is-open .gl-sub { color: var(--slate-11); }
 .gl .ai-tag { flex: none; }

@@ -1,6 +1,8 @@
 // The git-style list (docs/design/v7/PROMPT.md §6, §5.4): one SVG of rails and marks behind real, focusable DOM rows.
-// A WAI-ARIA tree: ↑/↓ move, → opens an episode (or enters it), ← closes it (or goes to the episode), Home/End, Enter
-// opens an episode or selects a step, Esc clears the step, then closes the episode. One episode is open at a time.
+// A WAI-ARIA tree: ↑/↓ move, → opens an episode (or enters it, or enters a subagent lane), ← closes it (or goes to the
+// parent row), Home/End, Enter opens an episode or selects a step, Esc clears the step, then closes the episode. One
+// episode is open at a time. Levels: lane, main-lane episode and end rows 1; a subagent's episodes and verdict 2, under
+// their lane row; steps one below their episode.
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../../shared/session/types';
 import { episodeTags, tagName } from '../../ai/labels';
@@ -30,6 +32,29 @@ const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 const vh = (text: string) => <span className="visually-hidden">{text}</span>;
 
 const episodeOf = (row: AnyRow) => (row.kind === 'episode' || row.kind === 'step' || row.kind === 'more' ? row.episodeId : row.kind === 'verdict' ? row.episodeId : undefined);
+/** Each visible row's place in the tree: level, parent row and position among its siblings. */
+interface TreePos { level: number; parent?: string; setsize: number; posinset: number; kids: boolean }
+function treePositions(visible: readonly AnyRow[]): Map<string, TreePos> {
+  const pos = new Map<string, TreePos>();
+  const groups = new Map<string, TreePos[]>();
+  for (const r of visible) {
+    const parent = r.kind === 'step' || r.kind === 'more' ? `ep:${r.episodeId}` : (r.kind === 'episode' || r.kind === 'verdict') && !r.main ? `lane:${r.laneId}` : undefined;
+    const up = parent ? pos.get(parent) : undefined;
+    const p: TreePos = { level: up ? up.level + 1 : 1, setsize: 0, posinset: 0, kids: false };
+    if (up && parent) {
+      p.parent = parent;
+      up.kids = true;
+    }
+    const group = groups.get(p.parent ?? '') ?? [];
+    group.push(p);
+    p.posinset = group.length;
+    groups.set(p.parent ?? '', group);
+    pos.set(r.key, p);
+  }
+  for (const group of groups.values()) for (const p of group) p.setsize = group.length;
+  return pos;
+}
+
 const activeOf = (row: AnyRow): ListSelection => {
   const sel: ListSelection = {};
   const ep = episodeOf(row);
@@ -44,25 +69,36 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
   const sel = selection ?? own;
   const [all, setAll] = useState(false);
   const [focusKey, setFocusKey] = useState(rows[0]?.key ?? '');
-  const [hover, setHover] = useState<string>();
+  // Another session (the viewer reuses the list): drop the old one's open episode, "show all" and focus.
+  const [shownG, setShownG] = useState(g);
+  if (shownG !== g) {
+    setShownG(g);
+    setOwn({});
+    setAll(false);
+    setFocusKey(rows[0]?.key ?? '');
+  }
   const els = useRef(new Map<string, HTMLDivElement>());
+  const svg = useRef<SVGSVGElement>(null);
   const moved = useRef(false);
 
   const steps = useMemo(() => (sel.episodeId ? episodeSteps(g, sel.episodeId) : []), [g, sel.episodeId]);
   const shown: (StepRow | MoreRow)[] = useMemo(() => {
     const at = steps.findIndex((s) => s.stepId === sel.stepId);
-    if (all || steps.length <= STEP_ROWS_MAX || at >= STEP_ROWS_MAX) return steps;
+    // Hiding five steps or fewer saves too little to cost a click.
+    if (all || steps.length <= STEP_ROWS_MAX + 5 || at >= STEP_ROWS_MAX) return steps;
     return [...steps.slice(0, STEP_ROWS_MAX), { kind: 'more', key: `more:${sel.episodeId}`, episodeId: sel.episodeId ?? '', more: steps.length - STEP_ROWS_MAX }];
   }, [steps, all, sel]);
   const target = sel.stepId ? `step:${sel.stepId}` : sel.episodeId ? `ep:${sel.episodeId}` : undefined;
-  const L = useMemo(() => layoutList(rows, sel.episodeId ? { episodeId: sel.episodeId, steps: shown } : undefined, target), [rows, sel.episodeId, shown, target]);
+  // A leaf episode (nothing to list) is selected in place: no step rows, no gap under it.
+  const L = useMemo(() => layoutList(rows, sel.episodeId && shown.length > 0 ? { episodeId: sel.episodeId, steps: shown } : undefined, target), [rows, sel.episodeId, shown, target]);
   const tags = useMemo(() => {
     if (!overlay) return undefined;
     const ofStep = new Map(g.episodes.filter((e) => !e.parentId).flatMap((e) => e.stepIds.map((id) => [id, e.id] as const)));
     return episodeTags(g, overlay, (id) => ofStep.get(id));
   }, [g, overlay]);
 
-  const visible = L.placed.map((p) => p.row);
+  const visible = useMemo(() => L.placed.map((p) => p.row), [L]);
+  const tree = useMemo(() => treePositions(visible), [visible]);
   const current = visible.some((r) => r.key === focusKey) ? focusKey : (visible[0]?.key ?? '');
 
   // Keyboard moves focus with the roving tab stop; clicks leave it where the pointer put it.
@@ -96,7 +132,8 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
     const i = visible.findIndex((r) => r.key === current);
     const row = visible[i];
     if (!row) return;
-    const parent = row.kind === 'step' || row.kind === 'more' ? `ep:${row.episodeId}` : undefined;
+    const at = tree.get(row.key);
+    const opens = row.kind === 'episode' && !row.leaf;
     let handled = true;
     switch (e.key) {
       case 'ArrowDown': focus(visible[i + 1]?.key); break;
@@ -104,12 +141,12 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
       case 'Home': focus(visible[0]?.key); break;
       case 'End': focus(visible[visible.length - 1]?.key); break;
       case 'ArrowRight':
-        if (row.kind === 'episode' && sel.episodeId !== row.episodeId) update({ episodeId: row.episodeId });
-        else if (row.kind === 'episode') focus(visible[i + 1]?.key);
+        if (opens && sel.episodeId !== row.episodeId) update({ episodeId: row.episodeId });
+        else if ((opens || row.kind === 'lane') && at?.kids) focus(visible[i + 1]?.key);
         break;
       case 'ArrowLeft':
-        if (row.kind === 'episode' && sel.episodeId === row.episodeId) update({});
-        else focus(parent);
+        if (opens && sel.episodeId === row.episodeId) update({});
+        else focus(at?.parent);
         break;
       case 'Enter':
       case ' ':
@@ -127,9 +164,8 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
     if (handled) e.preventDefault();
   };
 
-  const level1: AnyRow[] = visible.filter((r) => r.kind !== 'step' && r.kind !== 'more');
-  const level2: AnyRow[] = visible.filter((r) => r.kind === 'step' || r.kind === 'more');
-  const hoverEp = hover ? visible.find((r) => r.key === hover) : undefined;
+  // Hover only tints the episode's halo: toggled on the SVG node, so it does not re-render every row.
+  const hover = (key: string, on: boolean) => svg.current?.querySelector(`[data-halo="${key}"]`)?.classList.toggle('hv', on);
 
   const mark = (p: Placed) => {
     const r = p.row;
@@ -137,7 +173,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
       const on = sel.episodeId === r.episodeId;
       return (
         <g key={r.key}>
-          <circle cx={p.x} cy={p.cy} r="8" className={`halo${on ? ' on' : hoverEp === r ? ' hv' : ''}`} />
+          <circle cx={p.x} cy={p.cy} r="8" className={`halo${on ? ' on' : ''}`} data-halo={r.key} />
           <KindGlyph kind={r.glyph} x={p.x} y={p.cy} className={`t-node${on ? ' on' : ''}`} />
         </g>
       );
@@ -165,21 +201,21 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
     const count = (n: number | undefined) => n !== undefined && <span className="gl-main gl-steps">{vh(', ')}{n}{vh(n === 1 ? ' step' : ' steps')}</span>;
     switch (r.kind) {
       case 'lane':
-        return (<><span className="gl-main gl-title t-lane">{r.name}</span>{r.agent && <span className="gl-sub gl-title">{vh(', ')}{r.agent}</span>}{count(r.steps)}{at(', starts at ', r.at)}</>);
+        return (<><span className="gl-main gl-title t-lane"><span className="gl-text">{r.name}</span></span>{r.agent && <span className="gl-sub gl-title">{vh(', ')}{r.agent}</span>}{count(r.steps)}{at(', starts at ', r.at)}</>);
       case 'episode': {
         const tag = tags?.get(r.episodeId);
         return (
           <>
             <span className="gl-main gl-num">{vh('Episode ')}{r.n}{vh(': ')}</span>
             <span className="gl-main gl-title">
-              <span className="gl-text">{r.title}</span>{vh(`, ${KIND[r.glyph]}`)}
+              <span className="gl-text">{r.title}</span>{r.title.toLowerCase() !== KIND[r.glyph] && vh(`, ${KIND[r.glyph]}`)}
               {tag && overlay && (<><span className="ai-tag" aria-hidden="true" title={tagName(tag, overlay.model)}>{tag.label}</span>{vh(`, ${tagName(tag, overlay.model)}`)}</>)}
             </span>
             {(r.failed > 0 || r.wait) && (
               <span className="gl-sub gl-title">
                 {vh(', ')}
-                {r.failed > 0 && (<><AlertIcon size={12} /><b>{plural(r.failed, 'failed command')}</b></>)}
-                {r.failed > 0 && r.wait ? `, ${r.wait}` : r.wait}
+                {r.failed > 0 && <AlertIcon size={12} />}
+                <span>{r.failed > 0 && <b>{plural(r.failed, 'failed command')}</b>}{r.failed > 0 && r.wait ? `, ${r.wait}` : r.wait}</span>
               </span>
             )}
             {count(r.steps)}
@@ -201,7 +237,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
   return (
     <div className="gl" style={{ height: L.height }}>
       <div className="gl-head" aria-hidden="true"><span className="gl-num">#</span><span className="gl-title">Episode</span><span className="gl-steps">Steps</span><span className="gl-at">Start</span></div>
-      <svg className="gl-svg" width="100%" height={L.height} aria-hidden="true" focusable="false">
+      <svg ref={svg} className="gl-svg" width="100%" height={L.height} aria-hidden="true" focusable="false">
         {L.rails.map((r, i) => <path key={i} d={r.d} className={r.cls} />)}
         {L.highlight.map((d, i) => <path key={`h${i}`} d={d} className="r-hi" />)}
         <circle cx={L.root.x} cy={L.root.y} r="4.5" className="m-root" />
@@ -212,8 +248,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
       <div role="tree" aria-label="Episodes in order">
         {L.placed.map((p) => {
           const r = p.row;
-          const inner = r.kind === 'step' || r.kind === 'more';
-          const set = inner ? level2 : level1;
+          const at = tree.get(r.key);
           const open = r.kind === 'episode' && sel.episodeId === r.episodeId;
           const cls = ['gl-row', `gl-${r.kind}`, open && 'is-open', r.key === target && 'is-sel', r.kind === 'step' && r.mark === 'thinking' && 'is-think'].filter(Boolean).join(' ');
           return (
@@ -227,11 +262,12 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
               className={cls}
               style={{ top: p.y, height: p.h }}
               tabIndex={r.key === current ? 0 : -1}
-              aria-level={inner ? 2 : 1}
-              aria-setsize={set.length}
-              aria-posinset={set.indexOf(r) + 1}
-              aria-selected={r.key === target}
-              aria-expanded={r.kind === 'episode' ? open : undefined}
+              aria-level={at?.level}
+              aria-setsize={at?.setsize}
+              aria-posinset={at?.posinset}
+              // Selection is a step's (or a leaf episode's); an open episode says so with aria-expanded alone.
+              aria-selected={r.kind === 'step' ? r.stepId === sel.stepId : r.kind === 'episode' && r.leaf ? open : undefined}
+              aria-expanded={r.kind === 'episode' ? (r.leaf ? undefined : open) : r.kind === 'lane' && at?.kids ? true : undefined}
               onKeyDown={onKey}
               onClick={() => {
                 setFocusKey(r.key);
@@ -242,11 +278,11 @@ export function GitList({ g, overlay, selection, onSelect, onActive }: GitListPr
                 onActive?.(activeOf(r));
               }}
               onMouseEnter={() => {
-                setHover(r.key);
+                hover(r.key, true);
                 onActive?.(activeOf(r));
               }}
               onMouseLeave={() => {
-                setHover(undefined);
+                hover(r.key, false);
                 onActive?.(undefined);
               }}
             >
