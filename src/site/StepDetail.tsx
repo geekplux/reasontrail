@@ -1,0 +1,72 @@
+// The detail panel (docs/design/v7/PROMPT.md §4.5; docs/design/v7/preview/Step.html `.detail`): in place of the outcome
+// column while a step is selected. Where the step is, with a close button; its kind (⚠ when it failed) and time; the
+// summary; the command in a `pre`; its output; the next step; the source file and line; Previous / Next step. Esc
+// closes it. Everything from the transcript is rendered as text.
+import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
+import { AlertIcon, OkIcon } from '../map/gitlist/marks';
+import type { StepDetail as Detail, StepTone } from './stepDetail';
+
+const Tone = ({ tone }: { tone: StepTone }) => (tone === 'fail' ? <AlertIcon size={14} /> : tone === 'ok' ? <OkIcon size={14} /> : <span />);
+
+export interface StepDetailProps {
+  d: Detail;
+  /** Move focus to the title when the panel opens (a click in the tree), without scrolling. */
+  focusOnOpen?: boolean;
+  onStep(stepId: string): void;
+  onClose(): void;
+}
+
+export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDetailProps) {
+  const title = useRef<HTMLHeadingElement>(null);
+  useLayoutEffect(() => {
+    if (focusOnOpen) title.current?.focus({ preventScroll: true });
+  }, [focusOnOpen]);
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    onClose();
+  };
+  const go = (id: string | undefined) => id && onStep(id);
+  return (
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Esc closes the panel from anywhere inside it
+    <aside className="side detail" aria-label="Step details" data-step={d.stepId} onKeyDown={onKeyDown}>
+      <div className="d-head">
+        <p className="muted" aria-live="polite">{d.where}</p>
+        <button type="button" className="iconbtn" aria-label="Close step details" onClick={onClose}>
+          <svg className="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+        </button>
+      </div>
+      <div className="d-title">
+        {d.tone === 'fail' && <AlertIcon size={14} />}
+        <h3 ref={title} tabIndex={-1}>{d.title}</h3>
+        <span className="at">{d.at}</span>
+      </div>
+      <p>{d.summary}</p>
+      {d.code && <pre className="cmd">{d.code.startsWith('$ ') ? <><span className="muted">$</span>{d.code.slice(1)}</> : d.code}</pre>}
+      {d.text && <p className="muted">{d.text}</p>}
+      {d.output && (
+        <>
+          <h4 className="d-label">Output <span className="muted">{d.output.note}</span></h4>
+          {d.output.text && <pre className="out">{d.output.text}</pre>}
+        </>
+      )}
+      {d.next && (
+        <>
+          <h4 className="d-label">Next step <span className="muted">{d.next.at}</span></h4>
+          <div className="d-next">
+            <Tone tone={d.next.tone} />
+            <div>
+              <p>{d.next.summary}</p>
+              {d.next.output && <pre className="out">{d.next.output}</pre>}
+            </div>
+          </div>
+        </>
+      )}
+      <p className="d-src muted">Source <span className="code">{d.source.file}</span> line {d.source.line}</p>
+      <div className="d-nav">
+        <button type="button" className="btn ghost" aria-disabled={!d.prevId} onClick={() => go(d.prevId)}>Previous step</button>
+        <button type="button" className="btn ghost" aria-disabled={!d.nextId} onClick={() => go(d.nextId)}>Next step</button>
+      </div>
+    </aside>
+  );
+}

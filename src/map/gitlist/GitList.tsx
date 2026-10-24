@@ -276,6 +276,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
                 else els.current.delete(r.key);
               }}
               role="treeitem"
+              data-row={r.key}
               className={cls}
               style={{ top: p.y, height: p.h }}
               tabIndex={r.key === current ? 0 : -1}

@@ -20,7 +20,7 @@ Open it: [implementer-checks map at the first failed run](https://reasontrail.ge
 
 What to notice:
 
-- **Trouble marker 1, an error streak.** Two runs that end in checks fail in a row: first lint (oxlint reports `eslint(no-shadow)`), then typecheck (`TS2339` in `src/garden/keyboard.ts`). The link opens the first one; press → for the second.
+- **Trouble marker 1, an error streak.** Two runs that end in checks fail in a row: first lint (oxlint reports `eslint(no-shadow)`), then typecheck (`TS2339` in `src/garden/keyboard.ts`). The link opens the first one; Next step leads on to the second.
 - **The rhythm of the route.** Reading, editing and checking alternate: the three verify episodes (◇) are the points where the agent ran its checks before moving on.
 - **The destination.** Six changed files, one of them new (`scripts/browser/flows/keyboard.mjs`); the last check, `pnpm lint`, passed. In its final answer the agent reports three commits and a diff over its line budget.
 
@@ -30,12 +30,12 @@ What to notice:
 
 ![The verify-fail-fix map with the detail panel open on the first verifier's answer, which starts "VERDICT: FAIL".](img/verify-fail-fix.webp)
 
-Open it: [verify-fail-fix map at the first verifier’s verdict](https://reasontrail.geekplux.com/?session=verify-fail-fix&step=s96) (`?session=verify-fail-fix&step=s96`)
+Open it: [verify-fail-fix map at the first verifier’s failed command](https://reasontrail.geekplux.com/?session=verify-fail-fix&step=s41) (`?session=verify-fail-fix&step=s41`)
 
 What to notice:
 
 - **Three side trails.** The main route is three "Delegate" episodes (verify, fix, re-verify), and each subagent's own route hangs below the episode that started it.
-- **A failure that is not a failed command.** The first verifier's answer is "VERDICT: FAIL": `pnpm audit:samples` could miss a secret inside nested JSON. No run failed, so At a glance says "No trouble detected"; the side trail is labelled FAIL, and the link opens the verdict in the agent's own words.
+- **A failure that is not a failed command.** The first verifier's answer is "VERDICT: FAIL": `pnpm audit:samples` could miss a secret inside nested JSON. Its tip in the tree and its verdict row in the list read "Failed: 1 gap". The link opens the one command that failed on the way, a config check that exits 2; it is not the reason for the verdict.
 - **A small, checked fix.** The fix trail changes one file, `scripts/audit-samples.mjs`, and the re-verify answers "VERDICT: PASS". The destination lists that one file and a passing last check.
 
 ## 3. A change request rewrites the plan
@@ -44,7 +44,7 @@ What to notice:
 
 ![The planner-pivot map with the detail panel open on the first "Rewrite plan for pivot" Agent call, marked failed because its result was never recorded; the route shows a numbered retry marker.](img/planner-pivot.webp)
 
-Open it: [planner-pivot map at the first planner call](https://reasontrail.geekplux.com/?session=planner-pivot&step=s13) (`?session=planner-pivot&step=s13`)
+Open it: [planner-pivot map at the first planner run’s first read](https://reasontrail.geekplux.com/?session=planner-pivot&step=s17) (`?session=planner-pivot&step=s17`)
 
 What to notice:
 

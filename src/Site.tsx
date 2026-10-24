@@ -5,7 +5,7 @@
 // Internal links change the URL in place, and everything the site can need later is fetched once it is idle, so the
 // gallery and the drop zone keep working offline after the first load (PLAN phase 19, AC3).
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
-import { lensSearch, linkSearch, mapSearch, readSiteState, writeView } from './app/urlState';
+import { lensSearch, linkSearch, mapSearch, readSiteState, writeStep, writeView } from './app/urlState';
 import { loadDetailPanel } from './map/MapView';
 import { loadShareDialog } from './share/ShareAction';
 import { LensContext, type LensOpener, type LensTarget } from './lens/lensTarget';
@@ -158,7 +158,7 @@ export function Site() {
     ) : state.view === 'how' ? (
       <div className="page"><HowToReadMap page /></div>
     ) : (
-      <Home session={state.session} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} />
+      <Home session={state.session} step={state.step} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} onStep={(id) => go(writeStep(window.location.search, id))} />
     );
   return (
     <>

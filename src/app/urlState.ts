@@ -48,16 +48,27 @@ const GARDEN_PARAMS = ['sample', 'path', 't', 'seed'];
 
 /** Which page the website shows: the garden lens when any garden param is set (`?sample=` links keep working), else
  * `?view=open|chat|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`.
- * `lens`: `?lens=live`, a sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
-export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; view: SiteView } {
+ * `step`: the selected step (`&step=<id>`; the home ignores an id its sample does not list). `lens`: `?lens=live`, a
+ * sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
+export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; step: string | null; view: SiteView } {
   const q = new URLSearchParams(search);
   const view = q.get('view') as SiteView;
   return {
     garden: GARDEN_PARAMS.some((p) => q.has(p)),
     lens: q.has('lens'),
     session: q.get('session') || null,
+    step: q.get('step') || null,
     view: SITE_VIEWS.includes(view) ? view : 'map',
   };
+}
+
+/** `search` with the selected step written (`step=…`) or dropped, other params kept. */
+export function writeStep(search: string, stepId: string | undefined): string {
+  const q = new URLSearchParams(search);
+  if (stepId) q.set('step', stepId);
+  else q.delete('step');
+  const out = q.toString();
+  return out ? `?${out}` : '';
 }
 
 /** `search` back on the map: the lens and garden params dropped, the map's own (`session`, `step`, `view`) kept. */

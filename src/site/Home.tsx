@@ -1,15 +1,20 @@
 // The website's home (v7 §4, §13, docs/design/v7/preview/Home.html), top to bottom: the hero (headline, lede and the
 // install command on the lede's last baseline), the sample's tree at the full content width with its legend, the sample
 // tabs right under it, the session card, install, and "Made by GeekPlux". The header and footer are SiteShell's.
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+// A step selected in the tree or the list (or by `&step=` in the URL) highlights its path in the tree with a callout,
+// opens its episode in the list and the detail panel in the card.
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { COMMANDS, SKILL_CALL } from '../../shared/commands';
 import { InlineNote } from '../components/states/InlineNote';
+import type { ListSelection } from '../map/gitlist/GitList';
+import type { HitTarget } from '../map/tree';
 import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
 import { CommandLine } from './Install';
 import { MAKER, MORE_SITES, shownUrl } from './moreSites';
 import { HeroTree } from './HeroTree';
 import { SessionCard } from './SessionCard';
+import { findStep, stepFacts } from './stepDetail';
 
 const CARD_ID = 'session';
 const TREE_ID = 'hero-tree';
@@ -49,7 +54,8 @@ function SampleTabs({ current, onChoose }: { current: string; onChoose(id: strin
   );
 }
 
-export function Home({ session, onSession }: { session: string | null; onSession(id: string): void }) {
+/** `step`: the selected step from the URL (ignored when the sample does not list it); `onStep` writes it. */
+export function Home({ session, onSession, step = null, onStep }: { session: string | null; onSession(id: string): void; step?: string | null; onStep?(stepId: string | undefined): void }) {
   const sample = sessionSamples.find((s) => s.id === session) ?? sessionSamples[0]!;
   const unknown = session !== null && sample.id !== session;
   // Loaded graphs are kept per sample id, so a tab switch re-renders the card without remounting the tabs.
@@ -92,8 +98,25 @@ export function Home({ session, onSession }: { session: string | null; onSession
     setFocused(of(episodeId));
     setHover(of(episodeId) ?? current(pointer));
   };
+  // The selection: the URL's step (when this sample lists it), else the episode open in the list.
+  const picked = graph ? findStep(graph, step) : undefined;
+  const [open, setOpen] = useState<{ id: string; episodeId: string }>();
+  const [treePick, setTreePick] = useState<string>();
+  const openEp = open?.id === sample.id ? open.episodeId : undefined;
+  const selection: ListSelection = picked ? { episodeId: picked.episode.episodeId, stepId: picked.step.stepId } : openEp ? { episodeId: openEp } : {};
+  const callout = useMemo<[string, string] | undefined>(() => (graph && picked ? [picked.step.label, stepFacts(graph, picked)] : undefined), [graph, picked]);
+  const select = (next: ListSelection, fromTree = false) => {
+    setTreePick(fromTree ? next.stepId : undefined);
+    setOpen(next.episodeId ? { id: sample.id, episodeId: next.episodeId } : undefined);
+    if (next.stepId !== picked?.step.stepId) onStep?.(next.stepId);
+  };
+  const onPick = (hit: HitTarget) => {
+    const s = graph && hit.kind === 'step' ? findStep(graph, hit.id) : undefined;
+    select(s ? { episodeId: s.episode.episodeId, stepId: s.step.stepId } : { episodeId: hit.episodeId }, true);
+  };
   const card = graph ? (
-    <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)} />
+    <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)}
+      selection={selection} onSelect={(next) => select(next)} focusDetail={picked !== undefined && treePick === picked.step.stepId} />
   ) : failed === sample.id ? (
     <div className="frame" id={CARD_ID}>
       <InlineNote variant="error">This sample did not load. Reload the page to try again.</InlineNote>
@@ -111,7 +134,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
           </div>
           <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
         </div>
-        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} />
+        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} />
         <div className="under">
           <SampleTabs current={sample.id} onChoose={onSession} />
         </div>

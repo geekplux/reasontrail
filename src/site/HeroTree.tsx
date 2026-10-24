@@ -4,7 +4,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { TreeLegend } from '../map/tree/TreeLegend';
-import { TreeView } from '../map/tree/TreeView';
+import { TreeView, type TreeViewProps } from '../map/tree/TreeView';
 import type { Box } from '../map/tree/types';
 
 const DESKTOP = { width: 1200, height: 520 };
@@ -13,7 +13,7 @@ const LABELS_FROM = 960;
 
 interface Measure { width: number; reserve: Box[] }
 
-export function HeroTree({ id, g, hover, onHover }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void }) {
+export function HeroTree({ id, g, hover, onHover, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void } & Pick<TreeViewProps, 'selected' | 'callout' | 'onPick'>) {
   const fig = useRef<HTMLElement>(null);
   // The canvas size until measured (and where nothing is laid out, as in tests): no jump on the first desktop paint.
   const [m, setM] = useState<Measure>({ width: DESKTOP.width, reserve: [] });
@@ -50,7 +50,7 @@ export function HeroTree({ id, g, hover, onHover }: { id: string; g: SessionGrap
     <figure className="hero-tree" id={id} ref={fig}>
       <TreeLegend />
       <div className="tree-wrap" aria-busy={g ? undefined : true}>
-        {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} hover={hover} onHover={onHover} />}
+        {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} hover={hover} onHover={onHover} {...pick} />}
       </div>
     </figure>
   );

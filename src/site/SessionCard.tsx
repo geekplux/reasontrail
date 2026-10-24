@@ -1,6 +1,7 @@
 // The session card under the hero tree (v7 §4.5, §12, §13.2): the title with nothing above it, the meta line on one
-// baseline, AI titles / Details / Share on the right; then the git-style list (680) and the outcome column (360).
-import { lazy, Suspense, useId, useState } from 'react';
+// baseline, AI titles / Details / Share on the right; then the git-style list (680) and the outcome column (360), which
+// becomes the detail panel while a step is selected.
+import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import type { AiSource } from '../ai/AiControl';
 import { LiveRegion, useAnnouncer } from '../components/LiveRegion';
@@ -9,6 +10,8 @@ import { AlertIcon, OkIcon, UnknownIcon } from '../map/gitlist/marks';
 import { taskCard } from '../map/outline';
 import { ShareAction } from '../share/ShareAction';
 import { finalAnswer, outcomeRows, runs, sessionMeta, type OutcomeRow, type Run } from './sessionSummary';
+import { StepDetail } from './StepDetail';
+import { findStep, stepDetail } from './stepDetail';
 
 // The AI labels control, its consent dialog and client load only when first used.
 const AiControl = lazy(() => import('../ai/AiControl'));
@@ -61,17 +64,37 @@ function Outcome({ g }: { g: SessionGraph }) {
 }
 
 /** `sample`: a built-in sample, so the meta line ends with the "Sample" tag (never on a user's own session). `branch`:
- * the sample's branch where the recorded one is the main checkout. `onSelect` / `onActive` / `hover`: the list's
- * selection, its focused or hovered row, and the episode hovered in the tree. */
-export function SessionCard({ g, sample = false, branch, id, onSelect, onActive, hover }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string } & Pick<GitListProps, 'onSelect' | 'onActive' | 'hover'>) {
+ * the sample's branch where the recorded one is the main checkout. `selection` / `onSelect` / `onActive` / `hover`:
+ * the list's open episode and selected step, its focused or hovered row, and the episode hovered in the tree. A
+ * selected step opens the detail panel; `focusDetail` moves focus into it as it opens. */
+export function SessionCard({ g, sample = false, branch, id, selection, onSelect, onActive, hover, focusDetail = false }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string; focusDetail?: boolean } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
   const [message, announce] = useAnnouncer();
   const [aiLoaded, setAiLoaded] = useState(false);
   const [details, setDetails] = useState(false);
   const [overlay, setOverlay] = useState<LabelOverlay>();
   const detailsId = useId();
   const card = taskCard(g);
-  return (
-    <section className="frame" id={id} role="tabpanel" aria-labelledby="sess-title">
+  const detail = selection?.stepId ? stepDetail(g, selection.stepId) : undefined;
+  // Closing the panel puts focus back on the step's row in the list (its episode's row if the step is folded away).
+  const frame = useRef<HTMLElement>(null);
+  const refocus = useRef<{ stepId: string; episodeId: string }>(undefined);
+  useEffect(() => {
+    const to = refocus.current;
+    if (!to) return;
+    refocus.current = undefined;
+    const row = (key: string) => frame.current?.querySelector<HTMLElement>(`[data-row="${key}"]`);
+    (row(`step:${to.stepId}`) ?? row(`ep:${to.episodeId}`))?.focus();
+  });
+  const close = () => {
+    if (!detail) return;
+    refocus.current = { stepId: detail.stepId, episodeId: detail.episodeId };
+    onSelect?.({ episodeId: detail.episodeId });
+  };
+  const toStep = (stepId: string) => {
+    const s = findStep(g, stepId);
+    if (s) onSelect?.({ episodeId: s.episode.episodeId, stepId });
+  };  return (
+    <section className="frame" id={id} ref={frame} role="tabpanel" aria-labelledby="sess-title">
       <header className="sess">
         <div className="sess-l">
           <h2 id="sess-title">{g.displayTitle ?? g.title}</h2>
@@ -95,8 +118,8 @@ export function SessionCard({ g, sample = false, branch, id, onSelect, onActive,
         <p className="muted request">{card.request.replace(/\*\*|`/g, '')}</p>
       </div>
       <div className="cols">
-        <GitList g={g} overlay={overlay} hover={hover} {...(onSelect ? { onSelect } : {})} {...(onActive ? { onActive } : {})} />
-        <Outcome g={g} />
+        <GitList g={g} overlay={overlay} hover={hover} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect } : {})} {...(onActive ? { onActive } : {})} />
+        {detail ? <StepDetail d={detail} focusOnOpen={focusDetail} onStep={toStep} onClose={close} /> : <Outcome g={g} />}
       </div>
       <LiveRegion message={message} />
     </section>
