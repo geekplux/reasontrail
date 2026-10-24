@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { defaultSessionGraph } from '../sessions/samples';
 import { Home } from './Home';
 import { SessionCard } from './SessionCard';
+import { pageTitle } from './SiteShell';
 
 afterEach(cleanup);
 
@@ -30,12 +31,27 @@ describe('Home (v7 §4, §12)', () => {
     expect(title.parentElement?.previousElementSibling).toBeNull();
     const meta = title.nextElementSibling!;
     expect([...meta.children].map((c) => c.textContent)).toEqual(['Claude Code', '47 min total', '3 subagents', '60 tool calls', 'phase-12-structure-redact', 'Sample']);
+    expect(meta.tagName).toBe('UL'); // one list item each, so a screen reader does not run them together
+    expect([...meta.children].every((c) => c.tagName === 'LI')).toBe(true);
     expect(screen.getAllByRole('button').map((b) => b.textContent).filter((t) => ['AI titles', 'Details', 'Share'].includes(t ?? ''))).toEqual(['AI titles', 'Details', 'Share']);
+  });
+
+  it('names the tab of another page with an en dash, not a middle dot', () => {
+    expect(pageTitle('Install')).toBe('Install – Reasontrail');
   });
 
   it('shows the Sample tag only for a built-in sample', () => {
     const { container } = render(<SessionCard g={defaultSessionGraph} />);
     expect(container.querySelector('.tag')).toBeNull();
+  });
+
+  it('wires the tabs to the tree and the session card, the card being the tab panel', () => {
+    render(<Home session={null} onSession={() => {}} />);
+    const [first] = screen.getAllByRole('tab');
+    const ids = first!.getAttribute('aria-controls')!.split(' ');
+    expect(ids).toEqual(['hero-tree', 'session']);
+    expect(document.getElementById('hero-tree')?.tagName).toBe('FIGURE');
+    expect(screen.getByRole('tabpanel', { name: 'Verify phase 12, fix the audit gap, re-verify' }).id).toBe('session');
   });
 
   it('moves between sample tabs with the arrow keys', () => {

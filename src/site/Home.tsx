@@ -12,6 +12,7 @@ import { SessionCard } from './SessionCard';
 import { LEGEND_HTML, TREE_SVG } from './static/reference';
 
 const CARD_ID = 'session';
+const TREE_ID = 'hero-tree';
 const DRAWN = sessionSamples[0]?.id; // TEMPORARY: the one sample with a static tree and list until phases 30 and 32
 
 /** The sample tabs (§4.4): a segmented control under the tree, WAI-ARIA tabs with automatic activation. */
@@ -37,7 +38,7 @@ function SampleTabs({ current, onChoose }: { current: string; onChoose(id: strin
           role="tab"
           className="tab"
           aria-selected={s.id === current}
-          aria-controls={CARD_ID}
+          aria-controls={`${TREE_ID} ${CARD_ID}`}
           tabIndex={s.id === current ? 0 : -1}
           onClick={() => onChoose(s.id)}
           onKeyDown={(e) => onKey(e, i)}
@@ -74,7 +75,7 @@ export function Home({ session, onSession }: { session: string | null; onSession
           </div>
           <CommandLine command={COMMANDS.installSkill} label="the skill install command" box="hero" />
         </div>
-        <figure className="hero-tree">
+        <figure className="hero-tree" id={TREE_ID}>
           {/* TEMPORARY: the canvas's static tree for the default sample; the tree renderer replaces it in phase 32. */}
           <p className="legend" dangerouslySetInnerHTML={{ __html: LEGEND_HTML }} />
           {drawn ? <div className="tree-wrap" dangerouslySetInnerHTML={{ __html: TREE_SVG }} /> : <p className="tree-wrap muted">This sample&apos;s tree is not drawn yet.</p>}

@@ -70,18 +70,18 @@ export function SessionCard({ g, sample = false, branch, drawn = true, id }: { g
   const detailsId = useId();
   const card = taskCard(g);
   return (
-    <section className="frame" id={id} aria-labelledby="sess-title">
+    <section className="frame" id={id} role="tabpanel" aria-labelledby="sess-title">
       <header className="sess">
         <div className="sess-l">
           <h2 id="sess-title">{g.displayTitle ?? g.title}</h2>
-          <p className="meta">
-            {sessionMeta(g, branch).map((m) => ('strong' in m ? <span key={m.key}><b>{m.strong}</b> {m.rest}</span> : <span key={m.key} className={m.code ? 'code' : undefined}>{m.text}</span>))}
-            {sample && <span className="tag">Sample</span>}
-          </p>
+          <ul className="meta">
+            {sessionMeta(g, branch).map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
+            {sample && <li className="tag">Sample</li>}
+          </ul>
         </div>
         <div className="sess-r">
           {aiLoaded ? (
-            <Suspense fallback={null}><AiControl g={g} source={LIVE} onOverlay={() => {}} announce={announce} /></Suspense>
+            <Suspense fallback={null}><AiControl g={g} source={LIVE} onOverlay={() => {}} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
           ) : (
             <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI titles</button>
           )}
@@ -95,7 +95,7 @@ export function SessionCard({ g, sample = false, branch, drawn = true, id }: { g
       </div>
       <div className="cols">
         {/* TEMPORARY: the canvas's static list for the default sample; the git-style list replaces it in phase 30. */}
-        {drawn ? <div className="list" dangerouslySetInnerHTML={{ __html: LIST_SVG }} /> : <p className="list muted">This sample&apos;s list is not drawn yet.</p>}
+        {drawn ? <div className="list" dangerouslySetInnerHTML={{ __html: LIST_SVG }} /> : <p className="list list-empty muted">This sample&apos;s list is not drawn yet.</p>}
         <Outcome g={g} />
       </div>
       <LiveRegion message={message} />
