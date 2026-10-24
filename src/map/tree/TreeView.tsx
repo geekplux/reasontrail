@@ -73,7 +73,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
     >
       {t.handBacks.map((b) => <g key={b.laneId}><path d={b.d} className="back" /><circle cx={b.to.x} cy={b.to.y} r={2.5 * z} className="back-end" /></g>)}
       {t.twigs.map((w) => <path key={w.stepId} d={`M${w.base.x} ${w.base.y}L${w.tip.x} ${w.tip.y}`} className={`tw${w.kind === 'thinking' ? ' th' : w.kind === 'failed' ? ' fail' : ''}${hv(w.episodeId)}`} />)}
-      {t.ribbons.map((r) => <path key={r.id} d={r.d} className={`b${r.episodeId ? hv(r.episodeId) : ''}`} />)}
+      {t.ribbons.map((r) => <path key={r.id} d={r.d} data-part={r.id} className={`b${r.episodeId ? hv(r.episodeId) : ''}`} />)}
       <g className={`hv-path${on ? ' on' : ''}`}>{path.map((d, i) => <path key={i} d={d} className="b hv" />)}</g>
       {t.twigs.map((w) => {
         const { x, y } = w.tip;
