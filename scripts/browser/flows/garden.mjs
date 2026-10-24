@@ -107,6 +107,8 @@ export async function run({ page, baseURL, shot, log, fail }) {
   const stub = await page.locator('[data-role="remainder"][data-parent=""] text').boundingBox();
   await page.mouse.click(stub.x + stub.width / 2, stub.y + stub.height / 2);
   if ((await page.locator('[data-testid="garden"]').innerHTML()) !== before) fail('clicking the remainder changed the garden');
+  // Checked at rest: the lens head's 250 ms opacity fade-in blends its muted text while it runs.
+  await page.waitForFunction(() => document.getAnimations().length === 0);
   for (const p of await axeProblems(page, 'light desktop')) fail(p);
   await shot('garden-desktop');
 
@@ -119,7 +121,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   const hover = async (b) => {
     await page.locator(`g[data-key="${b.key}"] [data-role="hit"]`).hover();
     const text = await page.locator(`[data-role="value-label"][data-key="${b.key}"]`).textContent();
-    const want = b.depth > 1 ? new RegExp(`^${pct(b.p).replace('.', '\\.')} · path \\d+\\.\\d%$`) : new RegExp(`^${pct(b.p).replace('.', '\\.')}$`);
+    const want = b.depth > 1 ? new RegExp(`^${pct(b.p).replace('.', '\\.')}, path \\d+\\.\\d%$`) : new RegExp(`^${pct(b.p).replace('.', '\\.')}$`);
     log(`hover ${JSON.stringify(b.key)} p=${b.p}: "${text}"`);
     if (!want.test(text)) fail(`hover ${b.key}: value label "${text}" does not match data-p ${b.p}`);
     const reading = await readout.textContent();

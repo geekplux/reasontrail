@@ -87,7 +87,7 @@ export async function run({ page, root, shot, log, fail }) {
   if (!text?.includes(XSS)) fail('the </script> payload is not shown as text');
   // data, the packed app, its loader and the inflated app: anything more was injected
   if ((await page.locator('script').count()) !== 4) fail(`the page has ${await page.locator('script').count()} script elements, not 4`);
-  if (!(await page.getByText(/^Shared copy · redacted \(\d+ items replaced\)$/).isVisible())) fail('shared ribbon missing');
+  if (!(await page.getByText(/^Shared copy, redacted \(\d+ items replaced\)$/).isVisible())) fail('shared ribbon missing');
   for (const p of await axeProblems(page, 'share', STRUCTURE_RULES)) fail(p);
   await shot('cli-share-redacted');
 

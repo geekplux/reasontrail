@@ -37,8 +37,9 @@ export async function run({ page, baseURL, root, log, fail }) {
   if (requests.length) fail(`V1 paste: ${requests.length} requests: ${requests.slice(0, 3)}`);
   const label = await page.locator('[data-region="task"]').first().textContent();
   if (!/CHAT/i.test(label ?? '')) fail(`the task label does not say CHAT: ${label?.slice(0, 80)}`);
-  // CM1 / CM3: the source joins the eyebrow; the chat's own honesty line; the controls come after the map.
-  if (!/^Task · Chat · pasted/.test((await page.locator('.task-label').textContent()) ?? '')) fail(`CM3: eyebrow "${await page.locator('.task-label').textContent()}"`);
+  // CM1 / CM3: the meta line starts with the source and ends with the "pasted" tag; the chat's own honesty line; the controls come after the map.
+  const meta = await page.locator('.task-meta .meta-item').allTextContents();
+  if (meta[0] !== 'Chat' || meta.at(-1) !== 'pasted') fail(`CM3: meta line "${meta.join(', ')}"`);
   if (!(label ?? '').includes("The replies are the model's own account, not a record of how it computed them.")) fail('CM1: no chat honesty line');
   if (!(await page.locator('[data-testid="map"] ~ .open-after').count())) fail('CM3: Map another chat and Save are not after the map');
   const said = await page.locator('[data-role="intake-live"]').textContent();
@@ -47,7 +48,7 @@ export async function run({ page, baseURL, root, log, fail }) {
   const rows = await page.locator('[data-region="glance"] li').evaluateAll((els) => els.map((e) => `${e.getAttribute('data-glance')}:${e.getAttribute('data-status')}`));
   if (rows.join() !== 'turns:unknown,trouble:ok') fail(`chat glance rows: ${rows}`);
   const dest = await page.locator('#h-outcome').textContent();
-  if (!/Destination\s*· final answer/.test(dest ?? '')) fail(`chat destination heading: "${dest}"`);
+  if (!/Destination\s*final answer$/.test(dest ?? '')) fail(`chat destination heading: "${dest}"`);
   if (await page.locator('[data-region="outcome"] .sub-label').count()) fail('chat destination still shows the files or verification columns');
   const legend = await page.locator('.route-head .legend li').allTextContents();
   if (legend.join() !== 'ask,answer,resolved') fail(`chat legend: ${legend}`);
