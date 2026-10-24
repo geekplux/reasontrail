@@ -26,12 +26,20 @@ describe('outcomeRows', () => {
   it('gives the canvas rows for verify-fail-fix: the final check, the failed review, the file', () => {
     const rows = outcomeRows(vff);
     expect(rows.map((r) => [r.key, r.icon, r.lead])).toEqual([
-      ['check', 'ok', 'Passed in Re-verify phase 12'],
+      ['check', 'ok', 'Passed on re-verify'],
       ['trouble', 'alert', '1 failed review'],
       ['files', 'files', '1 file changed'],
     ]);
     expect(rows[0]?.detail).toEqual([{ text: 'pnpm exec vitest', code: true }, { text: ' passed at 47 min' }]);
+    expect(rows[1]?.detail).toEqual([{ text: 'Verify phase 12 failed, fixed in ' }, { text: 'cceb2d5', code: true }]);
     expect(rows[2]?.detail).toEqual([{ text: 'scripts/audit-samples.mjs', code: true }, { text: ', 2 edits' }]);
+  });
+
+  it('names no fix when no commit hash was recorded between the failure and the pass, and never says FAIL', () => {
+    const steps = vff.steps.map((s) => (s.kind === 'tool-result' && s.text?.includes('cceb2d5') ? { ...s, text: 'done' } : s));
+    const rows = outcomeRows({ ...vff, steps });
+    expect(rows[1]?.detail).toEqual([{ text: 'Verify phase 12 failed' }]);
+    expect(JSON.stringify(outcomeRows(vff))).not.toMatch(/FAIL/);
   });
 
   it('counts detected patterns before failed reviews, and pairs every trouble row with the ⚠ shape', () => {

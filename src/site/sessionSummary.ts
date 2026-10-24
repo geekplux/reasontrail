@@ -39,6 +39,27 @@ function at(g: SessionGraph, stepId: string): string | undefined {
   return Number.isFinite(ms) ? duration(ms) : undefined;
 }
 
+/** How the check row names the subagent that ran it: "re-verify" for "Re-verify phase 12" (the title has the phase). */
+const laneWord = (name: string) => name.replace(/\s+phase\s+\d+$/i, '').replace(/^\p{Lu}(?!\p{Lu})/u, (c) => c.toLowerCase());
+
+/** A commit hash in a `git commit` (`[main cceb2d5] …`) or `git log --oneline` (`cceb2d5 …`) output. */
+const HASH = /(?:^|\n)(?:\[[^\]\s]+ (?:\(root-commit\) )?([0-9a-f]{7,40})\]|([0-9a-f]{7,40}) )/;
+
+/** The last commit made after the failed lanes ended and before the check that passed, when its hash was recorded. */
+function fixCommit(g: SessionGraph, failedLanes: string[], passedAt: string): string | undefined {
+  const seq = new Map(g.steps.map((s) => [s.id, s.seq]));
+  const after = Math.max(...g.steps.filter((s) => failedLanes.includes(s.laneId)).map((s) => s.seq));
+  const before = seq.get(passedAt) ?? -1;
+  const calls = new Set(g.steps.filter((s) => s.kind === 'tool-call' && /\bgit commit\b/.test(s.tool?.command ?? '')).map((s) => s.tool?.callId));
+  let hash: string | undefined;
+  for (const r of g.steps) {
+    if (r.kind !== 'tool-result' || r.status !== 'ok' || r.seq <= after || r.seq >= before || !calls.has(r.tool?.callId)) continue;
+    const m = HASH.exec(r.text ?? '');
+    if (m) hash = m[1] ?? m[2];
+  }
+  return hash;
+}
+
 /** The outcome box (§4.5): the final check, the trouble and the files changed. */
 export function outcomeRows(g: SessionGraph): OutcomeRow[] {
   const rows: OutcomeRow[] = [];
@@ -50,7 +71,7 @@ export function outcomeRows(g: SessionGraph): OutcomeRow[] {
     rows.push({
       key: 'check',
       icon: v.ok ? 'ok' : 'alert',
-      lead: `${v.ok ? 'Passed' : 'Failed'}${lane && lane.id !== main ? ` in ${lane.name}` : ''}`,
+      lead: `${v.ok ? 'Passed' : 'Failed'}${lane && lane.id !== main ? ` on ${laneWord(lane.name)}` : ''}`,
       detail: [{ text: v.command, code: true }, { text: ` ${v.ok ? 'passed' : 'failed'}${when ? ` at ${when}` : ''}` }],
     });
   } else rows.push({ key: 'check', icon: 'unknown', lead: 'No check run found', detail: [{ text: 'No test, build, lint or typecheck run' }] });
@@ -60,7 +81,9 @@ export function outcomeRows(g: SessionGraph): OutcomeRow[] {
     const resolved = g.trouble.filter((t) => t.resolved).length;
     rows.push({ key: 'trouble', icon: 'alert', lead: plural(g.trouble.length, 'trouble spot'), detail: [{ text: `${resolved} resolved` }] });
   } else if (failed.length > 0) {
-    rows.push({ key: 'trouble', icon: 'alert', lead: plural(failed.length, 'failed review'), detail: [{ text: failed.map((x) => `${x.l.name} returned ${x.s.word}`).join(', ') }] });
+    const said = failed.map((x) => `${x.l.name} ${x.s.word === 'changes requested' ? 'asked for changes' : 'failed'}`).join(', ');
+    const fix = v?.ok ? fixCommit(g, failed.map((x) => x.l.id), v.stepId) : undefined;
+    rows.push({ key: 'trouble', icon: 'alert', lead: plural(failed.length, 'failed review'), detail: fix ? [{ text: `${said}, fixed in ` }, { text: fix, code: true }] : [{ text: said }] });
   } else rows.push({ key: 'trouble', icon: 'ok', lead: 'No trouble detected', detail: [] });
 
   const files = g.outcome.files;
