@@ -5,12 +5,12 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 29 `phase-29-v7-canvas-page`, step: implement
+- Current phase: 29 `phase-29-v7-canvas-page`, step: PR
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
 |---|---|---|---|---|---|
-| 29 | `phase-29-v7-canvas-page` | – | implementing | 0 | – |
+| 29 | `phase-29-v7-canvas-page` | (opening) | done, PR open | 2 | MATCH (R1, R2) |
 | 29b | `phase-29b-v7-brand-cleanup` | – | pending | – | – |
 | 30 | `phase-30-v7-gitlist` | – | pending | – | – |
 | 31 | `phase-31-v7-tree-engine` | – | pending | – | – |
@@ -20,7 +20,11 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 | 35 | `phase-35-v7-polish-docs` | – | pending | – | – |
 | 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
 
-Last updated: 2026-10-24 (phase 29 implement started)
+Last updated: 2026-10-24 (phase 29 reviewed: lead-designer MATCH, a11y PASS, verifier PASS)
+
+Carry-overs to 29b: "·" in `src/intake/DropZone.tsx:183` and the viewer AI label (`src/ai/AiControl.tsx:50`); brand link line-height 20 vs 21px (0.5px); `file` browser flow needs a `--file` guard. Suspended browser flows (map, details, site, lens, ai, share) return in phases 30/32/34.
+
+Follow-up: move `ci/github-workflow.yml` to `.github/workflows/` (needs workflow scope).
 
 ## History: phases 1–28
 
