@@ -34,7 +34,8 @@ export interface EpisodeRow extends RowBase {
   /** No tool call or thinking step to list: the episode does not open (an answer, say). */
   leaf?: true;
 }
-export interface VerdictRow extends RowBase { kind: 'verdict'; tone: VerdictTone; text: string; dur?: string; steps?: number; at: string; episodeId?: string }
+/** `episodeId` and `n`: the lane's answer episode and its number (the tree's ◉ tip), when it has one. */
+export interface VerdictRow extends RowBase { kind: 'verdict'; tone: VerdictTone; text: string; dur?: string; steps?: number; at: string; episodeId?: string; n?: number }
 export interface EndRow extends RowBase { kind: 'end'; at: string }
 export type ListRow = LaneRow | EpisodeRow | VerdictRow | EndRow;
 
@@ -153,7 +154,7 @@ export function listRows(g: SessionGraph): ListRow[] {
     // A run that failed at once says so without "after 0 min".
     if (Number.isFinite(until - from) && !(vr.tone === 'fail' && minutes(until - from) === '0 min')) vr.dur = minutes(until - from);
     if (answer) {
-      n++;
+      vr.n = ++n;
       vr.episodeId = answer.id;
       vr.steps = answer.stepIds.length;
     }

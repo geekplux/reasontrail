@@ -1,0 +1,35 @@
+/* The tree (docs/design/v7/PROMPT.md §5.1, §5.4; classes, colours and states of the `CSS` constant in
+   docs/design/v7/gen7.mjs). Hover fades everything off the hovered path to slate-8: colour only, 250ms ease-out,
+   none under reduced motion (--motion-ms is 0 there). */
+.tree { display: block; overflow: visible; --bg: var(--slate-1); font-variant-numeric: tabular-nums; }
+.tree .b { fill: var(--slate-12); }
+.tree .tw { stroke: var(--slate-12); stroke-width: 1; stroke-linecap: round; }
+/* slate-9, not the canvas's slate-8: 3.22:1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
+.tree .tw.th { stroke: var(--slate-9); }
+.tree .tw.fail { stroke: var(--orange-9); }
+.tree :is(.leaf, .root, .dot) { fill: var(--slate-12); }
+.tree .bud { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1; }
+.tree .x { stroke: var(--orange-9); stroke-width: 1.5; stroke-linecap: round; }
+.tree .back { fill: none; stroke: var(--slate-8); stroke-width: 1; stroke-dasharray: 2 3; }
+.tree .back-end { fill: var(--slate-1); stroke: var(--slate-9); stroke-width: 1; }
+.tree .halo { fill: var(--slate-1); }
+.tree .g { color: var(--slate-12); }
+.tree .g.tip-fail { color: var(--orange-9); }
+.tree .g.tip-ok { color: var(--blue-9); }
+
+/* Text: numbers carry a 4px background halo so twigs never cut through them. */
+.tree .t-num { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-11); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.tree .t-lane { font: 600 var(--text-14) var(--font-sans); fill: var(--slate-12); }
+.tree .t-ep { font: 500 var(--text-14) var(--font-sans); fill: var(--slate-12); }
+.tree .t-lab { font: 500 var(--text-12) var(--font-sans); fill: var(--slate-12); }
+.tree .t-sub { font: 400 var(--text-12) var(--font-sans); fill: var(--slate-11); }
+
+/* Hover: the episode's path from the root stays ink, the rest fades. */
+.tree :is(.b, .leaf, .dot) { transition: fill var(--motion); }
+.tree :is(.tw, .bud) { transition: stroke var(--motion); }
+.tree.hvmode .b:not(.hv), .tree.hvmode .leaf:not(.hv), .tree.hvmode .dot { fill: var(--slate-8); }
+.tree.hvmode .tw:not(.hv, .fail, .th), .tree.hvmode .bud:not(.hv) { stroke: var(--slate-8); }
+.tree .hv-path { opacity: 0; transition: opacity var(--motion); pointer-events: none; }
+.tree .hv-path.on { opacity: 1; }
+.tree .tip { pointer-events: none; }
+.tree .tip-box { fill: var(--slate-1); stroke: var(--slate-7); stroke-width: 0.5; }
