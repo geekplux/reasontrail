@@ -122,8 +122,8 @@ export function listRows(g: SessionGraph): ListRow[] {
   const rows: ListRow[] = [{ kind: 'lane', key: `lane:${main.id}`, laneId: main.id, main: true, name: 'Main agent', at: at(steps[0]) }];
   let n = 0;
   const episodeRow = (e: Episode, onMain: boolean): EpisodeRow => {
-    const waits = e.stepIds.map((id) => pause.get(id) ?? 0);
-    const wait = Math.max(0, ...waits);
+    // A loop, not `Math.max(...waits)`: a spread of a huge episode overflows the call stack.
+    const wait = e.stepIds.reduce((m, id) => Math.max(m, pause.get(id) ?? 0), 0);
     const sr = stepRows(g, e.stepIds);
     const failed = sr.filter((r) => r.step.kind === 'tool-call' && rowStatus(r) === 'error').length;
     const row: EpisodeRow = {

@@ -38,6 +38,10 @@ export interface TreeModel {
   rootAt: string;
 }
 
+// Loops, not `Math.min(...xs)`: a spread of a huge session's seqs overflows the call stack.
+const least = (xs: readonly number[]) => { let v = Infinity; for (const x of xs) v = Math.min(v, x); return v; };
+const most = (xs: readonly number[]) => { let v = -Infinity; for (const x of xs) v = Math.max(v, x); return v; };
+
 const twigKind = (r: ReturnType<typeof stepRows>[number]): TwigKind =>
   r.step.kind === 'thinking' ? 'thinking' : rowStatus(r) === 'error' ? 'failed' : r.step.tool?.category === 'read' ? 'read' : 'call';
 
@@ -87,7 +91,7 @@ export function treeModel(g: SessionGraph): TreeModel {
       const s = seqs(e?.stepIds ?? []);
       const twigs = twigsOf(row.episodeId, e?.stepIds ?? []);
       if (s.length === 0) part.twigs.push(...twigs);
-      else part.episodes.push({ id: row.episodeId, n: row.n, glyph: row.glyph, first: Math.min(...s), last: Math.max(...s), twigs, calls: twigs.filter((t) => t.kind !== 'thinking').length });
+      else part.episodes.push({ id: row.episodeId, n: row.n, glyph: row.glyph, first: least(s), last: most(s), twigs, calls: twigs.filter((t) => t.kind !== 'thinking').length });
     } else if (row.kind === 'verdict') verdict(part, row);
     else if (row.kind === 'end' && !leader) trunk.block = [{ text: 'Session ends', cls: 'lab' }, { text: row.at, cls: 'sub' }];
   }
@@ -124,7 +128,7 @@ export function treeModel(g: SessionGraph): TreeModel {
   }
   const trunkSeqs = [...mainSeqs, ...(leader ? laneSeqs(leader) : [])];
   trunk.from = recs[0]?.seq ?? 0;
-  trunk.last = Math.max(...trunkSeqs, ...limbs.map((l) => l.from), trunk.from);
+  trunk.last = most([...trunkSeqs, ...limbs.map((l) => l.from), trunk.from]);
   delete trunk.wait;
   return { records, trunk, limbs, rootAt: rows[0]?.at ?? '' };
 }
