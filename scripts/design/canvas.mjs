@@ -3,10 +3,10 @@
 //   flock /workspace/gx-projects/logs/browser.lock node scripts/design/canvas.mjs <command> ...
 //
 // Commands:
-//   frames [--out docs/design/v7/frames]
+//   frames [--out docs/design/v7/frames] [--only <name>]
 //       Renders the canvas preview pages (docs/design/v7/preview/*.html) with system Chrome: home-1440-light,
-//       home-1440-dark, hover-1440-light, step-1440-light (viewport 1440×900) and phone-390-light (390×844),
-//       each as `<name>.webp` (full page) and `<name>-fold.webp` (first screen only).
+//       home-1440-dark, hover-1440-light, step-1440-light, open-1440-light (viewport 1440×900) and phone-390-light
+//       (390×844), each as `<name>.webp` (full page) and `<name>-fold.webp` (first screen only); `--only` renders one.
 //   shoot --url <url> --out <file.webp> [--width 1440] [--height 900] [--theme light|dark] [--full] [--actions <list>]
 //       Screenshots any page (the app) at the same viewport and theme as a canvas frame. `--actions` runs steps before
 //       the shot, separated by ";": click:<selector>, press:<key> (on the focused element), focus:<selector>,
@@ -35,6 +35,7 @@ const FRAMES = [
   ['home-1440-dark', 'HomeDark.html', 1440, 900, 'dark'],
   ['hover-1440-light', 'Hover.html', 1440, 900, 'light'],
   ['step-1440-light', 'Step.html', 1440, 900, 'light'],
+  ['open-1440-light', 'Open.html', 1440, 900, 'light'],
   ['phone-390-light', 'Phone.html', 390, 844, 'light'],
 ];
 
@@ -77,7 +78,7 @@ async function shoot(url, { width, height, theme, full, out, foldOut, actions, f
 try {
   if (command === 'frames') {
     const out = resolve(root, opts.out ?? 'docs/design/v7/frames');
-    for (const [name, file, width, height, theme] of FRAMES) {
+    for (const [name, file, width, height, theme] of FRAMES.filter(([n]) => !opts.only || n === opts.only)) {
       const url = pathToFileURL(join(root, 'docs/design/v7/preview', file)).href;
       await shoot(url, { width, height, theme, full: true, out: join(out, `${name}.webp`), foldOut: join(out, `${name}-fold.webp`) });
       console.log(`frame ${name} -> ${join(out, name)}.webp`);
