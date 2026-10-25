@@ -8,7 +8,7 @@ import { textWidth } from './text';
 import { highlight, ribbonPath } from '.';
 import type { Box, Pt } from './types';
 import { synthGraph } from './synthetic';
-import { legendKeys, treeCallout, treeCrop, treeFor, treeSummary, treeTip } from './view';
+import { legendKeys, treeCallout, treeCrop, treeFor, treeKeepOut, treeSummary, treeTip } from './view';
 import { labelBox } from './labels';
 
 const VFF = vff as unknown as SessionGraph;
@@ -274,6 +274,45 @@ describe('treeCrop (phase 35: a session page trims the box to the drawing)', () 
     const win = treeCrop(t, LEGEND);
     expect(win.y1 - win.y0).toBeLessThan(520);
     expect(treeCrop(t, LEGEND)).toEqual(win);
+  });
+});
+
+describe('a trimmed tree keeps its callout and tooltip off the legend where it shows (phase 35)', () => {
+  const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+  const lines: [string, string] = ['Inspect vitest config for log suppression', 'Exit code 2, 16 min'];
+
+  it.each([992, 1200])('every sample at %ipx: no callout or tooltip box on the on-screen legend or outside the window', (W) => {
+    // The legend as HeroTree reserves it (at the top of the drawn box), 730px wide: wider than any fitted legend.
+    const reserve: Box[] = [{ x0: W - 730, y0: 0, x1: W, y1: 24 }];
+    const bad: string[] = [];
+    for (const g of [VFF, IMPL, PLAN]) {
+      const t = treeFor(g, W, 520, true, reserve);
+      const win = treeCrop(t, reserve);
+      const legend = { x0: W - 730, y0: win.y0, x1: W, y1: win.y0 + 24 };
+      const out = (b: Box) => b.y0 < win.y0 - 2.31 || b.y1 > win.y1 + 4.01; // the callout's ascent may reach 2.3px past the top
+      const keep = treeKeepOut(t, reserve, win);
+      const tipAt = (id: string, extra: Box[] = [], ring?: Box) => treeTip(g, t, id, { reserve: [...keep, ...extra], ring, win })!.box;
+      for (const m of t.episodes) {
+        const b = tipAt(m.episodeId);
+        if (hit(b, legend) || out(b)) bad.push(`${g.title} ${W} tip ${m.n}`);
+      }
+      for (const w of t.twigs) {
+        const c = treeCallout(t, w.stepId, lines, keep, win)!;
+        if (hit(c.box, legend) || out(c.box)) bad.push(`${g.title} ${W} callout ${w.stepId}`);
+        const ring = { x0: c.ring.x - 10, y0: c.ring.y - 10, x1: c.ring.x + 10, y1: c.ring.y + 10 };
+        for (const m of t.episodes) {
+          const b = tipAt(m.episodeId, [c.box], ring);
+          if (hit(b, legend) || out(b)) bad.push(`${g.title} ${W} tip ${m.n} with ${w.stepId}`);
+        }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('leaves the full figure\'s keep-out as given (the home)', () => {
+    const reserve: Box[] = [{ x0: 470, y0: 0, x1: 1200, y1: 24 }];
+    const t = treeFor(VFF, 1200, 520, true, reserve);
+    expect(treeKeepOut(t, reserve, { y0: 0, y1: t.height })).toEqual(reserve);
   });
 });
 

@@ -12,7 +12,7 @@ import { KindGlyph, VerdictIcon } from '../gitlist/marks';
 import { listRows } from '../gitlist/rows';
 import { highlight, nearest } from '.';
 import type { Box, HitTarget, Label, LabelClass, TipMark } from './types';
-import { treeCallout, treeCrop, treeFor, treeRing, treeSummary, treeTip } from './view';
+import { treeCallout, treeCrop, treeFor, treeKeepOut, treeRing, treeSummary, treeTip } from './view';
 import './tree.css';
 
 export interface TreeViewProps {
@@ -72,10 +72,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   const t = useMemo(() => treeFor(g, width, height, labels, reserve), [g, width, height, labels, reserve]);
   // The drawn window (all of the box unless `fit`); the tooltip and the callout keep off the parts cut away.
   const win = useMemo(() => (fit ? treeCrop(t, reserve) : { y0: 0, y1: t.height }), [fit, t, reserve]);
-  const keepOut = useMemo(() => {
-    const cut = [{ x0: 0, y0: 0, x1: t.width, y1: win.y0 }, { x0: 0, y0: win.y1, x1: t.width, y1: t.height }].filter((b) => b.y1 > b.y0);
-    return cut.length ? [...(reserve ?? []), ...cut] : reserve;
-  }, [t, win, reserve]);
+  const keepOut = useMemo(() => (fit ? treeKeepOut(t, reserve ?? [], win) : reserve), [fit, t, win, reserve]);
   const rows = useMemo(() => listRows(g), [g]);
   const summary = useMemo(() => treeSummary(g, rows), [g, rows]);
   // The last hovered path stays drawn (transparent) after the pointer leaves, so it fades out instead of vanishing;
@@ -93,14 +90,14 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   const selEp = sel ? t.twigs.find((w) => w.stepId === sel)?.episodeId : undefined;
   // The ring is drawn without labels too (the phone's silhouette); the callout only with them.
   const ring = useMemo(() => (sel ? treeRing(t, sel) : undefined), [t, sel]);
-  const call = useMemo(() => (sel && callout && labels ? treeCallout(t, sel, callout, keepOut) : undefined), [t, sel, callout, labels, keepOut]);
+  const call = useMemo(() => (sel && callout && labels ? treeCallout(t, sel, callout, keepOut, win) : undefined), [t, sel, callout, labels, keepOut, win]);
   // The hover tooltip keeps clear of the selection's callout and ring.
   const tip = useMemo(() => {
     if (!on || !labels || !hover) return undefined;
     const keep = call ? [...(keepOut ?? []), call.box] : keepOut;
     const ringBox = call && { x0: call.ring.x - 10, y0: call.ring.y - 10, x1: call.ring.x + 10, y1: call.ring.y + 10 };
-    return treeTip(g, t, hover, { rows, tipLane, reserve: keep, ring: ringBox });
-  }, [on, labels, hover, g, t, rows, tipLane, keepOut, call]);
+    return treeTip(g, t, hover, { rows, tipLane, reserve: keep, ring: ringBox, win });
+  }, [on, labels, hover, g, t, rows, tipLane, keepOut, call, win]);
   if (t.ribbons.length === 0) return null;
 
   const hitAt = (e: { currentTarget: SVGSVGElement; clientX: number; clientY: number }, px: number) => {

@@ -59,6 +59,20 @@ export interface TreeTipOptions {
   reserve?: readonly Box[] | undefined;
   /** A selected step's ring: the box never covers it where any spot is clear of it. */
   ring?: Box | undefined;
+  /** The drawn window (`treeCrop`) the box is moved inside; all of the figure by default. */
+  win?: TreeWindow | undefined;
+}
+
+/** The vertical stretch of the figure that is drawn (layout px): all of it on the home, `treeCrop`'s on a session page. */
+export interface TreeWindow { y0: number; y1: number }
+
+/** What the tooltip and the callout keep off in a drawn window: the reserved zones where they show on screen (moved
+ * down by the window's top, as the legend sits at the top of the drawn box) and the stretches cut away. The full
+ * figure keeps `reserve` as it is. */
+export function treeKeepOut(t: TreeLayout, reserve: readonly Box[], win: TreeWindow): Box[] {
+  const shown = reserve.map((b) => ({ ...b, y0: b.y0 + win.y0, y1: b.y1 + win.y0 }));
+  const cut = [{ x0: 0, y0: 0, x1: t.width, y1: win.y0 }, { x0: 0, y0: win.y1, x1: t.width, y1: t.height }].filter((b) => b.y1 > b.y0);
+  return [...shown, ...cut];
 }
 
 const TIP_H = 56;
@@ -90,8 +104,8 @@ function ownMarks(t: TreeLayout, episodeId: string, at: Pt, laneId: string | und
  * ring, the reserved zones (legend, callout), being moved, then the episode's own marks. Undefined for an id the tree
  * does not draw. */
 export function treeTip(g: SessionGraph, t: TreeLayout, episodeId: string, opts: TreeTipOptions = {}): TreeTip | undefined {
-  const { rows = listRows(g), tipLane, reserve = [], ring } = opts;
-  const keep = { reserve, ring };
+  const { rows = listRows(g), tipLane, reserve = [], ring, win = { y0: 0, y1: t.height } } = opts;
+  const keep = { reserve, ring, win };
   const lane = tipLane ? rows.find((r): r is VerdictRow => r.kind === 'verdict' && r.laneId === tipLane) : undefined;
   const tipAt = lane ? t.tips.find((m) => m.laneId === tipLane)?.at : undefined;
   // The tip stands for its lane: its title and facts are the lane's; it keeps clear of the episode it highlights.
@@ -119,7 +133,7 @@ function laneFacts(g: SessionGraph, rows: readonly ListRow[], v: VerdictRow): st
  * moved inside the figure, that above any count of the episode's own marks. */
 const TIP_COST = { ring: 1e6, reserve: 1e4, moved: 100 };
 
-function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: string, facts: string, at: Pt, laneId: string | undefined, keep: { reserve: readonly Box[]; ring?: Box | undefined }): TreeTip {
+function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: string, facts: string, at: Pt, laneId: string | undefined, keep: { reserve: readonly Box[]; ring?: Box | undefined; win: TreeWindow }): TreeTip {
   let title = title0;
   // A long recorded request is cut with an ellipsis, as the list's row is.
   if (textWidth(title, 14, 500) > TIP_TITLE_MAX) {
@@ -137,7 +151,7 @@ function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: 
   const own = ownMarks(t, episodeId, at, laneId);
   const cost = ([x0, y0]: [number, number]) => {
     const x = Math.max(0, Math.min(x0, t.width - w));
-    const y = Math.max(0, Math.min(y0, t.height - TIP_H));
+    const y = Math.max(keep.win.y0, Math.min(y0, keep.win.y1 - TIP_H));
     const b = { x0: x, y0: y, x1: x + w, y1: y + TIP_H };
     const c = (keep.ring && boxIn(b, keep.ring) ? TIP_COST.ring : 0) + TIP_COST.reserve * keep.reserve.filter((r) => boxIn(b, r)).length
       + (x !== x0 || y !== y0 ? TIP_COST.moved : 0) + own.circles.filter((o) => circleIn(b, o)).length + own.boxes.filter((o) => boxIn(b, o)).length;
@@ -198,8 +212,9 @@ export function treeRing(t: TreeLayout, stepId: string): Pt | undefined {
 /** Where the selected step's callout goes: beside the step at its own height, above it at the top edge (left of it,
  * as on the canvas, else right), nearer above, or below at the bottom edge. The text keeps off the ring and inside
  * the figure; the one whose text and leader cover the fewest of the tree's text, marks and ribbons wins, with the
- * legend (`reserve`) weighted far above the rest, then the shortest leader. Undefined for a step the tree does not draw. */
-export function treeCallout(t: TreeLayout, stepId: string, lines: [string, string], reserve: readonly Box[] = []): TreeCallout | undefined {
+ * legend (`reserve`) weighted far above the rest, then the shortest leader. The edges are the drawn window's (`win`,
+ * all of the figure by default). Undefined for a step the tree does not draw. */
+export function treeCallout(t: TreeLayout, stepId: string, lines: [string, string], reserve: readonly Box[] = [], win: TreeWindow = { y0: 0, y1: t.height }): TreeCallout | undefined {
   const ring = treeRing(t, stepId);
   if (!ring) return undefined;
   let title = lines[0];
@@ -219,15 +234,15 @@ export function treeCallout(t: TreeLayout, stepId: string, lines: [string, strin
     const r1 = (v: number) => Math.round(v * 10) / 10;
     return { stepId, ring, x: r1(x), y: r1(base), anchor: side < 0 ? 'end' : 'start', lines: [title, lines[1]], leader: [{ x: r1(from.x), y: r1(from.y) }, { x: r1(end.x), y: r1(end.y) }], box };
   };
-  const top = 9.7;
-  const bottom = t.height - 20;
+  const top = win.y0 + 9.7;
+  const bottom = win.y1 - 20;
   const cands = [
     at(-1, top, 'above'), at(1, top, 'above'), at(-1, ring.y - 70, 'above'), at(1, ring.y - 70, 'above'),
     at(-1, ring.y - 4, 'beside'), at(1, ring.y - 4, 'beside'),
     at(-1, bottom, 'below'), at(1, bottom, 'below'), at(-1, ring.y + 60, 'below'), at(1, ring.y + 60, 'below'),
     // The box's top is the text's ascent: at the top edge (baseline 9.7, as on the canvas) it reaches 2.3px past the
     // figure, above the glyphs' ink.
-  ].filter((c) => !circleIn(c.box, { ...ring, r: RING_CLEAR }) && c.box.y0 >= top - 12 && c.box.y1 <= t.height + 4);
+  ].filter((c) => !circleIn(c.box, { ...ring, r: RING_CLEAR }) && c.box.y0 >= top - 12 && c.box.y1 <= win.y1 + 4);
   const marks: Circle[] = [{ ...t.root.at, r: t.root.r + 2 }, ...t.episodes.map((m) => ({ ...m.at, r: m.r + 3 })), ...t.tips.map((m) => ({ ...m.at, r: m.r + 3 })), ...t.twigs.map((x) => ({ ...x.tip, r: 6 }))];
   for (const rb of t.ribbons) rb.line.forEach((p, i) => marks.push({ ...p, r: (rb.widths[i] ?? 0) / 2 + 2 }));
   const texts = [...t.labels.map(labelBox), ...t.blocks.map((b) => b.box)];
