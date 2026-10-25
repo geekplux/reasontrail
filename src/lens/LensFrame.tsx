@@ -25,6 +25,10 @@ import type { LensTarget } from './lensTarget';
 export const Z2_TEXT = "An open model's predictions for this text, not what the session's model computed.";
 const OPT_IN = 'Grow live with an open model';
 const OPT_IN_NOTE = 'Sends this text to the Reasontrail Worker. Nothing is sent until you choose this.';
+/** Said wherever live growth is offered or on. The public Worker counts upstream calls per UTC day against
+ * DAILY_UPSTREAM_CAP (wrangler.jsonc, worker/budget.ts), which keeps the demo's model bill bounded. */
+export const CAP_NOTE = 'Live model calls are capped per day; recorded gardens always work.';
+const capNote = <p className="lens-cap">{CAP_NOTE}</p>;
 /** The footer's privacy line once live growth is on (L6). */
 const LIVE_PRIVACY = 'Live: this sentence is sent to the Reasontrail Worker to predict tokens.';
 
@@ -168,10 +172,17 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
           {offer}
         </p>
       )}
+      {live || !rec ? capNote : null}
       {status}
     </div>
   );
-  const options = rec && !live ? <p className="lens-offer lens-offer-options">{offer}</p> : null;
+  const options =
+    rec && !live ? (
+      <div className="lens-offer-options">
+        <p className="lens-offer">{offer}</p>
+        {capNote}
+      </div>
+    ) : null;
   return <App key={mount} header={header} lens={source} bar={bar} options={options} recorded={Boolean(rec)} privacy={live ? LIVE_PRIVACY : undefined} />;
 }
 
