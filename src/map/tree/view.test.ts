@@ -168,7 +168,7 @@ describe('treeCallout (phase 32b, Step.html)', () => {
         const c = treeCallout(tt, w.stepId, lines, reserve)!;
         const ring = Math.hypot(Math.max(c.box.x0 - c.ring.x, 0, c.ring.x - c.box.x1), Math.max(c.box.y0 - c.ring.y, 0, c.ring.y - c.box.y1));
         const why = [
-          c.box.y0 < 0 && 'above the figure',
+          c.box.y0 < 9.7 - 12 - 0.01 && 'above the figure',
           ring < 10 && 'on the ring',
           reserve.some((r) => hit(r, c.box) || crosses(c.leader, r)) && 'on the legend',
           texts.some((b) => crosses(c.leader, b)) && 'leader through text',
@@ -178,6 +178,38 @@ describe('treeCallout (phase 32b, Step.html)', () => {
       }
     }
     expect(bad).toEqual([]);
+  });
+
+  it('keeps 4px of air between the callout\'s text and the tree\'s numbers and glyphs: planner-pivot s104', () => {
+    const tp = treeFor(PLAN, 1200, 520, true, reserve);
+    const c = treeCallout(tp, 's104', lines, reserve)!;
+    const air = { x0: c.box.x0 - 4, y0: c.box.y0 - 4, x1: c.box.x1 + 4, y1: c.box.y1 + 4 };
+    expect(c.box.y1 - c.box.y0).toBe(32);
+    expect(tp.labels.map(labelBox).filter((b) => boxesHit(b, air))).toEqual([]);
+    expect([...tp.episodes, ...tp.tips].filter((m) => Math.hypot(Math.max(air.x0 - m.at.x, 0, m.at.x - air.x1), Math.max(air.y0 - m.at.y, 0, m.at.y - air.y1)) < m.r + 3).map((m) => m.at)).toEqual([]);
+  });
+
+  it('keeps the hover tooltip off the selected step\'s ring and callout and inside the figure: s150 with 17, s156 with 18, every pair', () => {
+    const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    const keep = (tt: ReturnType<typeof treeFor>, stepId: string) => {
+      const c = treeCallout(tt, stepId, lines, reserve)!;
+      return { call: c.box, ring: { x0: c.ring.x - 10, y0: c.ring.y - 10, x1: c.ring.x + 10, y1: c.ring.y + 10 } };
+    };
+    const inside = (b: Box) => b.x0 >= 0 && b.y0 >= 0 && b.x1 <= t.width && b.y1 <= t.height;
+    for (const [stepId, n] of [['s150', 17], ['s156', 18]] as const) {
+      const k = keep(t, stepId);
+      const tip = treeTip(VFF, t, t.episodes.find((m) => m.n === n)!.episodeId, { reserve: [...reserve, k.call], ring: k.ring })!;
+      expect([hit(tip.box, k.ring), hit(tip.box, k.call), reserve.some((r) => hit(tip.box, r)), inside(tip.box)], `${stepId} ${n}`).toEqual([false, false, false, true]);
+    }
+    const onRing: string[] = [];
+    for (const g of [VFF, IMPL, PLAN]) {
+      const tt = treeFor(g, 1200, 520, true, reserve);
+      for (const w of tt.twigs) {
+        const k = keep(tt, w.stepId);
+        for (const m of tt.episodes) if (hit(treeTip(g, tt, m.episodeId, { reserve: [...reserve, k.call], ring: k.ring })!.box, k.ring)) onRing.push(`${w.stepId} ${m.n}`);
+      }
+    }
+    expect(onRing).toEqual([]);
   });
 
   it('puts the callout beside the step, at its own height, where that is clear', () => {

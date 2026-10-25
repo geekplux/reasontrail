@@ -54,8 +54,10 @@ export interface TreeTipOptions {
   rows?: readonly ListRow[];
   /** The tooltip of a lane tip without an episode of its own: that lane's verdict, at its tip. */
   tipLane?: string | undefined;
-  /** Zones the box keeps clear of (the legend). */
+  /** Zones the box keeps clear of where it can (the legend, a selected step's callout). */
   reserve?: readonly Box[] | undefined;
+  /** A selected step's ring: the box never covers it where any spot is clear of it. */
+  ring?: Box | undefined;
 }
 
 const TIP_H = 56;
@@ -82,15 +84,17 @@ function ownMarks(t: TreeLayout, episodeId: string, at: Pt, laneId: string | und
 }
 
 /** The tooltip for `episodeId` (an episode row's or a lane answer's), beside its glyph or tip: right and below as on
- * the canvas, else right-above, left-above or left-below, else right of the tip under or over its lane's block, the
- * first that keeps clear of the episode's own marks inside
- * the box and off the legend (else the one covering the fewest). Undefined for an id the tree does not draw. */
+ * the canvas, else right-above, left-above or left-below, else right of the tip under or over its lane's block. Each
+ * spot is moved inside the figure; the first that covers the least wins, in order of weight: the selected step's
+ * ring, the reserved zones (legend, callout), being moved, then the episode's own marks. Undefined for an id the tree
+ * does not draw. */
 export function treeTip(g: SessionGraph, t: TreeLayout, episodeId: string, opts: TreeTipOptions = {}): TreeTip | undefined {
-  const { rows = listRows(g), tipLane, reserve = [] } = opts;
+  const { rows = listRows(g), tipLane, reserve = [], ring } = opts;
+  const keep = { reserve, ring };
   const lane = tipLane ? rows.find((r): r is VerdictRow => r.kind === 'verdict' && r.laneId === tipLane) : undefined;
   const tipAt = lane ? t.tips.find((m) => m.laneId === tipLane)?.at : undefined;
   // The tip stands for its lane: its title and facts are the lane's; it keeps clear of the episode it highlights.
-  if (lane && tipAt) return place(t, episodeId, undefined, lane.text, laneFacts(g, rows, lane), tipAt, tipLane, reserve);
+  if (lane && tipAt) return place(t, episodeId, undefined, lane.text, laneFacts(g, rows, lane), tipAt, tipLane, keep);
   const row = rows.find((r): r is EpisodeRow | VerdictRow => (r.kind === 'episode' || r.kind === 'verdict') && r.episodeId === episodeId);
   const at: Pt | undefined = t.episodes.find((m) => m.episodeId === episodeId)?.at ?? t.tips.find((m) => m.episodeId === episodeId)?.at;
   const n = row?.n;
@@ -99,7 +103,7 @@ export function treeTip(g: SessionGraph, t: TreeLayout, episodeId: string, opts:
   const calls = g.steps.filter((s) => ids.has(s.id) && s.kind === 'tool-call').length;
   const failed = row.kind === 'episode' && row.failed > 0 ? `${row.failed} failed` : '';
   const facts = [plural(row.steps ?? ids.size, 'step'), calls > 0 ? plural(calls, 'tool call') : '', failed, row.kind === 'episode' ? row.wait : '', row.at].filter(Boolean).join(', ');
-  return place(t, episodeId, n, row.kind === 'episode' ? row.title : row.text, facts, at, row.laneId, reserve);
+  return place(t, episodeId, n, row.kind === 'episode' ? row.title : row.text, facts, at, row.laneId, keep);
 }
 
 /** A lane's facts for its verdict's tooltip: its steps, tool calls, failed calls and when it ended. */
@@ -110,7 +114,11 @@ function laneFacts(g: SessionGraph, rows: readonly ListRow[], v: VerdictRow): st
   return [plural(own.length, 'step'), calls > 0 ? plural(calls, 'tool call') : '', failed > 0 ? `${failed} failed` : '', v.at].filter(Boolean).join(', ');
 }
 
-function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: string, facts: string, at: Pt, laneId: string | undefined, reserve: readonly Box[]): TreeTip {
+/** Weights of what a tooltip spot covers: the ring above any number of reserved zones, a reserved zone above being
+ * moved inside the figure, that above any count of the episode's own marks. */
+const TIP_COST = { ring: 1e6, reserve: 1e4, moved: 100 };
+
+function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: string, facts: string, at: Pt, laneId: string | undefined, keep: { reserve: readonly Box[]; ring?: Box | undefined }): TreeTip {
   let title = title0;
   // A long recorded request is cut with an ellipsis, as the list's row is.
   if (textWidth(title, 14, 500) > TIP_TITLE_MAX) {
@@ -125,19 +133,22 @@ function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: 
   const block = t.blocks.find((b) => b.laneId === laneId)?.box;
   const spots: [number, number][] = [[right, below], [right, at.y - TIP_GAP.y - TIP_H], [at.x - TIP_GAP.x - w, at.y - TIP_GAP.y - TIP_H], [at.x - TIP_GAP.x - w, below]];
   if (block) spots.push([right, block.y1 + 6], [right, block.y0 - 6 - TIP_H]);
-  const cands: Box[] = spots.map(([x, y]) => ({ x0: x, y0: y, x1: x + w, y1: y + TIP_H }));
-  const fits = (b: Box) => b.x0 >= 0 && b.y0 >= 0 && b.x1 <= t.width && b.y1 <= t.height && !reserve.some((r) => boxIn(b, r));
   const own = ownMarks(t, episodeId, at, laneId);
-  const covered = (b: Box) => own.circles.filter((c) => circleIn(b, c)).length + own.boxes.filter((o) => boxIn(b, o)).length;
-  let best: Box | undefined;
-  let bestC = Infinity;
-  for (const b of cands.filter(fits)) {
-    const c = covered(b);
-    if (c < bestC) [best, bestC] = [b, c];
-    if (c === 0) break;
+  const cost = ([x0, y0]: [number, number]) => {
+    const x = Math.max(0, Math.min(x0, t.width - w));
+    const y = Math.max(0, Math.min(y0, t.height - TIP_H));
+    const b = { x0: x, y0: y, x1: x + w, y1: y + TIP_H };
+    const c = (keep.ring && boxIn(b, keep.ring) ? TIP_COST.ring : 0) + TIP_COST.reserve * keep.reserve.filter((r) => boxIn(b, r)).length
+      + (x !== x0 || y !== y0 ? TIP_COST.moved : 0) + own.circles.filter((o) => circleIn(b, o)).length + own.boxes.filter((o) => boxIn(b, o)).length;
+    return { b, c };
+  };
+  let best = cost(spots[0] as [number, number]);
+  for (const s of spots.slice(1)) {
+    if (best.c === 0) break;
+    const k = cost(s);
+    if (k.c < best.c) best = k;
   }
-  // Nowhere fits (a box smaller than the tooltip): right and below, moved inside.
-  const box = best ?? (() => { const x = Math.max(0, Math.min(right, t.width - w)); const y = Math.max(0, Math.min(below, t.height - TIP_H)); return { x0: x, y0: y, x1: x + w, y1: y + TIP_H }; })();
+  const box = best.b;
   return { episodeId, ...(n === undefined ? {} : { n }), title, facts, box };
 }
 
@@ -172,6 +183,8 @@ function segInBox(a: Pt, b: Pt, box: Box): boolean {
 const RING_CLEAR = 10;
 /** A callout over the tree's own text costs more than one over a mark or ribbon: the text would be unreadable. */
 const TEXT_COST = 30;
+/** The clearance the callout's text keeps from the tree's text and marks. */
+const CALL_AIR = 4;
 
 /** The selected step's ring: at the twig's tip, or at a leaf's middle. Undefined for a step the tree does not draw. */
 export function treeRing(t: TreeLayout, stepId: string): Pt | undefined {
@@ -194,12 +207,12 @@ export function treeCallout(t: TreeLayout, stepId: string, lines: [string, strin
     title = `${title.trimEnd()}…`;
   }
   const tw = Math.max(textWidth(title, 12, 500), textWidth(lines[1], 12, 400)) / 1.04;
-  // Baselines: the first line's; the box runs from its cap height to 4px under the second line. The leader runs from
+  // Baselines: the first line's; the box runs from its ascent (12px above) to 4px under the second line. The leader runs from
   // 10.3px off the ring to 18px across: up or down to the text's near corner, or level for a callout beside the step.
   const at = (side: 1 | -1, base: number, to: 'above' | 'below' | 'beside'): TreeCallout => {
     const end = { x: ring.x + 18 * side, y: to === 'beside' ? ring.y : to === 'below' ? base - 14 : base + 20 };
     const x = ring.x + 24 * side;
-    const box = { x0: side < 0 ? x - tw : x, y0: base - 9, x1: side < 0 ? x : x + tw, y1: base + 20 };
+    const box = { x0: side < 0 ? x - tw : x, y0: base - 12, x1: side < 0 ? x : x + tw, y1: base + 20 };
     const d = Math.hypot(end.x - ring.x, end.y - ring.y) || 1;
     const from = { x: ring.x + ((end.x - ring.x) * 10.3) / d, y: ring.y + ((end.y - ring.y) * 10.3) / d };
     const r1 = (v: number) => Math.round(v * 10) / 10;
@@ -211,17 +224,21 @@ export function treeCallout(t: TreeLayout, stepId: string, lines: [string, strin
     at(-1, top, 'above'), at(1, top, 'above'), at(-1, ring.y - 70, 'above'), at(1, ring.y - 70, 'above'),
     at(-1, ring.y - 4, 'beside'), at(1, ring.y - 4, 'beside'),
     at(-1, bottom, 'below'), at(1, bottom, 'below'), at(-1, ring.y + 60, 'below'), at(1, ring.y + 60, 'below'),
-  ].filter((c) => !circleIn(c.box, { ...ring, r: RING_CLEAR }) && c.box.y0 >= 0 && c.box.y1 <= t.height + 4);
+    // The box's top is the text's ascent: at the top edge (baseline 9.7, as on the canvas) it reaches 2.3px past the
+    // figure, above the glyphs' ink.
+  ].filter((c) => !circleIn(c.box, { ...ring, r: RING_CLEAR }) && c.box.y0 >= top - 12 && c.box.y1 <= t.height + 4);
   const marks: Circle[] = [{ ...t.root.at, r: t.root.r + 2 }, ...t.episodes.map((m) => ({ ...m.at, r: m.r + 3 })), ...t.tips.map((m) => ({ ...m.at, r: m.r + 3 })), ...t.twigs.map((x) => ({ ...x.tip, r: 6 }))];
   for (const rb of t.ribbons) rb.line.forEach((p, i) => marks.push({ ...p, r: (rb.widths[i] ?? 0) / 2 + 2 }));
   const texts = [...t.labels.map(labelBox), ...t.blocks.map((b) => b.box)];
   const len = (c: TreeCallout) => Math.hypot(c.leader[1].x - c.leader[0].x, c.leader[1].y - c.leader[0].y);
   const cost = (c: TreeCallout) => {
     const [a, b] = c.leader;
+    // 4px of air between the text and the tree's numbers, labels and glyphs.
+    const near = { x0: c.box.x0 - CALL_AIR, y0: c.box.y0 - CALL_AIR, x1: c.box.x1 + CALL_AIR, y1: c.box.y1 + CALL_AIR };
     const out = c.box.x0 < -CALL_BLEED || c.box.x1 > t.width + CALL_BLEED ? 99 : 0;
     const legend = 99 * reserve.filter((r) => boxIn(c.box, r) || segInBox(a, b, r)).length;
-    const text = TEXT_COST * texts.filter((r) => boxIn(c.box, r)).length + 99 * texts.filter((r) => segInBox(a, b, r)).length;
-    return out + legend + text + marks.filter((m) => circleIn(c.box, m) || segDist(m, a, b) < m.r).length;
+    const text = TEXT_COST * texts.filter((r) => boxIn(near, r)).length + 99 * texts.filter((r) => segInBox(a, b, r)).length;
+    return out + legend + text + marks.filter((m) => circleIn(near, m) || segDist(m, a, b) < m.r).length;
   };
   let best: TreeCallout | undefined;
   let bestC = Infinity;

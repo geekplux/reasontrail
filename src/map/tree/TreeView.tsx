@@ -69,8 +69,9 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   // The hover tooltip keeps clear of the selection's callout and ring.
   const tip = useMemo(() => {
     if (!on || !labels || !hover) return undefined;
-    const keep = call ? [...(reserve ?? []), call.box, { x0: call.ring.x - 10, y0: call.ring.y - 10, x1: call.ring.x + 10, y1: call.ring.y + 10 }] : reserve;
-    return treeTip(g, t, hover, { rows, tipLane, reserve: keep });
+    const keep = call ? [...(reserve ?? []), call.box] : reserve;
+    const ringBox = call && { x0: call.ring.x - 10, y0: call.ring.y - 10, x1: call.ring.x + 10, y1: call.ring.y + 10 };
+    return treeTip(g, t, hover, { rows, tipLane, reserve: keep, ring: ringBox });
   }, [on, labels, hover, g, t, rows, tipLane, reserve, call]);
   if (t.ribbons.length === 0) return null;
 
