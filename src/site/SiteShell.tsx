@@ -70,6 +70,8 @@ export function SiteShell({ children, onFile, home, view }: { children: ReactNod
           <a className="footer-link" href="./#how-to-read">How to read a map</a> ·{' '}
           <a className="footer-link" href="?view=install">Install</a> · Zoom into the words:{' '}
           <a className="footer-link" href="?sample=">the next-token garden</a>
+          {/* DAILY_UPSTREAM_CAP in wrangler.jsonc (worker/budget.ts) keeps the public demo's model bill bounded. */}
+          {' '}(live model calls are capped per day; recorded gardens always work)
         </p>
       </footer>
       {dragging && (

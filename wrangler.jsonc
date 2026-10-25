@@ -22,9 +22,10 @@
   // deploy fails on an id that does not exist.
   "kv_namespaces": [{ "binding": "TG_CACHE", "id": "91c14bfbe1444937a095418ee3a2f6ac" }],
   // Per-IP limits keyed by CF-Connecting-IP (worker/limits.ts): RL_MISS before an upstream call, RL_ALL on every request.
+  // namespace_id is account-wide and Workers that share one share counters; sibling projects use 1xxx-5xxx, so 6xxx here.
   "ratelimits": [
-    { "name": "RL_MISS", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },
-    { "name": "RL_ALL", "namespace_id": "1002", "simple": { "limit": 120, "period": 60 } }
+    { "name": "RL_MISS", "namespace_id": "6001", "simple": { "limit": 20, "period": 60 } },
+    { "name": "RL_ALL", "namespace_id": "6002", "simple": { "limit": 120, "period": 60 } }
   ],
   // UPSTREAM "openai-compatible" also needs OPENAI_BASE_URL and OPENAI_MODEL here and the secret OPENAI_API_KEY
   // (`wrangler secret put OPENAI_API_KEY`); see docs/EXTENDING.md and docs/DEPLOY.md.
@@ -39,8 +40,8 @@
   // cost), their own rate-limit counters, and no KV, so they never touch production data or the daily budget.
   "previews": {
     "ratelimits": [
-      { "name": "RL_MISS", "namespace_id": "2001", "simple": { "limit": 20, "period": 60 } },
-      { "name": "RL_ALL", "namespace_id": "2002", "simple": { "limit": 120, "period": 60 } }
+      { "name": "RL_MISS", "namespace_id": "6101", "simple": { "limit": 20, "period": 60 } },
+      { "name": "RL_ALL", "namespace_id": "6102", "simple": { "limit": 120, "period": 60 } }
     ],
     "vars": {
       "MODEL_ID": "@cf/zai-org/glm-4.7-flash",

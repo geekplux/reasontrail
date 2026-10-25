@@ -727,7 +727,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
      - no `next`/`remix` in `package.json`;
      - nothing under `.github/workflows/`;
      - no finance content (prompts, samples, docs, launch copy);
-     - no mention of Sean's employer;
+     - no company names beyond tools, services and cited sources;
      - no deploy executed.
   7. `ps -eo pid,cmd | grep -E "vite|chrome|wrangler|workerd|ffmpeg|node .*record" | grep -v grep` shows nothing the verifier started.
   8. Commit the screenshots.
@@ -998,7 +998,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
   2. Every new colour token has its contrast and ΔE rows. Text is ≥ 4.5:1 and marks ≥ 3:1 in both themes. Any CVD pair under ΔE 20 is justified by a non-colour cue.
   3. The glance wireframe visibly answers the four questions, and the lead-designer's 5-second protocol is written down.
   4. `a11y-reviewer` approves the keyboard model, outline view, focus order and reduced-motion rules. `dataviz-designer` approves the encoding.
-  5. No finance content, no copying of Sean's study sites, no decorative 3D, no employer mention.
+  5. No finance content, no copying of Sean's study sites, no decorative 3D, no company names.
 - **Verifier checks:** headings present (`grep`); every referenced file exists; the audit screenshots are committed; no application code in the diff (`git diff --stat` shows only `docs/`).
   - **Screenshots:** `audit-*.png` (current garden UI, desktop, mobile, dark) and the wireframe SVGs rendered to PNG in the one browser.
 - **Risks:** a spec too large to build. The lead-designer marks each item with the phase that builds it (13, 17, 18, 19, 22, 24).
@@ -1119,7 +1119,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - The samples' `expect` blocks are reviewed by hand.
 - **Acceptance criteria:**
   1. Each sample is ≤ 250 KB, has ≤ 400 steps, has at least 1 trouble marker (at least one sample has a subagent lane), and passes `audit:samples` and schema validation.
-  2. The main agent has read each sample's task, episode titles, raw excerpts and outcome: no secrets, emails, home paths, employer, finance or private content. Recorded in the PR body.
+  2. The main agent has read each sample's task, episode titles, raw excerpts and outcome: no secrets, emails, home paths, company names, finance or private content. Recorded in the PR body.
   3. Running `samples:sessions` again on this box gives byte-identical files.
 - **Verifier checks:** the common steps; `audit:samples`; grep the samples for `@`, `/home/` and token prefixes; open each via the CLI `--json` round-trip.
   - **Screenshots:** `sample-<id>-outline.png` for each.
