@@ -2,7 +2,7 @@
 
 - **Before:** the app on `origin/main` before redesign v7 (built in a temporary worktree, shot with its own polish flow), in `before/`.
 - **Canvas:** the design canvas frames, `docs/design/v7/frames/` (`node scripts/design/canvas.mjs frames`).
-- **After:** the app at the end of phase 35: `app-*.webp` for the six canvas states, `after/` for every page (`pnpm check:browser --flows polish`).
+- **After:** the app at the end of phase 35: `app-*.webp` for the six canvas states, `after/` for the pages without a canvas frame (`pnpm check:browser --flows polish`; its home, step and open shots duplicate `app-*` and are not kept).
 - **Pairs** (`pair-*.webp`, `canvas.mjs pair`): the canvas frame on the left, the app on the right, at the same viewport and theme.
 
 ## The six canvas states
