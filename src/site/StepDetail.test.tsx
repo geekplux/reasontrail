@@ -22,6 +22,9 @@ describe('the step panel\'s "Show raw"', () => {
     fireEvent.click(link);
     const pre = container.querySelector('pre.raw')!;
     expect(pre.textContent).toBe(d.raw);
+    // A focusable, named region, so a keyboard user can scroll the record.
+    expect(pre.getAttribute('tabindex')).toBe('0');
+    expect(screen.getByRole('region', { name: 'Raw record' })).toBe(pre);
     expect(link.getAttribute('aria-expanded')).toBe('true');
     expect(link.getAttribute('aria-controls')).toBe(pre.id);
     expect(link.textContent).toBe('Hide raw');

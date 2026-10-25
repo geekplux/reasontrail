@@ -82,7 +82,7 @@ export function StepDetail({ d, focusOnOpen = false, level = 3, onStep, onClose 
       {d.raw !== undefined && (
         <>
           <button type="button" className="link d-raw" aria-expanded={showRaw} aria-controls={showRaw ? rawId : undefined} onClick={() => setRawFor(showRaw ? undefined : d.stepId)}>{showRaw ? 'Hide raw' : 'Show raw'}</button>
-          {showRaw && <pre id={rawId} className="raw" aria-label="Raw record">{d.raw}</pre>}
+          {showRaw && <pre id={rawId} className="raw" tabIndex={0} role="region" aria-label="Raw record">{d.raw}</pre>}
         </>
       )}
       <div className="d-nav">
