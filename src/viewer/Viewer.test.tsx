@@ -10,7 +10,7 @@ import { MAKER_URL, SITE_URL, Viewer, readStep } from './Viewer';
 import basic from '../../fixtures/sessions/claude-code/basic.jsonl?raw';
 
 const page = (graph: SessionGraph, meta: Record<string, unknown> = {}, labels?: LabelOverlay) => loadGraph(JSON.stringify({ graph, meta: { version: '0.1.0', ...meta }, ...(labels ? { labels } : {}) }));
-const user = () => parseSession({ files: [{ path: 'basic.jsonl', text: basic }] });
+const user = () => parseSession({ files: [{ path: 'basic.jsonl', text: basic }] }) as SessionGraph;
 const panel = () => document.querySelector<HTMLElement>('aside.detail');
 
 afterEach(() => {
