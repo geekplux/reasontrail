@@ -5,7 +5,7 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 34a `phase-34a-v7-viewer`, step: PR
+- Current phase: 34b `phase-34b-v7-features`, step: implement
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
@@ -17,8 +17,8 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 | 32a | `phase-32a-v7-tree-render` | [#37](https://github.com/geekplux/reasontrail/pull/37) | done, PR open | 2 | MATCH (R1, R2); dataviz approved items fixed in fix 2 |
 | 32b | `phase-32b-v7-step-detail` | [#38](https://github.com/geekplux/reasontrail/pull/38) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
 | 33 | `phase-33-v7-phone-dark` | [#39](https://github.com/geekplux/reasontrail/pull/39) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
-| 34a | `phase-34a-v7-viewer` | (opening) | done, PR open | 2 | REJECT (R1, order), MATCH (R2) |
-| 34b | `phase-34b-v7-features` | – | pending | – | – |
+| 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | done, PR open | 2 | REJECT (R1, order), MATCH (R2) |
+| 34b | `phase-34b-v7-features` | – | implementing | 0 | – |
 | 35 | `phase-35-v7-polish-docs` | – | pending | – | – |
 | 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
 
