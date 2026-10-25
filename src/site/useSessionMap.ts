@@ -20,11 +20,15 @@ export function useSessionMap(key: string, graph: SessionGraph | null, step: str
   const [hover, setHover] = useState<Active>();
   const [pointer, setPointer] = useState<Active>();
   const [focused, setFocused] = useState<Active>();
-  // Another session drops the focused row too (adjusted during render, not in an effect).
+  // AI titles: on for this session only. Another session starts with the plain map, and so does coming back (its
+  // "AI titles" button is drawn anew, off).
+  const [ai, setAi] = useState<{ id: string; overlay: LabelOverlay }>();
+  // Another session drops the focused row and the AI titles too (adjusted during render, not in an effect).
   const [focusedOn, setFocusedOn] = useState(key);
   if (focusedOn !== key) {
     setFocusedOn(key);
     setFocused(undefined);
+    setAi(undefined);
   }
   const hovered = hover?.id === key ? hover.episodeId : undefined;
   const of = (episodeId: string | undefined): Active => (episodeId ? { id: key, episodeId } : undefined);
@@ -58,8 +62,6 @@ export function useSessionMap(key: string, graph: SessionGraph | null, step: str
   };
   /** The detail panel takes focus as it opens when its step was just picked in the tree. */
   const focusDetail = picked !== undefined && treePick?.stepId === picked.step.stepId && treePick.block;
-  // AI titles: on for this session only (another sample starts with the plain map).
-  const [ai, setAi] = useState<{ id: string; overlay: LabelOverlay }>();
   const overlay = ai?.id === key ? ai.overlay : undefined;
   const onOverlay = useCallback((next: LabelOverlay | undefined) => setAi((was) => (was?.id === key && was.overlay === next ? was : next && { id: key, overlay: next })), [key]);
   // The tree rings the episodes whose list row shows a tag (episode rows; a lane's verdict row has none).

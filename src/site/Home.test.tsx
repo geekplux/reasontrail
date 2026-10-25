@@ -138,6 +138,35 @@ describe('Home (v7 §4, §12)', () => {
     expect(container.querySelector('.gl-row.is-hv')).toBeNull();
   });
 
+  it('drops the AI titles on a tab switch: A on, B, back to A is the plain map with AI titles off', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body)) as { steps: { id: string }[] };
+      return Response.json({ model: 'fake-model', cached: false, labels: body.steps.map((st) => ({ stepId: st.id, label: 'evidence', confidence: 0.8 })), links: [] });
+    }));
+    // Plain selectors: role queries over the whole home (tree, list) are slow when polled.
+    const button = (name: string) => [...document.querySelectorAll('button')].find((b) => b.textContent === name);
+    try {
+      const { container, rerender } = render(<Home session={null} onSession={() => {}} />);
+      const plain = () => `${container.querySelector('.gl')?.outerHTML}${container.querySelector('.hero-tree svg')?.outerHTML}`;
+      const before = plain();
+      fireEvent.click(button('AI titles')!);
+      // The control and its consent dialog load on first use.
+      const send = await waitFor(() => button('Send') ?? Promise.reject(new Error('no consent dialog yet')), { timeout: 10_000 });
+      await act(async () => fireEvent.click(send));
+      await waitFor(() => expect(container.querySelector('.gl .ai-tag')).toBeTruthy());
+      expect(button('AI titles')?.getAttribute('aria-pressed')).toBe('true');
+      rerender(<Home session="implementer-checks" onSession={() => {}} />);
+      await waitFor(() => expect(document.getElementById('sess-title')?.textContent).toBe('Build keyboard navigation and a screen-reader table (phase 5)'));
+      expect(container.querySelector('.ai-tag, .ai-ring, .ai-by')).toBeNull();
+      rerender(<Home session={null} onSession={() => {}} />);
+      await waitFor(() => expect(plain()).toBe(before));
+      expect(container.querySelector('.ai-tag, .ai-ring, .ai-by')).toBeNull();
+      expect(button('AI titles')?.getAttribute('aria-pressed')).not.toBe('true');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  }, 20_000);
+
   it('says so when a sample fails to load, instead of loading forever', async () => {
     const sample = sessionSamples[1]!;
     const load = vi.spyOn(sample, 'load').mockRejectedValueOnce(new Error('offline'));
