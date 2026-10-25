@@ -10,6 +10,7 @@ import type { SessionGraph } from '../../shared/session/types';
 import { AlertIcon } from '../map/gitlist/marks';
 import { CommandLine } from '../site/Install';
 import { SessionMap } from '../site/SessionMap';
+import { PASTED_CHAT } from '../site/sessionSummary';
 import { PRIVACY, pageTitle } from '../site/SiteShell';
 import { ChatPicker, PasteBox } from './ChatImport';
 import { SHARE_LINK_MESSAGE } from './chatInput';
@@ -143,7 +144,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
       ) : state.at === 'reading' && state.big ? (
         <Progress lines={state.lines} total={state.total} onCancel={cancel} />
       ) : chat ? (
-        <PasteBox ref={paste} invalid={!!error} onText={(t) => onFile(new File([t], 'Pasted chat', { type: 'text/plain' }))} onFile={onFile} onShareLink={() => {
+        <PasteBox ref={paste} invalid={!!error} onText={(t) => onFile(new File([t], PASTED_CHAT, { type: 'text/plain' }))} onFile={onFile} onShareLink={() => {
           // Clear first so the alert's text is re-added, and a repeated share link is announced again.
           flushSync(() => setState({ at: 'idle' }));
           setState({ at: 'error', error: 'share-link', mb: 0 });

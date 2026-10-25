@@ -249,7 +249,7 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
       <div className="sess-l">
         <Title ref={titleRef} id="sess-title" tabIndex={headingLevel === 1 ? -1 : undefined}>{g.displayTitle ?? g.title}</Title>
         <ul className="meta">
-          {sessionMeta(g, branch, Boolean(tag)).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
+          {sessionMeta(g, branch, tag).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
           {tag && <li className="tag">{tag}</li>}
         </ul>
         {/* What the reader could not map (skipped or partial lines, a chat's assumed turns); a sample has none. */}

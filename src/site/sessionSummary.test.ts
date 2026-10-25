@@ -77,9 +77,10 @@ describe('a chat (phase 35, rule 2)', () => {
     expect(outcomeRows({ ...chat, trouble: [] })).toEqual([]);
   });
 
-  it('leaves "Chat" out of the meta line when a tag names the source', () => {
+  it('leaves "Chat" out of the meta line only when the tag is "Pasted chat"', () => {
     expect(sessionMeta(chat).map((m) => m.key)).toContain('agent');
-    expect(sessionMeta(chat, undefined, true).map((m) => m.key)).not.toContain('agent');
-    expect(sessionMeta(vff, undefined, true)[0]).toEqual({ key: 'agent', text: 'Claude Code' });
+    expect(sessionMeta(chat, undefined, 'Pasted chat').map((m) => m.key)).not.toContain('agent');
+    expect(sessionMeta(chat, undefined, 'chat.json')[0]).toEqual({ key: 'agent', text: 'Chat' });
+    expect(sessionMeta(vff, undefined, 'Pasted chat')[0]).toEqual({ key: 'agent', text: 'Claude Code' });
   });
 });

@@ -4,6 +4,9 @@ import type { SessionGraph } from '../../shared/session/types';
 import { laneStatus } from '../map/layout';
 import { SOURCE_LABEL, duration, times } from '../map/outline';
 
+/** The tag of a chat pasted as text (the paste box names its file so). */
+export const PASTED_CHAT = 'Pasted chat';
+
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 /** One piece of a line of text: plain, or code (set in mono). */
@@ -18,9 +21,9 @@ export function runs(text: string): Run[] {
 export type MetaItem = { key: string; strong: string; rest: string } | { key: string; text: string; code?: boolean };
 
 /** The meta line (§12): the agent, then wall time, subagents and tool calls (zero counts left out), then the branch. A
- * chat with a tag (its source, such as "Pasted chat") leaves out "Chat", which the tag already says. */
-export function sessionMeta(g: SessionGraph, branch = g.source.gitBranch, tagged = false): MetaItem[] {
-  const items: MetaItem[] = g.source.kind === 'chat' && tagged ? [] : [{ key: 'agent', text: SOURCE_LABEL[g.source.kind] }];
+ * pasted chat (tagged "Pasted chat") leaves out "Chat", which the tag already says; a chat file keeps it. */
+export function sessionMeta(g: SessionGraph, branch = g.source.gitBranch, tag?: string): MetaItem[] {
+  const items: MetaItem[] = g.source.kind === 'chat' && tag === PASTED_CHAT ? [] : [{ key: 'agent', text: SOURCE_LABEL[g.source.kind] }];
   const wall = g.stats.durationMs ?? times(g.steps)?.wall;
   if (wall !== undefined) items.push({ key: 'time', strong: duration(wall), rest: 'total' });
   const count = (key: string, n: number, one: string) => n > 0 && items.push({ key, strong: String(n), rest: plural(n, one).replace(/^\d+ /, '') });
