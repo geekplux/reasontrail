@@ -46,15 +46,19 @@ describe('step detail (phase 32b, Step.html)', () => {
     expect(th.text).toBeTruthy();
   });
 
-  it('steps across episode boundaries, and stops at the ends', () => {
+  it('steps within the episode only, and stops at its ends', () => {
     const all = selectableSteps(g);
-    const first = all.findIndex((s) => s.step.stepId === 's41');
-    expect(stepDetail(g, 's41')?.prevId).toBe(all[first - 1]?.step.stepId);
-    expect(all[first - 1]?.episode.n).toBe(5);
-    const last = all.map((s) => s.episode.n).lastIndexOf(6);
-    expect(findStep(g, stepDetail(g, all[last]!.step.stepId)!.nextId)?.episode.n).toBe(7);
-    expect(stepDetail(g, all[0]!.step.stepId)?.prevId).toBeUndefined();
-    expect(stepDetail(g, all.at(-1)!.step.stepId)?.nextId).toBeUndefined();
+    const ep6 = all.filter((s) => s.episode.n === 6);
+    expect(ep6[0]?.step.stepId).toBe('s41');
+    expect(stepDetail(g, 's41')?.prevId).toBeUndefined();
+    const last = stepDetail(g, ep6.at(-1)!.step.stepId)!;
+    expect([last.nextId, last.next]).toEqual([undefined, undefined]);
+    expect(stepDetail(g, ep6.at(-2)!.step.stepId)?.nextId).toBe(ep6.at(-1)!.step.stepId);
+    const across = all.filter((s) => {
+      const d = stepDetail(g, s.step.stepId)!;
+      return [d.prevId, d.nextId].some((id) => id !== undefined && findStep(g, id)?.episode.episodeId !== s.episode.episodeId);
+    });
+    expect(across).toEqual([]);
     expect(stepDetail(g, 's96')).toBeUndefined();
   });
 

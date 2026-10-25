@@ -3,7 +3,7 @@
 // callout show for one, from the session's data only.
 import type { SessionGraph } from '../../shared/session/types';
 import { excerpt, lineDiff, rowStatus, stepRows, textHead, type Row } from '../map/details';
-import { episodeSteps, listRows, type EpisodeRow, type ListRow, type StepRow } from '../map/gitlist/rows';
+import { episodeSteps, listRows, type EpisodeRow, type StepRow } from '../map/gitlist/rows';
 import { isUnstoredThinking } from '../map/outline';
 
 /** A step row with the episode row it is listed under and its lane's name. */
@@ -11,9 +11,10 @@ export interface Selectable { step: StepRow; episode: EpisodeRow; lane: string }
 
 const memo = new WeakMap<SessionGraph, Selectable[]>();
 /** Every step the list can select (tool calls and thinking under an episode row), in list order. */
-export function selectableSteps(g: SessionGraph, rows: readonly ListRow[] = listRows(g)): Selectable[] {
+export function selectableSteps(g: SessionGraph): Selectable[] {
   const hit = memo.get(g);
   if (hit) return hit;
+  const rows = listRows(g);
   const lanes = new Map(rows.flatMap((r) => (r.kind === 'lane' ? [[r.laneId, r.name] as const] : [])));
   const out = rows.flatMap((r) => (r.kind === 'episode' && !r.leaf ? episodeSteps(g, r.episodeId).map((step) => ({ step, episode: r, lane: lanes.get(r.laneId) ?? '' })) : []));
   memo.set(g, out);
@@ -113,8 +114,10 @@ export function stepDetail(g: SessionGraph, stepId: string): StepDetail | undefi
   if (r.step.kind === 'thinking') d.text = isUnstoredThinking(r.step) ? 'Only a signature was recorded, so no text is shown.' : textHead(r.step.text ?? '', 8, 600).head;
   const out = output(r);
   if (out) d.output = out;
-  const prev = all[i - 1];
-  const next = all[i + 1];
+  // Previous / Next stay within the episode (Step.html greys Previous on an episode's first step).
+  const same = (o: Selectable | undefined) => (o && o.episode.episodeId === s.episode.episodeId ? o : undefined);
+  const prev = same(all[i - 1]);
+  const next = same(all[i + 1]);
   if (prev) d.prevId = prev.step.stepId;
   if (next) {
     d.nextId = next.step.stepId;
