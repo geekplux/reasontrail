@@ -1,8 +1,10 @@
 // v7 phone and dark flow (docs/design/v7/PROMPT.md §4 "Phone (390)" and "Dark", §9, §13.5 phase 33). At 390×844: no
 // horizontal scroll, the tab track scrolls sideways with the legend under it, the outcome box sits above the list, the
-// list has no header, # or Start column, the card has no header buttons, every font size is 12, 14, 20 or 32, axe
-// clean. At 768 and 1024: no horizontal scroll. At 1440 dark (2×): axe clean, every computed colour a Radix dark value,
-// no line over 0.5px, no middle dot.
+// list has no header, # or Start column, the card header has no buttons (AI titles, Details and Share sit in a row
+// after the final answer; Details names the branch), every font size is 12, 14, 20 or 32, axe clean; a list tap opens
+// the panel with its title on screen and focused; `?session=planner-pivot` shows its selected tab whole in the track,
+// and so does ←/→. At 768 and 1024: no horizontal scroll. At 1440 dark (2×): axe clean, every computed colour a Radix
+// dark value, no line or shadow over 0.5px, no middle dot.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';
@@ -23,6 +25,7 @@ const audit = (page) => page.evaluate(() => {
   const sizes = new Set();
   const colours = new Map();
   const widths = new Map();
+  const shadows = new Map();
   const add = (v, el) => {
     if (!v || v === 'none' || v === 'transparent' || /^rgba\(.*, 0\)$/.test(v) || v.startsWith('url(')) return;
     if (!colours.has(v)) colours.set(v, `${el.tagName.toLowerCase()}.${String(el.className?.baseVal ?? el.className).split(' ')[0]}`);
@@ -41,6 +44,13 @@ const audit = (page) => page.evaluate(() => {
         add(cs[`border${side}Color`], el);
       }
     }
+    // Box shadows draw the 0.5px frames: every offset, blur and spread is at most 0.5px.
+    if (cs.boxShadow !== 'none') {
+      for (const s of cs.boxShadow.split(/,(?![^(]*\))/)) {
+        const big = (s.replace(/rgba?\([^)]*\)/, '').match(/-?[\d.]+px/g) ?? []).map(parseFloat).filter((v) => Math.abs(v) > 0.5);
+        if (big.length && !shadows.has(s.trim())) shadows.set(s.trim(), `${el.tagName.toLowerCase()}.${String(el.className?.baseVal ?? el.className).split(' ')[0]}`);
+      }
+    }
     // Painted SVG shapes and text only: the root <svg> computes fill: black without painting anything.
     if (el instanceof SVGGeometryElement || el instanceof SVGTextContentElement) {
       add(cs.fill, el);
@@ -48,7 +58,7 @@ const audit = (page) => page.evaluate(() => {
     }
   }
   const dots = [document.body.innerText, ...[...document.querySelectorAll('[aria-label]')].map((el) => el.getAttribute('aria-label'))].filter((t) => t.includes('·'));
-  return { sizes: [...sizes].sort((a, b) => a - b), colours: [...colours], widths: [...widths], dots: dots.length };
+  return { sizes: [...sizes].sort((a, b) => a - b), colours: [...colours], widths: [...widths], shadows: [...shadows], dots: dots.length };
 });
 
 export async function run({ page, baseURL, root, shot, log, fail }) {
@@ -69,7 +79,8 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
       legendUnderTabs: !!document.querySelector('.under > .tabs + .legend') && !document.querySelector('.hero-tree > .legend'),
       resBottom: box('.frame .res')?.bottom,
       listTop: box('.frame .gl')?.top,
-      answerTop: box('.frame > .ph-answer')?.top,
+      answerTop: box('.frame .cols > .final')?.top,
+      actions: [...document.querySelectorAll('.frame .cols + .sess-r button')].map((b) => b.textContent),
       listBottom: box('.frame .gl')?.bottom,
       columns: visible('.gl-head, .gl-num, .gl-at'),
       buttons: [...document.querySelectorAll('.frame .sess button')].map((b) => b.textContent),
@@ -88,6 +99,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   if (!(m.answerTop > m.listBottom)) fail('phone: the final answer is not under the list');
   if (m.columns) fail(`phone: the list shows ${m.columns} header, # or Start cells`);
   if (m.buttons.length) fail(`phone: header buttons in the card: ${m.buttons.join(', ')}`);
+  if (m.actions.join() !== 'AI titles,Details,Share') fail(`phone: the actions after the final answer are ${JSON.stringify(m.actions)}`);
   if (m.branch.length) fail(`phone: the meta line shows the branch ${m.branch.join(', ')}`);
   if (m.meta !== 'Sample') fail(`phone: the meta line ends with ${JSON.stringify(m.meta)}, not the Sample tag`);
   if (m.open !== 'Open session') fail(`phone: the header button reads ${JSON.stringify(m.open)}`);
@@ -96,13 +108,49 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   const odd = phone.sizes.filter((s) => !SIZES.includes(s));
   if (odd.length) fail(`phone: font sizes outside 12/14/20/32: ${odd.join(', ')}`);
   if (phone.dots) fail('phone: middle dot in the text or an aria-label');
+  if (phone.shadows.length) fail(`phone: shadows over 0.5px: ${phone.shadows.map(([s, el]) => `${s} (${el})`).join(', ')}`);
   for (const p of await axeProblems(page, 'v7 phone 390', 'all')) fail(p);
   await shot('v7phone-390');
+
+  // Details in the actions row opens under it and names the branch (the meta line leaves it out on the phone).
+  await page.click('.frame .cols + .sess-r button:nth-child(2)');
+  const det = await page.evaluate(() => ({ text: document.querySelector('.frame .sess-r + .details:not([hidden])')?.innerText ?? '', scroll: document.documentElement.scrollWidth }));
+  if (!det.text.includes('phase-12-structure-redact') || det.scroll > 390) fail(`phone Details: ${JSON.stringify(det)} (want the branch under the actions row, no sideways scroll)`);
+  await page.click('.frame .cols + .sess-r button:nth-child(2)');
+
+  // A tap on a list step opens the panel above the list with its title focused and on screen.
+  const ep = await page.evaluate(() => [...document.querySelectorAll('.gl-episode')].find((r) => /^Episode 6\b/.test(r.textContent))?.dataset.row);
+  await page.click(`[data-row="${ep}"]`);
+  await page.waitForSelector('[data-row="step:s41"]');
+  await page.locator('[data-row="step:s41"]').scrollIntoViewIfNeeded();
+  await page.click('[data-row="step:s41"]');
+  await page.waitForSelector('.detail h3');
+  const tap = await page.evaluate(() => { const h = document.querySelector('.detail h3'); const r = h.getBoundingClientRect(); return { focused: document.activeElement === h, top: r.top, bottom: r.bottom }; });
+  if (!tap.focused || tap.top < 0 || tap.bottom > 844) fail(`phone list tap: the panel title is not focused on screen: ${JSON.stringify(tap)}`);
+  await page.keyboard.press('Escape');
+  if ((await page.evaluate(() => document.activeElement?.dataset.row)) !== 'step:s41') fail('phone list tap: Esc did not return focus to the row');
+
+  // A deep link to the last tab, then ←/→: the selected tab shows whole inside the scrolling track.
+  await page.goto(`${baseURL}/?session=planner-pivot`, { waitUntil: 'load' });
+  await page.waitForSelector('.hero-tree svg[role="img"]', { timeout: 10_000 });
+  const tabIn = () => page.evaluate(() => {
+    const t = document.querySelector('.tabs').getBoundingClientRect();
+    const s = document.querySelector('.tab[aria-selected="true"]').getBoundingClientRect();
+    return { whole: s.left >= t.left - 0.5 && s.right <= t.right + 0.5, page: scrollY };
+  });
+  const deep = await tabIn();
+  if (!deep.whole || deep.page !== 0) fail(`phone tabs: ?session=planner-pivot ${JSON.stringify(deep)} (want the selected tab whole in the track, the page not scrolled)`);
+  await page.focus('.tab[aria-selected="true"]');
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowLeft']) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(100);
+    if (!(await tabIn()).whole) fail(`phone tabs: after ${key} the focused tab is cut by the track`);
+  }
 
   // A selected step on the phone: the detail panel takes the outcome box's place above the list; Esc closes it.
   await page.goto(`${baseURL}/?step=s41`, { waitUntil: 'load' });
   await page.waitForSelector('.detail pre', { timeout: 10_000 });
-  const st = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, above: document.querySelector('.frame > .detail + .cols .gl') !== null, res: !!document.querySelector('.frame .res') }));
+  const st = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, above: document.querySelector('.frame .cols > .detail + .gl') !== null, res: !!document.querySelector('.frame .res') }));
   if (st.scroll > 390 || !st.above || st.res) fail(`phone step: ${JSON.stringify(st)} (want no sideways scroll, the panel above the list in place of the outcome box)`);
   await page.focus('.detail .d-title h3');
   await page.keyboard.press('Escape');
@@ -116,7 +164,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
     if (w > width) fail(`${width}: the page scrolls sideways (${w}px wide)`);
   }
 
-  // Desktop dark, 1440 × 900, at 2× so a 0.5px line computes as 0.5px (Chrome rounds it up to one device pixel).
+  // Desktop dark, 1440 × 900, at 2× (the lines as a retina screen draws them; computed border widths still read 1px).
   const ctx = await page.context().browser().newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, colorScheme: 'dark' });
   watchContext(ctx, baseURL, { push: fail }); // console errors and off-origin requests, as in the harness
   try {
@@ -136,8 +184,10 @@ async function dark2x(page, { baseURL, root, shot, log, fail }) {
   log(JSON.stringify({ colours: dark.colours.length, widths: dark.widths, sizes: dark.sizes }));
   if (off.length) fail(`dark: colours outside the Radix dark scales: ${off.map(([c, el]) => `${c} (${el})`).join(', ')}`);
   // Chrome computes a 0.5px border as 1px at any device scale (border-width snapping); anything wider is a real line.
+  // (Checked: Chrome reports 1px for a 0.5px border at 1× and at 2× alike, so 1 is the tightest bound it allows.)
   const thick = dark.widths.filter(([w]) => w > 1);
   if (thick.length) fail(`dark: border widths over 0.5px: ${thick.map(([w, el]) => `${w}px (${el})`).join(', ')}`);
+  if (dark.shadows.length) fail(`dark: shadows over 0.5px: ${dark.shadows.map(([s, el]) => `${s} (${el})`).join(', ')}`);
   if (dark.sizes.some((s) => !SIZES.includes(s))) fail(`dark: font sizes ${dark.sizes.join(', ')}`);
   if (dark.dots) fail('dark: middle dot in the text or an aria-label');
   for (const p of await axeProblems(page, 'v7 home 1440 dark', 'all')) fail(p);
