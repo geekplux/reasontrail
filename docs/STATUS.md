@@ -19,7 +19,7 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13): all phases 29
 | 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | PR open | 2 | REJECT (R1, order), MATCH (R2) |
 | 34b | `phase-34b-v7-features` | [#42](https://github.com/geekplux/reasontrail/pull/42) | PR open | 2 | REJECT (R1, Open frame), MATCH (R2) |
 | 35 | `phase-35-v7-polish-docs` | [#43](https://github.com/geekplux/reasontrail/pull/43) | PR open | 2 | MATCH on all six canvas frames (R1, R2) |
-| 36 | `phase-36-v7-deploy-prep` | (opening) | PR open; dry run passes | 2 | MATCH (R1 REJECT on one copy item, R2 MATCH) |
+| 36 | `phase-36-v7-deploy-prep` | [#44](https://github.com/geekplux/reasontrail/pull/44) | PR open; dry run passes | 2 | MATCH (R1 REJECT on one copy item, R2 MATCH) |
 
 Last updated: 2026-10-25 (phase 36 done; STATE: DONE, awaiting Sean's approval to deploy)
 
