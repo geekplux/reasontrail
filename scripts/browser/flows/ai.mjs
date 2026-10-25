@@ -3,7 +3,7 @@
 // before consent, exactly ⌈n/200⌉ ≤ 5 after it, the modal dialog (focus inside, Esc returns focus), a 12px tag beside
 // each titled episode row and a ring on the same episodes in the tree, X3 wording ("suggested by <model>") on every row
 // and in the line under the list, toggling off restores the plain list and tree (DOM compare), the card does not move,
-// deuteranopia and axe. Then the CLI's `--ai --yes --api <local fake>` page from file://: AI titles is an off-by-default
+// deuteranopia and axe, axe at 390 light and dark with the overlay on. Then the CLI's `--ai --yes --api <local fake>` page from file://: AI titles is an off-by-default
 // toggle, no consent and no requests. Fixture data.
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -144,6 +144,16 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await applyCvd(page, 'deuteranopia');
   await shot('ai-cvd-deuteranopia');
   await applyCvd(page, null);
+  // The overlay on a 390 phone, light and dark: tags still beside the rows, axe clean; then back to 1440 light.
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const scheme of ['light', 'dark']) {
+    await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });
+    await page.waitForFunction(() => document.querySelector('#session .gl .ai-tag')).catch(() => fail(`390 ${scheme}: no tags with the overlay on`));
+    for (const p of await axeProblems(page, `ai titles on, 390 ${scheme}`)) fail(p);
+  }
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForFunction(() => document.querySelector('.hero-tree .ai-ring')).catch(() => fail('1440: no rings after the phone pass'));
 
   // Off restores the plain list and tree exactly.
   await button(page).click();

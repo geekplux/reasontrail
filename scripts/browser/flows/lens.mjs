@@ -88,11 +88,39 @@ export async function run({ page, baseURL, root, log, fail }) {
   await page.locator('.lens-options summary').click();
   await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).click();
   await page.locator('.lens-live').waitFor({ timeout: 5_000 }).catch(() => fail('no live status after the opt-in'));
+  // The key of the branch past the recording that grows live (keys are continuations, so its children extend it).
+  let liveKey = null;
   for (let i = 0; i < 8 && sent.length === 0; i++) {
-    if (!(await growOne(page, 'not-recorded')) && !(await growOne(page))) break;
+    const missing = page.locator('g.branch[data-state="not-recorded"]').first();
+    const b = (await missing.count()) ? missing : page.locator('g.branch[data-state="expandable"]').first();
+    if (!(await b.count())) break;
+    liveKey = await b.getAttribute('data-key'); // the last branch clicked is the one that called
+    await b.locator('[data-role="hit"]').first().click();
     await page.waitForTimeout(300);
   }
-  if (sent.length < 1 || sent.length > 2 || sent.some((b) => b.k !== 5)) fail(`live calls after the opt-in: ${JSON.stringify(sent)}`);
+  const opened = sent.length;
+  if (opened < 1 || opened > 2 || sent.some((b) => b.k !== 5)) fail(`live calls after the opt-in: ${JSON.stringify(sent)}`);
+  if (liveKey === null || !opened) fail('no branch past the recording grew live');
+  else {
+    // A branch by its key (any text): its index among the drawn branches, so no selector escaping.
+    const hitOf = async (key) => {
+      const i = await page.locator('g.branch[data-key]').evaluateAll((els, k) => els.findIndex((e) => e.getAttribute('data-key') === k), key);
+      return page.locator('g.branch[data-key]').nth(i).locator('[data-role="hit"]').first();
+    };
+    const state = async () => (await page.locator('g.branch[data-key]').evaluateAll((els, k) => els.find((e) => e.getAttribute('data-key') === k)?.getAttribute('data-state'), liveKey));
+    if ((await state()) !== 'expanded') fail(`the live branch is ${await state()}, not expanded`);
+    await (await hitOf(liveKey)).click(); // collapse
+    await (await hitOf(liveKey)).click(); // open again: from the cache
+    await page.waitForTimeout(300);
+    if (sent.length !== opened) fail(`a repeated prefix made ${sent.length - opened} more calls`);
+    const child = await page.locator('g.branch[data-state="expandable"]').evaluateAll((els, k) => els.map((e) => e.getAttribute('data-key')).find((key) => key !== k && key?.startsWith(k)), liveKey);
+    if (!child) fail('no live child branch to grow');
+    else {
+      await (await hitOf(child)).click();
+      await page.waitForTimeout(300);
+      if (sent.length !== opened + 1) fail(`growing a new live branch made ${sent.length - opened} calls`);
+    }
+  }
   await page.unroute('**/api/next-tokens');
 
   // No Worker behind `vite preview`: a live call ends in the calm message, and the garden still shows.
@@ -106,7 +134,7 @@ export async function run({ page, baseURL, root, log, fail }) {
     await page.waitForTimeout(300);
   }
   const msg = (await page.locator('.lens-status').textContent()) ?? '';
-  if (msg && !msg.includes("Live growth isn't available here")) fail(`no-Worker message: ${msg}`);
+  if (!msg.includes("Live growth isn't available here")) fail(`no-Worker message missing: "${msg.trim()}"`);
   if (!(await page.locator('[data-testid="garden"][data-ready="true"]').isVisible())) fail('the garden is gone after a failed live call');
 
   // Reduced motion: the lens opens with no transition time.
