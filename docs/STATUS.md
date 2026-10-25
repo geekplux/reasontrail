@@ -5,7 +5,7 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 35 `phase-35-v7-polish-docs`, step: PR
+- Current phase: 36 `phase-36-v7-deploy-prep`, step: implement
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
@@ -19,8 +19,8 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 | 33 | `phase-33-v7-phone-dark` | [#39](https://github.com/geekplux/reasontrail/pull/39) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
 | 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | done, PR open | 2 | REJECT (R1, order), MATCH (R2) |
 | 34b | `phase-34b-v7-features` | [#42](https://github.com/geekplux/reasontrail/pull/42) | done, PR open | 2 | REJECT (R1, Open frame), MATCH (R2) |
-| 35 | `phase-35-v7-polish-docs` | (opening) | done, PR open | 2 | MATCH all six frames (R1, R2) |
-| 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
+| 35 | `phase-35-v7-polish-docs` | [#43](https://github.com/geekplux/reasontrail/pull/43) | done, PR open | 2 | MATCH all six frames (R1, R2) |
+| 36 | `phase-36-v7-deploy-prep` | – | implementing | 0 | – |
 
 Last updated: 2026-10-25 (phase 35: lead-designer MATCH on all six canvas frames, a11y PASS, verifier PASS incl. the full browser suite)
 
