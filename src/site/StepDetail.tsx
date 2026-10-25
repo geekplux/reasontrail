@@ -12,7 +12,7 @@ export interface StepDetailProps {
   d: Detail;
   /** Move focus to the title when the panel opens or shows another step from a click in the tree, scrolling only when
    * the title is out of view so focus never lands off-screen: `nearest` brings the title just into view (desktop, the
-   * tree stays in view), `start` brings it to the top (the phone's bare tree, so the panel's content shows). */
+   * tree stays in view), `start` brings the panel's top to the top (the phone, so the panel's content shows). */
   focusOnOpen?: false | 'nearest' | 'start';
   onStep(stepId: string): void;
   onClose(): void;
@@ -23,10 +23,11 @@ export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDeta
   useLayoutEffect(() => {
     const el = title.current;
     if (!focusOnOpen || !el) return;
-    const r = el.getBoundingClientRect();
-    const hidden = r.top < 0 || r.bottom > window.innerHeight;
+    // `start` brings the whole panel to the top (its context line and close button too, with the panel's scroll margin).
+    const box = (focusOnOpen === 'start' && el.closest<HTMLElement>('.detail')) || el;
+    const hidden = box.getBoundingClientRect().top < 0 || el.getBoundingClientRect().bottom > window.innerHeight;
     el.focus({ preventScroll: true });
-    if (hidden) el.scrollIntoView?.({ block: focusOnOpen });
+    if (hidden) box.scrollIntoView?.({ block: focusOnOpen });
     // oxlint-disable-next-line react/exhaustive-effect-dependencies -- another step picked in the tree moves focus again
   }, [focusOnOpen, d.stepId]);
   const onKeyDown = (e: KeyboardEvent) => {

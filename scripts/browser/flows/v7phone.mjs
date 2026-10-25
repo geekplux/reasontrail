@@ -2,7 +2,8 @@
 // horizontal scroll, the tab track scrolls sideways with the legend under it, the outcome box sits above the list, the
 // list has no header, # or Start column, the card header has no buttons (AI titles, Details and Share sit in a row
 // after the final answer; Details names the branch), every font size is 12, 14, 20 or 32, axe clean; a list tap opens
-// the panel with its title on screen and focused; `?session=planner-pivot` shows its selected tab whole in the track,
+// the panel with its top 16px under the screen's top and its title focused; focus on Details follows it across the
+// breakpoint; `?session=planner-pivot` shows its selected tab whole in the track,
 // and so does ←/→. At 768 and 1024: no horizontal scroll. At 1440 dark (2×): axe clean, every computed colour a Radix
 // dark value, no line or shadow over 0.5px, no middle dot.
 import { readFileSync } from 'node:fs';
@@ -84,7 +85,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
       listBottom: box('.frame .gl')?.bottom,
       columns: visible('.gl-head, .gl-num, .gl-at'),
       buttons: [...document.querySelectorAll('.frame .sess button')].map((b) => b.textContent),
-      branch: [...document.querySelectorAll('.meta .code')].map((c) => c.textContent),
+      branch: [...document.querySelectorAll('.frame .sess .meta .code')].map((c) => c.textContent),
       meta: [...document.querySelectorAll('.frame .meta')].at(0)?.lastElementChild?.textContent,
       open: document.querySelector('.bar .btn.primary')?.textContent,
       frame: (() => { const f = box('.frame'); return f && { left: f.left, width: f.width, radius: getComputedStyle(document.querySelector('.frame')).borderRadius }; })(),
@@ -118,6 +119,19 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   if (!det.text.includes('phase-12-structure-redact') || det.scroll > 390) fail(`phone Details: ${JSON.stringify(det)} (want the branch under the actions row, no sideways scroll)`);
   await page.click('.frame .cols + .sess-r button:nth-child(2)');
 
+  // Focus on Details follows it across the breakpoint: the header's Details at 800, the row's again at 390.
+  await page.focus('.frame .cols + .sess-r button:nth-child(2)');
+  const focusAt = async (width) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.waitForTimeout(150);
+    return page.evaluate(() => { const a = document.activeElement; return { text: a?.textContent, header: !!a?.closest('.sess'), row: !!a?.closest('.cols + .sess-r') }; });
+  };
+  const wide = await focusAt(800);
+  if (wide.text !== 'Details' || !wide.header) fail(`breakpoint: at 800 focus is on ${JSON.stringify(wide)}, not the header's Details`);
+  const back = await focusAt(390);
+  if (back.text !== 'Details' || !back.row) fail(`breakpoint: back at 390 focus is on ${JSON.stringify(back)}, not the row's Details`);
+  await page.evaluate(() => scrollTo(0, 0));
+
   // A tap on a list step opens the panel above the list with its title focused and on screen.
   const ep = await page.evaluate(() => [...document.querySelectorAll('.gl-episode')].find((r) => /^Episode 6\b/.test(r.textContent))?.dataset.row);
   await page.click(`[data-row="${ep}"]`);
@@ -125,8 +139,16 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await page.locator('[data-row="step:s41"]').scrollIntoViewIfNeeded();
   await page.click('[data-row="step:s41"]');
   await page.waitForSelector('.detail h3');
-  const tap = await page.evaluate(() => { const h = document.querySelector('.detail h3'); const r = h.getBoundingClientRect(); return { focused: document.activeElement === h, top: r.top, bottom: r.bottom }; });
+  const tap = await page.evaluate(() => {
+    const h = document.querySelector('.detail h3');
+    const r = h.getBoundingClientRect();
+    const x = document.querySelector('.detail .iconbtn').getBoundingClientRect();
+    return { focused: document.activeElement === h, top: r.top, bottom: r.bottom, panel: document.querySelector('.detail').getBoundingClientRect().top, close: x.top };
+  });
+  log(JSON.stringify({ tap }));
   if (!tap.focused || tap.top < 0 || tap.bottom > 844) fail(`phone list tap: the panel title is not focused on screen: ${JSON.stringify(tap)}`);
+  // The panel's top (context line and ✕) sits 16px under the screen's top, not cut off above it.
+  if (Math.abs(tap.panel - 16) > 2 || tap.close < 0) fail(`phone list tap: the panel top is at ${tap.panel} and the close button at ${tap.close} (want the panel at 16, the ✕ whole)`);
   await page.keyboard.press('Escape');
   if ((await page.evaluate(() => document.activeElement?.dataset.row)) !== 'step:s41') fail('phone list tap: Esc did not return focus to the row');
 

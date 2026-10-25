@@ -111,6 +111,29 @@ describe('Home on the phone (Phone.html)', () => {
     expect(document.activeElement).toBe(row('step:s43'));
   });
 
+  it('keeps focus on Previous after a list pick, Next, then Previous', () => {
+    viewport(true);
+    const onStep = vi.fn<(stepId: string | undefined) => void>();
+    const { rerender } = render(<Home session={null} onSession={() => {}} onStep={onStep} />);
+    const ep = [...document.querySelectorAll<HTMLElement>('.gl-episode')].find((r) => /^Episode 6\b/.test(r.textContent ?? ''))!;
+    fireEvent.click(ep);
+    act(() => row('step:s41')!.focus());
+    fireEvent.keyDown(row('step:s41')!, { key: 'Enter' });
+    rerender(<Home session={null} step="s41" onSession={() => {}} onStep={onStep} />);
+    expect(document.activeElement).toBe(document.querySelector('aside.detail h3'));
+    const next = screen.getByRole('button', { name: 'Next step' });
+    act(() => next.focus());
+    fireEvent.click(next);
+    rerender(<Home session={null} step={onStep.mock.lastCall![0] ?? null} onSession={() => {}} onStep={onStep} />);
+    expect(document.activeElement).toBe(next);
+    const prev = screen.getByRole('button', { name: 'Previous step' });
+    act(() => prev.focus());
+    fireEvent.click(prev);
+    expect(onStep).toHaveBeenLastCalledWith('s41');
+    rerender(<Home session={null} step="s41" onSession={() => {}} onStep={onStep} />);
+    expect(document.activeElement).toBe(prev);
+  });
+
   it('keeps the list, the panel, the final answer and focus when the viewport crosses the breakpoint', () => {
     const resize = viewport(false);
     const { container } = render(<Home session={null} step="s41" onSession={() => {}} />);
@@ -129,12 +152,16 @@ describe('Home on the phone (Phone.html)', () => {
     expect(container.querySelector('.gl-episode[aria-expanded="true"]')?.textContent).toMatch(/^Episode 6/);
     // Details stays open: its button is in the row under the final answer.
     expect(document.getElementById(screen.getByRole('button', { name: 'Details' }).getAttribute('aria-controls')!)?.hidden).toBe(false);
-    // Focus on Details in the phone's row goes to Details in the header on the way back.
-    act(() => screen.getByRole('button', { name: 'Details' }).focus());
+    // The actions row is one node moved between the header and the place after the list: focus on Details in the
+    // phone's row stays on the same button, now in the header.
+    const row390 = container.querySelector('.frame > .cols + .sess-r');
+    const details = screen.getByRole('button', { name: 'Details' });
+    act(() => details.focus());
     resize(false);
     expect(container.querySelector('.gl')).toBe(list);
     expect(container.querySelector('aside.detail')).toBe(panel);
-    expect(document.activeElement?.textContent).toBe('Details');
+    expect(container.querySelector('.sess > .sess-r')).toBe(row390);
+    expect(document.activeElement).toBe(details);
     expect(document.activeElement?.closest('.sess')).toBeTruthy();
   });
 

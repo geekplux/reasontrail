@@ -170,6 +170,11 @@
   .v7 .cols > .final { margin-top: 28px; }
   .v7 .frame > .sess-r { flex-wrap: wrap; margin-top: 16px; }
   .v7 .details .meta .code { overflow-wrap: anywhere; }
+  /* A tap that opens the panel brings its top (context line and ✕) 16px under the screen's top (StepDetail). */
+  .v7 .detail { scroll-margin-top: 16px; }
+  /* 200% text zoom: button labels and the links below wrap instead of pushing the page sideways (32px at 100%, as now). */
+  .v7 .btn { white-space: normal; text-align: center; height: auto; min-height: 32px; padding-block: 4px; }
+  .v7 .more a span { overflow-wrap: anywhere; }
   /* 200% text zoom: the command wraps inside its box instead of pushing the page sideways. */
   :is(.v7, .page) .cmdbox { height: auto; min-height: 40px; }
   :is(.v7, .page) .cmdbox.big { height: auto; min-height: 48px; }
