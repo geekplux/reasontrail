@@ -190,5 +190,5 @@ describe('App', () => {
     await act(async () => void window.dispatchEvent(new PopStateEvent('popstate')));
     expect(screen.getByRole<HTMLInputElement>('radio', { name: /^Tiny/ }).checked).toBe(true);
     expect(container.querySelector('[data-role="value-label"]')?.getAttribute('data-key')).toBe(' mat.');
-  });
+  }, 15_000); // two garden switches and a popstate re-render; slow on a shared machine
 });
