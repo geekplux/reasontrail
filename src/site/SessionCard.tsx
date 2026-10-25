@@ -1,8 +1,9 @@
 // The session card under the hero tree (v7 §4.5, §12, §13.2): the title with nothing above it, the meta line on one
 // baseline, AI titles / Details / Share on the right; then the git-style list (680) and the outcome column (360), which
-// becomes the detail panel while a step is selected. On the phone: no buttons and no branch, and the outcome box (or
-// the panel) above the compact list, the final answer under it.
-import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
+// becomes the detail panel while a step is selected. On the phone: the header keeps only the title and the meta line
+// (no branch), the outcome box (or the panel) comes above the compact list, the final answer under it, then the three
+// actions in a row (Details names the branch).
+import { lazy, Suspense, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import type { AiSource } from '../ai/AiControl';
 import { LiveRegion, useAnnouncer } from '../components/LiveRegion';
@@ -45,12 +46,12 @@ const OutcomeBox = ({ g }: { g: SessionGraph }) => (
 );
 
 /** "Final answer": up to four lines, then "Read the full answer". */
-function FinalAnswer({ g, className = 'block' }: { g: SessionGraph; className?: string }) {
+function FinalAnswer({ g }: { g: SessionGraph }) {
   const answer = finalAnswer(g);
   const [full, setFull] = useState(false);
   const answerId = useId();
   return (
-    <section className={className} aria-labelledby={`${answerId}-h`}>
+    <section className="block final" aria-labelledby={`${answerId}-h`}>
       <h3 id={`${answerId}-h`}>Final answer</h3>
       {answer ? (
         <>
@@ -112,15 +113,82 @@ export function SessionCard({ g, sample = false, branch, id, selection, onSelect
     say(stepId);
     onSelect?.({ episodeId: s.episode.episodeId, stepId });
   };
-  // A step picked in the list while none is open is announced (the panel itself is not a live region).
+  // A step picked in the list while none is open is announced (the panel itself is not a live region). On the phone the
+  // panel opens above the list, so a step picked there moves focus to the panel's title (scrolled to the top when out
+  // of view), as a tap in the tree does; Previous / Next in the panel leave focus on their button.
+  const [listPick, setListPick] = useState<string>();
   const fromList = (next: ListSelection) => {
     if (next.stepId && !detail) say(next.stepId);
+    setListPick(phone ? next.stepId : undefined);
     onSelect?.(next);
   };
+  // Crossing the breakpoint forgets that pick, so the panel does not take focus again on the way back.
+  const [layout, setLayout] = useState(phone);
+  if (layout !== phone) {
+    setLayout(phone);
+    setListPick(undefined);
+  }
+  // Crossing the breakpoint moves the list or the outcome column within `.cols`, and moving a node drops its focus:
+  // the element focused inside the card (or the same action button in its new place) gets it back without scrolling.
+  const focusedIn = useRef<{ el: HTMLElement; action: number }>(undefined);
+  useEffect(() => {
+    const f = frame.current;
+    if (!f) return;
+    const into = (e: FocusEvent) => {
+      if (!(e.target instanceof HTMLElement)) return;
+      const row = e.target.closest('.sess-r');
+      focusedIn.current = { el: e.target, action: row ? [...row.querySelectorAll('button')].indexOf(e.target as HTMLButtonElement) : -1 };
+    };
+    // A node moved or removed is blurred out of the document; focus going anywhere else forgets it.
+    const out = (e: FocusEvent) => {
+      if (e.target instanceof Node && e.target.isConnected && !(e.relatedTarget instanceof Node && f.contains(e.relatedTarget))) focusedIn.current = undefined;
+    };
+    f.addEventListener('focusin', into);
+    f.addEventListener('focusout', out);
+    return () => {
+      f.removeEventListener('focusin', into);
+      f.removeEventListener('focusout', out);
+    };
+  }, []);
+  const laidOut = useRef(phone);
+  useLayoutEffect(() => {
+    if (laidOut.current === phone) return;
+    laidOut.current = phone;
+    const was = focusedIn.current;
+    const now = document.activeElement;
+    if (!was || (now && now !== document.body && now !== was.el)) return;
+    const el = was.el.isConnected ? was.el : frame.current?.querySelectorAll<HTMLElement>('.sess-r button')[was.action];
+    if (el && el !== now) el.focus({ preventScroll: true });
+  });
   // On the phone (Phone.html) the outcome box, or the step's panel in its place, comes above the list and the final
-  // answer below it; the list drops its header, # and Start columns.
-  const list = <GitList g={g} overlay={overlay} hover={hover} compact={phone} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect: fromList } : {})} {...(onActive ? { onActive } : {})} />;
-  const panel = detail && <StepDetail d={detail} focusOnOpen={focusDetail} onStep={toStep} onClose={close} />;
+  // answer below it; the list drops its header, # and Start columns. The list, the panel and the final answer are keyed
+  // children of one `.cols` grid on both layouts, so crossing the breakpoint moves them (DOM order stays reading order)
+  // without remounting: their state survives and focus is put back (below).
+  const list = <GitList key="list" g={g} overlay={overlay} hover={hover} compact={phone} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect: fromList } : {})} {...(onActive ? { onActive } : {})} />;
+  const panel = detail && <StepDetail key="panel" d={detail} focusOnOpen={focusDetail || (phone && listPick === detail.stepId && 'start')} onStep={toStep} onClose={close} />;
+  const aside = panel ?? <aside key="side" className="side" aria-label="Outcome"><OutcomeBox g={g} /></aside>;
+  // On the desktop the panel takes the whole outcome column, final answer included.
+  const answer = (phone || !panel) && <FinalAnswer key="answer" g={g} />;
+  const branchItem = sessionMeta(g, branch).find((m) => m.key === 'branch');
+  const actions = (
+    <div className="sess-r">
+      {aiLoaded ? (
+        <Suspense fallback={null}><AiControl g={g} source={LIVE} onOverlay={setOverlay} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
+      ) : (
+        <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI titles</button>
+      )}
+      <button type="button" className="btn ghost" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails(!details)}>Details</button>
+      <ShareAction graph={g} from="site" label="Share" className="btn ghost" />
+    </div>
+  );
+  // The phone's Details also names the branch, which its meta line leaves out.
+  const detailsBox = (
+    <div id={detailsId} className="details" hidden={!details}>
+      {phone && branchItem && 'text' in branchItem && <p className="meta"><span className="code">{branchItem.text}</span></p>}
+      {card.details.length > 0 && <p className="meta">{card.details.map((d) => <span key={d}>{d}</span>)}</p>}
+      <p className="muted request">{card.request.replace(/\*\*|`/g, '')}</p>
+    </div>
+  );
   return (
     <section className="frame" id={id} ref={frame} role="tabpanel" aria-labelledby="sess-title">
       <header className="sess">
@@ -131,32 +199,13 @@ export function SessionCard({ g, sample = false, branch, id, selection, onSelect
             {sample && <li className="tag">Sample</li>}
           </ul>
         </div>
-        {!phone && <div className="sess-r">
-          {aiLoaded ? (
-            <Suspense fallback={null}><AiControl g={g} source={LIVE} onOverlay={setOverlay} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
-          ) : (
-            <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI titles</button>
-          )}
-          <button type="button" className="btn ghost" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails(!details)}>Details</button>
-          <ShareAction graph={g} from="site" label="Share" className="btn ghost" />
-        </div>}
+        {!phone && actions}
       </header>
-      <div id={detailsId} className="details" hidden={!details}>
-        {card.details.length > 0 && <p className="meta">{card.details.map((d) => <span key={d}>{d}</span>)}</p>}
-        <p className="muted request">{card.request.replace(/\*\*|`/g, '')}</p>
-      </div>
-      {phone ? (
-        <>
-          {panel ?? <aside className="side" aria-label="Outcome"><OutcomeBox g={g} /></aside>}
-          <div className="cols">{list}</div>
-          <FinalAnswer g={g} className="block ph-answer" />
-        </>
-      ) : (
-        <div className="cols">
-          {list}
-          {panel ?? <aside className="side" aria-label="Outcome"><OutcomeBox g={g} /><FinalAnswer g={g} /></aside>}
-        </div>
-      )}
+      {!phone && detailsBox}
+      <div className="cols">{phone ? [aside, list, answer] : [list, aside, answer]}</div>
+      {/* The phone keeps every action (WCAG 1.4.10): AI titles, Details and Share in a row under the final answer. */}
+      {phone && actions}
+      {phone && detailsBox}
       <LiveRegion message={message} />
     </section>
   );
