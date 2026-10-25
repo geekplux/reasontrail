@@ -2,7 +2,7 @@
    not with the map's first view (DESIGN §18, size budget). Colours only via tokens.css. */
 
 /* Control row (PLAN §3.3, DESIGN §18.1 GA1): the sample picker as quiet text radios; the chosen one is 600, underlined. */
-.controls { padding: 16px 40px 0; }
+.controls { padding: 16px var(--gutter, 40px) 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
 .picker-options { display: flex; flex-wrap: wrap; gap: 4px 24px; }
 .picker-option { position: relative; display: inline-flex; align-items: center; min-height: 28px; font-size: var(--text-14); color: var(--slate-11); white-space: nowrap; border-bottom: 0.5px solid transparent; cursor: pointer; }
@@ -22,7 +22,7 @@
   grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
-  padding: 24px 40px;
+  padding: 24px var(--gutter, 40px);
 }
 
 .specimen { max-width: 72ch; }

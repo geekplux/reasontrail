@@ -11,7 +11,7 @@ import type { CanGrow } from '../garden/buildTree';
 import { mapSearch } from '../app/urlState';
 import { LIVE_K, LIVE_MAX_CALLS, LIVE_MAX_DEPTH, liveProvider } from '../llm/cachedProvider';
 import { providerMessage } from '../llm/messages';
-import { InfoGlyph } from '../map/Glyph';
+import { InfoIcon } from '../map/gitlist/marks';
 import { modelLabel } from '../samples/describe';
 import type { SampleGarden } from '../samples/types';
 import { sessionSamples } from '../sessions/samples';
@@ -203,7 +203,7 @@ function LensHeader({ onBack, where, quote, children }: { onBack(): void; where?
         </nav>
       </div>
       <p className="lens-z2">
-        <InfoGlyph />
+        <InfoIcon />
         <span>{children ? Z2_TEXT : "An open model's predictions for this prompt, recorded so it works offline."}</span>
       </p>
       {children ? (

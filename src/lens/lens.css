@@ -1,6 +1,6 @@
 /* The zoom-in lens frame (DESIGN §13.5, §18.1): the garden is the focal point; the breadcrumb, the Z2 line and the
    sentence are quieter, above it, and the settings sit behind "More options" after it. Colours only via tokens.css. */
-.lens-head, .lens-bar { padding: 16px 40px 0; animation: lens-in var(--motion-ms) var(--motion-ease); }
+.lens-head, .lens-bar { padding: 16px var(--gutter, 40px) 0; animation: lens-in var(--motion-ms) var(--motion-ease); }
 /* The bar's spacing comes from what it shows: with only the (empty) status region it takes no room. */
 .lens-bar { padding-top: 0; }
 .lens-bar > .lens-offer, .lens-bar > .lens-live { margin-top: 16px; }
@@ -42,8 +42,6 @@
 .lens-offer-options { margin-bottom: 16px; }
 .lens-options[open] summary { margin-bottom: 8px; }
 
-/* The detail panel's bottom-sheet padding belongs to the hidden map, not to the lens. */
-html.tg-lens.tg-sheet-open body { padding-bottom: 0; }
 
 @keyframes lens-in {
   from { opacity: 0; }
