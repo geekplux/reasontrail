@@ -5,7 +5,7 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 34b `phase-34b-v7-features`, step: implement
+- Current phase: 34b `phase-34b-v7-features`, step: PR
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
@@ -18,15 +18,17 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 | 32b | `phase-32b-v7-step-detail` | [#38](https://github.com/geekplux/reasontrail/pull/38) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
 | 33 | `phase-33-v7-phone-dark` | [#39](https://github.com/geekplux/reasontrail/pull/39) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
 | 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | done, PR open | 2 | REJECT (R1, order), MATCH (R2) |
-| 34b | `phase-34b-v7-features` | – | implementing | 0 | – |
+| 34b | `phase-34b-v7-features` | (opening) | done, PR open | 2 | REJECT (R1, Open frame), MATCH (R2) |
 | 35 | `phase-35-v7-polish-docs` | – | pending | – | – |
 | 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
 
-Last updated: 2026-10-25 (phase 34a: lead-designer MATCH, a11y heading skip fixed in fix 2, verifier PASS)
+Last updated: 2026-10-25 (phase 34b: lead-designer MATCH, a11y item fixed in fix 2, verifier PASS)
 
 Carry-overs to 29b: "·" in `src/intake/DropZone.tsx:183` and the viewer AI label (`src/ai/AiControl.tsx:50`); brand link line-height 20 vs 21px (0.5px); `file` browser flow needs a `--file` guard. Suspended browser flows (map, details, site, lens, ai, share) return in phases 30/32/34.
 
-Budget watch: initial JS 168.8/170 KB gzip; viewer template 202 KB/300 after phase 34a.
+Budget watch: initial JS 152.2/170 KB gzip; viewer template 204 KB/300 after phase 34b (old map code removed).
+
+Follow-ups from v7: AI claim→support links need a v7 UI (CLI still computes them); brand flows (polish, gallery, hero) and `scripts/brand/hero-gif.mjs` are rewritten in phase 35.
 
 Follow-up: move `ci/github-workflow.yml` to `.github/workflows/` (needs workflow scope).
 
