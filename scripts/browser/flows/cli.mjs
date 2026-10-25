@@ -7,7 +7,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, utimesSync, 
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { STRUCTURE_RULES, axeProblems } from '../axe.mjs';
-import { blockNetwork, checkFacts, openViewer, stepRoundTrip, toPhone, viewerFacts } from '../viewer.mjs';
+import { blockNetwork, checkFacts, checkLayout, openViewer, stepRoundTrip, toPhone, viewerFacts } from '../viewer.mjs';
 
 const XSS = '</script><script>alert(1)</script>';
 const TOKEN = ['gh', 'p_', 'Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2'].join(''); // built at runtime: never committed
@@ -47,6 +47,7 @@ export async function run({ page, root, shot, log, fail }) {
   const facts = await viewerFacts(page);
   log(JSON.stringify({ ...facts, outcome: facts.outcome.slice(0, 80) }));
   checkFacts(facts, fail, 'cli');
+  await checkLayout(page, fail, 'cli');
   if (!facts.meta.some((m) => /^\d+ tool calls?$/.test(m))) fail(`the meta line has no tool-call count: ${facts.meta}`);
   if (!/files? changed/.test(facts.outcome)) fail(`the outcome box names no changed files: ${facts.outcome}`);
   for (const p of await axeProblems(page, 'desktop', STRUCTURE_RULES)) fail(p);
@@ -82,8 +83,9 @@ export async function run({ page, root, shot, log, fail }) {
   if (!text?.includes(XSS)) fail('the </script> payload is not shown as text');
   // data, the packed app, its loader and the inflated app: anything more was injected
   if ((await page.locator('script').count()) !== 4) fail(`the page has ${await page.locator('script').count()} script elements, not 4`);
-  const note = await page.locator('.frame .meta .tag').textContent().catch(() => '');
-  if (!/^Shared copy, redacted \(\d+ items replaced\)$/.test(note ?? '') || !(await page.locator('.frame .meta .tag').isVisible())) fail(`shared-copy note missing from the meta line: ${note}`);
+  await checkLayout(page, fail, 'cli --share');
+  const note = await page.locator('.hero-top .meta .tag').textContent().catch(() => '');
+  if (!/^Shared copy, redacted \(\d+ items? replaced\)$/.test(note ?? '') || !(await page.locator('.hero-top .meta .tag').isVisible())) fail(`shared-copy note missing from the meta line: ${note}`);
   // Share works offline in a shared copy too: its dialog is part of the page.
   await page.getByRole('button', { name: 'Share' }).click();
   if (!(await page.getByRole('dialog').isVisible().catch(() => false))) await page.getByRole('dialog').waitFor({ timeout: 5_000 }).catch(() => fail('Share opened no dialog'));
