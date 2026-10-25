@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Other
 
 - Deploys through Cloudflare Workers Builds ([docs/DEPLOY.md](docs/DEPLOY.md)): a `previews` block for branch previews, and wrangler 4.151 with Node 22 for development. The CLI still runs on Node 20.19+.
+- Live model calls on the public site are capped per day (`DAILY_UPSTREAM_CAP`); the next-token lens says so beside its live opt-in, and recorded gardens always work. The Worker's rate limiters have account-unique namespace ids.
 - The CLI is published to npm by a GitHub Actions workflow on a `cli-v*` release, using npm trusted publishing ([docs/PUBLISH.md](docs/PUBLISH.md)).
 
 ## [0.1.0] (not released yet; the date is added on release)
