@@ -42,9 +42,9 @@ What to notice:
 
 **Plan the reasoning-map pivot.** The main agent and two planner runs: 113 steps and 37 tool calls over about 17 minutes.
 
-![The planner-pivot map with step s17 selected, the first planner run's first read: the blue path runs from the root up that run's limb, which ends in an orange verdict; a second limb below is the planner run again; the list has the episode open with the read highlighted, and the step panel shows the file it read.](img/planner-pivot.webp)
+![The planner-pivot map with step s56 selected, a failed command in the second planner run: the blue path runs from the root along the trunk and down that run's limb to episode 7, where the step's ring carries an orange ✕ and its callout, "Inspect a subagent transcript and Grok install" over "Failed, 2 min", sits beside it; the first planner run's limb above ends in an orange "Failed" verdict; the list has episode 7 highlighted with "1 failed command", and the step panel says "Command failed" with the command, its output and the next step.](img/planner-pivot.webp)
 
-Open it: [planner-pivot map at the first planner run’s first read](https://reasontrail.geekplux.com/?session=planner-pivot&step=s17) (`?session=planner-pivot&step=s17`)
+Open it: [planner-pivot map at a failed command in the second planner run](https://reasontrail.geekplux.com/?session=planner-pivot&step=s56) (`?session=planner-pivot&step=s56`)
 
 What to notice:
 
