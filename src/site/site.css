@@ -7,7 +7,9 @@
 .page button.btn { font-family: inherit; font-size: inherit; line-height: inherit; color: inherit; border: 0; cursor: pointer; }
 label.btn { position: relative; cursor: pointer; }
 .btn:has(input:focus) { outline: 2px solid var(--blue-9); outline-offset: 2px; }
-.text-button { border: 0; padding: 4px 8px; background: none; color: var(--slate-12); font: inherit; font-size: var(--text-12); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
+/* Text links and text buttons: the canvas `.link` (slate-11, 500, a 0.5px slate-8 underline 3px under the text). */
+.text-button, .intake-error a, .where .link { color: var(--slate-11); font-weight: 500; text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+.text-button { border: 0; padding: 4px 8px; background: none; font-family: inherit; font-size: var(--text-12); line-height: inherit; cursor: pointer; }
 
 .page { --gutter: max(16px, calc((100% - 1200px) / 2)); width: 100%; padding: 0 var(--gutter) 40px; }
 
@@ -29,18 +31,27 @@ label.btn { position: relative; cursor: pointer; }
 .plain-list { margin: 8px 0; padding-inline-start: 24px; }
 
 
-/* Drop zone: the content width, radius 16, a dashed 0.5px edge (a place to drop onto) */
-.drop-target { display: grid; justify-items: center; gap: 16px; padding: 64px 24px; border: 0.5px dashed var(--slate-8); border-radius: var(--radius-16); text-align: center; }
-.drop-target p { margin: 0; }
-.drop-target .logo-mark { width: 48px; height: 48px; }
-.drop-target[data-busy] { opacity: 0.6; }
+/* Open a session and Map a chat (the canvas Open frame): a centred 640 column, the title 96px under the header, 24px
+   between blocks; the drop box is slate-2 with a 0.5px slate-7 ring and radius 16, the file icon, the label, a ghost
+   button and the privacy line; then where each agent keeps its files. */
+.page.open-session { display: grid; align-content: start; gap: 24px; padding: 0 max(16px, calc((100% - 640px) / 2)) 160px; }
+.page.open-session .page-title { margin: 96px 0 0; }
+.page.open-session p, .page.open-session details { margin: 0; }
+.page.open-session .small { font-size: var(--text-12); }
+.page.open-session .paste-box, .page.open-session .chat-picker, .page.open-session .intake-progress { max-width: none; }
+.drop-target { display: grid; justify-items: center; gap: 12px; padding: 56px 24px; border-radius: var(--radius-16); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-7); text-align: center; }
+.drop-target .btn { margin-top: 4px; }
+.drop-target .ic { display: block; }
+.drop-target[data-busy] { opacity: 0.7; }
+.where { display: grid; margin: 0; }
+.where div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: var(--hair-soft); align-items: baseline; }
+.where dt { color: var(--slate-11); font-size: var(--text-12); }
+.where dd { margin: 0; overflow-wrap: anywhere; }
+.where .code { font: 400 var(--text-12) var(--font-mono); }
 .btn input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }
 
-.intake-alert { margin-top: 24px; }
-.intake-alert:empty { margin: 0; } /* present and empty from load, so the first message is announced */
+.intake-alert:empty { position: absolute; } /* present and empty from load, so the first message is announced; no grid gap */
 .intake-error { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
-.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--on-orange-9); background: var(--orange-9); font-weight: 600; }
-.open-session > .muted { margin-top: 16px; }
 .quiet-details summary { color: var(--slate-11); }
 .intake-progress { display: grid; gap: 16px; max-width: 40rem; }
 .intake-progress p { margin: 0; }
@@ -49,7 +60,6 @@ label.btn { position: relative; cursor: pointer; }
 .progress-bar { height: 100%; background: var(--slate-12); }
 /* A mapped session (SessionMap, the viewer's page): one action after the card, on the 120px edge. */
 .open-after { display: flex; margin: 24px var(--gutter) 0; }
-.open-session > .quiet-links { margin-top: 4px; }
 
 .drop-overlay {
   position: fixed; inset: 0; z-index: 10; display: grid; place-content: center; justify-items: center; gap: 8px;

@@ -52,11 +52,30 @@ describe('Open a session (v7 §7)', () => {
     expect(page.querySelector('.note')?.textContent).toMatch(/^No speaker names were found/);
   });
 
-  it('keeps the drop target and its copy, with no middle dot', () => {
+  it('shows the canvas Open frame: title, drop box with the privacy line and a ghost button, where the files are; no middle dot', () => {
     render(<OpenSession file={null} onFile={() => {}} />);
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Map your own session');
-    expect(screen.getByTestId('drop-target').textContent).toContain('Drop a .jsonl here');
-    expect(screen.getByText('Choose a file').className).toBe('btn primary');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Open a session');
+    const drop = screen.getByTestId('drop-target');
+    expect(drop.textContent).toContain('Drop a session file');
+    expect(drop.textContent).toContain('Parsed in your browser. Nothing is uploaded.');
+    expect(screen.getByText('Choose file').className).toBe('btn ghost');
+    const where = document.querySelector('dl.where');
+    expect([...(where?.querySelectorAll('dt') ?? [])].map((d) => d.textContent)).toEqual(['Claude Code', 'Codex', 'Grok Build', 'Chat']);
+    expect(screen.getByRole('link', { name: 'Paste the text' }).getAttribute('href')).toBe('?view=chat');
+    expect(screen.getByText('Files up to 50 MB.')).toBeTruthy();
+    expect(document.querySelector('details, .bang')).toBeNull();
     expect(document.body.textContent).not.toContain('·');
+  });
+
+  it('marks an error with the alert icon, not a "!" badge', async () => {
+    const { rerender } = render(<OpenSession file={null} onFile={() => {}} />);
+    rerender(<OpenSession file={new File(['{"hello":1}\n'], 'notes.jsonl')} onFile={() => {}} />);
+    const alert = await waitFor(() => {
+      const p = document.querySelector('.intake-error');
+      if (!p) throw new Error('no error yet');
+      return p;
+    });
+    expect(alert.querySelector('svg.ic[aria-hidden="true"]')).toBeTruthy();
+    expect(alert.textContent?.startsWith('!')).toBe(false);
   });
 });

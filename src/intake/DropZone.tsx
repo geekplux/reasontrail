@@ -7,7 +7,7 @@ import { flushSync } from 'react-dom';
 import { COMMANDS } from '../../shared/commands';
 import type { ChatSummary } from '../../shared/session/adapters/chatExports';
 import type { SessionGraph } from '../../shared/session/types';
-import { LogoMark } from '../brand/LogoMark';
+import { AlertIcon } from '../map/gitlist/marks';
 import { CommandLine } from '../site/Install';
 import { SessionMap } from '../site/SessionMap';
 import { PRIVACY, pageTitle } from '../site/SiteShell';
@@ -101,7 +101,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
   }, [state.at, chat]);
   const name = state.at === 'done' ? state.name : null;
   useEffect(() => {
-    document.title = pageTitle(name ?? (chat ? 'Map a chat' : 'Map your own session'));
+    document.title = pageTitle(name ?? (chat ? 'Map a chat' : 'Open a session'));
   }, [name, chat]);
   const again = () => {
     setState({ at: 'idle' });
@@ -124,7 +124,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
     return (
       <div className="v7 session-page open-session" data-testid="opened">
         {live}
-        <MapBoundary again={another}>
+        <MapBoundary>
           <SessionMap key={state.name} id={`open:${state.name}`} g={state.graph} step={step} onStep={(id) => setStep(id ?? null)} tag={state.name} focusTitle />
         </MapBoundary>
         <div className="open-after">{another}</div>
@@ -134,7 +134,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
   return (
     <div className="page open-session">
       {live}
-      <h1 className="page-title" tabIndex={-1}>{chat ? 'Map a chat' : 'Map your own session'}</h1>
+      <h1 className="page-title" tabIndex={-1}>{chat ? 'Map a chat' : 'Open a session'}</h1>
       {state.at === 'pick' ? (
         <ChatPicker ref={search} chats={state.chats} onPick={(c) => {
           setState({ at: 'reading', lines: 0, total: 0, big: state.file.size > PROGRESS_MIN_BYTES });
@@ -150,53 +150,54 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
         }} />
       ) : (
         <div className="drop-target" data-testid="drop-target" data-busy={state.at === 'reading' || undefined}>
-          <LogoMark />
-          <p className="strong">Drop a .jsonl here</p>
-          <label className="btn primary">
-            Choose a file
+          <FileIcon />
+          <p className="strong">Drop a session file</p>
+          <label className="btn ghost">
+            Choose file
             <input ref={input} type="file" accept={ACCEPT} onChange={(e) => {
               const f = e.target.files?.[0];
               e.target.value = '';
               if (f) onFile(f);
             }} />
           </label>
+          <p className="muted small">{PRIVACY}</p>
         </div>
       )}
-      {error?.error === 'empty' && <span className="trail-stub" aria-hidden="true" />}
+      {!chat && (state.at === 'pick' || (state.at === 'reading' && state.big)) && <p className="muted small">{PRIVACY}</p>}
       <div role="alert" className="intake-alert">
         {error && (
           <p className="intake-error" id="intake-error">
-            <span className="bang" aria-hidden="true">!</span>
+            <AlertIcon />
             {error.error === 'too-large' ? `This file is ${error.mb} MB. The browser can map files up to 50 MB; the command line has no limit:` : chat && error.error === 'unsupported' ? CHAT_UNSUPPORTED : MESSAGE[error.error]}
             {!chat && error.error === 'unsupported' && <a href="?view=chat">For a chat, paste the conversation text instead.</a>}
           </p>
         )}
       </div>
       {(error?.error === 'too-large' || error?.error === 'worker') && <CommandLine command={COMMANDS.file} label="the command line" />}
-      <p className="muted">{PRIVACY}</p>
-      {!chat && <p className="muted quiet-links">Or <a href="?view=chat">map a chat</a>, or <a href="./">try a sample</a></p>}
       {chat ? (
-        <details className="quiet-details">
-          <summary>Where to find a chat</summary>
-          <ul className="plain-list">
-            <li>Copied text: select the whole conversation and paste it, with its “You said:” and “ChatGPT said:” lines (or “User:” and “Assistant:”, or Markdown headings). Without speaker lines, turns are assumed to alternate, starting with you.</li>
-            <li>ChatGPT: Settings › Data controls › Export data. Unzip the download and choose <code>conversations.json</code>.</li>
-            <li>Claude: Settings › Privacy › Export data. Unzip it and choose <code>conversations.json</code>.</li>
-            <li>Share links can&apos;t be read from here: open the link and copy the conversation text instead.</li>
-          </ul>
-          <p>Reasoning or thinking text in an export is shown when it is there. Or <a href="?view=open">map an agent session</a>.</p>
-        </details>
+        <>
+          <p className="muted">{PRIVACY}</p>
+          <details className="quiet-details">
+            <summary>Where to find a chat</summary>
+            <ul className="plain-list">
+              <li>Copied text: select the whole conversation and paste it, with its “You said:” and “ChatGPT said:” lines (or “User:” and “Assistant:”, or Markdown headings). Without speaker lines, turns are assumed to alternate, starting with you.</li>
+              <li>ChatGPT: Settings › Data controls › Export data. Unzip the download and choose <code>conversations.json</code>.</li>
+              <li>Claude: Settings › Privacy › Export data. Unzip it and choose <code>conversations.json</code>.</li>
+              <li>Share links can&apos;t be read from here: open the link and copy the conversation text instead.</li>
+            </ul>
+            <p>Reasoning or thinking text in an export is shown when it is there. Or <a href="?view=open">map an agent session</a>.</p>
+          </details>
+        </>
       ) : (
-        <details className="quiet-details">
-          <summary>Supported files</summary>
-          <ul className="plain-list">
-            <li>Claude Code: <code>~/.claude/projects/&lt;folder&gt;/&lt;id&gt;.jsonl</code></li>
-            <li>Codex: <code>~/.codex/sessions/…/rollout-….jsonl</code></li>
-            <li>Grok Build: the session&apos;s <code>updates.jsonl</code></li>
-            <li>Chats: <a href="?view=chat">paste the text</a>, or a ChatGPT or Claude <code>conversations.json</code></li>
-          </ul>
-          <p>Up to 50 MB. Or <a href="./">try a sample</a>.</p>
-        </details>
+        <>
+          <dl className="where">
+            <div><dt>Claude Code</dt><dd className="code">~/.claude/projects/&lt;folder&gt;/&lt;id&gt;.jsonl</dd></div>
+            <div><dt>Codex</dt><dd className="code">~/.codex/sessions/…/rollout-….jsonl</dd></div>
+            <div><dt>Grok Build</dt><dd><span className="code">updates.jsonl</span> in the session folder</dd></div>
+            <div><dt>Chat</dt><dd><a className="link" href="?view=chat">Paste the text</a> or drop a ChatGPT or Claude <span className="code">conversations.json</span></dd></div>
+          </dl>
+          <p className="muted small">Files up to 50 MB.</p>
+        </>
       )}
     </div>
   );
@@ -215,8 +216,8 @@ function Progress({ lines, total, onCancel }: { lines: number; total: number; on
   );
 }
 
-/** "The map couldn't be drawn" (DESIGN §12), with the way to try another file. */
-class MapBoundary extends Component<{ children: ReactNode; again: ReactNode }, { failed: boolean }> {
+/** "The map couldn't be drawn" (DESIGN §12); the page's "Open another file" stays under it. */
+class MapBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   override state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
@@ -225,8 +226,19 @@ class MapBoundary extends Component<{ children: ReactNode; again: ReactNode }, {
     if (!this.state.failed) return this.props.children;
     return (
       <div role="alert" className="intake-error page">
-        <span className="bang" aria-hidden="true">!</span> The map couldn&apos;t be drawn.
+        <AlertIcon /> The map couldn&apos;t be drawn.
       </div>
     );
   }
+}
+
+/** The canvas Open frame's 24px file icon (docs/design/v7/gen7.mjs `openPage`), slate-11 strokes. */
+function FileIcon() {
+  return (
+    <svg className="ic" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6 2.75h8.5l4.75 4.75v13.75H6z" fill="var(--slate-1)" stroke="var(--slate-11)" strokeWidth="1.25" strokeLinejoin="round" />
+      <path d="M14.25 2.75V7.75h5" fill="none" stroke="var(--slate-11)" strokeWidth="1.25" strokeLinejoin="round" />
+      <path d="M9.5 13h6M9.5 16.5h4" stroke="var(--slate-11)" strokeWidth="1.25" strokeLinecap="round" />
+    </svg>
+  );
 }

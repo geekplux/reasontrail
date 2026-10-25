@@ -67,20 +67,21 @@ export async function run({ page, context, baseURL, root, log, fail }) {
   }
   for (const p of await axeProblems(page, 'install')) fail(p);
 
-  // The drop zone on the v7 page system: header link current, 120px edges, radius 16, .btn, the privacy line.
+  // The drop zone (the canvas Open frame): header link current, the centred 640 column (x 400 at 1440), the title 96px under the header, radius 16, a ghost .btn, the privacy line.
   await page.locator('header').getByRole('link', { name: 'Open a session' }).click();
   await page.waitForSelector('[data-testid="drop-target"]');
   await page.waitForFunction(() => document.activeElement?.matches('main h1')).catch(() => fail('open: focus did not move to the page heading'));
-  if ((await page.title()) !== 'Map your own session – Reasontrail') fail(`open title: ${await page.title()}`);
+  if ((await page.title()) !== 'Open a session – Reasontrail') fail(`open title: ${await page.title()}`);
   if ((await page.locator('header a[href="?view=open"]').getAttribute('aria-current')) !== 'page') fail('open: the header button is not aria-current="page"');
   const geo = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect();
     const t = document.querySelector('[data-testid="drop-target"]');
-    return { h1: r('main h1')?.left, target: r('[data-testid="drop-target"]')?.left, right: 1440 - (r('[data-testid="drop-target"]')?.right ?? 0), radius: getComputedStyle(t).borderTopLeftRadius, h1Size: getComputedStyle(document.querySelector('main h1')).fontSize, button: document.querySelector('label.btn.primary')?.textContent?.trim(), text: document.querySelector('main')?.textContent ?? '' };
+    return { h1: r('main h1')?.left, top: r('main h1')?.top, target: r('[data-testid="drop-target"]')?.left, right: 1440 - (r('[data-testid="drop-target"]')?.right ?? 0), radius: getComputedStyle(t).borderTopLeftRadius, h1Size: getComputedStyle(document.querySelector('main h1')).fontSize, button: document.querySelector('label.btn.ghost')?.textContent?.trim(), text: document.querySelector('main')?.textContent ?? '' };
   });
   log(`open page: ${JSON.stringify({ ...geo, text: undefined })}`);
-  if (geo.h1 !== 120 || geo.target !== 120 || geo.right !== 120) fail(`open: edges ${geo.h1}/${geo.target}/${geo.right}, not 120`);
-  if (geo.radius !== '16px' || geo.h1Size !== '20px' || geo.button !== 'Choose a file') fail(`open: radius ${geo.radius}, title ${geo.h1Size}, button "${geo.button}"`);
+  if (geo.h1 !== 400 || geo.target !== 400 || geo.right !== 400) fail(`open: edges ${geo.h1}/${geo.target}/${geo.right}, not 400`);
+  if (Math.round(geo.top) !== 160) fail(`open: title at y ${geo.top}, not 160`);
+  if (geo.radius !== '16px' || geo.h1Size !== '20px' || geo.button !== 'Choose file') fail(`open: radius ${geo.radius}, title ${geo.h1Size}, button "${geo.button}"`);
   if (!geo.text.includes(PRIVACY)) fail('V2: the drop zone lacks the privacy line');
   if (geo.text.includes('·')) fail('open: a "·" on the page');
   const input = page.locator('input[type="file"]');
