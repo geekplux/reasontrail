@@ -2,7 +2,7 @@
 
 These are the sample maps on the Reasontrail website. Each is a real Claude Code session of the agents that built Reasontrail, trimmed and redacted (see [`tools/session-samples.json`](../tools/session-samples.json)). They are bundled with the site, so they open offline and with no API key.
 
-Each link opens the map with the detail panel on the step worth reading first. The links open the live demo at `reasontrail.geekplux.com`. To open the same view locally:
+Each link opens the map with the detail panel on the step worth reading first. The screenshots show an earlier version of the map; they will be retaken for the current design. The links open the live demo at `reasontrail.geekplux.com`. To open the same view locally:
 
 ```sh
 pnpm install && pnpm dev
@@ -14,13 +14,13 @@ pnpm install && pnpm dev
 
 **Build keyboard navigation and a screen-reader table (phase 5).** An implementer: 142 steps and 51 tool calls, 11 minutes active over about 49 minutes.
 
-![The implementer-checks map with the detail panel open on a failed run (exit 1) whose recorded output shows the lint findings; the route has one numbered error-streak marker.](img/implementer-checks.webp)
+![Earlier version: the implementer-checks map with the detail panel open on a failed run (exit 1) whose recorded output shows the lint findings; the route has one numbered error-streak marker.](img/implementer-checks.webp)
 
 Open it: [implementer-checks map at the first failed run](https://reasontrail.geekplux.com/?session=implementer-checks&step=s52) (`?session=implementer-checks&step=s52`)
 
 What to notice:
 
-- **Trouble marker 1, an error streak.** Two runs that end in checks fail in a row: first lint (oxlint reports `eslint(no-shadow)`), then typecheck (`TS2339` in `src/garden/keyboard.ts`). The link opens the first one; Next step leads on to the second.
+- **Trouble marker 1, an error streak.** Two runs that end in checks fail in a row: first lint (oxlint reports `eslint(no-shadow)`), then typecheck (`TS2339` in `src/garden/keyboard.ts`). The link opens the first one, the last step of episode 4; for the second, pick “Fix lint findings and recheck” under episode 5 in the list.
 - **The rhythm of the route.** Reading, editing and checking alternate: the three verify episodes (◇) are the points where the agent ran its checks before moving on.
 - **The destination.** Six changed files, one of them new (`scripts/browser/flows/keyboard.mjs`); the last check, `pnpm lint`, passed. In its final answer the agent reports three commits and a diff over its line budget.
 
@@ -28,7 +28,7 @@ What to notice:
 
 **Verify phase 12, fix the audit gap, re-verify.** The main agent and three subagents: 166 steps and 60 tool calls over about 47 minutes.
 
-![The verify-fail-fix map with the detail panel open on the first verifier's answer, which starts "VERDICT: FAIL".](img/verify-fail-fix.webp)
+![Earlier version: the verify-fail-fix map with the detail panel open on the first verifier's answer, which starts "VERDICT: FAIL".](img/verify-fail-fix.webp)
 
 Open it: [verify-fail-fix map at the first verifier’s failed command](https://reasontrail.geekplux.com/?session=verify-fail-fix&step=s41) (`?session=verify-fail-fix&step=s41`)
 
@@ -42,7 +42,7 @@ What to notice:
 
 **Plan the reasoning-map pivot.** The main agent and two planner runs: 113 steps and 37 tool calls over about 17 minutes.
 
-![The planner-pivot map with the detail panel open on the first "Rewrite plan for pivot" Agent call, marked failed because its result was never recorded; the route shows a numbered retry marker.](img/planner-pivot.webp)
+![Earlier version: the planner-pivot map with the detail panel open on the first "Rewrite plan for pivot" Agent call, marked failed because its result was never recorded; the route shows a numbered retry marker.](img/planner-pivot.webp)
 
 Open it: [planner-pivot map at the first planner run’s first read](https://reasontrail.geekplux.com/?session=planner-pivot&step=s17) (`?session=planner-pivot&step=s17`)
 
