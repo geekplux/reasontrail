@@ -5,6 +5,8 @@ import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
 import { boxesHit } from './labels';
 import { textWidth } from './text';
+import { highlight } from '.';
+import type { Box, Pt } from './types';
 import { treeCallout, treeFor, treeSummary, treeTip } from './view';
 import { labelBox } from './labels';
 
@@ -154,18 +156,39 @@ describe('treeCallout (phase 32b, Step.html)', () => {
     expect(c.lines).toEqual(lines);
   });
 
-  it('keeps clear of the tree\'s text and the legend for every drawn step of every sample', () => {
+  it('keeps clear of the legend and the tree\'s text, and its leader crosses no text, for every drawn step of every sample', () => {
+    const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    // The leader against a box, sampled every 1/200 of its length.
+    const crosses = ([a, b]: [Pt, Pt], r: Box) => Array.from({ length: 201 }, (_, i) => ({ x: a.x + ((b.x - a.x) * i) / 200, y: a.y + ((b.y - a.y) * i) / 200 })).some((p) => p.x > r.x0 && p.x < r.x1 && p.y > r.y0 && p.y < r.y1);
+    const bad: string[] = [];
     for (const g of [VFF, IMPL, PLAN]) {
       const tt = treeFor(g, 1200, 520, true, reserve);
-      const texts = [...tt.labels.map(labelBox), ...tt.blocks.map((b) => b.box), ...reserve];
-      let clear = 0;
+      const texts = [...tt.labels.map(labelBox), ...tt.blocks.map((b) => b.box)];
       for (const w of tt.twigs) {
-        const c = treeCallout(tt, w.stepId, ['A step', 'Exit code 0, 1 min'], reserve)!;
-        expect(c.box.y0).toBeGreaterThanOrEqual(0);
-        if (!texts.some((b) => boxesHit(b, c.box))) clear++;
+        const c = treeCallout(tt, w.stepId, lines, reserve)!;
+        const ring = Math.hypot(Math.max(c.box.x0 - c.ring.x, 0, c.ring.x - c.box.x1), Math.max(c.box.y0 - c.ring.y, 0, c.ring.y - c.box.y1));
+        const why = [
+          c.box.y0 < 0 && 'above the figure',
+          ring < 10 && 'on the ring',
+          reserve.some((r) => hit(r, c.box) || crosses(c.leader, r)) && 'on the legend',
+          texts.some((b) => crosses(c.leader, b)) && 'leader through text',
+          texts.some((b) => boxesHit(b, c.box)) && 'on text',
+        ].filter(Boolean);
+        if (why.length > 0) bad.push(`${g.title} ${w.stepId}: ${why.join(', ')}`);
       }
-      expect(clear / tt.twigs.length).toBeGreaterThan(0.95);
     }
+    expect(bad).toEqual([]);
+  });
+
+  it('puts the callout beside the step, at its own height, where that is clear', () => {
+    const beside = [VFF, IMPL, PLAN].flatMap((g) => {
+      const tt = treeFor(g, 1200, 520, true, reserve);
+      return tt.twigs.map((w) => treeCallout(tt, w.stepId, lines, reserve)!).filter((c) => c.leader[0].y === c.leader[1].y);
+    });
+    expect(beside.length).toBeGreaterThan(0);
+    const r1 = (v: number) => Math.round(v * 10) / 10;
+    const off = beside.filter((c) => Math.abs(c.y - (c.ring.y - 4)) > 0.11 || Math.abs(Math.abs(c.x - c.ring.x) - 24) > 0.11 || r1(Math.abs(c.leader[0].x - c.ring.x)) !== 10.3 || r1(Math.abs(c.leader[1].x - c.ring.x)) !== 18);
+    expect(off.map((c) => c.stepId)).toEqual([]);
   });
 
   it('cuts a long summary with an ellipsis, and is undefined for a step the tree does not draw', () => {
@@ -177,5 +200,10 @@ describe('treeCallout (phase 32b, Step.html)', () => {
 
   it('runs the highlighted path from the root through the limb to the step\'s branch', () => {
     expect(t.paths.s41?.map((p) => p.part)).toEqual(['trunk', 'limb:agent-ad0e51f3501a3ddc3', 'branch:e18']);
+  });
+
+  it('draws the highlighted trunk without the root flare: an 11px stub, as the canvas (305.6 to 294.4)', () => {
+    const ys = (highlight(t, 's41')[0] ?? '').match(/-?[\d.]+/g)!.map(Number).filter((_, i) => i % 2 === 1);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(11.2, 0);
   });
 });

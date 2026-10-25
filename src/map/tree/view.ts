@@ -6,6 +6,7 @@ import { listRows, type EpisodeRow, type ListRow, type VerdictRow } from '../git
 import { layoutTree } from './layout';
 import { labelBox } from './labels';
 import { textWidth } from './text';
+import { segDist } from '.';
 import type { Box, Pt, TreeLayout } from './types';
 
 const SIZES_KEPT = 4;
@@ -140,31 +141,63 @@ function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: 
   return { episodeId, ...(n === undefined ? {} : { n }), title, facts, box };
 }
 
-/** The callout of a selected step (Step.html): its summary over "Exit code 2, 16 min", beside the top or bottom edge
- * of the figure, with a 0.5px leader from the step's ring to the text. Lines are layout px; `anchor` is the text's. */
+/** The callout of a selected step (Step.html): its summary over "Exit code 2, 16 min", beside the step or by the top
+ * or bottom edge of the figure, with a 0.5px leader from the step's ring to the text. Lines are layout px; `anchor` is the text's. */
 export interface TreeCallout { stepId: string; ring: Pt; x: number; y: number; anchor: 'start' | 'end'; lines: [string, string]; leader: [Pt, Pt]; box: Box }
 
 const CALL_MAX = 360;
 /** How far the callout's text may reach past the figure's left or right edge (the canvas's reaches 18px). */
 const CALL_BLEED = 24;
 
-/** Where the selected step's ring and callout go: above the step at the top edge (left of it, as on the canvas, else
- * right), then nearer above, then below at the bottom edge; the first that keeps clear of the tree's text, marks,
- * ribbons and twigs and of `reserve` (else the one hitting the fewest). Undefined for a step the tree does not draw. */
-export function treeCallout(t: TreeLayout, stepId: string, lines: [string, string], reserve: readonly Box[] = []): TreeCallout | undefined {
+/** Whether the segment `a`–`b` crosses the box (Liang–Barsky clipping). */
+function segInBox(a: Pt, b: Pt, box: Box): boolean {
+  let lo = 0;
+  let hi = 1;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  for (const [p, q] of [[-dx, a.x - box.x0], [dx, box.x1 - a.x], [-dy, a.y - box.y0], [dy, box.y1 - a.y]] as const) {
+    if (p === 0) {
+      if (q <= 0) return false;
+      continue;
+    }
+    const r = q / p;
+    if (p < 0) lo = Math.max(lo, r);
+    else hi = Math.min(hi, r);
+    if (lo >= hi) return false;
+  }
+  return true;
+}
+
+/** The ring's radius as a keep-out for the callout's text (the ring is drawn at 8). */
+const RING_CLEAR = 10;
+/** A callout over the tree's own text costs more than one over a mark or ribbon: the text would be unreadable. */
+const TEXT_COST = 30;
+
+/** The selected step's ring: at the twig's tip, or at a leaf's middle. Undefined for a step the tree does not draw. */
+export function treeRing(t: TreeLayout, stepId: string): Pt | undefined {
   const w = t.twigs.find((x) => x.stepId === stepId);
   if (!w) return undefined;
   const a = (w.angle * Math.PI) / 180;
-  const ring = w.mark === 'leaf' ? { x: w.tip.x + 5.5 * w.scale * Math.cos(a), y: w.tip.y + 5.5 * w.scale * Math.sin(a) } : w.tip;
+  return w.mark === 'leaf' ? { x: w.tip.x + 5.5 * w.scale * Math.cos(a), y: w.tip.y + 5.5 * w.scale * Math.sin(a) } : w.tip;
+}
+
+/** Where the selected step's callout goes: beside the step at its own height, above it at the top edge (left of it,
+ * as on the canvas, else right), nearer above, or below at the bottom edge. The text keeps off the ring and inside
+ * the figure; the one whose text and leader cover the fewest of the tree's text, marks and ribbons wins, with the
+ * legend (`reserve`) weighted far above the rest, then the shortest leader. Undefined for a step the tree does not draw. */
+export function treeCallout(t: TreeLayout, stepId: string, lines: [string, string], reserve: readonly Box[] = []): TreeCallout | undefined {
+  const ring = treeRing(t, stepId);
+  if (!ring) return undefined;
   let title = lines[0];
   if (textWidth(title, 12, 500) > CALL_MAX) {
     while (title.length > 1 && textWidth(`${title}…`, 12, 500) > CALL_MAX) title = title.slice(0, -1);
     title = `${title.trimEnd()}…`;
   }
   const tw = Math.max(textWidth(title, 12, 500), textWidth(lines[1], 12, 400)) / 1.04;
-  // Baselines: the first line's; the box runs from its cap height to 4px under the second line.
-  const at = (side: 1 | -1, base: number, below: boolean): TreeCallout => {
-    const end = { x: ring.x + 18 * side, y: below ? base - 14 : base + 20 };
+  // Baselines: the first line's; the box runs from its cap height to 4px under the second line. The leader runs from
+  // 10.3px off the ring to 18px across: up or down to the text's near corner, or level for a callout beside the step.
+  const at = (side: 1 | -1, base: number, to: 'above' | 'below' | 'beside'): TreeCallout => {
+    const end = { x: ring.x + 18 * side, y: to === 'beside' ? ring.y : to === 'below' ? base - 14 : base + 20 };
     const x = ring.x + 24 * side;
     const box = { x0: side < 0 ? x - tw : x, y0: base - 9, x1: side < 0 ? x : x + tw, y1: base + 20 };
     const d = Math.hypot(end.x - ring.x, end.y - ring.y) || 1;
@@ -174,18 +207,27 @@ export function treeCallout(t: TreeLayout, stepId: string, lines: [string, strin
   };
   const top = 9.7;
   const bottom = t.height - 20;
-  const cands = [at(-1, top, false), at(1, top, false), at(-1, ring.y - 70, false), at(1, ring.y - 70, false), at(-1, bottom, true), at(1, bottom, true), at(-1, ring.y + 60, true), at(1, ring.y + 60, true)]
-    .filter((c) => (c.box.y1 < ring.y - 24 || c.box.y0 > ring.y + 24) && c.box.y0 >= 0 && c.box.y1 <= t.height + 4);
+  const cands = [
+    at(-1, top, 'above'), at(1, top, 'above'), at(-1, ring.y - 70, 'above'), at(1, ring.y - 70, 'above'),
+    at(-1, ring.y - 4, 'beside'), at(1, ring.y - 4, 'beside'),
+    at(-1, bottom, 'below'), at(1, bottom, 'below'), at(-1, ring.y + 60, 'below'), at(1, ring.y + 60, 'below'),
+  ].filter((c) => !circleIn(c.box, { ...ring, r: RING_CLEAR }) && c.box.y0 >= 0 && c.box.y1 <= t.height + 4);
   const marks: Circle[] = [{ ...t.root.at, r: t.root.r + 2 }, ...t.episodes.map((m) => ({ ...m.at, r: m.r + 3 })), ...t.tips.map((m) => ({ ...m.at, r: m.r + 3 })), ...t.twigs.map((x) => ({ ...x.tip, r: 6 }))];
   for (const rb of t.ribbons) rb.line.forEach((p, i) => marks.push({ ...p, r: (rb.widths[i] ?? 0) / 2 + 2 }));
-  const texts = [...t.labels.map(labelBox), ...t.blocks.map((b) => b.box), ...reserve];
-  const cost = (c: TreeCallout) => (c.box.x0 < -CALL_BLEED || c.box.x1 > t.width + CALL_BLEED ? 99 : 0) + marks.filter((m) => circleIn(c.box, m)).length + texts.filter((b) => boxIn(c.box, b)).length;
+  const texts = [...t.labels.map(labelBox), ...t.blocks.map((b) => b.box)];
+  const len = (c: TreeCallout) => Math.hypot(c.leader[1].x - c.leader[0].x, c.leader[1].y - c.leader[0].y);
+  const cost = (c: TreeCallout) => {
+    const [a, b] = c.leader;
+    const out = c.box.x0 < -CALL_BLEED || c.box.x1 > t.width + CALL_BLEED ? 99 : 0;
+    const legend = 99 * reserve.filter((r) => boxIn(c.box, r) || segInBox(a, b, r)).length;
+    const text = TEXT_COST * texts.filter((r) => boxIn(c.box, r)).length + 99 * texts.filter((r) => segInBox(a, b, r)).length;
+    return out + legend + text + marks.filter((m) => circleIn(c.box, m) || segDist(m, a, b) < m.r).length;
+  };
   let best: TreeCallout | undefined;
   let bestC = Infinity;
   for (const c of cands) {
     const k = cost(c);
-    if (k < bestC) [best, bestC] = [c, k];
-    if (k === 0) break;
+    if (k < bestC || (k === bestC && best && len(c) < len(best))) [best, bestC] = [c, k];
   }
-  return best ?? at(-1, top, false);
+  return best ?? at(-1, top, 'above');
 }

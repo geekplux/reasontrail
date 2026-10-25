@@ -10,6 +10,8 @@ import type { Box, EpisodeMark, HandBack, HitTarget, PathPart, Pt, Ribbon, TipMa
 
 const DESIGN_H = 520;
 const ROOT_R = 5.5;
+/** The trunk's extra width at design u `x`, fading out from the root (tree.mjs; not drawn on a highlighted path). */
+const rootFlare = (x: number) => 10 * Math.exp(-(x - ROOT_R) / 16);
 const GLYPH_R = 5.5;
 /** The smallest along-axis step per record (design units) before records are packed closer. */
 const MIN_UNIT = 1.2;
@@ -171,7 +173,8 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   const ribbons: Ribbon[] = out.parts.map((p) => {
     const line = p.line.pts.map(S);
     const widths = p.line.widths.map((x) => r1(x * z));
-    return { id: p.id, kind: p.kind, laneId: p.laneId, ...(p.episodeId ? { episodeId: p.episodeId } : {}), d: ribbonPath(line, widths), line, widths };
+    const core = p.kind === 'trunk' ? { core: p.line.widths.map((x, i) => r1((x - rootFlare(p.line.pts[i]?.x ?? 0)) * z)) } : {};
+    return { id: p.id, kind: p.kind, laneId: p.laneId, ...(p.episodeId ? { episodeId: p.episodeId } : {}), d: ribbonPath(line, widths), line, widths, ...core };
   });
   const twigs: Twig[] = out.twigs.map(({ s, ...t }) => ({ ...t, base: S(t.base), tip: S(t.tip), scale: Math.round(z * s * 100) / 100 }));
   const episodes: EpisodeMark[] = out.episodes.map((e) => ({ ...e, at: S(e.at), r: r1(e.r * z) }));
@@ -228,7 +231,7 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
     let short = 0;
     const arch = (u: number) => -10 * vs * Math.sin((Math.PI * 0.9 * Math.max(0, u - U0)) / Math.max(1, trunkEnd - U0));
     const trunkCalls = (u: number) => m.limbs.reduce((a, l) => a + (partCalls(l) + 1) * fall(u, uOf(l.from)), 0) + ahead(m.trunk, u);
-    const trunkAt = (x: number) => ({ pt: { x, y: arch(x) }, w: W0(trunkCalls(x)) + 10 * Math.exp(-(x - ROOT_R) / 16) });
+    const trunkAt = (x: number) => ({ pt: { x, y: arch(x) }, w: W0(trunkCalls(x)) + rootFlare(x) });
     const trunk = line(ROOT_R, trunkEnd, trunkAt);
     const trunkTo = (u: number): PathPart[] => [{ part: 'trunk', to: pointAt(trunk, u).i }];
     groups.push({ part: { id: 'trunk', kind: 'trunk', laneId: m.trunk.laneId, line: trunk }, branches: [], twigs: [], src: m.trunk, side: -1, to: trunkTo, at: trunkAt });

@@ -38,6 +38,8 @@ export interface Ribbon {
   /** The centreline, root side first, and the full width at each point (non-increasing toward the tip). */
   line: Pt[];
   widths: number[];
+  /** The trunk's widths without the root flare: what a highlighted path is drawn with (tree.mjs). */
+  core?: number[];
 }
 
 export type TwigKind = 'call' | 'read' | 'thinking' | 'failed';

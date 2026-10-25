@@ -12,11 +12,17 @@ export type { GlyphKind, VerdictTone } from '../gitlist/rows';
 export function highlight(t: TreeLayout, id: string): string[] {
   return (t.paths[id] ?? []).flatMap(({ part, to }) => {
     const r = t.ribbons.find((x) => x.id === part);
-    return r ? [ribbonPath(r.line.slice(0, to + 1), r.widths.slice(0, to + 1))] : [];
+    if (!r) return [];
+    // Without the trunk's root flare, and no wider than where the part ends (tree.mjs): an 11px stub at the root, not
+    // a blue wedge around a thin path.
+    const ws = (r.core ?? r.widths).slice(0, to + 1);
+    const end = ws[to] ?? 0;
+    return [ribbonPath(r.line.slice(0, to + 1), ws.map((x) => Math.min(x, end)))];
   });
 }
 
-const segDist = (p: Pt, a: Pt, b: Pt) => {
+/** Distance from `p` to the segment `a`–`b`. */
+export const segDist = (p: Pt, a: Pt, b: Pt) => {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const l = dx * dx + dy * dy;

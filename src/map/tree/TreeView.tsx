@@ -11,7 +11,7 @@ import { KindGlyph, VerdictIcon } from '../gitlist/marks';
 import { listRows } from '../gitlist/rows';
 import { highlight, nearest } from '.';
 import type { Box, HitTarget, Label, LabelClass } from './types';
-import { treeCallout, treeFor, treeSummary, treeTip } from './view';
+import { treeCallout, treeFor, treeRing, treeSummary, treeTip } from './view';
 import './tree.css';
 
 export interface TreeViewProps {
@@ -60,11 +60,18 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   // A lane tip without an episode of its own, under the pointer: its tooltip is the lane's verdict.
   const [via, setVia] = useState<{ episodeId: string; lane: string }>();
   const tipLane = via && via.episodeId === hover ? via.lane : undefined;
-  const tip = useMemo(() => (on && labels && hover ? treeTip(g, t, hover, { rows, tipLane, reserve }) : undefined), [on, labels, hover, g, t, rows, tipLane, reserve]);
   const sel = selected && t.paths[selected] ? selected : undefined;
   const selPath = useMemo(() => (sel ? highlight(t, sel) : []), [t, sel]);
   const selEp = sel ? t.twigs.find((w) => w.stepId === sel)?.episodeId : undefined;
+  // The ring is drawn without labels too (the phone's silhouette); the callout only with them.
+  const ring = useMemo(() => (sel ? treeRing(t, sel) : undefined), [t, sel]);
   const call = useMemo(() => (sel && callout && labels ? treeCallout(t, sel, callout, reserve) : undefined), [t, sel, callout, labels, reserve]);
+  // The hover tooltip keeps clear of the selection's callout and ring.
+  const tip = useMemo(() => {
+    if (!on || !labels || !hover) return undefined;
+    const keep = call ? [...(reserve ?? []), call.box, { x0: call.ring.x - 10, y0: call.ring.y - 10, x1: call.ring.x + 10, y1: call.ring.y + 10 }] : reserve;
+    return treeTip(g, t, hover, { rows, tipLane, reserve: keep });
+  }, [on, labels, hover, g, t, rows, tipLane, reserve, call]);
   if (t.ribbons.length === 0) return null;
 
   const hitAt = (e: { currentTarget: SVGSVGElement; clientX: number; clientY: number }, px: number) => {
@@ -123,7 +130,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
         </g>
       ))}
       <circle cx={t.root.at.x} cy={t.root.at.y} r={t.root.r} className="root" />
-      {call && <circle cx={call.ring.x} cy={call.ring.y} r="8" className="ring" />}
+      {ring && <circle cx={ring.x} cy={ring.y} r="8" className="ring" />}
       {t.labels.map((l) => <Text key={l.key} l={l} on={selEp !== undefined && l.key === `num:${selEp}`} />)}
       {t.blocks.map((b) => b.lines.map((l) => <Text key={l.key} l={l} />))}
       {call && (
