@@ -5,7 +5,7 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 
 ## Redesign v7 (phases 29–36)
 
-- Current phase: 35 `phase-35-v7-polish-docs`, step: implement
+- Current phase: 35 `phase-35-v7-polish-docs`, step: PR
 - Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
 
 | Phase | Branch | PR | State | Review rounds | lead-designer |
@@ -19,14 +19,14 @@ Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28
 | 33 | `phase-33-v7-phone-dark` | [#39](https://github.com/geekplux/reasontrail/pull/39) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
 | 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | done, PR open | 2 | REJECT (R1, order), MATCH (R2) |
 | 34b | `phase-34b-v7-features` | [#42](https://github.com/geekplux/reasontrail/pull/42) | done, PR open | 2 | REJECT (R1, Open frame), MATCH (R2) |
-| 35 | `phase-35-v7-polish-docs` | – | implementing | 0 | – |
+| 35 | `phase-35-v7-polish-docs` | (opening) | done, PR open | 2 | MATCH all six frames (R1, R2) |
 | 36 | `phase-36-v7-deploy-prep` | – | pending | – | – |
 
-Last updated: 2026-10-25 (phase 34b: lead-designer MATCH, a11y item fixed in fix 2, verifier PASS)
+Last updated: 2026-10-25 (phase 35: lead-designer MATCH on all six canvas frames, a11y PASS, verifier PASS incl. the full browser suite)
 
 Carry-overs to 29b: "·" in `src/intake/DropZone.tsx:183` and the viewer AI label (`src/ai/AiControl.tsx:50`); brand link line-height 20 vs 21px (0.5px); `file` browser flow needs a `--file` guard. Suspended browser flows (map, details, site, lens, ai, share) return in phases 30/32/34.
 
-Budget watch: initial JS 152.2/170 KB gzip; viewer template 204 KB/300 after phase 34b (old map code removed).
+Budget watch: initial JS 153.1/170 KB gzip; viewer template 205 KB/300 after phase 35.
 
 Follow-ups from v7: AI claim→support links need a v7 UI (CLI still computes them); brand flows (polish, gallery, hero) and `scripts/brand/hero-gif.mjs` are rewritten in phase 35.
 
