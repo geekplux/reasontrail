@@ -35,7 +35,7 @@ label.btn { position: relative; cursor: pointer; }
    between blocks; the drop box is slate-2 with a 0.5px slate-7 ring and radius 16, the file icon, the label, a ghost
    button and the privacy line; then where each agent keeps its files. */
 .page.open-session { display: grid; align-content: start; gap: 24px; padding: 0 max(16px, calc((100% - 640px) / 2)) 160px; }
-.page.open-session .page-title { margin: 96px 0 0; }
+.page.open-session .page-title { margin: 96px 0 0; line-height: 1.5; } /* 30px, as the frame's title */
 .page.open-session p, .page.open-session details { margin: 0; }
 .page.open-session .small { font-size: var(--text-12); }
 .page.open-session .paste-box, .page.open-session .chat-picker, .page.open-session .intake-progress { max-width: none; }
