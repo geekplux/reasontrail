@@ -54,7 +54,7 @@ export default function ShareDialog({ graph, from, version = '', prior = 0, onCl
   };
   const saveHtml = () => run('HTML file', async () => {
     const name = shareFileName(plan.graph);
-    const template = from === 'site' ? await fetchTemplate() : templateFromDocument(document);
+    const template = from === 'site' && !import.meta.env.LOCAL_VIEWER ? await fetchTemplate() : templateFromDocument(document);
     download(shareHtml(template, plan, version, prior), name, 'text/html');
     return name;
   });
