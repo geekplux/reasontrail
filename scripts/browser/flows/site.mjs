@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';
+import { tipOf } from './map.mjs';
 
 const state = (page) => page.evaluate(() => ({
   url: location.search,
@@ -44,12 +45,18 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.waitForSelector('aside[aria-label="Outcome"]', { timeout: 10_000 }).catch(() => fail('an unlisted step id hid the outcome'));
   if ((await state(page)).dim) fail('an unlisted step id dimmed the tree');
 
-  // Back and Forward, then a tab switch clears the selection.
-  await page.goto(`${baseURL}/?session=verify-fail-fix&step=s41`, { waitUntil: 'load' });
-  await page.waitForSelector('aside.detail');
+  // Back and Forward, then a tab switch clears the selection. The deep link's own entry is the document's first, so
+  // Back from it leaves the page; here s41 is picked in the tree (a new entry) on the plain home, then Next to s43
+  // replaces that entry: Back closes the panel (focus on the step's row) and Forward reopens it.
+  await page.goto(`${baseURL}/?session=verify-fail-fix`, { waitUntil: 'load' });
+  await page.waitForSelector('.hero-tree svg[role="img"]', { timeout: 10_000 });
+  await page.evaluate(() => document.fonts.ready);
+  const at = await tipOf(page, 's41');
+  if (!at) fail('no twig for s41 in the tree');
+  else await page.mouse.click(at.x + 2, at.y - 2);
+  await page.waitForSelector('aside.detail[data-step="s41"]', { timeout: 5_000 }).catch(() => fail('a tree click on s41 opened no panel'));
   await page.getByRole('button', { name: 'Next step' }).click();
   await page.waitForFunction(() => location.search.endsWith('step=s43'));
-  // Stepping replaces the history entry, so Back closes the panel (focus on the step's row) and Forward reopens it.
   await page.goBack();
   await page.waitForFunction(() => !document.querySelector('aside.detail'), null, { timeout: 5_000 }).catch(() => fail('Back did not close the panel'));
   const back = await page.evaluate(() => document.activeElement?.getAttribute('data-row'));
