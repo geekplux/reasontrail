@@ -6,6 +6,7 @@ import { OpenSession } from './DropZone';
 
 import trouble from '../../fixtures/sessions/claude-code/trouble.jsonl?raw';
 import pasted from '../../fixtures/chats/pasted-chatgpt.txt?raw';
+import plain from '../../fixtures/chats/pasted-plain.txt?raw';
 
 // The page's intake without the worker: the same parse, on the main thread.
 vi.mock('./intake', () => ({
@@ -44,6 +45,11 @@ describe('Open a session (v7 §7)', () => {
     expect(page.querySelector('.hero-tree svg.tree')).toBeTruthy();
     expect(page.querySelector('.meta .tag')?.textContent).toBe('Pasted chat');
     expect(screen.getByRole('button', { name: 'Map another chat' })).toBeTruthy();
+  });
+
+  it("says what it assumed: a chat with no speaker names notes its alternating turns under the meta line", async () => {
+    const page = await open(new File([plain], 'Pasted chat', { type: 'text/plain' }), true);
+    expect(page.querySelector('.note')?.textContent).toMatch(/^No speaker names were found/);
   });
 
   it('keeps the drop target and its copy, with no middle dot', () => {

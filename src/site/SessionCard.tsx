@@ -9,8 +9,8 @@ import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import type { AiSource } from '../ai/AiControl';
 import { LiveRegion, useAnnouncer } from '../components/LiveRegion';
 import { GitList, type GitListProps, type ListSelection } from '../map/gitlist/GitList';
-import { AlertIcon, OkIcon, UnknownIcon } from '../map/gitlist/marks';
-import { taskCard } from '../map/outline';
+import { AlertIcon, InfoIcon, OkIcon, UnknownIcon } from '../map/gitlist/marks';
+import { parseNotes, taskCard } from '../map/outline';
 import { ShareAction } from '../share/ShareAction';
 import { finalAnswer, outcomeRows, runs, sessionMeta, type OutcomeRow, type Run } from './sessionSummary';
 import { StepDetail } from './StepDetail';
@@ -233,6 +233,7 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
     </div>
   );
   const Title = headingLevel === 1 ? 'h1' : 'h2';
+  const notes = parseNotes(g);
   // `focusTitle`: focus the title once it is drawn in its place (a session just opened; a header slot, `headIn`, comes a
   // render late, and the header moves into it).
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -250,6 +251,8 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
           {sessionMeta(g, branch).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
           {tag && <li className="tag">{tag}</li>}
         </ul>
+        {/* What the reader could not map (skipped or partial lines, a chat's assumed turns); a sample has none. */}
+        {notes.map((n) => <p key={n} className="note muted"><InfoIcon />{n}</p>)}
       </div>
     </header>
   );

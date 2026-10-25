@@ -23,6 +23,9 @@
 :is(.v7, .page) .btn.primary { background: var(--slate-12); color: var(--slate-1); }
 :is(.v7, .page) .btn.ghost { box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); }
 :is(.v7, .page) .btn.ghost:hover { background: var(--slate-3); }
+/* An on/off button that is on (AI titles): a ✓ before the label and the slate-3 face, so the state is not colour alone. */
+:is(.v7, .page) .btn.ghost[aria-pressed='true'] { background: var(--slate-3); }
+:is(.v7, .page) .btn[aria-pressed='true']::before { content: '✓' / ''; font-size: var(--text-12); }
 :is(.v7, .page) .iconbtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--radius-6); color: var(--slate-11); }
 :is(.v7, .page) .iconbtn:hover { background: var(--slate-3); color: var(--slate-12); }
 .v7 .link { color: var(--slate-11); font-weight: 500; text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
@@ -59,6 +62,8 @@
 .v7 .meta b { color: var(--slate-12); font-weight: 500; }
 .v7 .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; background: var(--slate-3); color: var(--slate-11); font: 500 var(--text-12) / 1 var(--font-sans); }
 .v7 .sess-r { display: flex; gap: 8px; }
+.v7 .note { display: flex; gap: 6px; align-items: flex-start; max-width: 72ch; margin-top: 8px; font-size: var(--text-12); }
+.v7 .note .ic { margin-top: 1px; }
 .v7 .ai-home { display: inline-flex; align-items: center; gap: 8px; }
 .v7 .details { margin-top: 16px; }
 .v7 .details .request { margin-top: 8px; max-width: 72ch; }

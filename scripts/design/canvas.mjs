@@ -10,7 +10,9 @@
 //   shoot --url <url> --out <file.webp> [--width 1440] [--height 900] [--theme light|dark] [--full] [--actions <list>]
 //       Screenshots any page (the app) at the same viewport and theme as a canvas frame. `--actions` runs steps before
 //       the shot, separated by ";": click:<selector>, press:<key> (on the focused element), focus:<selector>,
-//       mouse:<x>,<y>. E.g. the Step state: 'click:[aria-label^="6 Read"];click:[aria-label^="Inspect vitest"];mouse:0,0'.
+//       mouse:<x>,<y>, upload:<selector>|<file> (a file input), wait:<selector>. E.g. the Step state:
+//       'click:[aria-label^="6 Read"];click:[aria-label^="Inspect vitest"];mouse:0,0'. `--fake-ai` answers
+//       /api/structure with fixed titles (fake-model-1), for the AI titles state.
 //   pair --canvas <file> --app <file> --out <file.webp> [--title <short text, at most 24 characters>]
 //       Puts the canvas frame (left) and the app screenshot (right) side by side in one WebP.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -24,6 +26,7 @@ const opts = {};
 for (let i = 0; i < rest.length; i++) {
   const key = rest[i].replace(/^--/, '');
   if (key === 'full') opts.full = true;
+  else if (key === 'fake-ai') opts.fakeAi = true;
   else opts[key] = rest[++i];
 }
 
@@ -41,9 +44,17 @@ const browser = await chromium.launch({
   args: ['--disable-dev-shm-usage', '--disable-gpu', '--allow-file-access-from-files'],
 });
 
-async function shoot(url, { width, height, theme, full, out, foldOut, actions }) {
+const TITLES = ['sub-question', 'hypothesis', 'evidence', 'dead end', 'decision', 'answer'];
+async function shoot(url, { width, height, theme, full, out, foldOut, actions, fakeAi }) {
   const ctx = await browser.newContext({ viewport: { width, height }, colorScheme: theme, reducedMotion: 'reduce' });
   const tab = await ctx.newPage();
+  if (fakeAi) {
+    await tab.route('**/api/structure', (route) => {
+      const steps = route.request().postDataJSON()?.steps ?? [];
+      const labels = steps.map((st, i) => ({ stepId: st.id, label: TITLES[Math.floor((i * TITLES.length) / steps.length)], confidence: 0.8 }));
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ model: 'fake-model-1', cached: false, labels, links: [] }) });
+    });
+  }
   await tab.goto(url, { waitUntil: 'networkidle' });
   await tab.evaluate(() => document.fonts.ready);
   for (const step of (actions ?? '').split(';').filter(Boolean)) {
@@ -53,6 +64,8 @@ async function shoot(url, { width, height, theme, full, out, foldOut, actions })
     else if (verb === 'focus') await tab.focus(a);
     else if (verb === 'press') await tab.keyboard.press(a);
     else if (verb === 'mouse') await tab.mouse.move(...a.split(',').map(Number));
+    else if (verb === 'upload') await tab.setInputFiles(a.split('|')[0], resolve(root, a.split('|')[1]));
+    else if (verb === 'wait') await tab.waitForSelector(a, { timeout: 15_000 });
     else throw new Error(`unknown action: ${step}`);
   }
   mkdirSync(dirname(out), { recursive: true });
@@ -71,7 +84,7 @@ try {
     }
   } else if (command === 'shoot') {
     if (!opts.url || !opts.out) throw new Error('shoot needs --url and --out');
-    await shoot(opts.url, { width: Number(opts.width ?? 1440), height: Number(opts.height ?? 900), theme: opts.theme ?? 'light', full: opts.full, out: resolve(opts.out), actions: opts.actions });
+    await shoot(opts.url, { width: Number(opts.width ?? 1440), height: Number(opts.height ?? 900), theme: opts.theme ?? 'light', full: opts.full, out: resolve(opts.out), actions: opts.actions, fakeAi: opts.fakeAi });
     console.log(`shot ${opts.url} -> ${opts.out}`);
   } else if (command === 'pair') {
     if (!opts.canvas || !opts.app || !opts.out) throw new Error('pair needs --canvas, --app and --out');
