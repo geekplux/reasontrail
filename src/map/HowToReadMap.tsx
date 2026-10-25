@@ -1,54 +1,31 @@
-// How to read a map (PLAN phase 19): the four glance questions, with the real glyphs. Shape is the code, never colour.
-// Folded on the showcase (DESIGN §18.1): a closed <details> with the same label; the footer link opens it.
-import { useEffect, useRef } from 'react';
-import { BlazeIcon, KindGlyph } from './Glyph';
-import { HONESTY_TEXT } from './HonestyLabel';
+// How to read a map (`?view=how`; v7 §7): one figure (the default sample's tree drawn by the real renderer, with the
+// legend) and two short paragraphs, the tree and the list. Shape carries every meaning; colour only repeats it.
+import { defaultSessionGraph } from '../sessions/samples';
+import { HeroTree } from '../site/HeroTree';
 
-const KINDS = [['discuss', 'ask'], ['explore', 'explore'], ['change', 'change'], ['verify', 'verify'], ['delegate', 'delegate'], ['answer', 'answer']] as const;
+/** The figure's box: the left column at 1440, with text from this width. */
+export const HOW_TREE = { height: 340, labelsFrom: 720 } as const;
 
-/** `page`: its own page (`?view=how`): a heading and the list, unfolded. */
-export function HowToReadMap({ page = false }: { page?: boolean }) {
-  const ref = useRef<HTMLDetailsElement>(null);
-  const body = (
-    <>
-      <ol>
-        <li><strong>The task.</strong> The trailhead: what was asked, how long it ran and how many tools it used.</li>
-        <li>
-          <strong>The route.</strong> Episodes in order, left to right. The glyph names the kind:{' '}
-          <span className="how-kinds">{KINDS.map(([k, word]) => <span key={k}><KindGlyph kind={k} />{word}</span>)}</span>
-          Subagents run on side trails below.
-        </li>
-        <li>
-          <strong>Where it got stuck.</strong> A numbered blaze marks a
-          detected pattern (repeated errors, retries, reverts):{' '}
-          <span className="how-kinds"><span><BlazeIcon kind="error-streak" resolved={false} badge="" />open</span><span><BlazeIcon kind="error-streak" resolved badge="" />resolved</span></span>
-        </li>
-        <li><strong>The destination.</strong> What changed, and whether a test, build, lint or typecheck run checked it.</li>
-      </ol>
-      <p className="muted">{HONESTY_TEXT} Select any step to see its source line.</p>
-    </>
-  );
-  // A cold load of `/#how-to-read` (the footer link in a new tab) lands on the section open.
-  useEffect(() => {
-    if (window.location.hash !== '#how-to-read' || !ref.current) return;
-    ref.current.open = true;
-    ref.current.scrollIntoView();
-  }, []);
-  if (page)
-    return (
-      <section className="how-to-read-map" aria-labelledby="how-h">
-        <h1 id="how-h" className="page-title" tabIndex={-1}>How to read a map</h1>
-        {body}
-      </section>
-    );
+export function HowToReadMap() {
   return (
-    <>
-      {/* The section's heading for screen-reader navigation; the summary is its visible label. */}
-      <h2 className="visually-hidden">How to read a map</h2>
-      <details ref={ref} id="how-to-read" className="how-to-read-map">
-        <summary><span className="section-label">How to read a map</span></summary>
-        {body}
-      </details>
-    </>
+    <section className="how-to-read-map" aria-labelledby="how-h">
+      <h1 id="how-h" className="page-title" tabIndex={-1}>How to read a map</h1>
+      <div className="how-cols">
+        <HeroTree id="how-tree" g={defaultSessionGraph} onHover={() => {}} size={HOW_TREE} />
+        <div className="how-text">
+          <p>
+            The session grows left to right from the root. The trunk is the main agent and each subagent is a limb. Every
+            branch is an episode, ending in its kind&apos;s glyph and its number. Twigs are tool calls: a leaf for a command
+            that ran, a bud for a file read, a faint twig for thinking, an orange twig with ✕ for a failure. A part&apos;s
+            width grows with the tool calls still ahead on it.
+          </p>
+          <p>
+            The list under the tree has the same episodes in order. The main rail is the main agent; a subagent forks off
+            on its own rail and merges back with its verdict. Open an episode to list its steps, and select a step for its
+            command, output and source line. ↑ ↓ move, → opens, Enter selects, Esc closes.
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
