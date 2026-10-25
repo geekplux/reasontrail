@@ -6,7 +6,7 @@ const require = createRequire(import.meta.url);
 const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 /** Runs axe on the current page; returns a list of human-readable serious/critical violations, plus any violation of
- * the rule ids in `alsoFail`. */
+ * the rule ids in `alsoFail` (or every violation, `'all'`). */
 export async function axeProblems(page, label, alsoFail = []) {
   // A map page is checked at rest: at least 400 ms after `tg:map-ready`, when its draw-in has ended.
   await page.waitForFunction(() => { const m = performance.getEntriesByName('tg:map-ready')[0]; return !m || performance.now() - m.startTime >= 400; });
@@ -14,7 +14,7 @@ export async function axeProblems(page, label, alsoFail = []) {
   if (!(await page.evaluate(() => 'axe' in window))) await page.evaluate(axeSource);
   const violations = await page.evaluate(async () => (await window.axe.run(document)).violations);
   return violations
-    .filter((v) => v.impact === 'serious' || v.impact === 'critical' || alsoFail.includes(v.id))
+    .filter((v) => alsoFail === 'all' || v.impact === 'serious' || v.impact === 'critical' || alsoFail.includes(v.id))
     .map((v) => `axe ${v.impact} (${label}): ${v.id}: ${v.help} [${v.nodes.map((n) => n.target.join(' ')).join(', ')}]`);
 }
 
