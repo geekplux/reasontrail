@@ -101,22 +101,24 @@ export function Home({ session, onSession, step = null, onStep }: { session: str
   // The selection: the URL's step (when this sample lists it), else the episode open in the list.
   const picked = graph ? findStep(graph, step) : undefined;
   const [open, setOpen] = useState<{ id: string; episodeId: string }>();
-  const [treePick, setTreePick] = useState<string>();
+  // The step last picked in the tree, and how the panel scrolls its title into view: just into view where the tree
+  // has text (desktop), to the top under the phone's bare tree.
+  const [treePick, setTreePick] = useState<{ stepId: string | undefined; block: 'nearest' | 'start' }>();
   const openEp = open?.id === sample.id ? open.episodeId : undefined;
   const selection: ListSelection = picked ? { episodeId: picked.episode.episodeId, stepId: picked.step.stepId } : openEp ? { episodeId: openEp } : {};
   const callout = useMemo<[string, string] | undefined>(() => (graph && picked ? [picked.step.label, stepFacts(graph, picked)] : undefined), [graph, picked]);
-  const select = (next: ListSelection, fromTree = false) => {
-    setTreePick(fromTree ? next.stepId : undefined);
+  const select = (next: ListSelection, fromTree?: { labels: boolean }) => {
+    setTreePick(fromTree ? { stepId: next.stepId, block: fromTree.labels ? 'nearest' : 'start' } : undefined);
     setOpen(next.episodeId ? { id: sample.id, episodeId: next.episodeId } : undefined);
     if (next.stepId !== picked?.step.stepId) onStep?.(next.stepId);
   };
-  const onPick = (hit: HitTarget) => {
+  const onPick = (hit: HitTarget, labels: boolean) => {
     const s = graph && hit.kind === 'step' ? findStep(graph, hit.id) : undefined;
-    select(s ? { episodeId: s.episode.episodeId, stepId: s.step.stepId } : { episodeId: hit.episodeId }, true);
+    select(s ? { episodeId: s.episode.episodeId, stepId: s.step.stepId } : { episodeId: hit.episodeId }, { labels });
   };
   const card = graph ? (
     <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)}
-      selection={selection} onSelect={(next) => select(next)} focusDetail={picked !== undefined && treePick === picked.step.stepId} />
+      selection={selection} onSelect={(next) => select(next)} focusDetail={picked !== undefined && treePick?.stepId === picked.step.stepId && treePick.block} />
   ) : failed === sample.id ? (
     <div className="frame" id={CARD_ID}>
       <InlineNote variant="error">This sample did not load. Reload the page to try again.</InlineNote>

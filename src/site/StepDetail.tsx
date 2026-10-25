@@ -10,9 +10,10 @@ const Tone = ({ tone }: { tone: StepTone }) => (tone === 'fail' ? <AlertIcon siz
 
 export interface StepDetailProps {
   d: Detail;
-  /** Move focus to the title when the panel opens or shows another step from a click in the tree; it scrolls only
-   * when the title is out of view (the phone layout, where the panel is below the list). */
-  focusOnOpen?: boolean;
+  /** Move focus to the title when the panel opens or shows another step from a click in the tree, scrolling only when
+   * the title is out of view so focus never lands off-screen: `nearest` brings the title just into view (desktop, the
+   * tree stays in view), `start` brings it to the top (the phone's bare tree, so the panel's content shows). */
+  focusOnOpen?: false | 'nearest' | 'start';
   onStep(stepId: string): void;
   onClose(): void;
 }
@@ -25,7 +26,7 @@ export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDeta
     const r = el.getBoundingClientRect();
     const hidden = r.top < 0 || r.bottom > window.innerHeight;
     el.focus({ preventScroll: true });
-    if (hidden) el.scrollIntoView?.({ block: 'nearest' });
+    if (hidden) el.scrollIntoView?.({ block: focusOnOpen });
     // oxlint-disable-next-line react/exhaustive-effect-dependencies -- another step picked in the tree moves focus again
   }, [focusOnOpen, d.stepId]);
   const onKeyDown = (e: KeyboardEvent) => {

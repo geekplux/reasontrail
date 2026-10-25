@@ -44,7 +44,11 @@ export async function run({ page, baseURL, shot, log, fail }) {
       title: p?.querySelector('h3')?.textContent,
       focus: document.activeElement?.textContent,
       outcome: !!document.querySelector('aside[aria-label="Outcome"]'),
-      top: Math.round(scrollY),
+      // Focus must not land off-screen (WCAG 2.4.11): the ring and the panel's title are both in the viewport.
+      inView: ['.hero-tree circle.ring', 'aside.detail h3'].map((sel) => {
+        const r = document.querySelector(sel)?.getBoundingClientRect();
+        return !!r && r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth;
+      }),
     };
   });
   log(JSON.stringify(m));
@@ -57,7 +61,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
   if (m.head !== 'Verify phase 12, episode 6, step 1 of 28' || m.title !== 'Command failed') fail(`panel reads ${m.head} / ${m.title}`);
   if (m.focus !== 'Command failed') fail(`focus after a tree click is on ${JSON.stringify(m.focus)}, not the panel title`);
   if (m.outcome) fail('the outcome column is still shown beside the panel');
-  if (m.top !== 0) fail(`selecting in the tree scrolled the page to ${m.top}px`);
+  if (m.inView.join() !== 'true,true') fail(`after a tree click [ring, panel title] in view: ${m.inView}`);
   await shot('map-step-1440');
 
   await page.getByRole('button', { name: 'Next step' }).click();

@@ -49,10 +49,13 @@ export async function run({ page, context, baseURL, root, shot, log, fail }) {
   await page.waitForSelector('aside.detail');
   await page.getByRole('button', { name: 'Next step' }).click();
   await page.waitForFunction(() => location.search.endsWith('step=s43'));
+  // Stepping replaces the history entry, so Back closes the panel (focus on the step's row) and Forward reopens it.
   await page.goBack();
-  await page.waitForSelector('aside.detail[data-step="s41"]', { timeout: 5_000 }).catch(() => fail('Back did not return to s41'));
+  await page.waitForFunction(() => !document.querySelector('aside.detail'), null, { timeout: 5_000 }).catch(() => fail('Back did not close the panel'));
+  const back = await page.evaluate(() => document.activeElement?.getAttribute('data-row'));
+  if (back !== 'step:s43') fail(`focus after Back on ${back}, not step:s43's row`);
   await page.goForward();
-  await page.waitForSelector('aside.detail[data-step="s43"]', { timeout: 5_000 }).catch(() => fail('Forward did not return to s43'));
+  await page.waitForSelector('aside.detail[data-step="s43"]', { timeout: 5_000 }).catch(() => fail('Forward did not reopen s43'));
   await page.getByRole('tab', { name: 'Lint and typecheck fail, then pass' }).click();
   await page.waitForFunction(() => location.search === '?session=implementer-checks').catch(() => fail(`tab switch kept the step: ${page.url()}`));
   await page.waitForSelector('.hero-tree svg[role="img"]');

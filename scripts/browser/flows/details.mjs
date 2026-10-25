@@ -1,7 +1,7 @@
 // Details flow, v7 (docs/design/v7/PROMPT.md §4.5, §5.4, §9.6; phase 32b), keyboard only: Tab into the list, open
 // episode 6 of verify-fail-fix, Enter on its failed step opens the detail panel (focus stays in the list) and lights
-// the step in the tree; the panel shows the command, the output, the next step and the source; Previous step crosses
-// back into episode 5; Esc in the list closes the panel, a second Esc closes the episode. Under reduced motion
+// the step in the tree; the panel shows the command, the output, the next step and the source; Previous step is
+// greyed on the episode's first step (s41) and stays there, Next and Previous walk s43 and back; Esc in the list closes the panel, a second Esc closes the episode. Under reduced motion
 // nothing transitions.
 import { axeProblems } from '../axe.mjs';
 
@@ -52,15 +52,22 @@ export async function run({ page, baseURL, shot, log, fail }) {
   for (const p of await axeProblems(page, 'details, panel open by keyboard')) fail(p);
   await shot('details-keyboard-1440');
 
-  // Previous step from the episode's first step crosses into episode 5 (Tab reaches the panel's buttons).
+  // Previous / Next stay within the episode: on its first step (s41) Previous is greyed and does nothing (Tab reaches
+  // the panel's buttons); Next goes to s43, Previous back to s41.
+  const head = () => page.locator('aside.detail .d-head p').textContent();
   const prev = page.getByRole('button', { name: 'Previous step' });
+  if ((await prev.getAttribute('aria-disabled')) !== 'true') fail(`Previous step on s41: aria-disabled ${await prev.getAttribute('aria-disabled')}`);
   await prev.focus();
   await page.keyboard.press('Enter');
-  const crossed = await page.evaluate(() => ({ head: document.querySelector('aside.detail .d-head p')?.textContent, open: document.querySelector('[data-row="ep:e17"]')?.getAttribute('aria-expanded') }));
-  log(`Previous ${JSON.stringify(crossed)}`);
-  if (!crossed.head?.startsWith('Verify phase 12, episode 5, ')) fail(`Previous step did not cross into episode 5: ${crossed.head}`);
+  const stay = { head: await head(), url: await page.evaluate(() => location.search) };
+  log(`Previous on s41 ${JSON.stringify(stay)}`);
+  if (stay.head !== 'Verify phase 12, episode 6, step 1 of 28' || stay.url !== '?step=s41') fail(`greyed Previous step moved the panel: ${JSON.stringify(stay)}`);
   await page.getByRole('button', { name: 'Next step' }).press('Enter');
-  if (!(await page.locator('aside.detail .d-head p').textContent())?.startsWith('Verify phase 12, episode 6, step 1 ')) fail('Next step did not come back to s41');
+  await page.waitForFunction(() => location.search === '?step=s43').catch(() => fail(`Next step: ${page.url()}`));
+  if ((await page.locator('aside.detail').getAttribute('data-step')) !== 's43') fail('Next step did not show s43');
+  await prev.press('Enter');
+  await page.waitForFunction(() => location.search === '?step=s41').catch(() => fail(`Previous step: ${page.url()}`));
+  if ((await head()) !== 'Verify phase 12, episode 6, step 1 of 28') fail(`Previous step did not come back to s41: ${await head()}`);
 
   // Esc from the list: the panel closes, then the episode.
   await page.locator('[data-row="step:s41"]').focus();

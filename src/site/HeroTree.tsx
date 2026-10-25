@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { TreeLegend } from '../map/tree/TreeLegend';
 import { TreeView, type TreeViewProps } from '../map/tree/TreeView';
-import type { Box } from '../map/tree/types';
+import type { Box, HitTarget } from '../map/tree/types';
 
 const DESKTOP = { width: 1200, height: 520 };
 /** Narrower than this, the tree drops its text and keeps the phone silhouette's 358 × 190 proportions. */
@@ -13,7 +13,8 @@ const LABELS_FROM = 960;
 
 interface Measure { width: number; reserve: Box[] }
 
-export function HeroTree({ id, g, hover, onHover, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void } & Pick<TreeViewProps, 'selected' | 'callout' | 'onPick'>) {
+/** `onPick` also says whether the tree has its text (desktop) or is the bare silhouette (phone). */
+export function HeroTree({ id, g, hover, onHover, onPick, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void } & Pick<TreeViewProps, 'selected' | 'callout'>) {
   const fig = useRef<HTMLElement>(null);
   // The canvas size until measured (and where nothing is laid out, as in tests): no jump on the first desktop paint.
   const [m, setM] = useState<Measure>({ width: DESKTOP.width, reserve: [] });
@@ -50,7 +51,7 @@ export function HeroTree({ id, g, hover, onHover, ...pick }: { id: string; g: Se
     <figure className="hero-tree" id={id} ref={fig}>
       <TreeLegend />
       <div className="tree-wrap" aria-busy={g ? undefined : true}>
-        {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} hover={hover} onHover={onHover} {...pick} />}
+        {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} hover={hover} onHover={onHover} {...pick} {...(onPick ? { onPick: (h: HitTarget) => onPick(h, labels) } : {})} />}
       </div>
     </figure>
   );

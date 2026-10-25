@@ -66,8 +66,8 @@ function Outcome({ g }: { g: SessionGraph }) {
 /** `sample`: a built-in sample, so the meta line ends with the "Sample" tag (never on a user's own session). `branch`:
  * the sample's branch where the recorded one is the main checkout. `selection` / `onSelect` / `onActive` / `hover`:
  * the list's open episode and selected step, its focused or hovered row, and the episode hovered in the tree. A
- * selected step opens the detail panel; `focusDetail` moves focus into it as it opens. */
-export function SessionCard({ g, sample = false, branch, id, selection, onSelect, onActive, hover, focusDetail = false }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string; focusDetail?: boolean } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
+ * selected step opens the detail panel; `focusDetail` moves focus into it as it opens (`StepDetail`'s `focusOnOpen`). */
+export function SessionCard({ g, sample = false, branch, id, selection, onSelect, onActive, hover, focusDetail = false }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string; focusDetail?: false | 'nearest' | 'start' } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
   const [message, announce] = useAnnouncer();
   const [aiLoaded, setAiLoaded] = useState(false);
   const [details, setDetails] = useState(false);
