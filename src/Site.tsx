@@ -6,7 +6,6 @@
 // gallery and the drop zone keep working offline after the first load (PLAN phase 19, AC3).
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { lensSearch, linkSearch, mapSearch, readSiteState, writeStep, writeView } from './app/urlState';
-import { loadDetailPanel } from './map/MapView';
 import { loadShareDialog } from './share/ShareAction';
 import { LensContext, type LensOpener, type LensTarget } from './lens/lensTarget';
 import { sessionSamples } from './sessions/samples';
@@ -21,11 +20,10 @@ const OpenSession = lazy(() => loadIntake().then((m) => ({ default: m.OpenSessio
 const GARDEN_PARAMS = /[?&](sample|path|t|seed)=/;
 const HOME_TITLE = document.title;
 
-/** Fetches the detail panel, the share dialog, the lazy samples, the drop zone and its parse worker in the background. */
+/** Fetches the share dialog, the lazy samples, the drop zone and its parse worker in the background. */
 function prefetch() {
   const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
   idle(() => {
-    void loadDetailPanel();
     void loadShareDialog().catch(() => {});
     for (const s of sessionSamples.slice(1)) void s.load();
     void loadIntake().then(() => import('./intake/intake')).then((m) => m.warmIntake());
@@ -97,7 +95,7 @@ export function Site() {
     wasLens.current = lensView;
   }, [lensView]);
   const opener = useMemo<LensOpener>(() => {
-    const sample = state.view === 'map' || state.view === 'outline' ? (sessionSamples.find((s) => s.id === state.session) ?? sessionSamples[0]) : undefined;
+    const sample = state.view === 'map' ? (sessionSamples.find((s) => s.id === state.session) ?? sessionSamples[0]) : undefined;
     return {
       sampleId: sample?.id ?? null,
       sampleTitle: sample?.title,
@@ -158,7 +156,7 @@ export function Site() {
     ) : state.view === 'install' ? (
       <Install />
     ) : state.view === 'how' ? (
-      <div className="page"><HowToReadMap page /></div>
+      <div className="page"><HowToReadMap /></div>
     ) : (
       <Home session={state.session} step={state.step} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} onStep={(id) => go(writeStep(window.location.search, id), !(state.step && id))} />
     );

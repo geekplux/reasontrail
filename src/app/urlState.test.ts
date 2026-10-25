@@ -33,13 +33,14 @@ describe('site state (phase 16)', () => {
     expect(readSiteState('')).toEqual({ garden: false, lens: false, session: null, step: null, view: 'map' });
     expect(readSiteState('?sample=robot&path=1')).toMatchObject({ garden: true });
     expect(readSiteState('?sample=')).toMatchObject({ garden: true });
-    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, lens: false, session: 'planner-pivot', step: null, view: 'outline' });
-    expect(writeView('?session=x', 'outline')).toBe('?session=x&view=outline');
-    expect(writeView('?view=outline', 'map')).toBe('');
+    // The old Map/Outline switch is gone: an outline link opens the home with its sample.
+    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, lens: false, session: 'planner-pivot', step: null, view: 'map' });
+    expect(writeView('?session=x', 'how')).toBe('?session=x&view=how');
+    expect(writeView('?view=how', 'map')).toBe('');
     expect(readSiteState('?view=open').view).toBe('open');
     expect(readSiteState('?view=install&session=x')).toEqual({ garden: false, lens: false, session: 'x', step: null, view: 'install' });
     expect(readSiteState('?view=nope').view).toBe('map');
-    expect(writeView('?session=x&view=outline', 'open')).toBe('?session=x&view=open');
+    expect(writeView('?session=x&view=how', 'open')).toBe('?session=x&view=open');
   });
 });
 
