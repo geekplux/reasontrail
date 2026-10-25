@@ -64,7 +64,6 @@
 .v7 .sess-r { display: flex; gap: 8px; }
 .v7 .note { display: flex; gap: 6px; align-items: flex-start; max-width: 72ch; margin-top: 8px; font-size: var(--text-12); }
 .v7 .note .ic { margin-top: 1px; }
-.v7 .ai-home { display: inline-flex; align-items: center; gap: 8px; }
 .v7 .details { margin-top: 16px; }
 .v7 .details .request { margin-top: 8px; max-width: 72ch; }
 /* The list is 680 at 1440 and gives way first between 1024 and 1200, so the outcome column keeps its 360. The list,

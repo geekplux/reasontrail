@@ -18,6 +18,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 
 /* Focus: a 2 px blue-9 ring 2 px outside every focusable thing. */
 :focus-visible { outline: 2px solid var(--blue-9); outline-offset: 2px; }
+/* A heading that takes focus programmatically (a new page, a mapped session) shows no ring. */
+h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 .visually-hidden {
   position: absolute;
@@ -28,17 +30,6 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
   white-space: nowrap;
 }
 
-/* Header: fixed height so the font swap never shifts the page. */
-.site-header {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 56px;
-  padding: 0 40px;
-  border-bottom: var(--hair-soft);
-}
 .brand { text-decoration: none; border-radius: var(--radius-6); }
 .header-actions { display: flex; flex-wrap: wrap; min-width: 0; align-items: center; justify-content: flex-end; gap: 8px 24px; }
 .share { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
@@ -52,8 +43,8 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em
 .inline-note-ring { display: block; fill: none; stroke: currentColor; stroke-width: 1.5; }
 .inline-note[data-variant='error'] .inline-note-glyph { color: var(--orange-11); }
 
-/* Header and footer links: muted ink, underlined, with a hit area at least 24 px tall. */
-.header-link, .footer-link {
+/* Header links: muted ink, underlined, with a hit area at least 24 px tall. */
+.header-link {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
