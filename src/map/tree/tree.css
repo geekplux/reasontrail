@@ -52,3 +52,8 @@
 /* The bare silhouette's verdicts (no text beside them): ✕ failed, a ✓ ring passed, never hue alone. */
 .tree .x.tip-x { stroke-width: 2; }
 .tree .tip-check :is(circle, path) { fill: none; stroke: var(--blue-9); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* AI titles (v7 §7): a thin dashed ring around a titled episode's glyph; the shape marks it, the list's tag names it.
+   blue-9, not a line step (blue-8 is under 2:1 on slate-1): 3:1 for WCAG 1.4.11; 1px dashed, unlike the 1.5px solid
+   selection ring. */
+.tree .ai-ring { fill: none; stroke: var(--blue-9); stroke-width: 1; stroke-dasharray: 2 2; pointer-events: none; }

@@ -37,3 +37,6 @@ export function VerdictIcon({ tone, size = 14 }: { tone: VerdictTone; size?: num
   if (tone === 'done') return <DoneIcon size={size} />;
   return <UnknownIcon size={size} />;
 }
+
+/** An ink ⓘ: a note. */
+export const InfoIcon = ({ size = 14 }: { size?: number }) => svg(size, <><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--slate-11)" strokeWidth="1.4" /><path d="M8 7v4.5" fill="none" stroke="var(--slate-11)" strokeWidth="1.4" strokeLinecap="round" /><circle cx="8" cy="4.6" r="0.9" fill="var(--slate-11)" /></>);

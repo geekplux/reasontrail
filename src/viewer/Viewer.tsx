@@ -7,11 +7,7 @@ import { useEffect, useState } from 'react';
 import { Wordmark } from '../brand/Wordmark';
 import { AlertIcon } from '../map/gitlist/marks';
 import type { Loaded, ViewerPayload } from '../map/loadGraph';
-import { TreeLegend } from '../map/tree/TreeLegend';
-import { HeroTree } from '../site/HeroTree';
-import { SessionCard } from '../site/SessionCard';
-import { usePhone } from '../site/usePhone';
-import { useSessionMap } from '../site/useSessionMap';
+import { SessionMap } from '../site/SessionMap';
 
 export const SITE_URL = 'https://reasontrail.geekplux.com';
 export const MAKER_URL = 'https://geekplux.com';
@@ -49,23 +45,11 @@ function useHashStep(): [string | null, (stepId: string | undefined) => void] {
 
 function Session({ payload }: { payload: ViewerPayload }) {
   const { graph, meta, labels } = payload;
-  const phone = usePhone();
   const [step, onStep] = useHashStep();
-  const { hovered, onActive, picked, selection, callout, select, onPick, focusDetail } = useSessionMap('viewer', graph, step, onStep);
   const replaced = meta.shared?.replaced;
-  // The card's header (its state stays in SessionCard) is portalled into this slot above the tree.
-  const [head, setHead] = useState<HTMLDivElement | null>(null);
   return (
-    <>
-      <div className="hero">
-        <div ref={setHead} />
-        <HeroTree id="tree" g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} legend={!phone} />
-        {phone && <div className="under"><TreeLegend /></div>}
-      </div>
-      <SessionCard id="session" g={graph} tag={replaced === undefined ? undefined : `Shared copy, redacted (${replaced} ${replaced === 1 ? 'item' : 'items'} replaced)`}
-        ai={labels ? { overlay: labels } : null} share={{ from: 'page', version: meta.version, prior: replaced }}
-        hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)} selection={selection} onSelect={(next) => select(next)} focusDetail={focusDetail} headIn={head} headingLevel={1} />
-    </>
+    <SessionMap id="viewer" g={graph} step={step} onStep={onStep} tag={replaced === undefined ? undefined : `Shared copy, redacted (${replaced} ${replaced === 1 ? 'item' : 'items'} replaced)`}
+      ai={labels ? { overlay: labels } : null} share={{ from: 'page', version: meta.version, prior: replaced }} />
   );
 }
 
@@ -75,7 +59,7 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
       <header className="v7 bar">
         <Wordmark />
       </header>
-      <main className="v7 viewer">
+      <main className="v7 viewer session-page">
         {loaded.ok ? <Session payload={loaded.payload} /> : (
           <div className="viewer-error">
             <h1 className="visually-hidden">Reasoning map</h1>

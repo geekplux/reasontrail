@@ -1,47 +1,22 @@
-/* AI labels overlay (DESIGN §8.7, §13.6, §18): quiet chrome, dashed = suggested. No hue: ink and muted only. */
-.route-head .ai-control, .route-head > .ai-button { margin-left: auto; }
-.ai-control { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 4px 8px; font-size: var(--text-12); color: var(--slate-11); }
-.ai-button[aria-pressed='true'] { color: var(--slate-12); font-weight: 600; text-decoration-thickness: 1px; }
-.ai-status { display: inline-flex; align-items: center; gap: 4px; }
-.ai-toggle { white-space: nowrap; }
-.ai-toggle .ai-swatch { vertical-align: middle; margin-right: 2px; }
-.ai-model { display: inline-block; max-width: 18ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; text-decoration: inherit; }
-.ai-status .glyph { width: 14px; height: 14px; flex: none; }
+/* AI titles (v7 §7): the session card's control, its status and note, and the consent dialog, on the v7 system.
+   The list's tags (gitlist.css) and the tree's rings (tree.css) are drawn with the list and the tree. */
+.ai-control { display: inline-flex; align-items: center; gap: 8px; }
+.ai-status { display: inline-flex; align-items: center; gap: 6px; max-width: 36ch; font-size: var(--text-12); line-height: 16px; color: var(--slate-11); }
+.ai-status .ic { flex: none; }
 
-/* The tag: a dashed 0.5px outline (no border, no fill: CL11). */
-.ai-tag { display: inline-flex; max-width: 100%; padding: 0 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 var(--text-12) / 16px var(--font-sans); color: var(--slate-11); background: transparent; border: none; outline: 0.5px dashed var(--slate-9); outline-offset: -0.5px; border-radius: var(--radius-6); }
-.ai-tag-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.ai-more { flex: none; margin-left: 0.3em; }
-.ai-swatch { display: inline-block; width: 18px; height: 12px; padding: 0; }
-.ai-slot { position: absolute; top: 0; pointer-events: none; }
-.ai-slot .ai-tag { align-self: flex-start; margin-bottom: 4px; }
-.ai-slot.ep-answer .ai-tag { align-self: flex-end; }
-.ai-ghost { display: flex; flex-direction: column; visibility: hidden; }
-.vrow > .ai-tag { flex: none; margin-left: 8px; }
-
-.ai-links { position: absolute; inset: 0 auto auto 0; overflow: visible; pointer-events: none; }
-.ai-link { fill: none; stroke: var(--slate-11); stroke-width: 1; stroke-dasharray: 4 3; }
-
-.ai-note { margin: 16px 0 0; }
-.ai-note p { margin: 0 0 8px; }
-.ai-supports { margin: 0; padding: 0; list-style: none; }
-.ai-supports li { margin: 0 0 4px; }
-.ai-supports .ai-button { color: var(--slate-12); text-align: left; }
-.ai-all { margin-top: 4px; }
-
-/* The V3 consent dialog: one of the allowed frames (§18.3). */
-.ai-dialog { max-width: min(36rem, calc(100vw - 2 * 16px)); padding: 24px; color: var(--slate-12); background: var(--slate-1); border: 0; border-radius: var(--radius-14); box-shadow: inset 0 0 0 0.5px var(--slate-7); font: 400 var(--text-14) / 1.5 var(--font-sans); }
+/* The consent dialog: one frame, radius 16, a 0.5px ring. */
+.ai-dialog { max-width: min(36rem, calc(100vw - 2 * 16px)); padding: 32px; color: var(--slate-12); background: var(--slate-1); border: 0; border-radius: var(--radius-16); box-shadow: inset 0 0 0 0.5px var(--slate-7); font: 400 var(--text-14) / 1.5 var(--font-sans); }
 .ai-dialog::backdrop { background: color-mix(in srgb, var(--slate-12) 35%, transparent); }
-/* Scoped to the dialog so the home's `.v7 h2` reset (0,1,1) does not zero the gap. */
-.ai-dialog .ai-dialog-title { margin: 0 0 12px; font: 600 var(--text-20) / 1.3 var(--font-sans); }
-.ai-dialog p { margin: 0 0 16px; }
-.ai-dialog .ai-facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 0 0 24px; font-size: var(--text-14); }
+/* Scoped to the dialog so the home's `.v7 h2` / `.v7 p` resets (0,1,1) do not zero the gaps. */
+.ai-dialog .ai-dialog-title { margin: 0 0 12px; font: 600 var(--text-20) / 1.3 var(--font-sans); letter-spacing: -0.015em; }
+.ai-dialog p { margin: 0 0 20px; color: var(--slate-11); }
+.ai-dialog .ai-facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 0 0 24px; }
 .ai-facts dt { color: var(--slate-11); }
 .ai-facts dd { margin: 0; overflow-wrap: anywhere; }
+.ai-facts .mono { font: 400 var(--text-12) / 21px var(--font-mono); }
 .ai-dialog-actions { display: flex; gap: 8px; }
-.ai-dialog-actions button { min-height: 32px; padding: 0 12px; font: 500 var(--text-14) var(--font-sans); color: var(--slate-12); background: transparent; border: 0.5px solid var(--slate-7); border-radius: var(--radius-6); cursor: pointer; }
-.ai-dialog-actions .ai-primary { font-weight: 500; color: var(--slate-1); background: var(--slate-12); border-color: var(--slate-12); }
 @media (max-width: 767px) {
+  .ai-dialog { padding: 24px; }
   .ai-dialog .ai-facts { grid-template-columns: 1fr; gap: 0; }
   .ai-dialog .ai-facts dd { margin-bottom: 8px; }
 }

@@ -129,3 +129,19 @@ describe('TreeLegend', () => {
     expect(container.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(9);
   });
 });
+
+describe('TreeView AI titles', () => {
+  it('rings each titled episode (glyph or lane tip) and draws nothing extra with the overlay off', () => {
+    const plain = render(<TreeView g={VFF} width={1200} height={520} />).container.innerHTML;
+    cleanup();
+    const tip = t.tips.find((m) => m.episodeId)!;
+    const ids = new Set([t.episodes[0]!.episodeId, t.episodes[3]!.episodeId, tip.episodeId!]);
+    const { container, rerender } = render(<TreeView g={VFF} width={1200} height={520} tagged={ids} />);
+    const rings = [...container.querySelectorAll('circle.ai-ring')];
+    expect(rings.map((r) => r.getAttribute('data-ai-ring')).sort()).toEqual([...ids].sort());
+    const first = t.episodes[0]!;
+    expect([rings[0]!.getAttribute('cx'), rings[0]!.getAttribute('r')]).toEqual([String(first.at.x), String(first.r + 5)]);
+    rerender(<TreeView g={VFF} width={1200} height={520} tagged={undefined} />);
+    expect(container.innerHTML).toBe(plain);
+  });
+});

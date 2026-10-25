@@ -1,9 +1,11 @@
 // The state shared by the tree and the session card on the website's home and in the local viewer: the hovered episode
 // (from the tree's pointer or the list's pointer or focus), the selected step (from the URL) or the episode open in
-// the list, and how the detail panel takes focus after a pick in the tree. `key` names the session shown (the home's
+// the list, how the detail panel takes focus after a pick in the tree, and the AI titles overlay (the list's tags and
+// the tree's rings). `key` names the session shown (the home's
 // sample id), so hover, focus and the open episode of one session never carry over to another.
-import { useMemo, useState } from 'react';
-import type { SessionGraph } from '../../shared/session/types';
+import { useCallback, useMemo, useState } from 'react';
+import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
+import { listTags } from '../ai/labels';
 import type { ListSelection } from '../map/gitlist/GitList';
 import type { HitTarget } from '../map/tree';
 import { findStep, stepFacts } from './stepDetail';
@@ -55,5 +57,10 @@ export function useSessionMap(key: string, graph: SessionGraph | null, step: str
   };
   /** The detail panel takes focus as it opens when its step was just picked in the tree. */
   const focusDetail = picked !== undefined && treePick?.stepId === picked.step.stepId && treePick.block;
-  return { hovered, onActive, picked, selection, callout, select, onPick, focusDetail };
+  // AI titles: on for this session only (another sample starts with the plain map).
+  const [ai, setAi] = useState<{ id: string; overlay: LabelOverlay }>();
+  const overlay = ai?.id === key ? ai.overlay : undefined;
+  const onOverlay = useCallback((next: LabelOverlay | undefined) => setAi((was) => (was?.id === key && was.overlay === next ? was : next && { id: key, overlay: next })), [key]);
+  const tagged = useMemo(() => (graph && overlay ? new Set(listTags(graph, overlay).keys()) : undefined), [graph, overlay]);
+  return { hovered, onActive, picked, selection, callout, select, onPick, focusDetail, overlay, onOverlay, tagged };
 }

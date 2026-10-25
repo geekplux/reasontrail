@@ -4,7 +4,8 @@
 // root stays ink, the rest fades to slate-8 (colour only), and a tooltip names it. `hover` comes from the parent, so
 // the list's hovered or focused row drives the same state. Selection: a click or tap on a mark picks it (`onPick`);
 // the selected step's path from the root turns blue-9, the rest dims to slate-9, and the step gets a ring and a
-// callout with a leader line (Step.html).
+// callout with a leader line (Step.html). AI titles on: a thin dashed blue-9 ring around each titled episode's glyph
+// (the list's tag says the title in words).
 import { useMemo, useState, type MouseEvent, type PointerEvent } from 'react';
 import type { SessionGraph } from '../../../shared/session/types';
 import { KindGlyph, VerdictIcon } from '../gitlist/marks';
@@ -31,6 +32,8 @@ export interface TreeViewProps {
   callout?: [string, string] | undefined;
   /** A click or tap on a mark (within 12px; 20px for touch). */
   onPick?(hit: HitTarget): void;
+  /** Episodes with an AI title (the overlay on); each gets a ring. */
+  tagged?: ReadonlySet<string> | undefined;
 }
 
 const CLS: Record<LabelClass, string> = { num: 't-num', sub: 't-sub', lab: 't-lab', lane: 't-lane' };
@@ -63,7 +66,7 @@ function BareTip({ m, fail = false }: { m: TipMark; fail?: boolean }) {
   );
 }
 
-export function TreeView({ g, width, height, labels = true, reserve, hover, onHover, selected, callout, onPick }: TreeViewProps) {
+export function TreeView({ g, width, height, labels = true, reserve, hover, onHover, selected, callout, onPick, tagged }: TreeViewProps) {
   const t = useMemo(() => treeFor(g, width, height, labels, reserve), [g, width, height, labels, reserve]);
   const rows = useMemo(() => listRows(g), [g]);
   const summary = useMemo(() => treeSummary(g, rows), [g, rows]);
@@ -147,6 +150,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
           {m.kind !== 'answer' ? <circle cx={m.at.x} cy={m.at.y} r={m.r} className="dot" /> : !labels && m.tone === 'fail' ? <BareTip m={m} fail /> : !labels && m.tone === 'ok' ? <BareTip m={m} /> : <KindGlyph kind="answer" size={2 * m.r} x={m.at.x} y={m.at.y} className={`t-node${m.tone === 'fail' ? ' tip-fail' : m.tone === 'ok' ? ' tip-ok' : ''}`} />}
         </g>
       ))}
+      {tagged && [...t.episodes, ...t.tips].map((m) => m.episodeId && tagged.has(m.episodeId) && <circle key={`ai${m.episodeId}`} cx={m.at.x} cy={m.at.y} r={m.r + 5} className="ai-ring" data-ai-ring={m.episodeId} />)}
       <circle cx={t.root.at.x} cy={t.root.at.y} r={t.root.r} className="root" />
       {ring && <circle cx={ring.x} cy={ring.y} r="8" className="ring" />}
       {t.labels.map((l) => <Text key={l.key} l={l} on={selEp !== undefined && l.key === `num:${selEp}`} />)}

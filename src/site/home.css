@@ -19,10 +19,10 @@
 .v7 .nav { margin-left: auto; display: flex; gap: 24px; color: var(--slate-11); }
 .v7 .nav a:hover, .v7.foot nav a:hover { color: var(--slate-12); }
 .v7 .nav a[aria-current='page'] { color: var(--slate-12); }
-.v7 .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-6); font-weight: 500; white-space: nowrap; }
-.v7 .btn.primary { background: var(--slate-12); color: var(--slate-1); }
-.v7 .btn.ghost { box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); }
-.v7 .btn.ghost:hover { background: var(--slate-3); }
+:is(.v7, .page) .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-6); font-weight: 500; white-space: nowrap; }
+:is(.v7, .page) .btn.primary { background: var(--slate-12); color: var(--slate-1); }
+:is(.v7, .page) .btn.ghost { box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); }
+:is(.v7, .page) .btn.ghost:hover { background: var(--slate-3); }
 :is(.v7, .page) .iconbtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--radius-6); color: var(--slate-11); }
 :is(.v7, .page) .iconbtn:hover { background: var(--slate-3); color: var(--slate-12); }
 .v7 .link { color: var(--slate-11); font-weight: 500; text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
@@ -70,6 +70,8 @@
 .v7 .cols > .side { grid-column: 2; grid-row: 1; }
 .v7 .cols > .detail { grid-row: 1 / span 2; }
 .v7 .cols > .final { grid-column: 2; grid-row: 2; }
+/* AI titles on: who suggested them, 12px under the list. */
+.v7 .cols > .ai-by { grid-column: 1; grid-row: 3; margin-top: -12px; font-size: var(--text-12); }
 
 /* The outcome column: one bordered box with hairline rows, then the final answer */
 .v7 .side { display: grid; gap: 28px; }
@@ -129,7 +131,7 @@
 @media (max-width: 1023px) {
   .v7 .hero-top, .v7 .sess, .v7 .install, .v7 .more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .v7 .cols { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-  .v7 .cols > * { grid-column: 1; grid-row: auto; }
+  .v7 .cols > *, .v7 .cols > .ai-by { grid-column: 1; grid-row: auto; }
   .v7 .cols > .side { margin-top: 20px; }
   .v7 .hero-tree > .legend { position: static; flex-wrap: wrap; gap: 6px 12px; white-space: normal; margin-bottom: 16px; }
   .v7 .tree-wrap { min-height: 0; }
@@ -168,12 +170,13 @@
   .v7 .cols > .side { margin-top: 0; }
   .v7 .cols > .gl { margin-top: 16px; }
   .v7 .cols > .final { margin-top: 28px; }
+  .v7 .cols > .ai-by { margin-top: 12px; }
   .v7 .frame > .sess-r { flex-wrap: wrap; margin-top: 16px; }
   .v7 .details .meta .code { overflow-wrap: anywhere; }
   /* A tap that opens the panel brings its top (context line and ✕) 16px under the screen's top (StepDetail). */
   .v7 .detail { scroll-margin-top: 16px; }
   /* 200% text zoom: button labels and the links below wrap instead of pushing the page sideways (32px at 100%, as now). */
-  .v7 .btn { white-space: normal; text-align: center; height: auto; min-height: 32px; padding-block: 4px; }
+  :is(.v7, .page) .btn { white-space: normal; text-align: center; height: auto; min-height: 32px; padding-block: 4px; }
   .v7 .more a span { overflow-wrap: anywhere; }
   /* 200% text zoom: the command wraps inside its box instead of pushing the page sideways. */
   :is(.v7, .page) .cmdbox { height: auto; min-height: 40px; }
@@ -184,4 +187,19 @@
   .v7 .more { gap: 28px; margin-top: 56px; padding-top: 28px; }
   .v7 .sites { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .v7.foot { margin-top: 56px; }
+}
+
+/* One session on its own page (SessionMap) */
+/* The session header in the home's hero place (v7 §7; the local viewer and a session opened on the site): the title as the home's h1, the meta line 12px under it, the
+   actions on its last baseline (`.hero-top`), Details opening 16px below; then the tree 32px down; the card holds only
+   the list and the outcome. */
+.v7.session-page h1 { max-width: 760px; }
+.v7.session-page .hero-top .meta { margin-top: 12px; }
+.v7.session-page .frame > .cols { margin-top: 0; }
+/* "Shared copy, redacted (N items replaced)" is the meta line's last tag; it wraps under text zoom. */
+.v7.session-page .tag { height: auto; min-height: 20px; white-space: normal; }
+@media (max-width: 639px) {
+  .v7.session-page h1 { font-size: var(--text-20); line-height: 1.3; letter-spacing: -0.015em; max-width: none; }
+  .v7.session-page .hero-top .meta { margin-top: 8px; }
+  .v7.session-page > .frame { margin-top: 24px; }
 }

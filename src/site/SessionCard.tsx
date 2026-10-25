@@ -83,13 +83,17 @@ export interface CardShare { from: 'site' | 'page'; version?: string | undefined
  * episode and selected step, its focused or hovered row, and the episode hovered in the tree. A selected step opens
  * the detail panel; `focusDetail` moves focus into it as it opens (`StepDetail`'s `focusOnOpen`). `headIn`: an element
  * the header (title, meta line, actions, and Details on the desktop) is portalled into, above the tree (the local
- * viewer); the card then holds only the list and the outcome. `headingLevel`: the title's level (1 in the viewer). */
-export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share = SITE_SHARE, selection, onSelect, onActive, hover, focusDetail = false, headIn, headingLevel = 2 }: { g: SessionGraph; tag?: string | undefined; branch?: string | undefined; id?: string; tabs?: boolean; ai?: AiSource | null; share?: CardShare; focusDetail?: false | 'nearest' | 'start'; headIn?: HTMLElement | null | undefined; headingLevel?: 1 | 2 } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
+ * viewer); the card then holds only the list and the outcome. `headingLevel`: the title's level (1 in the viewer).
+ * `overlay` / `onOverlay`: the AI titles, when the page holds them (to ring the tree too). */
+export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share = SITE_SHARE, selection, onSelect, onActive, hover, focusDetail = false, headIn, headingLevel = 2, focusTitle = false, overlay: shownOverlay, onOverlay }: { g: SessionGraph; tag?: string | undefined; branch?: string | undefined; id?: string; tabs?: boolean; ai?: AiSource | null | undefined; share?: CardShare | undefined; focusDetail?: false | 'nearest' | 'start'; headIn?: HTMLElement | null | undefined; headingLevel?: 1 | 2; focusTitle?: boolean | undefined; onOverlay?: ((overlay: LabelOverlay | undefined) => void) | undefined } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover' | 'overlay'>) {
   const [message, announce] = useAnnouncer();
   const phone = usePhone();
   const [aiLoaded, setAiLoaded] = useState(false);
   const [details, setDetails] = useState(false);
-  const [overlay, setOverlay] = useState<LabelOverlay>();
+  // AI titles: held by the page (`overlay` / `onOverlay`, so the tree rings the titled episodes too), else here.
+  const [own, setOwn] = useState<LabelOverlay>();
+  const overlay = onOverlay ? shownOverlay : own;
+  const setOverlay = onOverlay ?? setOwn;
   const detailsId = useId();
   const card = taskCard(g);
   const detail = selection?.stepId ? stepDetail(g, selection.stepId) : undefined;
@@ -202,7 +206,9 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
   const aside = panel ?? <aside key="side" className="side" aria-label="Outcome"><OutcomeBox g={g} /></aside>;
   // On the desktop the panel takes the whole outcome column, final answer included.
   const answer = (phone || !panel) && <FinalAnswer key="answer" g={g} level={sub} />;
-  const colsBox = <div key="cols" className="cols" ref={cols}>{phone ? [aside, list, answer] : [list, aside, answer]}</div>;
+  // Who suggested the titles: one 12px line under the list while they are shown.
+  const by = overlay && <p key="ai-by" className="ai-by muted">AI titles suggested by {overlay.model}</p>;
+  const colsBox = <div key="cols" className="cols" ref={cols}>{phone ? [aside, list, by, answer] : [list, by, aside, answer]}</div>;
   const branchItem = sessionMeta(g, branch).find((m) => m.key === 'branch');
   const actions = (
     <>
@@ -210,7 +216,7 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
         // A viewer page made with `--ai`: the titles are in the page, so the button only shows or hides them.
         <button type="button" className="btn ghost" aria-pressed={overlay !== undefined} onClick={() => setOverlay(overlay ? undefined : ai.overlay)}>AI titles</button>
       ) : ai && aiLoaded && AiControl ? (
-        <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
+        <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} /></Suspense>
       ) : ai ? (
         <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI titles</button>
       ) : null}
@@ -227,10 +233,19 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
     </div>
   );
   const Title = headingLevel === 1 ? 'h1' : 'h2';
+  // `focusTitle`: focus the title once it is drawn in its place (a session just opened; a header slot, `headIn`, comes a
+  // render late, and the header moves into it).
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const titled = useRef(false);
+  useEffect(() => {
+    if (!focusTitle || titled.current || !titleRef.current || headIn === null) return;
+    titled.current = true;
+    titleRef.current.focus();
+  });
   const header = (
     <header key="head" className={headIn ? 'hero-top' : 'sess'} ref={head}>
       <div className="sess-l">
-        <Title id="sess-title">{g.displayTitle ?? g.title}</Title>
+        <Title ref={titleRef} id="sess-title" tabIndex={headingLevel === 1 ? -1 : undefined}>{g.displayTitle ?? g.title}</Title>
         <ul className="meta">
           {sessionMeta(g, branch).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
           {tag && <li className="tag">{tag}</li>}

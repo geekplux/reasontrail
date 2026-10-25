@@ -83,10 +83,10 @@ export function Home({ session, onSession, step = null, onStep }: { session: str
       live = false;
     };
   }, [graph, sample]);
-  const { hovered, onActive, picked, selection, callout, select, onPick, focusDetail } = useSessionMap(sample.id, graph, step, onStep);
+  const { hovered, onActive, picked, selection, callout, select, onPick, focusDetail, overlay, onOverlay, tagged } = useSessionMap(sample.id, graph, step, onStep);
   const card = graph ? (
     <SessionCard key={sample.id} id={CARD_ID} g={graph} tag="Sample" branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)}
-      selection={selection} onSelect={(next) => select(next)} focusDetail={focusDetail} tabs />
+      selection={selection} onSelect={(next) => select(next)} focusDetail={focusDetail} overlay={overlay} onOverlay={onOverlay} tabs />
   ) : failed === sample.id ? (
     <div className="frame" id={CARD_ID}>
       <InlineNote variant="error">This sample did not load. Reload the page to try again.</InlineNote>
@@ -104,7 +104,7 @@ export function Home({ session, onSession, step = null, onStep }: { session: str
           </div>
           <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
         </div>
-        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} legend={!phone} />
+        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} tagged={tagged} legend={!phone} />
         <div className="under">
           <SampleTabs current={sample.id} onChoose={onSession} />
           {phone && <TreeLegend />}

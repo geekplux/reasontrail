@@ -14,8 +14,9 @@ const LABELS_FROM = 960;
 
 interface Measure { width: number; reserve: Box[] }
 
-/** `onPick` also says whether the tree has its text (desktop) or is the bare silhouette (phone). */
-export function HeroTree({ id, g, hover, onHover, onPick, legend = true, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void; legend?: boolean } & Pick<TreeViewProps, 'selected' | 'callout'>) {
+/** `onPick` also says whether the tree has its text (desktop) or is the bare silhouette (phone). `size`: another
+ * height and text threshold than the home's (How to read a map's smaller figure). */
+export function HeroTree({ id, g, hover, onHover, onPick, legend = true, size, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void; legend?: boolean; size?: { height: number; labelsFrom: number } } & Pick<TreeViewProps, 'selected' | 'callout' | 'tagged'>) {
   const fig = useRef<HTMLElement>(null);
   // The canvas size until measured (and where nothing is laid out, as in tests): no jump on the first desktop paint.
   const [m, setM] = useState<Measure>({ width: DESKTOP.width, reserve: [] });
@@ -46,8 +47,8 @@ export function HeroTree({ id, g, hover, onHover, onPick, legend = true, ...pick
       ro.disconnect();
     };
   }, []);
-  const labels = m.width >= LABELS_FROM;
-  const height = labels ? DESKTOP.height : Math.round((m.width * 190) / 358);
+  const labels = m.width >= (size?.labelsFrom ?? LABELS_FROM);
+  const height = labels ? (size?.height ?? DESKTOP.height) : Math.round((m.width * 190) / 358);
   return (
     <figure className="hero-tree" id={id} ref={fig}>
       {legend && <TreeLegend />}

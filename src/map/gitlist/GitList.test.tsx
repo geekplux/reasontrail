@@ -268,7 +268,7 @@ describe('GitList long episodes', () => {
     expect(container.querySelector('.ai-tag')).toBeNull();
     rerender(<GitList g={G} overlay={overlay} />);
     expect([...container.querySelectorAll('.ai-tag')].map((t) => t.textContent)).toEqual(['dead end']);
-    expect(name(items().find((el) => name(el).startsWith('Episode 6:'))!)).toContain(', AI labels, suggested by test-model: dead end (1 step), 1 failed command');
+    expect(name(items().find((el) => name(el).startsWith('Episode 6:'))!)).toContain(', AI title, suggested by test-model: dead end (1 step), 1 failed command');
   });
 });
 

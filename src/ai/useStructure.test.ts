@@ -76,7 +76,7 @@ describe('createStructureController', () => {
     const c = createStructureController(graph(3), { fetch: fakeFetch(reply).fn });
     c.request();
     await c.consent();
-    expect(c.getState()).toEqual({ status: 'unavailable', message: "AI labels aren't available here; the map still works." });
+    expect(c.getState()).toEqual({ status: 'unavailable', message: "AI titles aren't available here; the map still works." });
   });
 
   it('maps API errors to calm messages and stops at the first failure', async () => {

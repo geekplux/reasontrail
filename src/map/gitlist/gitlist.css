@@ -67,7 +67,7 @@
 .gl-step.is-sel .gl-title { font-weight: 500; }
 .gl-row.is-open .gl-num { font-weight: 600; }
 .gl-row.is-open .gl-sub { color: var(--slate-11); }
-.gl .ai-tag { flex: none; }
+.gl .ai-tag { flex: none; display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; background: var(--slate-3); color: var(--slate-11); font: 500 var(--text-12) / 1 var(--font-sans); white-space: nowrap; }
 
 /* Compact (the phone, Phone.html): no header, # or Start; titles from x 52 (sublines and verdict durations follow),
    cut 96px short of the edge as on the canvas; step counts and exit codes at the right edge; states bleed 8px. */

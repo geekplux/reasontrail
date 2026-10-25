@@ -5,7 +5,7 @@
 // their lane row; steps one below their episode.
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../../shared/session/types';
-import { episodeTags, tagName } from '../../ai/labels';
+import { listTags, tagName } from '../../ai/labels';
 import { AlertIcon, KindGlyph, VerdictIcon } from './marks';
 import { GEO, STEP_ROWS_MAX, episodeSteps, layoutList, listColumns, listRows, type AnyRow, type GlyphKind, type MoreRow, type Placed, type StepRow } from './rows';
 import './gitlist.css';
@@ -100,11 +100,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
   // A leaf episode (nothing to list) is selected in place: no step rows, no gap under it.
   const top = cols.head ? GEO.head : 0;
   const L = useMemo(() => layoutList(rows, sel.episodeId && shown.length > 0 ? { episodeId: sel.episodeId, steps: shown } : undefined, target, top), [rows, sel.episodeId, shown, target, top]);
-  const tags = useMemo(() => {
-    if (!overlay) return undefined;
-    const ofStep = new Map(g.episodes.filter((e) => !e.parentId).flatMap((e) => e.stepIds.map((id) => [id, e.id] as const)));
-    return episodeTags(g, overlay, (id) => ofStep.get(id));
-  }, [g, overlay]);
+  const tags = useMemo(() => (overlay ? listTags(g, overlay) : undefined), [g, overlay]);
 
   const visible = useMemo(() => L.placed.map((p) => p.row), [L]);
   const tree = useMemo(() => treePositions(visible), [visible]);
