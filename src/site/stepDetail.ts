@@ -40,8 +40,7 @@ export interface StepDetail {
   code?: string;
   /** Thinking or other text, shown as a paragraph. */
   text?: string;
-  /** The model's own written reasoning is shown (thinking or assistant text with its text stored): the panel says
-   * whose account it is. */
+  /** A thinking step whose text was stored: the panel says whose account it is. */
   ownAccount?: true;
   output?: StepOutput;
   next?: { stepId: string; summary: string; at: string; tone: StepTone; output?: string };
@@ -117,7 +116,7 @@ export function stepDetail(g: SessionGraph, stepId: string): StepDetail | undefi
   const c = codeOf(r);
   if (c) d.code = c;
   if (r.step.kind === 'thinking') d.text = isUnstoredThinking(r.step) ? 'Only a signature was recorded, so no text is shown.' : textHead(r.step.text ?? '', 8, 600).head;
-  if ((r.step.kind === 'thinking' || r.step.kind === 'assistant') && !isUnstoredThinking(r.step) && r.step.text?.trim()) d.ownAccount = true;
+  if (r.step.kind === 'thinking' && !isUnstoredThinking(r.step) && r.step.text?.trim()) d.ownAccount = true;
   const out = output(r);
   if (out) d.output = out;
   const raw = rawRecords(g, r).flatMap((x) => (x.text !== undefined ? [x.text] : []));
