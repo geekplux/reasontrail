@@ -17,8 +17,9 @@ import { StepDetail } from './StepDetail';
 import { findStep, stepDetail } from './stepDetail';
 import { usePhone } from './usePhone';
 
-// The AI labels control, its consent dialog and client load only when first used.
-const AiControl = lazy(() => import('../ai/AiControl'));
+// The AI labels control, its consent dialog and client load only when first used (never in the local viewer, whose
+// AI titles, if any, are in the page).
+const AiControl = import.meta.env.LOCAL_VIEWER ? null : lazy(() => import('../ai/AiControl'));
 const LIVE: AiSource = { live: true };
 const SITE_SHARE: CardShare = { from: 'site' };
 
@@ -79,8 +80,10 @@ export interface CardShare { from: 'site' | 'page'; version?: string | undefined
  * AI titles come from (the website asks the model; a viewer page made with `--ai` has them in the page; `null`: no AI
  * titles button). `share`: how Share writes its copy. `selection` / `onSelect` / `onActive` / `hover`: the list's open
  * episode and selected step, its focused or hovered row, and the episode hovered in the tree. A selected step opens
- * the detail panel; `focusDetail` moves focus into it as it opens (`StepDetail`'s `focusOnOpen`). */
-export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share = SITE_SHARE, selection, onSelect, onActive, hover, focusDetail = false }: { g: SessionGraph; tag?: string | undefined; branch?: string | undefined; id?: string; tabs?: boolean; ai?: AiSource | null; share?: CardShare; focusDetail?: false | 'nearest' | 'start' } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
+ * the detail panel; `focusDetail` moves focus into it as it opens (`StepDetail`'s `focusOnOpen`). `headIn`: an element
+ * the header (title, meta line, actions, and Details on the desktop) is portalled into, above the tree (the local
+ * viewer); the card then holds only the list and the outcome. `headingLevel`: the title's level (1 in the viewer). */
+export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share = SITE_SHARE, selection, onSelect, onActive, hover, focusDetail = false, headIn, headingLevel = 2 }: { g: SessionGraph; tag?: string | undefined; branch?: string | undefined; id?: string; tabs?: boolean; ai?: AiSource | null; share?: CardShare; focusDetail?: false | 'nearest' | 'start'; headIn?: HTMLElement | null | undefined; headingLevel?: 1 | 2 } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
   const [message, announce] = useAnnouncer();
   const phone = usePhone();
   const [aiLoaded, setAiLoaded] = useState(false);
@@ -151,8 +154,8 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
   // the element focused inside the card gets it back without scrolling (then just into view if it is off-screen).
   const focusedIn = useRef<HTMLElement>(undefined);
   useEffect(() => {
-    const f = frame.current;
-    if (!f) return;
+    const roots = [frame.current, headIn].filter((r): r is HTMLElement => !!r);
+    if (!roots.length) return;
     const into = (e: FocusEvent) => {
       if (e.target instanceof HTMLElement) focusedIn.current = e.target;
     };
@@ -161,16 +164,20 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
     const out = (e: FocusEvent) => {
       const t = e.target;
       setTimeout(() => {
-        if (t instanceof Node && t === focusedIn.current && t.isConnected && !f.contains(document.activeElement)) focusedIn.current = undefined;
+        if (t instanceof Node && t === focusedIn.current && t.isConnected && !roots.some((r) => r.contains(document.activeElement))) focusedIn.current = undefined;
       });
     };
-    f.addEventListener('focusin', into);
-    f.addEventListener('focusout', out);
+    for (const r of roots) {
+      r.addEventListener('focusin', into);
+      r.addEventListener('focusout', out);
+    }
     return () => {
-      f.removeEventListener('focusin', into);
-      f.removeEventListener('focusout', out);
+      for (const r of roots) {
+        r.removeEventListener('focusin', into);
+        r.removeEventListener('focusout', out);
+      }
     };
-  }, []);
+  }, [headIn]);
   const laidOut = useRef(phone);
   useLayoutEffect(() => {
     if (laidOut.current === phone) return;
@@ -198,7 +205,7 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
       {ai && 'overlay' in ai ? (
         // A viewer page made with `--ai`: the titles are in the page, so the button only shows or hides them.
         <button type="button" className="btn ghost" aria-pressed={overlay !== undefined} onClick={() => setOverlay(overlay ? undefined : ai.overlay)}>AI titles</button>
-      ) : ai && aiLoaded ? (
+      ) : ai && aiLoaded && AiControl ? (
         <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
       ) : ai ? (
         <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI titles</button>
@@ -215,22 +222,29 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
       <p className="muted request">{card.request.replace(/\*\*|`/g, '')}</p>
     </div>
   );
+  const Title = headingLevel === 1 ? 'h1' : 'h2';
+  const header = (
+    <header key="head" className={headIn ? 'hero-top' : 'sess'} ref={head}>
+      <div className="sess-l">
+        <Title id="sess-title">{g.displayTitle ?? g.title}</Title>
+        <ul className="meta">
+          {sessionMeta(g, branch).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
+          {tag && <li className="tag">{tag}</li>}
+        </ul>
+      </div>
+    </header>
+  );
   return (
-    <section className="frame" id={id} ref={frame} role={tabs ? 'tabpanel' : undefined} aria-labelledby="sess-title">
-      <header className="sess" ref={head}>
-        <div className="sess-l">
-          <h2 id="sess-title">{g.displayTitle ?? g.title}</h2>
-          <ul className="meta">
-            {sessionMeta(g, branch).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
-            {tag && <li className="tag">{tag}</li>}
-          </ul>
-        </div>
-      </header>
-      {/* The phone keeps every action (WCAG 1.4.10): AI titles, Details and Share in a row under the final answer (the
-          actions row goes in after `.cols`, above), Details opening under it. */}
-      {phone ? [colsBox, detailsBox] : [detailsBox, colsBox]}
-      {createPortal(actions, actionsRow)}
-      <LiveRegion message={message} />
-    </section>
+    <>
+      {headIn && createPortal(phone ? [header] : [header, detailsBox], headIn)}
+      <section className="frame" id={id} ref={frame} role={tabs ? 'tabpanel' : undefined} aria-labelledby="sess-title">
+        {!headIn && header}
+        {/* The phone keeps every action (WCAG 1.4.10): AI titles, Details and Share in a row under the final answer (the
+            actions row goes in after `.cols`, above), Details opening under it. */}
+        {phone ? [colsBox, detailsBox] : headIn ? [colsBox] : [detailsBox, colsBox]}
+        {createPortal(actions, actionsRow)}
+        <LiveRegion message={message} />
+      </section>
+    </>
   );
 }

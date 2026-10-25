@@ -1,7 +1,7 @@
 // The local viewer (v7 §7 "Local viewer", docs/design/v7/preview/Home.html without the site chrome): the wordmark
-// header, the session's tree at the full content width with its legend, the session card (title, meta line, AI titles
-// when the page has them, Details, Share; the git-style list and the outcome or the step's detail panel) and a footer
-// of two plain links. The selected step lives in the hash (`#step=s41`), so it works from file:// and deep links
+// header; the session header in the home's hero place (the title as the page's h1, the meta line, AI titles when the
+// page has them, Details, Share), the session's tree at the full content width with its legend; the card with the
+// git-style list and the outcome or the step's detail panel; and a footer of two plain links. The selected step lives in the hash (`#step=s41`), so it works from file:// and deep links
 // within the file open the same state. One file, no requests.
 import { useEffect, useState } from 'react';
 import { Wordmark } from '../brand/Wordmark';
@@ -19,7 +19,12 @@ export const MAKER_URL = 'https://geekplux.com';
 /** The step in the hash: `#step=s41` (other hash text is ignored). */
 export function readStep(hash = window.location.hash): string | null {
   const m = /^#(?:.*&)?step=([^&]+)/.exec(hash);
-  return m ? decodeURIComponent(m[1]!) : null;
+  if (!m) return null;
+  try {
+    return decodeURIComponent(m[1]!);
+  } catch {
+    return null; // a malformed escape (`#step=%`)
+  }
 }
 
 /** The hash state: opening a step from none and closing the panel are history entries; stepping replaces the entry. */
@@ -48,15 +53,18 @@ function Session({ payload }: { payload: ViewerPayload }) {
   const [step, onStep] = useHashStep();
   const { hovered, onActive, picked, selection, callout, select, onPick, focusDetail } = useSessionMap('viewer', graph, step, onStep);
   const replaced = meta.shared?.replaced;
+  // The card's header (its state stays in SessionCard) is portalled into this slot above the tree.
+  const [head, setHead] = useState<HTMLDivElement | null>(null);
   return (
     <>
       <div className="hero">
+        <div ref={setHead} />
         <HeroTree id="tree" g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} legend={!phone} />
         {phone && <div className="under"><TreeLegend /></div>}
       </div>
-      <SessionCard id="session" g={graph} tag={replaced === undefined ? undefined : `Shared copy, redacted (${replaced} items replaced)`}
+      <SessionCard id="session" g={graph} tag={replaced === undefined ? undefined : `Shared copy, redacted (${replaced} ${replaced === 1 ? 'item' : 'items'} replaced)`}
         ai={labels ? { overlay: labels } : null} share={{ from: 'page', version: meta.version, prior: replaced }}
-        hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)} selection={selection} onSelect={(next) => select(next)} focusDetail={focusDetail} />
+        hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)} selection={selection} onSelect={(next) => select(next)} focusDetail={focusDetail} headIn={head} headingLevel={1} />
     </>
   );
 }
@@ -68,19 +76,17 @@ export function Viewer({ loaded }: { loaded: Loaded }) {
         <Wordmark />
       </header>
       <main className="v7 viewer">
-        <h1 className="visually-hidden">Reasoning map</h1>
         {loaded.ok ? <Session payload={loaded.payload} /> : (
           <div className="viewer-error">
+            <h1 className="visually-hidden">Reasoning map</h1>
             <p className="strong"><AlertIcon size={14} /> {loaded.reason}</p>
             <p className="muted">Run the command again to write a fresh page.</p>
           </div>
         )}
       </main>
       <footer className="v7 foot">
-        <a href={SITE_URL}>Made with Reasontrail</a>
-        <nav aria-label="More">
-          <a href={MAKER_URL}>geekplux.com</a>
-        </nav>
+        <a href={SITE_URL}>Made with <span className="made">Reasontrail</span></a>
+        <a href={MAKER_URL}>geekplux.com</a>
       </footer>
     </>
   );

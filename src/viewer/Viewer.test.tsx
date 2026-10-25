@@ -26,9 +26,26 @@ describe('local viewer', () => {
     expect(container.querySelector('.hero-tree > .legend')).not.toBeNull();
     expect(screen.getByRole('tree', { name: 'Episodes in order' }).querySelectorAll('[role="treeitem"]').length).toBeGreaterThan(3);
     expect(screen.getByRole('complementary', { name: 'Outcome' }).querySelectorAll('.res-row').length).toBeGreaterThan(0);
-    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Verify phase 12, fix the audit gap, re-verify');
     expect(container.querySelector('[data-region], [role="application"], [role="tablist"], [role="tabpanel"]')).toBeNull();
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
+  });
+
+  it('puts the session header in the hero above the tree: the title is the h1; the card holds only the list and the outcome', () => {
+    const { container } = render(<Viewer loaded={page(defaultSessionGraph)} />);
+    const h1 = screen.getByRole('heading', { level: 1 });
+    expect(h1.textContent).toBe('Verify phase 12, fix the audit gap, re-verify');
+    expect(h1.id).toBe('sess-title');
+    expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
+    const hero = container.querySelector('main > .hero')!;
+    expect(hero.firstElementChild?.firstElementChild?.matches('header.hero-top')).toBe(true);
+    expect(hero.querySelector('.hero-top')?.compareDocumentPosition(hero.querySelector('.hero-tree')!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(hero.querySelector('.hero-top > .sess-r')?.textContent).toBe('DetailsShare');
+    const frame = container.querySelector('main > .frame')!;
+    expect(frame.getAttribute('aria-labelledby')).toBe('sess-title');
+    expect(frame.firstElementChild?.className).toBe('cols');
+    expect(frame.querySelector('.sess, .details, h1, h2')).toBeNull();
+    // Details opens under the header, above the tree.
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+    expect(hero.querySelector('.hero-top + .details:not([hidden])')).not.toBeNull();
   });
 
   it('shows a user session without the Sample tag, and Details and Share but no AI titles without labels in the page', () => {
@@ -55,12 +72,15 @@ describe('local viewer', () => {
     render(<Viewer loaded={page(user())} />);
     const links = [...document.querySelectorAll('footer a')].map((a) => [a.textContent, a.getAttribute('href')]);
     expect(links).toEqual([['Made with Reasontrail', SITE_URL], ['geekplux.com', MAKER_URL]]);
+    expect(document.querySelector('footer a .made')?.textContent).toBe('Reasontrail');
+    expect(document.querySelector('footer nav')).toBeNull();
   });
 
   it('keeps the selected step in the hash: a deep link opens it, a list pick writes it, Esc and Back close it', () => {
     expect(readStep('#step=s41')).toBe('s41');
     expect(readStep('#a=1&step=s%2041')).toBe('s 41');
     expect(readStep('#steps=s41')).toBeNull();
+    expect(readStep('#step=%')).toBeNull();
     window.history.replaceState(null, '', '/map.html#step=s41');
     render(<Viewer loaded={page(defaultSessionGraph)} />);
     expect(panel()?.getAttribute('data-step')).toBe('s41');
@@ -86,6 +106,9 @@ describe('local viewer', () => {
   it('marks a shared copy in the meta line, where a sample has its tag', () => {
     render(<Viewer loaded={page(user(), { shared: { replaced: 4 } })} />);
     expect(document.querySelector('.meta .tag')?.textContent).toBe('Shared copy, redacted (4 items replaced)');
+    cleanup();
+    render(<Viewer loaded={page(user(), { shared: { replaced: 1 } })} />);
+    expect(document.querySelector('.meta .tag')?.textContent).toBe('Shared copy, redacted (1 item replaced)');
   });
 
   it('shows text, never markup, from the transcript; and a calm message for bad data', () => {
