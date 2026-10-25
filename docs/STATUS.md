@@ -1,36 +1,36 @@
-STATE: IN-PROGRESS
-Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13). Phases 1–28 are merged; PR #31 (first v7 attempt) is closed and discarded.
+STATE: DONE
+awaiting Sean's approval to deploy
+
+Redesign v7, canvas-first restart (docs/design/v7/PROMPT.md §13): all phases 29–36 are done, each with an open stacked PR (stack #34, rebased onto `main` after PR #40; none merged). The deploy dry run passes (`pnpm run check:deploy`); the exact deploy steps are in `docs/DEPLOY.md` (Workers Builds: build `pnpm run build`, deploy `npx wrangler deploy`; manual: `pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy && pnpm exec wrangler deploy`). Nothing was deployed or published.
 
 # Status (Reasontrail)
 
-## Redesign v7 (phases 29–36)
+## Redesign v7 (phases 29–36): new PRs
 
-- Current phase: 36 `phase-36-v7-deploy-prep`, step: implement
-- Canvas frames: `docs/design/v7/frames/` (rendered with `scripts/design/canvas.mjs frames`)
-
-| Phase | Branch | PR | State | Review rounds | lead-designer |
+| Phase | Branch | PR | State | Review rounds | lead-designer verdict |
 |---|---|---|---|---|---|
-| 29 | `phase-29-v7-canvas-page` | [#32](https://github.com/geekplux/reasontrail/pull/32) | done, PR open | 2 | MATCH (R1, R2) |
-| 29b | `phase-29b-v7-brand-cleanup` | [#33](https://github.com/geekplux/reasontrail/pull/33) | done, PR open | 2 | MATCH (R1, R2) |
-| 30 | `phase-30-v7-gitlist` | [#35](https://github.com/geekplux/reasontrail/pull/35) | done, PR open | 2 | REJECT (R1, one sub-line gap), MATCH (R2) |
-| 31 | `phase-31-v7-tree-engine` | [#36](https://github.com/geekplux/reasontrail/pull/36) | done, PR open | 2 | REJECT (R1), MATCH (R2); dataviz approved after fix 2 |
-| 32a | `phase-32a-v7-tree-render` | [#37](https://github.com/geekplux/reasontrail/pull/37) | done, PR open | 2 | MATCH (R1, R2); dataviz approved items fixed in fix 2 |
-| 32b | `phase-32b-v7-step-detail` | [#38](https://github.com/geekplux/reasontrail/pull/38) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
-| 33 | `phase-33-v7-phone-dark` | [#39](https://github.com/geekplux/reasontrail/pull/39) | done, PR open | 2 + gate re-check | REJECT (R1, R2 one item each), MATCH (gate re-check) |
-| 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | done, PR open | 2 | REJECT (R1, order), MATCH (R2) |
-| 34b | `phase-34b-v7-features` | [#42](https://github.com/geekplux/reasontrail/pull/42) | done, PR open | 2 | REJECT (R1, Open frame), MATCH (R2) |
-| 35 | `phase-35-v7-polish-docs` | [#43](https://github.com/geekplux/reasontrail/pull/43) | done, PR open | 2 | MATCH all six frames (R1, R2) |
-| 36 | `phase-36-v7-deploy-prep` | – | implementing | 0 | – |
+| 29 | `phase-29-v7-canvas-page` | [#32](https://github.com/geekplux/reasontrail/pull/32) | PR open | 2 | MATCH (R1, R2) |
+| 29b | `phase-29b-v7-brand-cleanup` | [#33](https://github.com/geekplux/reasontrail/pull/33) | PR open | 2 | MATCH (R1, R2) |
+| 30 | `phase-30-v7-gitlist` | [#35](https://github.com/geekplux/reasontrail/pull/35) | PR open | 2 | REJECT (R1, one sub-line gap), MATCH (R2) |
+| 31 | `phase-31-v7-tree-engine` | [#36](https://github.com/geekplux/reasontrail/pull/36) | PR open | 2 | REJECT (R1), MATCH (R2) |
+| 32a | `phase-32a-v7-tree-render` | [#37](https://github.com/geekplux/reasontrail/pull/37) | PR open | 2 | MATCH (R1, R2) |
+| 32b | `phase-32b-v7-step-detail` | [#38](https://github.com/geekplux/reasontrail/pull/38) | PR open | 2 + §13.4 gate re-check | REJECT (R1, R2), MATCH (gate re-check) |
+| 33 | `phase-33-v7-phone-dark` | [#39](https://github.com/geekplux/reasontrail/pull/39) | PR open | 2 + §13.4 gate re-check | REJECT (R1, R2), MATCH (gate re-check) |
+| 34a | `phase-34a-v7-viewer` | [#41](https://github.com/geekplux/reasontrail/pull/41) | PR open | 2 | REJECT (R1, order), MATCH (R2) |
+| 34b | `phase-34b-v7-features` | [#42](https://github.com/geekplux/reasontrail/pull/42) | PR open | 2 | REJECT (R1, Open frame), MATCH (R2) |
+| 35 | `phase-35-v7-polish-docs` | [#43](https://github.com/geekplux/reasontrail/pull/43) | PR open | 2 | MATCH on all six canvas frames (R1, R2) |
+| 36 | `phase-36-v7-deploy-prep` | (opening) | PR open; dry run passes | 2 | MATCH (R1 REJECT on one copy item, R2 MATCH) |
 
-Last updated: 2026-10-25 (phase 35: lead-designer MATCH on all six canvas frames, a11y PASS, verifier PASS incl. the full browser suite)
+Last updated: 2026-10-25 (phase 36 done; STATE: DONE, awaiting Sean's approval to deploy)
 
-Carry-overs to 29b: "·" in `src/intake/DropZone.tsx:183` and the viewer AI label (`src/ai/AiControl.tsx:50`); brand link line-height 20 vs 21px (0.5px); `file` browser flow needs a `--file` guard. Suspended browser flows (map, details, site, lens, ai, share) return in phases 30/32/34.
+### Blockers (not blocking the redesign)
+- Live Workers AI calls and the real deploy need a valid `CLOUDFLARE_API_TOKEN` (the box has a placeholder). Recorded samples, tests and the dry run work without it.
 
-Budget watch: initial JS 153.1/170 KB gzip; viewer template 205 KB/300 after phase 35.
-
-Follow-ups from v7: AI claim→support links need a v7 UI (CLI still computes them); brand flows (polish, gallery, hero) and `scripts/brand/hero-gif.mjs` are rewritten in phase 35.
-
-Follow-up: move `ci/github-workflow.yml` to `.github/workflows/` (needs workflow scope).
+### Follow-ups
+- AI claim→support links need a v7 UI (the CLI still computes them).
+- Upload `docs/brand/social-preview.png` as the repo's social preview; create `public/og-card.png` (DEPLOY.md step 1).
+- Move `ci/github-workflow.yml` to `.github/workflows/` (needs workflow scope).
+- Local `backup/pre-rebase/*` branches (not pushed) can be deleted once the stack is merged.
 
 ## History: phases 1–28
 
