@@ -125,26 +125,26 @@ async function addLabels(
   const endpoint = opts.api ?? DEFAULT_AI_ENDPOINT;
   const batches = buildBatches(graph);
   const s = summarize(batches, endpoint);
-  if (s.batches === 0) return ctx.err('AI labels: this session has no step text to send; the map is written without labels.'), { payload, sent: false };
-  ctx.err(`AI labels (--ai) will send ${s.steps} step summaries in ${s.batches} request${s.batches === 1 ? '' : 's'} (${s.characters} characters) to ${endpoint}.`);
+  if (s.batches === 0) return ctx.err('AI titles: this session has no step text to send; the map is written without AI titles.'), { payload, sent: false };
+  ctx.err(`AI titles (--ai) will send ${s.steps} step summaries in ${s.batches} request${s.batches === 1 ? '' : 's'} (${s.characters} characters) to ${endpoint}.`);
   ctx.err('Only redacted text is sent: secrets, emails and home paths are replaced, and each step becomes one line of at most 300 characters.');
   ctx.err(s.caching);
-  ctx.err('Labels are a model\'s suggestions, shown as an overlay on the map that you can switch off.');
+  ctx.err('AI titles are a model\'s suggestions, shown as an overlay on the map that you can switch off.');
   if (!opts.yes) {
     if (!ctx.isTTY) return ctx.err(`${PKG_NAME}: --ai sends data, so it asks first; run it in a terminal or add --yes.`), EXIT.usage;
-    if (!(await (ctx.confirm ?? askTerminal)('Send them? [y/N] '))) return ctx.err('Nothing was sent; the map is written without labels.'), { payload, sent: false };
+    if (!(await (ctx.confirm ?? askTerminal)('Send them? [y/N] '))) return ctx.err('Nothing was sent; the map is written without AI titles.'), { payload, sent: false };
   }
   try {
     const overlay = await sendBatches(endpoint, batches, {
       ...(ctx.fetch ? { fetch: ctx.fetch } : {}),
       onProgress: (k, n) => n > 1 && ctx.err(`Sending batch ${k} of ${n}…`),
     });
-    ctx.err(`AI labels: ${plural(overlay.labels.length, 'label')} and ${plural(overlay.links.length, 'claim link')}, suggested by ${overlay.model}.`);
+    ctx.err(`AI titles: ${plural(overlay.labels.length, 'step title')} and ${plural(overlay.links.length, 'claim link')}, suggested by ${overlay.model}.`);
     return { payload: { ...payload, labels: overlay }, sent: true };
   } catch (e) {
     const err = e instanceof ProviderError ? e : new ProviderError('upstream_error', String(e));
-    const why = err.code === 'unavailable' ? `${endpoint} could not be reached or has no AI labels; the map still works.` : structureMessage(err.code, err.retryAfterSec);
-    ctx.err(`No AI labels: ${why} The map is written without them.`);
+    const why = err.code === 'unavailable' ? `${endpoint} could not be reached or has no AI titles; the map still works.` : structureMessage(err.code, err.retryAfterSec);
+    ctx.err(`No AI titles: ${why} The map is written without them.`);
     return { payload, sent: true };
   }
 }

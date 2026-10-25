@@ -1,7 +1,7 @@
 # Deploying Reasontrail to Cloudflare
 
 One Worker, `reasontrail`, serves the showcase site (static assets from `dist/`) and the two optional AI endpoints,
-`POST /api/next-tokens` (the zoom-in lens) and `POST /api/structure` (AI labels). Everything else in Reasontrail runs
+`POST /api/next-tokens` (the zoom-in lens) and `POST /api/structure` (AI titles). Everything else in Reasontrail runs
 on the reader's machine, so the site still works if the endpoints are switched off.
 
 Production deploys run in **Cloudflare Workers Builds**, connected to this GitHub repository: every push to `main`

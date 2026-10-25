@@ -81,7 +81,7 @@ describe('--ai', () => {
     expect(err).toMatch(new RegExp(`will send 2 step summaries in 1 request \\(\\d+ characters\\) to ${url}`));
     expect(err).toMatch(/Only redacted text is sent/);
     expect(err).toMatch(/cached per batch/);
-    expect(err).toMatch(/1 label and 1 claim link, suggested by @cf\/fake\/model/);
+    expect(err).toMatch(/1 step title and 1 claim link, suggested by @cf\/fake\/model/);
     expect(err).toMatch(/only the redacted step summaries above were sent/);
     const p = payload();
     expect(p.labels).toMatchObject({ model: '@cf/fake/model', labels: [{ label: 'decision', confidence: 0.8 }] });
@@ -100,7 +100,7 @@ describe('--ai', () => {
     expect(sb.lines.err.at(-1)).toMatch(/run it in a terminal or add --yes/);
   });
 
-  it('on a terminal, asks first; "no" sends nothing and writes the map without labels', async () => {
+  it('on a terminal, asks first; "no" sends nothing and writes the map without AI titles', async () => {
     const { url, bodies } = await fakeServer();
     const { sb, out, payload } = setup();
     const asked: string[] = [];
@@ -117,10 +117,10 @@ describe('--ai', () => {
   });
 
   it.each([
-    ['a 404 page', (res: ServerResponse) => (res.writeHead(404, { 'content-type': 'text/html' }), res.end('<p>no</p>')), /could not be reached or has no AI labels/],
+    ['a 404 page', (res: ServerResponse) => (res.writeHead(404, { 'content-type': 'text/html' }), res.end('<p>no</p>')), /could not be reached or has no AI titles/],
     ['a rate limit', (res: ServerResponse) => (res.writeHead(429, { 'content-type': 'application/json', 'retry-after': '9' }), res.end('{"error":{"code":"rate_limited","message":"x"}}')), /Try again in 9 s/],
     ['an upstream error', (res: ServerResponse) => (res.writeHead(502, { 'content-type': 'application/json' }), res.end('{"error":{"code":"upstream_error","message":"x"}}')), /couldn't label this session/],
-  ])('on %s, writes the map without labels, prints a calm message and exits 0', async (_, reply, message) => {
+  ])('on %s, writes the map without AI titles, prints a calm message and exits 0', async (_, reply, message) => {
     const { url } = await fakeServer((_b, res) => reply(res));
     const { sb, out, payload } = setup();
     expect(await run(['--ai', '--api', url, '--yes', '--no-open', '--out', out], sb.ctx())).toBe(EXIT.ok);
@@ -128,12 +128,12 @@ describe('--ai', () => {
     expect(payload().labels).toBeUndefined();
   });
 
-  it('when the endpoint is unreachable, writes the map without labels', async () => {
+  it('when the endpoint is unreachable, writes the map without AI titles', async () => {
     const { url, server } = await fakeServer();
     await new Promise<void>((r) => server.close(() => r()));
     const { sb, out, payload } = setup();
     expect(await run(['--ai', '--api', url, '--yes', '--no-open', '--out', out], sb.ctx())).toBe(EXIT.ok);
-    expect(sb.lines.err.join('\n')).toMatch(/No AI labels: .* could not be reached/);
+    expect(sb.lines.err.join('\n')).toMatch(/No AI titles: .* could not be reached/);
     expect(payload().labels).toBeUndefined();
   });
 });

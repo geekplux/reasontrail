@@ -30,7 +30,7 @@ Options:
   --json             print the session graph as JSON instead of writing HTML
   --trim <from>:<to> keep only steps <from>..<to> of the full map (e.g. 0:399)
   --no-open          print the path instead of opening a browser
-  --ai               ask a model to suggest labels and claim links (opt-in; the only option that uses the
+  --ai               ask a model to suggest AI titles and claim links (opt-in; the only option that uses the
                      network): prints what will be sent and asks first. Sends redacted one-line step
                      summaries only
   --api <url>        the endpoint for --ai (default ${DEFAULT_AI_ENDPOINT})

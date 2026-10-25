@@ -17,7 +17,7 @@ import { StepDetail } from './StepDetail';
 import { findStep, stepDetail } from './stepDetail';
 import { usePhone } from './usePhone';
 
-// The AI labels control, its consent dialog and client load only when first used (never in the local viewer, whose
+// The AI titles control, its consent dialog and client load only when first used (never in the local viewer, whose
 // AI titles, if any, are in the page).
 const AiControl = import.meta.env.LOCAL_VIEWER ? null : lazy(() => import('../ai/AiControl'));
 const LIVE: AiSource = { live: true };
