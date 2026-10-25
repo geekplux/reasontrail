@@ -76,13 +76,20 @@ describe.each(THEMES)('tokens.css, %s theme', (theme) => {
     ['slate-11', 'blue-3'],
     ['slate-12', 'blue-3'],
     ['slate-12', 'slate-2'],
+    ['blue-12', 'blue-3'], // the open episode's title in the list
+    ['blue-12', 'slate-3'], // the selected step's title
   ];
   it.each(TEXT)('%s text on %s reaches AA (4.5:1)', (fg, bg) => {
     expect(contrast(resolve(theme, fg), resolve(theme, bg))).toBeGreaterThanOrEqual(4.5);
   });
 
   // Non-text marks (WCAG 1.4.11): the selected path and the hollow or dotted outlines.
-  const GRAPHIC: [string, string][] = [['blue-9', 'slate-1'], ['blue-9', 'slate-2'], ['slate-9', 'slate-1'], ['slate-9', 'slate-2']];
+  // Both themes (phase 33 checks dark): failed marks orange-10 on the page and the detail panel; the list's ring and
+  // open glyph blue-11 on the blue-3 and slate-3 rows.
+  const GRAPHIC: [string, string][] = [
+    ['blue-9', 'slate-1'], ['blue-9', 'slate-2'], ['slate-9', 'slate-1'], ['slate-9', 'slate-2'],
+    ['orange-10', 'slate-1'], ['orange-10', 'slate-2'], ['blue-11', 'blue-3'], ['blue-11', 'slate-3'],
+  ];
   it.each(GRAPHIC)('%s marks on %s reach 3:1', (fg, bg) => {
     expect(contrast(resolve(theme, fg), resolve(theme, bg))).toBeGreaterThanOrEqual(3);
   });
