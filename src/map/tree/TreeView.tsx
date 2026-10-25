@@ -80,7 +80,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   const [last, setLast] = useState<{ g: SessionGraph; id: string }>();
   if (hover && t.paths[hover] && (hover !== last?.id || g !== last.g)) setLast({ g, id: hover });
   const shown = last && last.g === g && t.paths[last.id] ? last.id : undefined;
-  const path = useMemo(() => (shown ? highlight(t, shown) : []), [t, shown]);
+  const path = useMemo(() => (shown ? highlight(t, shown, true) : []), [t, shown]);
   const on = hover !== undefined && t.paths[hover] !== undefined;
   // A lane tip without an episode of its own, under the pointer: its tooltip is the lane's verdict.
   const [via, setVia] = useState<{ episodeId: string; lane: string }>();

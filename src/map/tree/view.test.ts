@@ -240,6 +240,13 @@ describe('treeCallout (phase 32b, Step.html)', () => {
     expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(11.2, 0);
   });
 
+  it('draws the hovered trunk with the root flare (tree.mjs), so the root stays ink', () => {
+    const trunk = t.ribbons.find((r) => r.id === 'trunk')!;
+    const to = t.paths.s41![0]!.to;
+    expect(highlight(t, 's41', true)[0]).toBe(ribbonPath(trunk.line.slice(0, to + 1), trunk.widths.slice(0, to + 1)));
+    expect(highlight(t, 's41', true)[0]).not.toBe(highlight(t, 's41')[0]);
+  });
+
   it('draws the highlighted limb and branch as wide as the ribbons they cover (no grey fringe), as the canvas (~9px)', () => {
     const [, limb, branch] = t.paths.s41!;
     for (const [i, p] of [[1, limb!], [2, branch!]] as const) {

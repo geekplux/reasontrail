@@ -8,14 +8,15 @@ export { textWidth } from './text';
 export type * from './types';
 export type { GlyphKind, VerdictTone } from '../gitlist/rows';
 
-/** Fill paths for the stretch of trunk, limb and branch from the root to an episode or step (empty when unknown). */
-export function highlight(t: TreeLayout, id: string): string[] {
+/** Fill paths for the stretch of trunk, limb and branch from the root to an episode or step (empty when unknown).
+ * `flare`: keep the trunk's root flare, as the hover does (tree.mjs), so the root stays ink while the rest fades. */
+export function highlight(t: TreeLayout, id: string, flare = false): string[] {
   return (t.paths[id] ?? []).flatMap(({ part, to }) => {
     const r = t.ribbons.find((x) => x.id === part);
     if (!r) return [];
-    // Without the trunk's root flare (the core widths, tree.mjs): an 11px stub at the root, and as wide as its branch
-    // further on, so no grey fringe shows along the path.
-    return [ribbonPath(r.line.slice(0, to + 1), (r.core ?? r.widths).slice(0, to + 1))];
+    // The selection draws it without the flare (the core widths, tree.mjs): an 11px stub at the root, and as wide as
+    // its branch further on, so no grey fringe shows along the path.
+    return [ribbonPath(r.line.slice(0, to + 1), (flare ? r.widths : (r.core ?? r.widths)).slice(0, to + 1))];
   });
 }
 
