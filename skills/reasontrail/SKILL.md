@@ -35,7 +35,7 @@ Everything runs locally. The kit reads only this session's transcript files and 
 
 ## Honesty
 
-The map is built from the transcript by deterministic rules, with no AI. It shows what the agent wrote and did. Written reasoning is the agent's own account, not a record of how the model computed. Episode names and trouble markers are heuristics, and the page says so in its honesty label. Do not claim more than the map shows.
+The map is built from the transcript by deterministic rules, with no AI. It shows what the agent wrote and did. Written reasoning is the agent's own account, not a record of how the model computed. Episode names and the trouble it finds are heuristics from fixed rules. Do not claim more than the map shows.
 
 ## References
 
