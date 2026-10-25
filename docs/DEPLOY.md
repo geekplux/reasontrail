@@ -73,8 +73,8 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
    uses `6001` (`RL_MISS`) and `6002` (`RL_ALL`) in production and `6101`/`6102` in branch previews; sibling Workers
    on the account use 1xxx–5xxx. If you add a Worker to the account, give it ids outside 6xxx.
 5. **Daily cap (done).** `DAILY_UPSTREAM_CAP` (`"1000"`) bounds upstream model calls per UTC day across all users
-   (`worker/budget.ts`). The lens page says so beside the live opt-in ("Live model calls are capped per day; recorded
-   gardens always work."); past the cap the Worker answers `503 budget_exhausted` and the lens shows a calm message.
+   (`worker/budget.ts`). The lens page says so beside the live opt-in ("Live model calls are capped per day.") and
+   under the live status; past the cap the Worker answers `503 budget_exhausted` and the lens shows a calm message.
 6. **Smoke test the model.** One real Workers AI call that checks `top_logprobs` come back (needs
    `CLOUDFLARE_ACCOUNT_ID` and a valid `CLOUDFLARE_API_TOKEN`; prints `SKIPPED` without them):
 
@@ -101,8 +101,8 @@ Workers → reasontrail → Settings → Builds):
 | Root directory | `/` (the repository root) |
 | Build variables | none needed (Node comes from `.nvmrc`, pnpm from `packageManager`) |
 
-The first build deploys to `https://reasontrail.<account-subdomain>.workers.dev`. After that, every push to
-`main` deploys production.
+The first build deploys to `reasontrail.geekplux.com` (the custom-domain route in `wrangler.jsonc`) and to
+`https://reasontrail.<account-subdomain>.workers.dev`. After that, every push to `main` deploys production.
 
 - **Production** is the top level of `wrangler.jsonc`. There are no named environments, so the bare
   `npx wrangler deploy` deploys it with no "multiple environments" warning.
@@ -116,8 +116,10 @@ The first build deploys to `https://reasontrail.<account-subdomain>.workers.dev`
   `DAILY_UPSTREAM_CAP` are `vars` in `wrangler.jsonc`, so they are set on each deploy; change them in the file,
   not the dashboard. Only for `UPSTREAM` `"openai-compatible"` add `OPENAI_BASE_URL` and `OPENAI_MODEL` to `vars`
   and run `pnpm exec wrangler secret put OPENAI_API_KEY` once.
-- **Custom domain:** add it in Workers → reasontrail → Settings → Domains & Routes, **and** add the same domain
-  to `wrangler.jsonc` as `"routes": [{ "pattern": "<domain>", "custom_domain": true }]`, so later deploys keep it.
+- **Custom domain:** `reasontrail.geekplux.com` is already declared in `wrangler.jsonc`
+  (`"routes": [{ "pattern": "reasontrail.geekplux.com", "custom_domain": true }]`), so the first deploy attaches it
+  and later deploys keep it. Only to change it: edit that `pattern` in `wrangler.jsonc`, so the next deploy uses the new
+  domain.
 
 **Manual alternative** (only before the repository is connected, or if Workers Builds is down; needs wrangler
 authentication from step 1):
@@ -161,9 +163,9 @@ Then, in a browser (v7):
 3. **Viewer offline:** on the home, **Share** → "Download HTML", then open the saved file with the network off (or
    `npx reasontrail` on a local session): the map renders with no request.
 4. **Lens with the cap:** `$SITE/?session=planner-pivot&sample=lens-planner-pivot-1` grows recorded branches with no
-   request; **More options** shows "Grow live with an open model" and the line "Live model calls are capped per day;
-   recorded gardens always work." After choosing it, branches the recording lacks grow through
-   `/api/next-tokens`.
+   request; **More options** shows "Grow live with an open model" and the line "Live model calls are capped per day."
+   After choosing it, the line under the live status reads "Live model calls are capped per day; recorded gardens
+   always work." and branches the recording lacks grow through `/api/next-tokens`.
 5. **Open a session** accepts a `.jsonl`, and the social card shows in a link preview tool.
 
 ## 6. Demo URL and custom domain (PLAN D20)
