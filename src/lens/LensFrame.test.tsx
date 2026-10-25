@@ -30,7 +30,7 @@ describe('LensFrame daily-cap note', () => {
     const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
     await renderLens(liveOnly);
     expect(capLines()).toHaveLength(1);
-    expect(capLines()[0].className).toBe('lens-cap');
+    expect(capLines()[0]?.className).toBe('lens-cap');
     expect(fetch).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -41,12 +41,12 @@ describe('LensFrame daily-cap note', () => {
   });
 
   it('keeps it with the opt-in in More options for a recorded sentence, and has no middle dot', async () => {
-    const rec = lensSamples[0];
+    const rec = lensSamples[0]!;
     await renderLens({ sentence: rec.sentence, prompt: '', stepId: rec.stepId, where: 'Checks', sampleTitle: undefined, recorded: rec });
     const cap = await screen.findAllByText(CAP_NOTE, {}, { timeout: 3000 });
     expect(cap).toHaveLength(1);
-    expect(cap[0].closest('.lens-options')).not.toBeNull();
-    expect(cap[0].previousElementSibling?.querySelector('button')?.textContent).toBe('Grow live with an open model');
+    expect(cap[0]!.closest('.lens-options')).not.toBeNull();
+    expect(cap[0]!.previousElementSibling?.querySelector('button')?.textContent).toBe('Grow live with an open model');
     expect(CAP_NOTE).not.toContain('·');
   });
 });
