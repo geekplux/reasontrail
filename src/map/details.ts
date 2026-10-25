@@ -92,7 +92,6 @@ export function sayLabel(text: string, max = 80): string {
 /** "Step 2 of 5: pnpm test" for the live region. */
 export const stepSay = (word: string, n: number, total: number, r: Row) => `${word} ${n} of ${total}: ${sayLabel(rowLabel(r))}`;
 
-/** Assistant text and thinking are the agent's own words: the honesty label repeats for them (M5). */
 export const ownWords = (r: Row) => r.step.kind === 'assistant' || r.step.kind === 'thinking';
 
 export type DiffLine = { op: ' ' | '-' | '+'; text: string };
