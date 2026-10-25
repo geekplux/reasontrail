@@ -48,14 +48,15 @@ const OutcomeBox = ({ g }: { g: SessionGraph }) => (
   </ul>
 );
 
-/** "Final answer": up to four lines, then "Read the full answer". */
-function FinalAnswer({ g }: { g: SessionGraph }) {
+/** "Final answer": up to four lines, then "Read the full answer". `level`: one under the session title's. */
+function FinalAnswer({ g, level }: { g: SessionGraph; level: 2 | 3 }) {
+  const H = level === 2 ? 'h2' : 'h3';
   const answer = finalAnswer(g);
   const [full, setFull] = useState(false);
   const answerId = useId();
   return (
     <section className="block final" aria-labelledby={`${answerId}-h`}>
-      <h3 id={`${answerId}-h`}>Final answer</h3>
+      <H id={`${answerId}-h`} className="block-h">Final answer</H>
       {answer ? (
         <>
           <p id={answerId} className={full ? 'answer is-full' : 'answer'}><Runs value={runs(full ? answer.full : answer.excerpt)} /></p>
@@ -186,18 +187,21 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
     const now = document.activeElement;
     if (!el?.isConnected || (now && now !== document.body && now !== el)) return;
     if (el !== now) el.focus({ preventScroll: true });
-    const r = el.getBoundingClientRect();
-    if (r.top < 0 || r.bottom > window.innerHeight) el.scrollIntoView?.({ block: 'nearest' });
+    // A button in the header (the viewer's hero) brings the whole header into view, not just itself flush at the top.
+    const box = headIn?.contains(el) ? headIn : el;
+    const r = box.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) box.scrollIntoView?.({ block: 'nearest' });
   });
   // On the phone (Phone.html) the outcome box, or the step's panel in its place, comes above the list and the final
   // answer below it; the list drops its header, # and Start columns. The list, the panel and the final answer are keyed
   // children of one `.cols` grid on both layouts, so crossing the breakpoint moves them (DOM order stays reading order)
   // without remounting: their state survives and focus is put back (below).
   const list = <GitList key="list" g={g} overlay={overlay} hover={hover} compact={phone} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect: fromList } : {})} {...(onActive ? { onActive } : {})} />;
-  const panel = detail && <StepDetail key="panel" d={detail} focusOnOpen={focusDetail || (phone && listPick === detail.stepId && 'start')} onStep={toStep} onClose={close} />;
+  const sub = headingLevel === 1 ? 2 : 3; // the panel's and the final answer's level, one under the title's
+  const panel = detail && <StepDetail key="panel" d={detail} focusOnOpen={focusDetail || (phone && listPick === detail.stepId && 'start')} level={sub} onStep={toStep} onClose={close} />;
   const aside = panel ?? <aside key="side" className="side" aria-label="Outcome"><OutcomeBox g={g} /></aside>;
   // On the desktop the panel takes the whole outcome column, final answer included.
-  const answer = (phone || !panel) && <FinalAnswer key="answer" g={g} />;
+  const answer = (phone || !panel) && <FinalAnswer key="answer" g={g} level={sub} />;
   const colsBox = <div key="cols" className="cols" ref={cols}>{phone ? [aside, list, answer] : [list, aside, answer]}</div>;
   const branchItem = sessionMeta(g, branch).find((m) => m.key === 'branch');
   const actions = (

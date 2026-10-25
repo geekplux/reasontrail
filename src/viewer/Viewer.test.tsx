@@ -34,7 +34,9 @@ describe('local viewer', () => {
     const h1 = screen.getByRole('heading', { level: 1 });
     expect(h1.textContent).toBe('Verify phase 12, fix the audit gap, re-verify');
     expect(h1.id).toBe('sess-title');
-    expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
+    // No skipped level: under the h1 the final answer is an h2 (an h3 on the website), and nothing is an h3 yet.
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => [h.textContent, h.className])).toEqual([['Final answer', 'block-h']]);
+    expect(screen.queryByRole('heading', { level: 3 })).toBeNull();
     const hero = container.querySelector('main > .hero')!;
     expect(hero.firstElementChild?.firstElementChild?.matches('header.hero-top')).toBe(true);
     expect(hero.querySelector('.hero-top')?.compareDocumentPosition(hero.querySelector('.hero-tree')!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
@@ -42,7 +44,7 @@ describe('local viewer', () => {
     const frame = container.querySelector('main > .frame')!;
     expect(frame.getAttribute('aria-labelledby')).toBe('sess-title');
     expect(frame.firstElementChild?.className).toBe('cols');
-    expect(frame.querySelector('.sess, .details, h1, h2')).toBeNull();
+    expect(frame.querySelector('.sess, .details, h1')).toBeNull();
     // Details opens under the header, above the tree.
     fireEvent.click(screen.getByRole('button', { name: 'Details' }));
     expect(hero.querySelector('.hero-top + .details:not([hidden])')).not.toBeNull();
@@ -85,7 +87,11 @@ describe('local viewer', () => {
     render(<Viewer loaded={page(defaultSessionGraph)} />);
     expect(panel()?.getAttribute('data-step')).toBe('s41');
     expect(document.querySelector('.hero-tree circle.ring')).not.toBeNull();
-    fireEvent.keyDown(panel()!.querySelector('h3')!, { key: 'Escape' });
+    // The panel's title is an h2 under the session's h1, its labels h3 (h3 and h4 on the website).
+    expect(panel()!.querySelector('h2.d-h')?.textContent).toBe('Command failed');
+    expect([...panel()!.querySelectorAll('h3.d-label')].map((h) => h.textContent)).toEqual(['Output Exit code 2, no output', 'Next step 16 min']);
+    expect(panel()!.querySelector('h4')).toBeNull();
+    fireEvent.keyDown(panel()!.querySelector('.d-h')!, { key: 'Escape' });
     expect(panel()).toBeNull();
     expect(window.location.hash).toBe('');
     expect(window.location.pathname).toBe('/map.html');

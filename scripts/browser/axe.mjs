@@ -18,5 +18,5 @@ export async function axeProblems(page, label, alsoFail = []) {
     .map((v) => `axe ${v.impact} (${label}): ${v.id}: ${v.help} [${v.nodes.map((n) => n.target.join(' ')).join(', ')}]`);
 }
 
-/** Structure rules the local viewer must also pass (one h1; all content inside landmarks). */
-export const STRUCTURE_RULES = ['page-has-heading-one', 'region'];
+/** Structure rules the local viewer must also pass (one h1; no skipped heading level; all content inside landmarks). */
+export const STRUCTURE_RULES = ['page-has-heading-one', 'heading-order', 'region'];

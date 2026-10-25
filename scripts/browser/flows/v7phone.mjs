@@ -138,9 +138,9 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await page.waitForSelector('[data-row="step:s41"]');
   await page.locator('[data-row="step:s41"]').scrollIntoViewIfNeeded();
   await page.click('[data-row="step:s41"]');
-  await page.waitForSelector('.detail h3');
+  await page.waitForSelector('.detail .d-h');
   const tap = await page.evaluate(() => {
-    const h = document.querySelector('.detail h3');
+    const h = document.querySelector('.detail .d-h');
     const r = h.getBoundingClientRect();
     const x = document.querySelector('.detail .iconbtn').getBoundingClientRect();
     return { focused: document.activeElement === h, top: r.top, bottom: r.bottom, panel: document.querySelector('.detail').getBoundingClientRect().top, close: x.top };
@@ -174,7 +174,7 @@ export async function run({ page, baseURL, root, shot, log, fail }) {
   await page.waitForSelector('.detail pre', { timeout: 10_000 });
   const st = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, above: document.querySelector('.frame .cols > .detail + .gl') !== null, res: !!document.querySelector('.frame .res') }));
   if (st.scroll > 390 || !st.above || st.res) fail(`phone step: ${JSON.stringify(st)} (want no sideways scroll, the panel above the list in place of the outcome box)`);
-  await page.focus('.detail .d-title h3');
+  await page.focus('.detail .d-title .d-h');
   await page.keyboard.press('Escape');
   if (await page.locator('.detail').count()) fail('phone step: Esc did not close the panel');
 

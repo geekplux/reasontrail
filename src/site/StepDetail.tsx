@@ -14,11 +14,14 @@ export interface StepDetailProps {
    * the title is out of view so focus never lands off-screen: `nearest` brings the title just into view (desktop, the
    * tree stays in view), `start` brings the panel's top to the top (the phone, so the panel's content shows). */
   focusOnOpen?: false | 'nearest' | 'start';
+  /** The title's heading level, one under the session title's (2 in the viewer, 3 on the website); its labels one more. */
+  level?: 2 | 3;
   onStep(stepId: string): void;
   onClose(): void;
 }
 
-export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDetailProps) {
+export function StepDetail({ d, focusOnOpen = false, level = 3, onStep, onClose }: StepDetailProps) {
+  const [H, L] = level === 2 ? (['h2', 'h3'] as const) : (['h3', 'h4'] as const);
   const title = useRef<HTMLHeadingElement>(null);
   useLayoutEffect(() => {
     const el = title.current;
@@ -47,7 +50,7 @@ export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDeta
       </div>
       <div className="d-title">
         {d.tone === 'fail' && <AlertIcon size={14} />}
-        <h3 ref={title} tabIndex={-1}>{d.title}</h3>
+        <H ref={title} className="d-h" tabIndex={-1}>{d.title}</H>
         <span className="at">{d.at}</span>
       </div>
       <p>{d.summary}</p>
@@ -55,13 +58,13 @@ export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDeta
       {d.text && <p className="muted">{d.text}</p>}
       {d.output && (
         <>
-          <h4 className="d-label">Output <span className="muted">{d.output.note}</span></h4>
+          <L className="d-label">Output <span className="muted">{d.output.note}</span></L>
           {d.output.text && <pre className="out">{d.output.text}</pre>}
         </>
       )}
       {d.next && (
         <>
-          <h4 className="d-label">Next step <span className="muted">{d.next.at}</span></h4>
+          <L className="d-label">Next step <span className="muted">{d.next.at}</span></L>
           <div className="d-next">
             <Tone tone={d.next.tone} />
             <div>

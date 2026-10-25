@@ -83,7 +83,9 @@ describe('Home: step selection', () => {
     expect(row('step:s41')?.getAttribute('aria-selected')).toBe('true');
     const p = panel()!;
     expect(p.querySelector('.d-head p')?.textContent).toBe('Verify phase 12, episode 6, step 1 of 28');
-    expect(p.querySelector('h3')?.textContent).toBe('Command failed');
+    // Under the card's h2 title: the panel's title is an h3, its labels h4 (one level up each in the viewer).
+    expect(screen.getByRole('heading', { level: 2, name: 'Verify phase 12, fix the audit gap, re-verify' }).id).toBe('sess-title');
+    expect(p.querySelector('h3.d-h')?.textContent).toBe('Command failed');
     expect(p.querySelector('pre.cmd')?.textContent).toMatch(/^\$ cat vitest\.config\.\*/);
     expect([...p.querySelectorAll('h4')].map((h) => h.textContent)).toEqual(['Output Exit code 2, no output', 'Next step 16 min']);
     expect(p.querySelector('.d-src')?.textContent).toBe('Source agent-ad0e51f3501a3ddc3.jsonl line 132');

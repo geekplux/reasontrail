@@ -32,7 +32,7 @@ export async function run({ page, baseURL, shot, log, fail }) {
       url: location.search,
       tree: document.querySelector('.hero-tree svg.tree')?.classList.contains('dim'),
       cmd: p?.querySelector('pre.cmd')?.textContent,
-      labels: [...(p?.querySelectorAll('h4') ?? [])].map((h) => h.textContent),
+      labels: [...(p?.querySelectorAll('.d-label') ?? [])].map((h) => h.textContent),
       next: p?.querySelector('.d-next p')?.textContent,
       src: p?.querySelector('.d-src')?.textContent,
       transitions: [...document.querySelectorAll('.hero-tree path.b, .gl-row, .v7 .btn')].map((el) => getComputedStyle(el).transitionDuration).filter((d) => d.split(',').some((x) => parseFloat(x) > 0)).length,

@@ -41,11 +41,11 @@ export async function run({ page, baseURL, shot, log, fail }) {
       open: document.querySelector('[data-row="ep:e18"]')?.getAttribute('aria-expanded'),
       selected: document.querySelector('[data-row="step:s41"]')?.getAttribute('aria-selected'),
       head: p?.querySelector('.d-head p')?.textContent,
-      title: p?.querySelector('h3')?.textContent,
+      title: p?.querySelector('.d-h')?.textContent,
       focus: document.activeElement?.textContent,
       outcome: !!document.querySelector('aside[aria-label="Outcome"]'),
       // Focus must not land off-screen (WCAG 2.4.11): the ring and the panel's title are both in the viewport.
-      inView: ['.hero-tree circle.ring', 'aside.detail h3'].map((sel) => {
+      inView: ['.hero-tree circle.ring', 'aside.detail .d-h'].map((sel) => {
         const r = document.querySelector(sel)?.getBoundingClientRect();
         return !!r && r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth;
       }),
@@ -66,12 +66,12 @@ export async function run({ page, baseURL, shot, log, fail }) {
 
   await page.getByRole('button', { name: 'Next step' }).click();
   await page.waitForFunction(() => location.search === '?step=s43').catch(() => fail(`Next step: ${page.url()}`));
-  if ((await page.locator('aside.detail h3').textContent()) !== 'Command') fail('Next step did not show s43');
+  if ((await page.locator('aside.detail .d-h').textContent()) !== 'Command') fail('Next step did not show s43');
   await page.getByRole('button', { name: 'Previous step' }).click();
   await page.waitForFunction(() => location.search === '?step=s41').catch(() => fail(`Previous step: ${page.url()}`));
   for (const p of await axeProblems(page, 'Step state, panel open')) fail(p);
 
-  await page.locator('aside.detail h3').focus();
+  await page.locator('aside.detail .d-h').focus();
   await page.keyboard.press('Escape');
   const closed = await page.evaluate(() => ({ panel: !!document.querySelector('aside.detail'), url: location.search, focus: document.activeElement?.getAttribute('data-row'), dim: document.querySelector('.hero-tree svg.tree')?.classList.contains('dim') }));
   log(`Esc ${JSON.stringify(closed)}`);
