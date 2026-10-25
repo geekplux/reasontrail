@@ -134,6 +134,15 @@ describe('GitList keyboard (WAI-ARIA tree)', () => {
     expect(rings()).toBe(0); // an episode with steps shows them instead
   });
 
+  it('draws a selected failed step\'s ✕ on its own slate-1 halo, inside the ring (3:1 off the row\'s tint)', () => {
+    const { container } = render(<GitList g={G} selection={{ episodeId: 'e18', stepId: 's41' }} />);
+    const x = container.querySelector('.gl-svg .x')!;
+    const halo = x.previousElementSibling!;
+    expect(halo.getAttribute('class')).toBe('halo');
+    expect(Number(halo.getAttribute('r'))).toBeGreaterThanOrEqual(3 * Math.SQRT2 + 0.75); // covers the ✕'s round-capped arms
+    expect(x.nextElementSibling?.getAttribute('class')).toBe('ring');
+  });
+
   it('keeps the hover tint on the halo after a click opens and closes the episode', () => {
     const { container } = render(<GitList g={G} />);
     const ep = row('Episode 6: Read');
