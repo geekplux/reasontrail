@@ -204,7 +204,7 @@ function LensHeader({ onBack, where, quote, children }: { onBack(): void; where?
       </div>
       <p className="lens-z2">
         <InfoIcon />
-        <span>{children ? Z2_TEXT : "An open model's predictions for this prompt, recorded so it works offline."}</span>
+        <span>{children ? Z2_TEXT : "An open model's predictions for this prompt."}</span>
       </p>
       {children ? (
         <figure className="lens-quote" ref={quote}>
