@@ -10,7 +10,7 @@ import type { SessionGraph } from '../../../shared/session/types';
 import { KindGlyph, VerdictIcon } from '../gitlist/marks';
 import { listRows } from '../gitlist/rows';
 import { highlight, nearest } from '.';
-import type { Box, HitTarget, Label, LabelClass } from './types';
+import type { Box, HitTarget, Label, LabelClass, TipMark } from './types';
 import { treeCallout, treeFor, treeRing, treeSummary, treeTip } from './view';
 import './tree.css';
 
@@ -43,6 +43,23 @@ function Text({ l, on = false }: { l: Label; on?: boolean }) {
       {l.icon && <g transform={`translate(${l.x} ${l.y - 12})`}><VerdictIcon tone={l.icon} /></g>}
       <text x={l.icon ? l.x + 20 : l.x} y={l.y} textAnchor={l.anchor} className={`${CLS[l.cls]}${on ? ' on' : ''}`}>{l.text}</text>
     </>
+  );
+}
+
+/** A lane's verdict in the bare silhouette, where no text names it: ✕ for failed, a ✓ ring for passed (shape, not hue
+ * alone); a lane that just ends keeps the ink ◉. */
+function BareTip({ m, fail = false }: { m: TipMark; fail?: boolean }) {
+  const { x, y } = m.at;
+  const r = m.r;
+  if (fail) {
+    const a = 0.75 * r;
+    return <path d={`M${x - a} ${y - a}L${x + a} ${y + a}M${x + a} ${y - a}L${x - a} ${y + a}`} className="x tip-x" />;
+  }
+  return (
+    <g className="tip-check">
+      <circle cx={x} cy={y} r={r - 0.75} />
+      <path d={`M${x - 0.45 * r} ${y + 0.02 * r}L${x - 0.12 * r} ${y + 0.35 * r}L${x + 0.45 * r} ${y - 0.3 * r}`} />
+    </g>
   );
 }
 
@@ -127,7 +144,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
       {t.tips.map((m) => (
         <g key={m.laneId}>
           <circle cx={m.at.x} cy={m.at.y} r={m.r + 3} className="halo" />
-          {m.kind === 'answer' ? <KindGlyph kind="answer" size={2 * m.r} x={m.at.x} y={m.at.y} className={`t-node${m.tone === 'fail' ? ' tip-fail' : m.tone === 'ok' ? ' tip-ok' : ''}`} /> : <circle cx={m.at.x} cy={m.at.y} r={m.r} className="dot" />}
+          {m.kind !== 'answer' ? <circle cx={m.at.x} cy={m.at.y} r={m.r} className="dot" /> : !labels && m.tone === 'fail' ? <BareTip m={m} fail /> : !labels && m.tone === 'ok' ? <BareTip m={m} /> : <KindGlyph kind="answer" size={2 * m.r} x={m.at.x} y={m.at.y} className={`t-node${m.tone === 'fail' ? ' tip-fail' : m.tone === 'ok' ? ' tip-ok' : ''}`} />}
         </g>
       ))}
       <circle cx={t.root.at.x} cy={t.root.at.y} r={t.root.r} className="root" />

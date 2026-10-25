@@ -39,6 +39,17 @@ describe('TreeView', () => {
     expect(texts).toEqual(expect.arrayContaining(['Task', '0 min', 'Verify phase 12', 'Failed: 1 gap', 'Verifier, 33 min', 'Re-verify phase 12', 'Passed', '7']));
   });
 
+  it('draws the bare silhouette\'s verdicts as shapes: ✕ failed, a ✓ ring passed, the ink ◉ for done', () => {
+    const { container } = render(<TreeView g={VFF} width={358} height={190} labels={false} />);
+    expect(container.querySelectorAll('text')).toHaveLength(0);
+    expect(container.querySelectorAll('.t-node.tip-fail, .t-node.tip-ok')).toHaveLength(0);
+    expect(container.querySelectorAll('path.x.tip-x')).toHaveLength(1);
+    expect(container.querySelectorAll('g.tip-check circle')).toHaveLength(1);
+    expect(container.querySelectorAll('g.tip-check path')).toHaveLength(1);
+    const tips = treeFor(VFF, 358, 190, false).tips;
+    expect(container.querySelectorAll('.t-node')).toHaveLength(treeFor(VFF, 358, 190, false).episodes.length + tips.filter((m) => m.kind === 'answer' && m.tone !== 'fail' && m.tone !== 'ok').length);
+  });
+
   it('is an image named by a factual summary; the list is the operable structure', () => {
     render(<TreeView g={VFF} width={1200} height={520} />);
     const img = screen.getByRole('img');

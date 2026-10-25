@@ -48,3 +48,7 @@
 .tree .ring { fill: none; stroke: var(--blue-9); stroke-width: 1.5; }
 .tree .lead { fill: none; stroke: var(--slate-9); stroke-width: 0.5; }
 .tree .callout { pointer-events: none; }
+
+/* The bare silhouette's verdicts (no text beside them): ✕ failed, a ✓ ring passed, never hue alone. */
+.tree .x.tip-x { stroke-width: 2; }
+.tree .tip-check :is(circle, path) { fill: none; stroke: var(--blue-9); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
