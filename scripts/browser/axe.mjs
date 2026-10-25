@@ -10,6 +10,9 @@ const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 export async function axeProblems(page, label, alsoFail = []) {
   // A map page is checked at rest: at least 400 ms after `tg:map-ready`, when its draw-in has ended.
   await page.waitForFunction(() => { const m = performance.getEntriesByName('tg:map-ready')[0]; return !m || performance.now() - m.startTime >= 400; });
+  // ...and with its CSS animations and transitions ended (a fade-in, or the colours after a colour-scheme switch), so
+  // contrast is measured on the final colours.
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getComputedTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
   // Evaluated through DevTools rather than an inline <script>, so the site's CSP (`check:browser --headers`) allows it.
   if (!(await page.evaluate(() => 'axe' in window))) await page.evaluate(axeSource);
   const violations = await page.evaluate(async () => (await window.axe.run(document)).violations);

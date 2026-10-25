@@ -52,13 +52,13 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   if (mark.name?.text !== 'Reasontrail' || !/^"?Geist\b/.test(mark.name.family)) fail('the wordmark name is not set in Geist');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
-  // One name for the brand link; the header also links to the source.
-  if ((await page.getByRole('link', { name: 'Reasontrail', exact: true }).count()) !== 1) fail('brand link is not named "Reasontrail"');
+  // One name for the brand link, in the header and the footer (the website's chrome, v7 §4); the header also links to the source.
+  if ((await page.locator('header, footer').getByRole('link', { name: 'Reasontrail', exact: true }).count()) !== 2) fail('brand links are not named "Reasontrail"');
   if (!(await page.title()).includes('Reasontrail')) fail('<title> does not contain "Reasontrail"');
   if ((await page.locator('header').getByRole('link', { name: 'GitHub', exact: true }).count()) !== 1) fail('header has no GitHub link');
 
   const fold = await page.evaluate(() =>
-    ['.site-header', '.specimen', '[data-testid="garden"]'].map((sel) => {
+    ['header.v7.bar', '.specimen', '[data-testid="garden"]'].map((sel) => {
       const r = document.querySelector(sel)?.getBoundingClientRect();
       return { sel, bottom: r?.bottom ?? Infinity, right: r?.right ?? Infinity };
     }),

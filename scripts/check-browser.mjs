@@ -15,9 +15,6 @@ import { killGroup, killGroupSync, parseArgs, startPreview, viteBin, waitForHttp
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const flowsDir = join(root, 'scripts', 'browser', 'flows');
 const BRAND_FLOWS = new Set(['hero', 'gallery', 'brand', 'polish', 'wordmark']); // write to committed paths; never part of "all"
-// Suspended until the v7 phase that restores what they test (DECISIONS 2026-10-24): lens, ai and share from the session
-// card (phase 34). They open the pre-v7 map and wait for its controls. Never part of "all" until then.
-const SUSPENDED_FLOWS = new Set(['lens', 'ai', 'share']);
 
 const opts = parseArgs(process.argv.slice(2));
 const port = Number(process.env.TG_PORT ?? 4317);
@@ -26,7 +23,7 @@ const outDir = resolve(root, opts.out);
 const available = readdirSync(flowsDir).filter((f) => f.endsWith('.mjs')).map((f) => f.slice(0, -4)).sort();
 const fileURL = opts.file ? pathToFileURL(resolve(opts.file)).href : undefined;
 if (opts.file && !existsSync(resolve(opts.file))) throw new Error(`--file: no such file: ${opts.file}`);
-const flows = opts.file ? ['file'] : opts.flows === 'all' ? available.filter((f) => !BRAND_FLOWS.has(f) && !SUSPENDED_FLOWS.has(f) && f !== 'file') : opts.flows.split(',');
+const flows = opts.file ? ['file'] : opts.flows === 'all' ? available.filter((f) => !BRAND_FLOWS.has(f) && f !== 'file') : opts.flows.split(',');
 for (const f of flows) if (!available.includes(f)) throw new Error(`unknown flow: ${f} (have: ${available.join(', ')})`);
 if (flows.includes('file') && !opts.file) throw new Error('flow "file" needs --file <path>');
 

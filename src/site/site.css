@@ -6,7 +6,7 @@
 
 .page button.btn { font-family: inherit; font-size: inherit; line-height: inherit; color: inherit; border: 0; cursor: pointer; }
 label.btn { position: relative; cursor: pointer; }
-.btn:has(input:focus-visible) { outline: 2px solid var(--blue-9); outline-offset: 2px; }
+.btn:has(input:focus) { outline: 2px solid var(--blue-9); outline-offset: 2px; }
 .text-button { border: 0; padding: 4px 8px; background: none; color: var(--slate-12); font: inherit; font-size: var(--text-12); text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }
 
 .page { --gutter: max(16px, calc((100% - 1200px) / 2)); width: 100%; padding: 0 var(--gutter) 40px; }

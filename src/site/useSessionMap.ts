@@ -6,6 +6,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import { listTags } from '../ai/labels';
+import { listRows } from '../map/gitlist/rows';
 import type { ListSelection } from '../map/gitlist/GitList';
 import type { HitTarget } from '../map/tree';
 import { findStep, stepFacts } from './stepDetail';
@@ -61,6 +62,11 @@ export function useSessionMap(key: string, graph: SessionGraph | null, step: str
   const [ai, setAi] = useState<{ id: string; overlay: LabelOverlay }>();
   const overlay = ai?.id === key ? ai.overlay : undefined;
   const onOverlay = useCallback((next: LabelOverlay | undefined) => setAi((was) => (was?.id === key && was.overlay === next ? was : next && { id: key, overlay: next })), [key]);
-  const tagged = useMemo(() => (graph && overlay ? new Set(listTags(graph, overlay).keys()) : undefined), [graph, overlay]);
+  // The tree rings the episodes whose list row shows a tag (episode rows; a lane's verdict row has none).
+  const tagged = useMemo(() => {
+    if (!graph || !overlay) return undefined;
+    const tags = listTags(graph, overlay);
+    return new Set(listRows(graph).flatMap((r) => (r.kind === 'episode' && tags.has(r.episodeId) ? [r.episodeId] : [])));
+  }, [graph, overlay]);
   return { hovered, onActive, picked, selection, callout, select, onPick, focusDetail, overlay, onOverlay, tagged };
 }

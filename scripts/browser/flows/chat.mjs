@@ -1,11 +1,12 @@
 // Chat flow (phase 23): paste text → map (T1); a ChatGPT and a Claude export → picker → map (T2); a share link → the
 // paste-text message with focus back on the paste box (T3); zero requests while parsing (T4, V1); the paste box is the
-// focal point (CL1) with few chrome controls; the drop zone's unsupported message links here.
+// focal point (CL1) with few chrome controls; the drop zone's unsupported message links here. A mapped chat shows on the
+// v7 session page (tree, list, outcome; phase 34b), its source as the meta line's tag.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';
 
-const ready = (page) => page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 15_000 });
+const ready = (page) => page.waitForSelector('[data-testid="opened"] .gl [role="treeitem"]', { timeout: 15_000 });
 const SHARE = "We couldn't read that link. Paste the conversation text instead.";
 
 export async function run({ page, baseURL, root, log, fail }) {
@@ -35,38 +36,24 @@ export async function run({ page, baseURL, root, log, fail }) {
   await page.getByRole('button', { name: 'Map this conversation' }).click();
   await ready(page);
   if (requests.length) fail(`V1 paste: ${requests.length} requests: ${requests.slice(0, 3)}`);
-  const label = await page.locator('[data-region="task"]').first().textContent();
-  if (!/CHAT/i.test(label ?? '')) fail(`the task label does not say CHAT: ${label?.slice(0, 80)}`);
-  // CM1 / CM3: the meta line starts with the source and ends with the "pasted" tag; the chat's own honesty line; the controls come after the map.
-  const meta = await page.locator('.task-meta .meta-item').allTextContents();
-  if (meta[0] !== 'Chat' || meta.at(-1) !== 'pasted') fail(`CM3: meta line "${meta.join(', ')}"`);
-  if (!(label ?? '').includes("The replies are the model's own account, not a record of how it computed them.")) fail('CM1: no chat honesty line');
-  if (!(await page.locator('[data-testid="map"] ~ .open-after').count())) fail('CM3: Map another chat and Save are not after the map');
+  // The v7 session page: the tree, the list and the outcome; "Pasted chat" is the meta line's tag; Map another chat
+  // comes after the card.
+  const v7 = await page.evaluate(() => ({
+    tree: !!document.querySelector('[data-testid="opened"] .hero-tree svg.tree'),
+    outcome: !!document.querySelector('[data-testid="opened"] .res'),
+    tag: document.querySelector('[data-testid="opened"] .meta .tag')?.textContent,
+    old: document.querySelectorAll('[data-testid="map"], [data-region], .view-switch').length,
+    after: !!document.querySelector('[data-testid="opened"] > .frame ~ .open-after'),
+  }));
+  if (!v7.tree || !v7.outcome || v7.old) fail(`chat map: ${JSON.stringify(v7)}`);
+  if (v7.tag !== 'Pasted chat') fail(`CM3: the meta tag is "${v7.tag}"`);
+  if (!v7.after) fail('CM3: Map another chat is not after the card');
   const said = await page.locator('[data-role="intake-live"]').textContent();
   if (!/^Map ready: 3 episodes, 1 detected pattern$/.test(said ?? '')) fail(`paste announce: "${said}"`);
-  // A chat's own wording: two neutral glance rows, a final-answer destination, and only the legend entries it uses.
-  const rows = await page.locator('[data-region="glance"] li').evaluateAll((els) => els.map((e) => `${e.getAttribute('data-glance')}:${e.getAttribute('data-status')}`));
-  if (rows.join() !== 'turns:unknown,trouble:ok') fail(`chat glance rows: ${rows}`);
-  const dest = await page.locator('#h-outcome').textContent();
-  if (!/Destination\s*final answer$/.test(dest ?? '')) fail(`chat destination heading: "${dest}"`);
-  if (await page.locator('[data-region="outcome"] .sub-label').count()) fail('chat destination still shows the files or verification columns');
-  const legend = await page.locator('.route-head .legend li').allTextContents();
-  if (legend.join() !== 'ask,answer,resolved') fail(`chat legend: ${legend}`);
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(450);
   for (const p of await axeProblems(page, 'chat map')) fail(p);
   await page.screenshot({ path: join(root, '.tmp', 'chat-map.webp'), type: 'webp', quality: 80 });
   log('pasted ChatGPT text mapped: 3 episodes, 1 detected pattern');
-  // Phase 25 review: the answer-only destination's label lines up with "Where it got stuck".
-  const tops = await page.evaluate(() => ['#h-stuck', '#h-outcome'].map((s) => document.querySelector(s)?.getBoundingClientRect().top ?? -1));
-  if (Math.abs(tops[0] - tops[1]) > 1) fail(`chat bottom band: stuck label at ${tops[0]}, destination label at ${tops[1]}`);
-  // On a phone the destination bar opens the final answer's step, not an empty "0 files changed".
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('.dest-bar').click();
-  await page.locator('[data-testid="detail-panel"] .step-block').waitFor({ timeout: 5_000 }).catch(() => fail('chat dest bar: no step in the detail panel'));
-  if (/0 files changed/.test((await page.locator('[data-testid="detail-panel"]').textContent()) ?? '')) fail('chat dest bar opened "0 files changed"');
-  await page.keyboard.press('Escape');
-  await page.setViewportSize({ width: 1440, height: 900 });
 
   // Alternating fallback says so on the map.
   await page.getByRole('button', { name: 'Map another chat' }).click();
@@ -114,8 +101,8 @@ export async function run({ page, baseURL, root, log, fail }) {
     await page.locator('.chat-choice').first().click();
     await ready(page);
     if (requests.length) fail(`V1 ${kind}: ${requests.length} requests: ${requests.slice(0, 3)}`);
-    const h1 = await page.locator('h1.open-file').textContent();
-    if (!h1?.includes(`conversations.json › ${pick}`)) fail(`${kind}: map heading is "${h1}"`);
+    const tag = await page.locator('[data-testid="opened"] .meta .tag').textContent();
+    if (tag !== `conversations.json › ${pick}`) fail(`${kind}: the meta tag is "${tag}"`);
     log(`${kind} export → picker → "${pick}"`);
     await page.getByRole('button', { name: 'Map another chat' }).click();
   }
