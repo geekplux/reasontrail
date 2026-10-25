@@ -72,7 +72,7 @@ export async function checkLayout(page, fail, where = 'viewer') {
       gap: (box('.hero-tree')?.top ?? 0) - (box('.hero-top')?.bottom ?? 0),
       treeBottom: (box('.hero-tree svg.tree')?.bottom ?? 1e9) + window.scrollY,
       firstChild: document.querySelector('main > .frame')?.firstElementChild?.className,
-      lefts: ['.bar .brand', 'h1', '.hero-tree', 'main > .frame', 'footer'].map((s) => Math.round(box(s)?.left ?? -1)),
+      lefts: ['header.bar .wordmark', 'h1', '.hero-tree', 'main > .frame', 'footer'].map((s) => Math.round(box(s)?.left ?? -1)),
     };
   });
   const check = (m, what) => {
