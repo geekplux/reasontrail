@@ -4,6 +4,7 @@
 import type { SessionGraph } from '../../../shared/session/types';
 import { listRows, type EpisodeRow, type ListRow, type VerdictRow } from '../gitlist/rows';
 import { layoutTree } from './layout';
+import { treeModel } from './model';
 import { labelBox } from './labels';
 import { textWidth } from './text';
 import { segDist } from '.';
@@ -247,4 +248,49 @@ export function treeCallout(t: TreeLayout, stepId: string, lines: [string, strin
     if (k < bestC || (k === bestC && best && len(c) < len(best))) [best, bestC] = [c, k];
   }
   return best ?? at(-1, top, 'above');
+}
+
+/** The vertical window of a session page's tree (not the home's, which keeps the canvas's 1200 × 520): from `pad` above
+ * the drawing's top to `pad` under its bottom, at least `min` tall, and starting no higher than the reserved zones
+ * touching the top (the legend) less the drawing's top, so the legend never sits on the tree. Layout px. */
+export function treeCrop(t: TreeLayout, reserve: readonly Box[] = [], { pad = 24, min = 240 } = {}): { y0: number; y1: number } {
+  let top = Infinity;
+  let bottom = -Infinity;
+  const take = (y0: number, y1: number) => {
+    top = Math.min(top, y0);
+    bottom = Math.max(bottom, y1);
+  };
+  for (const r of t.ribbons) r.line.forEach((p, i) => take(p.y - (r.widths[i] ?? 0) / 2, p.y + (r.widths[i] ?? 0) / 2));
+  for (const w of t.twigs) take(Math.min(w.base.y, w.tip.y) - 6 * w.scale, Math.max(w.base.y, w.tip.y) + 6 * w.scale);
+  for (const m of [...t.episodes, ...t.tips, t.root]) take(m.at.y - m.r - 3, m.at.y + m.r + 3);
+  for (const b of t.handBacks) take(Math.min(b.from.y, b.c.y, b.to.y), Math.max(b.from.y, b.c.y, b.to.y));
+  for (const l of [...t.labels, ...t.blocks.flatMap((b) => b.lines)]) {
+    const b = labelBox(l);
+    take(b.y0, b.y1);
+  }
+  if (!Number.isFinite(top)) return { y0: 0, y1: t.height };
+  const under = Math.max(0, ...reserve.filter((r) => r.y0 <= 0).map((r) => r.y1));
+  let y0 = Math.max(0, Math.min(top - pad, top - under - pad / 2));
+  let y1 = Math.min(t.height, bottom + pad);
+  if (y1 - y0 < min) {
+    y1 = Math.min(t.height, y0 + min);
+    y0 = Math.max(0, y1 - min);
+  }
+  return { y0: Math.floor(y0), y1: Math.ceil(y1) };
+}
+
+/** Legend entries: the five episode kinds, then Command, Thinking, Failed and Width. */
+export type LegendKey = 'discuss' | 'explore' | 'change' | 'verify' | 'answer' | 'command' | 'thinking' | 'failed' | 'width';
+
+/** The legend entries a session's tree draws (an opened session's legend lists only these; the home keeps them all). */
+export function legendKeys(g: SessionGraph): Set<LegendKey> {
+  const m = treeModel(g);
+  const keys = new Set<LegendKey>();
+  for (const p of [m.trunk, ...m.limbs]) {
+    for (const e of p.episodes) keys.add(e.glyph);
+    if (p.tip.kind === 'answer') keys.add('answer');
+    for (const w of [...p.twigs, ...p.episodes.flatMap((e) => e.twigs)]) keys.add(w.kind === 'thinking' ? 'thinking' : w.kind === 'failed' ? 'failed' : 'command');
+  }
+  if (keys.has('command') || keys.has('failed')) keys.add('width');
+  return keys;
 }

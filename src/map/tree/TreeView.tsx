@@ -12,7 +12,7 @@ import { KindGlyph, VerdictIcon } from '../gitlist/marks';
 import { listRows } from '../gitlist/rows';
 import { highlight, nearest } from '.';
 import type { Box, HitTarget, Label, LabelClass, TipMark } from './types';
-import { treeCallout, treeFor, treeRing, treeSummary, treeTip } from './view';
+import { treeCallout, treeCrop, treeFor, treeRing, treeSummary, treeTip } from './view';
 import './tree.css';
 
 export interface TreeViewProps {
@@ -34,6 +34,8 @@ export interface TreeViewProps {
   onPick?(hit: HitTarget): void;
   /** Episodes with an AI title (the overlay on); each gets a ring. */
   tagged?: ReadonlySet<string> | undefined;
+  /** Trim the box to the drawing (`treeCrop`: at least 240px tall), for a session page; the home keeps its full box. */
+  fit?: boolean;
 }
 
 const CLS: Record<LabelClass, string> = { num: 't-num', sub: 't-sub', lab: 't-lab', lane: 't-lane' };
@@ -66,8 +68,14 @@ function BareTip({ m, fail = false }: { m: TipMark; fail?: boolean }) {
   );
 }
 
-export function TreeView({ g, width, height, labels = true, reserve, hover, onHover, selected, callout, onPick, tagged }: TreeViewProps) {
+export function TreeView({ g, width, height, labels = true, reserve, hover, onHover, selected, callout, onPick, tagged, fit = false }: TreeViewProps) {
   const t = useMemo(() => treeFor(g, width, height, labels, reserve), [g, width, height, labels, reserve]);
+  // The drawn window (all of the box unless `fit`); the tooltip and the callout keep off the parts cut away.
+  const win = useMemo(() => (fit ? treeCrop(t, reserve) : { y0: 0, y1: t.height }), [fit, t, reserve]);
+  const keepOut = useMemo(() => {
+    const cut = [{ x0: 0, y0: 0, x1: t.width, y1: win.y0 }, { x0: 0, y0: win.y1, x1: t.width, y1: t.height }].filter((b) => b.y1 > b.y0);
+    return cut.length ? [...(reserve ?? []), ...cut] : reserve;
+  }, [t, win, reserve]);
   const rows = useMemo(() => listRows(g), [g]);
   const summary = useMemo(() => treeSummary(g, rows), [g, rows]);
   // The last hovered path stays drawn (transparent) after the pointer leaves, so it fades out instead of vanishing;
@@ -85,20 +93,20 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   const selEp = sel ? t.twigs.find((w) => w.stepId === sel)?.episodeId : undefined;
   // The ring is drawn without labels too (the phone's silhouette); the callout only with them.
   const ring = useMemo(() => (sel ? treeRing(t, sel) : undefined), [t, sel]);
-  const call = useMemo(() => (sel && callout && labels ? treeCallout(t, sel, callout, reserve) : undefined), [t, sel, callout, labels, reserve]);
+  const call = useMemo(() => (sel && callout && labels ? treeCallout(t, sel, callout, keepOut) : undefined), [t, sel, callout, labels, keepOut]);
   // The hover tooltip keeps clear of the selection's callout and ring.
   const tip = useMemo(() => {
     if (!on || !labels || !hover) return undefined;
-    const keep = call ? [...(reserve ?? []), call.box] : reserve;
+    const keep = call ? [...(keepOut ?? []), call.box] : keepOut;
     const ringBox = call && { x0: call.ring.x - 10, y0: call.ring.y - 10, x1: call.ring.x + 10, y1: call.ring.y + 10 };
     return treeTip(g, t, hover, { rows, tipLane, reserve: keep, ring: ringBox });
-  }, [on, labels, hover, g, t, rows, tipLane, reserve, call]);
+  }, [on, labels, hover, g, t, rows, tipLane, keepOut, call]);
   if (t.ribbons.length === 0) return null;
 
   const hitAt = (e: { currentTarget: SVGSVGElement; clientX: number; clientY: number }, px: number) => {
     const r = e.currentTarget.getBoundingClientRect();
     const s = r.width > 0 ? t.width / r.width : 1; // layout px per screen px
-    return nearest(t, { x: (e.clientX - r.left) * s, y: (e.clientY - r.top) * s }, px * s);
+    return nearest(t, { x: (e.clientX - r.left) * s, y: (e.clientY - r.top) * s + win.y0 }, px * s);
   };
   const click = (e: MouseEvent<SVGSVGElement>) => {
     const hit = onPick && hitAt(e, (e.nativeEvent as globalThis.PointerEvent).pointerType === 'touch' ? TAP_PX : HIT_PX);
@@ -119,8 +127,8 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
     <svg
       className={`tree${on ? ' hvmode' : ''}${sel ? ' dim' : ''}${onPick ? ' pickable' : ''}`}
       width={t.width}
-      height={t.height}
-      viewBox={`0 0 ${t.width} ${t.height}`}
+      height={win.y1 - win.y0}
+      viewBox={`0 ${win.y0} ${t.width} ${win.y1 - win.y0}`}
       role="img"
       aria-label={summary}
       onPointerMove={move}

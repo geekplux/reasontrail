@@ -7,7 +7,8 @@ import { boxesHit } from './labels';
 import { textWidth } from './text';
 import { highlight, ribbonPath } from '.';
 import type { Box, Pt } from './types';
-import { treeCallout, treeFor, treeSummary, treeTip } from './view';
+import { synthGraph } from './synthetic';
+import { legendKeys, treeCallout, treeCrop, treeFor, treeSummary, treeTip } from './view';
 import { labelBox } from './labels';
 
 const VFF = vff as unknown as SessionGraph;
@@ -247,5 +248,44 @@ describe('treeCallout (phase 32b, Step.html)', () => {
     }
     const r = t.ribbons.find((x) => x.id === limb!.part)!;
     expect(Math.max(...r.widths.slice(0, limb!.to + 1))).toBeGreaterThan(8);
+  });
+});
+
+describe('treeCrop (phase 35: a session page trims the box to the drawing)', () => {
+  const LEGEND: Box[] = [{ x0: 470, y0: 0, x1: 1200, y1: 24 }];
+  const small = synthGraph([{ main: { kind: 'change', calls: 2 } }, { main: { kind: 'verify', calls: 1, failed: 1 } }]);
+  const cases: [string, SessionGraph][] = [['verify-fail-fix', VFF], ['implementer-checks', IMPL], ['planner-pivot', PLAN], ['a small session', small]];
+
+  it.each(cases)('keeps every mark and label of %s inside the window, under the legend, at least 240px tall', (_name, g) => {
+    const t = treeFor(g, 1200, 520, true, LEGEND);
+    const { y0, y1 } = treeCrop(t, LEGEND);
+    expect(y1 - y0).toBeGreaterThanOrEqual(240);
+    expect(y0).toBeGreaterThanOrEqual(0);
+    expect(y1).toBeLessThanOrEqual(520);
+    const boxes = [...t.labels, ...t.blocks.flatMap((b) => b.lines)].map(labelBox);
+    expect(boxes.filter((b) => b.y0 < y0 || b.y1 > y1)).toEqual([]);
+    for (const m of [...t.episodes, ...t.tips, t.root]) expect(m.at.y - m.r >= y0 + 24 && m.at.y + m.r <= y1).toBe(true);
+    // Nothing drawn under the legend: the window's first 24px plus air stay clear.
+    for (const r of t.ribbons) for (const p of r.line) expect(p.y).toBeGreaterThan(y0 + 24);
+  });
+
+  it('trims a small session well under the 520px box, deterministically', () => {
+    const t = treeFor(small, 1200, 520, true, LEGEND);
+    const win = treeCrop(t, LEGEND);
+    expect(win.y1 - win.y0).toBeLessThan(520);
+    expect(treeCrop(t, LEGEND)).toEqual(win);
+  });
+});
+
+describe('legendKeys (phase 35: an opened session lists only what its tree draws)', () => {
+  it('has every entry for verify-fail-fix', () => {
+    expect([...legendKeys(VFF)].sort()).toEqual(['answer', 'change', 'command', 'discuss', 'explore', 'failed', 'thinking', 'verify', 'width'].sort());
+  });
+
+  it('leaves out kinds a session does not have', () => {
+    const keys = legendKeys(synthGraph([{ main: { kind: 'change', calls: 2 } }], false));
+    expect(keys.has('change')).toBe(true);
+    expect(keys.has('command')).toBe(true);
+    expect((['verify', 'explore', 'failed', 'thinking', 'answer'] as const).filter((k) => keys.has(k))).toEqual([]);
   });
 });

@@ -128,6 +128,25 @@ describe('TreeLegend', () => {
     expect([...container.querySelectorAll('.legend > span')].map((s) => s.textContent).filter(Boolean)).toEqual(['Task', 'Explore', 'Change', 'Verify', 'Answer', 'Command', 'Thinking', 'Failed', 'Width: tool calls']);
     expect(container.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(9);
   });
+
+  it('shows only the given entries, without the group gap when a group is empty', () => {
+    const { container } = render(<TreeLegend only={new Set(['discuss', 'answer'] as const)} />);
+    expect([...container.querySelectorAll('.legend > span')].map((s) => s.textContent)).toEqual(['Task', 'Answer']);
+  });
+});
+
+describe('TreeView fit (phase 35)', () => {
+  it('draws the home box whole, and a fitted box trimmed to the drawing with the same width', () => {
+    const full = render(<TreeView g={VFF} width={1200} height={520} />).container.querySelector('svg')!;
+    expect([full.getAttribute('height'), full.getAttribute('viewBox')]).toEqual(['520', '0 0 1200 520']);
+    cleanup();
+    const fit = render(<TreeView g={VFF} width={1200} height={520} fit />).container.querySelector('svg')!;
+    const [, y0, w, h] = fit.getAttribute('viewBox')!.split(' ').map(Number);
+    expect(w).toBe(1200);
+    expect(Number(fit.getAttribute('height'))).toBe(h);
+    expect(h).toBeGreaterThanOrEqual(240);
+    expect(y0! + h!).toBeLessThanOrEqual(520);
+  });
 });
 
 describe('TreeView AI titles', () => {

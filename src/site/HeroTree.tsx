@@ -1,10 +1,12 @@
 // The home's hero tree (v7 §4.3, docs/design/v7/preview/Home.html): the sample's tree at the full content width with
 // the legend inside the figure, top right. 1200 × 520 at desktop; it measures its width, keeps the legend's corner
 // free and, below 960px, draws the bare silhouette (no text) at the phone's proportions. On the phone the legend goes
-// under the sample tabs instead (`legend={false}`; Home draws it there).
-import { useLayoutEffect, useRef, useState } from 'react';
+// under the sample tabs instead (`legend={false}`; Home draws it there). A session page (`fit`) trims the box to the
+// drawing (at least 240px) and lists only the legend entries its tree draws.
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { TreeLegend } from '../map/tree/TreeLegend';
+import { legendKeys } from '../map/tree/view';
 import { TreeView, type TreeViewProps } from '../map/tree/TreeView';
 import type { Box, HitTarget } from '../map/tree/types';
 
@@ -16,7 +18,7 @@ interface Measure { width: number; reserve: Box[] }
 
 /** `onPick` also says whether the tree has its text (desktop) or is the bare silhouette (phone). `size`: another
  * height and text threshold than the home's (How to read a map's smaller figure). */
-export function HeroTree({ id, g, hover, onHover, onPick, legend = true, size, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void; legend?: boolean; size?: { height: number; labelsFrom: number } } & Pick<TreeViewProps, 'selected' | 'callout' | 'tagged'>) {
+export function HeroTree({ id, g, hover, onHover, onPick, legend = true, size, fit = false, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void; legend?: boolean; size?: { height: number; labelsFrom: number }; fit?: boolean } & Pick<TreeViewProps, 'selected' | 'callout' | 'tagged'>) {
   const fig = useRef<HTMLElement>(null);
   // The canvas size until measured (and where nothing is laid out, as in tests): no jump on the first desktop paint.
   const [m, setM] = useState<Measure>({ width: DESKTOP.width, reserve: [] });
@@ -47,13 +49,14 @@ export function HeroTree({ id, g, hover, onHover, onPick, legend = true, size, .
       ro.disconnect();
     };
   }, []);
+  const only = useMemo(() => (fit && g ? legendKeys(g) : undefined), [fit, g]);
   const labels = m.width >= (size?.labelsFrom ?? LABELS_FROM);
   const height = labels ? (size?.height ?? DESKTOP.height) : Math.round((m.width * 190) / 358);
   return (
-    <figure className="hero-tree" id={id} ref={fig}>
-      {legend && <TreeLegend />}
+    <figure className={fit ? 'hero-tree fit' : 'hero-tree'} id={id} ref={fig}>
+      {legend && <TreeLegend {...(only ? { only } : {})} />}
       <div className="tree-wrap" aria-busy={g ? undefined : true}>
-        {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} hover={hover} onHover={onHover} {...pick} {...(onPick ? { onPick: (h: HitTarget) => onPick(h, labels) } : {})} />}
+        {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} fit={fit && labels} hover={hover} onHover={onHover} {...pick} {...(onPick ? { onPick: (h: HitTarget) => onPick(h, labels) } : {})} />}
       </div>
     </figure>
   );
