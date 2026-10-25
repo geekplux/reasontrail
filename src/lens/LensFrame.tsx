@@ -28,7 +28,14 @@ const OPT_IN_NOTE = 'Sends this text to the Reasontrail Worker. Nothing is sent 
 /** Said wherever live growth is offered or on. The public Worker counts upstream calls per UTC day against
  * DAILY_UPSTREAM_CAP (wrangler.jsonc, worker/budget.ts), which keeps the demo's model bill bounded. */
 export const CAP_NOTE = 'Live model calls are capped per day; recorded gardens always work.';
-const capNote = <p className="lens-cap">{CAP_NOTE}</p>;
+/** In More options, beside "Recorded, works offline.", only the cap needs saying. */
+export const CAP_NOTE_SHORT = 'Live model calls are capped per day.';
+/** Renders at most once per page (the bar's or More options'), so its id is unique. */
+const capLine = (text: string) => (
+  <p id="lens-cap" className="lens-cap">
+    {text}
+  </p>
+);
 /** The footer's privacy line once live growth is on (L6). */
 const LIVE_PRIVACY = 'Live: this sentence is sent to the Reasontrail Worker to predict tokens.';
 
@@ -149,12 +156,17 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       {error ? <InlineNote variant="error">{providerMessage(error.code, error.retryAfterSec)}</InlineNote> : null}
     </div>
   );
-  const offer = (
+  // The bar's cap line gives way to a live error, which already says what went wrong (rule 2).
+  const barCap = (live || !rec) && !error;
+  // Rendered once (in the bar or in More options), so the ids are unique; the cap line is beside it whenever it is.
+  const offer = (withCap: boolean) => (
     <>
-      <button type="button" className="lens-optin" onClick={optIn}>
+      <button type="button" className="lens-optin" onClick={optIn} aria-describedby={withCap ? 'lens-optin-note lens-cap' : 'lens-optin-note'}>
         {OPT_IN}
       </button>
-      <span className="muted">{OPT_IN_NOTE}</span>
+      <span id="lens-optin-note" className="muted">
+        {OPT_IN_NOTE}
+      </span>
     </>
   );
   // A recorded sentence needs no bar until live growth is on: the figcaption says it works offline and the opt-in waits
@@ -162,25 +174,25 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
   const bar = (
     <div className="lens-bar">
       {live ? (
-        <p id="lens-live" className="lens-live muted" tabIndex={-1}>
+        <p id="lens-live" className="lens-live muted" tabIndex={-1} aria-describedby={barCap ? 'lens-cap' : undefined}>
           Live growth on, {modelLabel({ provider: '', name: provider!.model })}, {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep,{' '}
           {provider!.callsLeft} of {LIVE_MAX_CALLS} live calls left in this tab
         </p>
       ) : rec ? null : (
         <p className="lens-offer">
           <span className="muted">No recording for this sentence.</span>
-          {offer}
+          {offer(barCap)}
         </p>
       )}
-      {live || !rec ? capNote : null}
+      {barCap ? capLine(CAP_NOTE) : null}
       {status}
     </div>
   );
   const options =
     rec && !live ? (
       <div className="lens-offer-options">
-        <p className="lens-offer">{offer}</p>
-        {capNote}
+        <p className="lens-offer">{offer(true)}</p>
+        {capLine(CAP_NOTE_SHORT)}
       </div>
     ) : null;
   return <App key={mount} header={header} lens={source} bar={bar} options={options} recorded={Boolean(rec)} privacy={live ? LIVE_PRIVACY : undefined} />;

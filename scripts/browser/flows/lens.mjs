@@ -64,6 +64,10 @@ export async function run({ page, baseURL, root, log, fail }) {
   if (!(await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).isVisible())) fail('no live opt-in in More options');
   if (!(await page.locator('.lens-options').textContent())?.includes('Recorded, works offline')) fail('the recorded sentence does not say it works offline');
   if (!(await page.locator('.lens-options .lens-cap').textContent())?.includes('capped per day')) fail('no daily-cap note beside the live opt-in');
+  const describedBy = await page.getByRole('button', { name: 'Grow live with an open model', exact: true }).evaluate((b) =>
+    (b.getAttribute('aria-describedby') ?? '').split(' ').map((id) => document.getElementById(id)?.className ?? null),
+  );
+  if (!describedBy.includes('lens-cap') || !describedBy.includes('muted')) fail(`the live opt-in's aria-describedby does not point at its note and the .lens-cap line: ${JSON.stringify(describedBy)}`);
   for (const p of await axeProblems(page, 'lens recorded')) fail(p);
   await page.locator('.lens-options summary').click();
   await page.mouse.move(0, 0);
