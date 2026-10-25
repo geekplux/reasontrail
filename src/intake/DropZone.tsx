@@ -154,7 +154,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
           <p className="strong">Drop a session file</p>
           <label className="btn ghost">
             Choose file
-            <input ref={input} type="file" accept={ACCEPT} onChange={(e) => {
+            <input ref={input} type="file" accept={ACCEPT} aria-describedby={error ? 'intake-error' : undefined} onChange={(e) => {
               const f = e.target.files?.[0];
               e.target.value = '';
               if (f) onFile(f);
@@ -168,7 +168,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
         {error && (
           <p className="intake-error" id="intake-error">
             <AlertIcon />
-            {error.error === 'too-large' ? `This file is ${error.mb} MB. The browser can map files up to 50 MB; the command line has no limit:` : chat && error.error === 'unsupported' ? CHAT_UNSUPPORTED : MESSAGE[error.error]}
+            <span>{error.error === 'too-large' ? `This file is ${error.mb} MB. The browser can map files up to 50 MB; the command line has no limit:` : chat && error.error === 'unsupported' ? CHAT_UNSUPPORTED : MESSAGE[error.error]}</span>
             {!chat && error.error === 'unsupported' && <a href="?view=chat">For a chat, paste the conversation text instead.</a>}
           </p>
         )}
@@ -176,7 +176,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
       {(error?.error === 'too-large' || error?.error === 'worker') && <CommandLine command={COMMANDS.file} label="the command line" />}
       {chat ? (
         <>
-          <p className="muted">{PRIVACY}</p>
+          <p className="muted small">{PRIVACY}</p>
           <details className="quiet-details">
             <summary>Where to find a chat</summary>
             <ul className="plain-list">

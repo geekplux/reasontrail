@@ -47,11 +47,16 @@ label.btn { position: relative; cursor: pointer; }
 .where div { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: var(--hair-soft); align-items: baseline; }
 .where dt { color: var(--slate-11); font-size: var(--text-12); }
 .where dd { margin: 0; overflow-wrap: anywhere; }
-.where .code { font: 400 var(--text-12) var(--font-mono); }
+.where .code { font: 400 var(--text-12) / 1.5 var(--font-mono); } /* 18px tall, as the canvas's path values */
+/* Narrow: each label above its value, so a path wraps whole rather than beside a 112px label. */
+@media (max-width: 719px) { .where div { grid-template-columns: 1fr; gap: 2px; } }
 .btn input[type='file'] { position: absolute; opacity: 0; width: 1px; height: 1px; }
 
 .intake-alert:empty { position: absolute; } /* present and empty from load, so the first message is announced; no grid gap */
-.intake-error { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+/* The 16px icon, then a text column; a follow-up link sits under the text, in the same column. */
+.intake-error { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 4px 8px; margin: 0 0 8px; }
+.intake-error > svg { margin-top: 2.5px; } /* centred on the first 21px line */
+.intake-error > a { grid-column: 2; }
 .quiet-details summary { color: var(--slate-11); }
 .intake-progress { display: grid; gap: 16px; max-width: 40rem; }
 .intake-progress p { margin: 0; }

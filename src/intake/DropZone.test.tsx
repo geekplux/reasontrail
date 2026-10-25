@@ -77,5 +77,21 @@ describe('Open a session (v7 §7)', () => {
     });
     expect(alert.querySelector('svg.ic[aria-hidden="true"]')).toBeTruthy();
     expect(alert.textContent?.startsWith('!')).toBe(false);
+    // The icon, then the message, then the follow-up link: the grid's two columns.
+    expect([...alert.children].map((c) => c.tagName.toLowerCase())).toEqual(['svg', 'span', 'a']);
+  });
+
+  it('describes the file input by the error while there is one', async () => {
+    const { rerender } = render(<OpenSession file={null} onFile={() => {}} />);
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    expect(input.hasAttribute('aria-describedby')).toBe(false);
+    rerender(<OpenSession file={new File(['{"hello":1}\n'], 'notes.jsonl')} onFile={() => {}} />);
+    await waitFor(() => expect(document.querySelector<HTMLInputElement>('input[type="file"]')!.getAttribute('aria-describedby')).toBe('intake-error'));
+    expect(document.getElementById('intake-error')?.classList.contains('intake-error')).toBe(true);
+  });
+
+  it('closes the chat page with the 12px privacy line, as the Open page', () => {
+    render(<OpenSession file={null} onFile={() => {}} chat />);
+    expect(screen.getByText('Parsed in your browser. Nothing is uploaded.').className).toBe('muted small');
   });
 });
