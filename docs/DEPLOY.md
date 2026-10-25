@@ -25,20 +25,27 @@ repository (step 4) is Sean's decision; everything before it is safe to run at a
 pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy
 ```
 
-`pnpm build` builds the viewer template first and emits it as `dist/viewer.html`. `check:deploy` is
-`wrangler deploy --dry-run --outdir .wrangler/dry-run`: it bundles the Worker, reads `dist/` and `dist/_headers`, and
-prints the bindings without contacting Cloudflare (no valid token needed). Expect:
+`pnpm build` is the production build (there is no separate `build:prod`): it builds the viewer template first and
+emits it as `dist/viewer.html`. `pnpm build:cli` builds the npm package (`cli/dist/`) and is not part of the deploy.
+`check:deploy` is `wrangler deploy --dry-run --outdir .wrangler/dry-run`: it bundles the Worker, reads `dist/` and
+`dist/_headers`, and prints the bindings without contacting Cloudflare (no valid token needed). Expect (v7, wrangler
+4.151; the asset count and upload size move with the build):
 
 ```text
-env.TG_CACHE                                 KV Namespace
-env.AI                                       AI
-env.RL_MISS (20 requests/60s)                Rate Limit
-env.RL_ALL (120 requests/60s)                Rate Limit
-env.ASSETS                                   Assets
-env.MODEL_ID ("@cf/zai-org/glm-4.7-flash")   Environment Variable
-env.UPSTREAM ("workers-ai")                  Environment Variable
-env.DAILY_UPSTREAM_CAP ("1000")              Environment Variable
+Read 33 files from the assets directory .../dist
+Total Upload: 22.99 KiB / gzip: 7.25 KiB
+env.TG_CACHE (91c14bfbe1444937a095418ee3a2f6ac)   KV Namespace
+env.AI                                            AI
+env.RL_MISS (20 requests/60s)                     Rate Limit
+env.RL_ALL (120 requests/60s)                     Rate Limit
+env.ASSETS                                        Assets
+env.MODEL_ID ("@cf/zai-org/glm-4.7-flash")        Environment Variable
+env.UPSTREAM ("workers-ai")                       Environment Variable
+env.DAILY_UPSTREAM_CAP ("1000")                   Environment Variable
+--dry-run: exiting now.
 ```
+
+"Total Upload" is the Worker bundle only; the static assets are uploaded separately and only when they change.
 
 If wrangler ever complains about a malformed token during the dry run, run it once with the variable blanked:
 `CLOUDFLARE_API_TOKEN= pnpm run check:deploy`.
@@ -48,8 +55,8 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
 
 ## 3. Before the first deploy
 
-1. **Social image.** Open the site locally (`pnpm preview`), keep the default sample, choose "Save shareable copy…" →
-   "Download map card" (1200×630 PNG, light theme), and save it as `public/og-card.png`. Commit it. `index.html`
+1. **Social image.** Open the site locally (`pnpm preview`), keep the default sample, choose **Share** on the session
+   card → "Download map card (PNG)" (1200×630, light theme), and save it as `public/og-card.png`. Commit it. `index.html`
    already points `og:image` at `/og-card.png`.
 2. **KV namespace (done).** The production namespace `REASONTRAIL_CACHE` exists and its id
    (`91c14bfbe1444937a095418ee3a2f6ac`) is pinned on the `TG_CACHE` entry in `wrangler.jsonc`. If you ever recreate
@@ -62,7 +69,13 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
    pnpm exec wrangler secret put OPENAI_API_KEY
    ```
 
-4. **Smoke test the model.** One real Workers AI call that checks `top_logprobs` come back (needs
+4. **Rate limiters (done).** `namespace_id` is account-wide: Workers that share an id share counters. Reasontrail
+   uses `6001` (`RL_MISS`) and `6002` (`RL_ALL`) in production and `6101`/`6102` in branch previews; sibling Workers
+   on the account use 1xxx–5xxx. If you add a Worker to the account, give it ids outside 6xxx.
+5. **Daily cap (done).** `DAILY_UPSTREAM_CAP` (`"1000"`) bounds upstream model calls per UTC day across all users
+   (`worker/budget.ts`). The lens page says so beside the live opt-in ("Live model calls are capped per day; recorded
+   gardens always work."); past the cap the Worker answers `503 budget_exhausted` and the lens shows a calm message.
+6. **Smoke test the model.** One real Workers AI call that checks `top_logprobs` come back (needs
    `CLOUDFLARE_ACCOUNT_ID` and a valid `CLOUDFLARE_API_TOKEN`; prints `SKIPPED` without them):
 
    ```sh
@@ -106,8 +119,15 @@ The first build deploys to `https://reasontrail.<account-subdomain>.workers.dev`
 - **Custom domain:** add it in Workers → reasontrail → Settings → Domains & Routes, **and** add the same domain
   to `wrangler.jsonc` as `"routes": [{ "pattern": "<domain>", "custom_domain": true }]`, so later deploys keep it.
 
-A manual deploy from a laptop (`pnpm build && pnpm exec wrangler deploy`) does the same thing, but once the
-repository is connected, let Workers Builds handle deploys.
+**Manual alternative** (only before the repository is connected, or if Workers Builds is down; needs wrangler
+authentication from step 1):
+
+```sh
+pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy && pnpm exec wrangler deploy
+```
+
+It deploys the same top-level production config. Once the repository is connected, let Workers Builds handle
+deploys so `main` and production never drift.
 
 ## 5. After deploying: checks
 
@@ -131,8 +151,20 @@ curl -sSI "$SITE/" | grep -iE 'content-security-policy|x-content-type-options|ca
 curl -sSI "$SITE/og-card.png" | head -1
 ```
 
-Then open `$SITE` in a browser: the default map loads with no console errors, "Map your own session" accepts a
-`.jsonl`, a lens sentence grows, and the share dialog saves a copy. Check the social card with a link preview tool.
+Then, in a browser (v7):
+
+1. **Home first view:** `$SITE/` shows the hero, the default sample's tree, the sample tabs and its session card
+   (list and outcome) at once, with no console errors and no `/api/` request.
+2. **Step deep link:** `$SITE/?session=planner-pivot&step=s12` opens that sample with step s12 selected: its path is
+   highlighted in the tree with a callout, its episode is open in the list and the card shows its detail panel.
+   Reload keeps it.
+3. **Viewer offline:** on the home, **Share** → "Download HTML", then open the saved file with the network off (or
+   `npx reasontrail` on a local session): the map renders with no request.
+4. **Lens with the cap:** `$SITE/?session=planner-pivot&sample=lens-planner-pivot-1` grows recorded branches with no
+   request; **More options** shows "Grow live with an open model" and the line "Live model calls are capped per day;
+   recorded gardens always work." After choosing it, branches the recording lacks grow through
+   `/api/next-tokens`.
+5. **Open a session** accepts a `.jsonl`, and the social card shows in a link preview tool.
 
 ## 6. Demo URL and custom domain (PLAN D20)
 
