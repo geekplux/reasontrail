@@ -39,7 +39,7 @@ export function SpecimenLabel({ sample, live = false, level = 'h1' }: { sample: 
   const Heading = level;
   return (
     <section className="specimen" aria-labelledby="specimen-title">
-      <Heading id="specimen-title" className="specimen-title visually-hidden" tabIndex={-1}>
+      <Heading id="specimen-title" className="specimen-title visually-hidden">
         {sample.title}
       </Heading>
       <p className="specimen-prompt">
