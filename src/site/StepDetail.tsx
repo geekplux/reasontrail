@@ -41,7 +41,7 @@ export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDeta
       <div className="d-head">
         <p className="muted">{d.where}</p>
         <button type="button" className="iconbtn" aria-label="Close step details" onClick={onClose}>
-          <svg className="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+          <svg className="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
         </button>
       </div>
       <div className="d-title">

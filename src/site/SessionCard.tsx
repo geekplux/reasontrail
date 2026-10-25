@@ -25,7 +25,7 @@ const Runs = ({ value }: { value: Run[] }) => value.map((r, i) => (r.code ? <cod
 function OutcomeIcon({ icon }: { icon: OutcomeRow['icon'] }) {
   if (icon === 'ok') return <OkIcon />;
   if (icon === 'alert') return <AlertIcon />;
-  if (icon === 'files') return <svg className="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.75h6l3 3v9.5h-9z" fill="none" stroke="var(--slate-12)" strokeWidth="1.4" strokeLinejoin="round" /><path d="M6 8.5h4M6 11h4" stroke="var(--slate-12)" strokeWidth="1.4" strokeLinecap="round" /></svg>;
+  if (icon === 'files') return <svg className="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 1.75h6l3 3v9.5h-9z" fill="none" stroke="var(--slate-12)" strokeWidth="1.4" strokeLinejoin="round" /><path d="M6 8.5h4M6 11h4" fill="none" stroke="var(--slate-12)" strokeWidth="1.4" strokeLinecap="round" /></svg>;
   return <UnknownIcon />;
 }
 

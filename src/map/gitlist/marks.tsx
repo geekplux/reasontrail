@@ -20,13 +20,13 @@ export function KindGlyph({ kind, size = 12, x, y, className = '' }: { kind: Gly
 const svg = (size: number, children: ReactNode) => <svg className="ic" width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" focusable="false">{children}</svg>;
 
 /** ⚠ on orange: a failure. */
-export const AlertIcon = ({ size = 16 }: { size?: number }) => svg(size, <><path d="M8 1.5 15 14H1z" fill="var(--orange-9)" stroke="var(--orange-9)" strokeWidth="1.5" strokeLinejoin="round" /><path d="M8 6v3.5" stroke="var(--orange-1)" strokeWidth="1.6" strokeLinecap="round" /><circle cx="8" cy="11.6" r="0.95" fill="var(--orange-1)" /></>);
+export const AlertIcon = ({ size = 16 }: { size?: number }) => svg(size, <><path d="M8 1.5 15 14H1z" fill="var(--orange-9)" stroke="var(--orange-9)" strokeWidth="1.5" strokeLinejoin="round" /><path d="M8 6v3.5" fill="none" stroke="var(--orange-1)" strokeWidth="1.6" strokeLinecap="round" /><circle cx="8" cy="11.6" r="0.95" fill="var(--orange-1)" /></>);
 /** ✓ on blue: passed. */
 export const OkIcon = ({ size = 16 }: { size?: number }) => svg(size, <><circle cx="8" cy="8" r="7" fill="var(--blue-9)" /><path d="m4.75 8.25 2.1 2.1 4.4-4.6" fill="none" stroke="var(--slate-1)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></>);
 /** A dashed ring: no result known. */
 export const UnknownIcon = ({ size = 16 }: { size?: number }) => svg(size, <circle cx="8" cy="8" r="6.25" fill="none" stroke="var(--slate-9)" strokeWidth="1.4" strokeDasharray="2 2.2" />);
 /** A git commit. */
-const CommitIcon = ({ size = 16 }: { size?: number }) => svg(size, <><path d="M1.5 8h3M11.5 8h3" stroke="var(--slate-12)" strokeWidth="1.5" strokeLinecap="round" /><circle cx="8" cy="8" r="3.25" fill="none" stroke="var(--slate-12)" strokeWidth="1.5" /></>);
+const CommitIcon = ({ size = 16 }: { size?: number }) => svg(size, <><path d="M1.5 8h3M11.5 8h3" fill="none" stroke="var(--slate-12)" strokeWidth="1.5" strokeLinecap="round" /><circle cx="8" cy="8" r="3.25" fill="none" stroke="var(--slate-12)" strokeWidth="1.5" /></>);
 /** An ink ✓: done, with no verdict. */
 const DoneIcon = ({ size = 16 }: { size?: number }) => svg(size, <><circle cx="8" cy="8" r="6.25" fill="none" stroke="var(--slate-12)" strokeWidth="1.4" /><path d="m5 8.25 2 2 4-4.25" fill="none" stroke="var(--slate-12)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>);
 
