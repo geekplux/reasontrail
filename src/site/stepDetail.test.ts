@@ -1,6 +1,6 @@
 import readme from '../../examples/README.md?raw';
 import { describe, expect, it } from 'vitest';
-import type { SessionGraph } from '../../shared/session/types';
+import type { SessionGraph, Step } from '../../shared/session/types';
 import { defaultSessionGraph as g, sessionSamples } from '../sessions/samples';
 import { findStep, selectableSteps, stepDetail, stepFacts } from './stepDetail';
 
@@ -44,6 +44,15 @@ describe('step detail (phase 32b, Step.html)', () => {
     const th = stepDetail(g, d.nextId!)!;
     expect([th.title, th.tone, th.output, th.code]).toEqual(['Thinking', undefined, undefined, undefined]);
     expect(th.text).toBeTruthy();
+    // Only the model's own words carry the note that written reasoning is its own account (phase 35): not a command,
+    // and not thinking whose text was not stored (this one: a signature only).
+    expect([th.ownAccount, d.ownAccount, stepDetail(g, 's41')?.ownAccount]).toEqual([undefined, undefined, undefined]);
+    const stored: SessionGraph = { ...g, steps: g.steps.map((x): Step => {
+      if (x.id !== th.stepId) return x;
+      const { textStored: _, ...rest } = x;
+      return { ...rest, text: 'Check the config first.' };
+    }) };
+    expect(stepDetail(stored, th.stepId)?.ownAccount).toBe(true);
   });
 
   it('steps within the episode only, and stops at its ends', () => {

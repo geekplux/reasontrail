@@ -3,7 +3,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { defaultSessionGraph as g } from '../sessions/samples';
-import { StepDetail } from './StepDetail';
+import { OWN_ACCOUNT, StepDetail } from './StepDetail';
 import { stepDetail } from './stepDetail';
 
 afterEach(cleanup);
@@ -44,5 +44,18 @@ describe('the step panel\'s "Show raw"', () => {
     const { raw: _raw, ...d } = stepDetail(g, 's41')!;
     render(<StepDetail d={d} onStep={noop} onClose={noop} />);
     expect(screen.queryByRole('button', { name: 'Show raw' })).toBeNull();
+  });
+});
+
+describe('the honesty line (phase 35)', () => {
+  it('sits as a 12px note right under the title of a thinking step, and nowhere else', () => {
+    const think = { ...stepDetail(g, stepDetail(g, 's43')!.nextId!)!, text: 'Check the config first.', ownAccount: true as const };
+    const { container, rerender } = render(<StepDetail d={think} onStep={noop} onClose={noop} />);
+    const note = container.querySelector('.d-own')!;
+    expect(note.textContent).toBe(OWN_ACCOUNT);
+    expect(note.previousElementSibling?.classList.contains('d-title')).toBe(true);
+    expect(OWN_ACCOUNT).not.toMatch(/·/);
+    rerender(<StepDetail d={stepDetail(g, 's41')!} onStep={noop} onClose={noop} />);
+    expect(container.querySelector('.d-own')).toBeNull();
   });
 });
