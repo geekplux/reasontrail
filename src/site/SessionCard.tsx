@@ -203,12 +203,13 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
   const list = <GitList key="list" g={g} overlay={overlay} hover={hover} compact={phone} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect: fromList } : {})} {...(onActive ? { onActive } : {})} />;
   const sub = headingLevel === 1 ? 2 : 3; // the panel's and the final answer's level, one under the title's
   const panel = detail && <StepDetail key="panel" d={detail} focusOnOpen={focusDetail || (phone && listPick === detail.stepId && 'start')} level={sub} onStep={toStep} onClose={close} />;
-  const aside = panel ?? <aside key="side" className="side" aria-label="Outcome"><OutcomeBox g={g} /></aside>;
+  const hasOutcome = outcomeRows(g).length > 0; // a chat without trouble has nothing to say there
+  const aside = panel ?? (hasOutcome ? <aside key="side" className="side" aria-label="Outcome"><OutcomeBox g={g} /></aside> : null);
   // On the desktop the panel takes the whole outcome column, final answer included.
   const answer = (phone || !panel) && <FinalAnswer key="answer" g={g} level={sub} />;
   // Who suggested the titles: one 12px line under the list while they are shown.
   const by = overlay && <p key="ai-by" className="ai-by muted">AI titles suggested by {overlay.model}</p>;
-  const colsBox = <div key="cols" className="cols" ref={cols}>{phone ? [aside, list, by, answer] : [list, by, aside, answer]}</div>;
+  const colsBox = <div key="cols" className={aside ? 'cols' : 'cols no-side'} ref={cols}>{phone ? [aside, list, by, answer] : [list, by, aside, answer]}</div>;
   const branchItem = sessionMeta(g, branch).find((m) => m.key === 'branch');
   const actions = (
     <>
@@ -248,7 +249,7 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
       <div className="sess-l">
         <Title ref={titleRef} id="sess-title" tabIndex={headingLevel === 1 ? -1 : undefined}>{g.displayTitle ?? g.title}</Title>
         <ul className="meta">
-          {sessionMeta(g, branch).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
+          {sessionMeta(g, branch, Boolean(tag)).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
           {tag && <li className="tag">{tag}</li>}
         </ul>
         {/* What the reader could not map (skipped or partial lines, a chat's assumed turns); a sample has none. */}

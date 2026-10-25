@@ -3,6 +3,8 @@ import type { SessionGraph } from '../../shared/session/types';
 import plannerPivot from '../sessions/samples/planner-pivot.graph.json';
 import implementerChecks from '../sessions/samples/implementer-checks.graph.json';
 import { defaultSessionGraph as vff } from '../sessions/samples';
+import pastedChat from '../../fixtures/chats/pasted-chatgpt.txt?raw';
+import { parseChat } from '../../shared/session/adapter';
 import { finalAnswer, outcomeRows, runs, sessionMeta } from './sessionSummary';
 
 const checks = implementerChecks as SessionGraph;
@@ -63,5 +65,21 @@ describe('finalAnswer', () => {
 
   it('turns backticks into code runs and drops bold markers', () => {
     expect(runs('**Done** on `main`.')).toEqual([{ text: 'Done on ' }, { text: 'main', code: true }, { text: '.' }]);
+  });
+});
+
+describe('a chat (phase 35, rule 2)', () => {
+  const chat = parseChat({ files: [{ path: 'pasted.txt', text: pastedChat }] }) as SessionGraph;
+
+  it('keeps only the trouble row in the outcome box, and none without trouble', () => {
+    expect(chat.source.kind).toBe('chat');
+    expect(outcomeRows(chat).map((r) => r.key)).toEqual(chat.trouble.length > 0 ? ['trouble'] : []);
+    expect(outcomeRows({ ...chat, trouble: [] })).toEqual([]);
+  });
+
+  it('leaves "Chat" out of the meta line when a tag names the source', () => {
+    expect(sessionMeta(chat).map((m) => m.key)).toContain('agent');
+    expect(sessionMeta(chat, undefined, true).map((m) => m.key)).not.toContain('agent');
+    expect(sessionMeta(vff, undefined, true)[0]).toEqual({ key: 'agent', text: 'Claude Code' });
   });
 });

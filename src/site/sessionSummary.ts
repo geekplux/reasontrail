@@ -17,9 +17,10 @@ export function runs(text: string): Run[] {
 /** One item of the meta line: a bold number and its unit ("47 min" "total"), plain text, or code (the branch). */
 export type MetaItem = { key: string; strong: string; rest: string } | { key: string; text: string; code?: boolean };
 
-/** The meta line (§12): the agent, then wall time, subagents and tool calls (zero counts left out), then the branch. */
-export function sessionMeta(g: SessionGraph, branch = g.source.gitBranch): MetaItem[] {
-  const items: MetaItem[] = [{ key: 'agent', text: SOURCE_LABEL[g.source.kind] }];
+/** The meta line (§12): the agent, then wall time, subagents and tool calls (zero counts left out), then the branch. A
+ * chat with a tag (its source, such as "Pasted chat") leaves out "Chat", which the tag already says. */
+export function sessionMeta(g: SessionGraph, branch = g.source.gitBranch, tagged = false): MetaItem[] {
+  const items: MetaItem[] = g.source.kind === 'chat' && tagged ? [] : [{ key: 'agent', text: SOURCE_LABEL[g.source.kind] }];
   const wall = g.stats.durationMs ?? times(g.steps)?.wall;
   if (wall !== undefined) items.push({ key: 'time', strong: duration(wall), rest: 'total' });
   const count = (key: string, n: number, one: string) => n > 0 && items.push({ key, strong: String(n), rest: plural(n, one).replace(/^\d+ /, '') });
@@ -60,8 +61,14 @@ function fixCommit(g: SessionGraph, failedLanes: string[], passedAt: string): st
   return hash;
 }
 
-/** The outcome box (§4.5): the final check, the trouble and the files changed. */
+/** The outcome box (§4.5): the final check, the trouble and the files changed. A chat runs no checks and changes no
+ * files, so it keeps only the rows that say something: its trouble, if any (rule 2). */
 export function outcomeRows(g: SessionGraph): OutcomeRow[] {
+  if (g.source.kind === 'chat') return agentOutcome(g).filter((r) => r.key === 'trouble' && r.icon === 'alert');
+  return agentOutcome(g);
+}
+
+function agentOutcome(g: SessionGraph): OutcomeRow[] {
   const rows: OutcomeRow[] = [];
   const main = g.lanes[0]?.id;
   const v = g.outcome.lastVerification;
