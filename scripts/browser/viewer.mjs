@@ -84,14 +84,20 @@ export async function checkLayout(page, fail, where = 'viewer') {
     if (m.lefts.some((x) => Math.abs(x - 120) > 1)) fail(`${where}${what}: left edges (wordmark, h1, tree, card, footer) ${m.lefts}`);
   };
   check(await measure(), '');
-  const was = await page.evaluate(() => {
+  // Measured on a clone swapped in for the h1, so React's own h1 and its text node are never touched; the h1 goes back
+  // in its place afterwards.
+  await page.evaluate(() => {
     const h1 = document.querySelector('h1');
-    const text = h1.textContent;
-    h1.textContent = 'Refactor the session adapter so subagent lanes, retries and compaction markers survive a round trip through Share'.padEnd(120, '.').slice(0, 120);
-    return text;
+    const clone = h1.cloneNode(false);
+    clone.textContent = 'Refactor the session adapter so subagent lanes, retries and compaction markers survive a round trip through Share'.padEnd(120, '.').slice(0, 120);
+    window.reactH1 = h1;
+    h1.replaceWith(clone);
   });
   check(await measure(), ' (120-character title)');
-  await page.evaluate((text) => { document.querySelector('h1').textContent = text; }, was);
+  await page.evaluate(() => {
+    document.querySelector('h1').replaceWith(window.reactH1);
+    delete window.reactH1;
+  });
 }
 
 /** Pick a step in the list: an episode opens, its first step's panel opens and the hash says `#step=<id>`; Esc closes
@@ -106,7 +112,7 @@ export async function stepRoundTrip(page, fail, where = 'viewer') {
   await page.waitForSelector(`aside.detail[data-step="${id}"]`, { timeout: 5_000 }).catch(() => fail(`${where}: clicking step ${id} opened no panel`));
   const hash = await page.evaluate(() => location.hash);
   if (hash !== `#step=${encodeURIComponent(id)}`) fail(`${where}: hash after picking ${id}: ${hash}`);
-  await page.locator('aside.detail h3').focus();
+  await page.locator('aside.detail .d-h').focus();
   await page.keyboard.press('Escape');
   const closed = await page.evaluate(() => ({ panel: !!document.querySelector('aside.detail'), hash: location.hash, focus: document.activeElement?.getAttribute('data-row') }));
   if (closed.panel || closed.hash || closed.focus !== `step:${id}`) fail(`${where}: Esc: ${JSON.stringify(closed)}`);
