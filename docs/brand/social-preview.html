@@ -1,44 +1,43 @@
 <!doctype html>
-<!-- Social preview template (PLAN D19), 1280×640. `pnpm check:browser --flows brand` inlines every relative file
-     (the hero still and the two fonts) as data URLs and renders docs/brand/social-preview.png. Opened directly from a
-     clone it shows the same layout. Colours are the light theme tokens (src/styles/tokens.css). -->
+<!-- Social preview template (v7), drawn at 640×320 CSS px and rendered at 2× to 1280×640 by
+     `pnpm check:browser --flows brand`, which inlines every relative file (the hero still and the two fonts) as data
+     URLs and writes docs/brand/social-preview.png. Opened directly from a clone it shows the same layout.
+     Light Radix tokens (src/styles/tokens.css), Geist, the four type sizes, the veined-leaf wordmark, and the home's tree
+     cut from docs/brand/hero.webp (the 1440×900 home: the tree is drawn in x 120–1320, y 328–800 under its legend
+     row, which is left out). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Reasontrail social preview</title>
 <style>
-  @font-face { font-family: 'Plex Mono'; font-weight: 500; src: url('../../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2'); }
-  @font-face { font-family: 'Instrument Serif'; font-style: italic; src: url('../../node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2') format('woff2'); }
+  @font-face { font-family: 'Geist'; font-weight: 100 900; src: url('../../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Geist Mono'; font-weight: 100 900; src: url('../../node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2') format('woff2'); }
   * { box-sizing: border-box; margin: 0; }
-  html, body { width: 1280px; height: 640px; overflow: hidden; }
-  body { display: grid; grid-template-columns: 500px 1fr; gap: 48px; padding: 64px 0 0 72px; background: #f6f3ea; color: #1c2620; font: 22px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; }
-  .mark { display: flex; align-items: center; gap: 16px; font-size: 44px; line-height: 1; }
-  .mark svg { width: 64px; height: 64px; color: #1c2620; }
-  .reason { font-family: 'Plex Mono', ui-monospace, monospace; font-weight: 500; letter-spacing: -0.01em; }
-  .trail { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 1.25em; }
-  h1 { margin-top: 64px; font: italic 400 54px/1.08 'Instrument Serif', Georgia, serif; letter-spacing: -0.01em; }
-  p { margin-top: 24px; color: #4d5a52; }
-  .foot { position: absolute; left: 72px; bottom: 52px; font: 500 18px 'Plex Mono', ui-monospace, monospace; color: #4d5a52; }
-  .foot b { color: #b4530a; font-weight: 500; }
-  figure { align-self: start; height: 516px; margin-top: 48px; overflow: hidden; border: 1px solid #1c2620; border-right: 0; border-radius: 6px 0 0 6px; background: #fffdf7; }
-  figure img { display: block; width: 1000px; height: 100%; object-fit: cover; object-position: top left; }
+  html, body { width: 640px; height: 320px; overflow: hidden; }
+  body { position: relative; padding: 24px 32px 0; background: #fcfcfd; color: #1c2024; font: 400 14px/1.4 Geist, system-ui, sans-serif; font-feature-settings: "tnum"; }
+  .top { display: flex; align-items: center; justify-content: space-between; height: 20px; }
+  .mark { display: flex; align-items: center; gap: 8px; margin-left: -1px; font-weight: 600; letter-spacing: -0.01em; }
+  .mark svg { width: 20px; height: 20px; }
+  .repo { font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #60646c; }
+  h1 { margin-top: 20px; font-size: 32px; font-weight: 600; line-height: 1.1; letter-spacing: -0.025em; }
+  /* The tree, cut out of the hero: 1200 × 472 from (120, 328) at 0.44 (528 × 208), its root on the 32px edge. */
+  figure { position: absolute; left: 32px; top: 112px; width: 528px; height: 208px; overflow: hidden; }
+  figure img { display: block; width: 633.6px; height: 396px; margin: -144.32px 0 0 -52.8px; }
 </style>
 </head>
 <body>
-  <main>
-    <div class="mark">
-      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
-        <circle cx="4.5" cy="20" r="3.5" fill="currentColor" stroke="none"/>
-        <path d="M4.5 20 H11 L19 12 H22" stroke-width="3.5" stroke-linejoin="round"/>
-        <path d="M11 20 H19.5" stroke-width="2"/><path d="M21.5 16.5 V23.5" stroke-width="2"/>
-        <circle cx="26.5" cy="12" r="4" stroke-width="2.5"/><circle cx="26.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+  <div class="top">
+    <span class="mark">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M6 58C6 28 28 6 58 6Z" fill="#0090ff"/>
+        <path d="M6 58C36 58 58 36 58 6Z" fill="#f76b15"/>
+        <path d="M8 56L56 8M20 44C17 38 16 31 17 25M31 33C37 35 43 35 49 33M41 23C39 19 39 15 40 11" fill="none" stroke="#fcfcfd" stroke-width="2.8" stroke-linecap="round"/>
       </svg>
-      <span><span class="reason">reason</span><span class="trail">trail</span></span>
-    </div>
-    <h1>See how your coding agent got there.</h1>
-    <p>One command turns a Claude Code, Codex or Grok Build session into a map you can read at a glance. Local, no API key, nothing uploaded.</p>
-    <div class="foot"><b>▶</b> github.com/geekplux/reasontrail</div>
-  </main>
-  <figure><img src="hero.webp" alt="A Reasontrail map: the task card, a route of named episodes with a numbered trouble marker, and the destination card."></figure>
+      Reasontrail
+    </span>
+    <span class="repo">github.com/geekplux/reasontrail</span>
+  </div>
+  <h1>See how your coding agent got there.</h1>
+  <figure><img src="hero.webp" alt="The tree of a real coding-agent session: the main agent as the trunk, three subagents as limbs, episodes as branches, tool calls as twigs with leaves, failed calls as orange twigs with an x."></figure>
 </body>
 </html>
