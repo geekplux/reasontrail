@@ -15,6 +15,8 @@ import { MAKER, MORE_SITES, shownUrl } from './moreSites';
 import { HeroTree } from './HeroTree';
 import { SessionCard } from './SessionCard';
 import { findStep, stepFacts } from './stepDetail';
+import { usePhone } from './usePhone';
+import { TreeLegend } from '../map/tree/TreeLegend';
 
 const CARD_ID = 'session';
 const TREE_ID = 'hero-tree';
@@ -57,6 +59,7 @@ function SampleTabs({ current, onChoose }: { current: string; onChoose(id: strin
 /** `step`: the selected step from the URL (ignored when the sample does not list it); `onStep` writes it. */
 export function Home({ session, onSession, step = null, onStep }: { session: string | null; onSession(id: string): void; step?: string | null; onStep?(stepId: string | undefined): void }) {
   const sample = sessionSamples.find((s) => s.id === session) ?? sessionSamples[0]!;
+  const phone = usePhone();
   const unknown = session !== null && sample.id !== session;
   // Loaded graphs are kept per sample id, so a tab switch re-renders the card without remounting the tabs.
   const [loaded, setLoaded] = useState<{ id: string; graph: SessionGraph } | null>(sample.id === sessionSamples[0]?.id ? { id: sample.id, graph: defaultSessionGraph } : null);
@@ -136,9 +139,10 @@ export function Home({ session, onSession, step = null, onStep }: { session: str
           </div>
           <CommandLine command={COMMANDS.installSkill} label="the skill install command" />
         </div>
-        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} />
+        <HeroTree id={TREE_ID} g={graph} hover={hovered} onHover={(e) => onActive(e, 'pointer')} selected={picked?.step.stepId} callout={callout} onPick={onPick} legend={!phone} />
         <div className="under">
           <SampleTabs current={sample.id} onChoose={onSession} />
+          {phone && <TreeLegend />}
         </div>
       </section>
       {unknown && <InlineNote variant="info">That session isn&apos;t here, so here is “{sample.title}”.</InlineNote>}

@@ -62,7 +62,8 @@
 .v7 .ai-home { display: inline-flex; align-items: center; gap: 8px; }
 .v7 .details { margin-top: 16px; }
 .v7 .details .request { margin-top: 8px; max-width: 72ch; }
-.v7 .cols { display: grid; grid-template-columns: 680px 360px; justify-content: space-between; gap: 48px; margin-top: 24px; align-items: start; }
+/* The list is 680 at 1440 and gives way first between 1024 and 1200, so the outcome column keeps its 360. */
+.v7 .cols { display: grid; grid-template-columns: minmax(0, 680px) 360px; justify-content: space-between; gap: 48px; margin-top: 24px; align-items: start; }
 
 /* The outcome column: one bordered box with hairline rows, then the final answer */
 .v7 .side { display: grid; gap: 28px; }
@@ -129,4 +130,31 @@
   .v7.bar { justify-content: space-between; }
   .v7.foot { flex-direction: column; align-items: flex-start; gap: 16px; }
   .v7.foot nav { flex-wrap: wrap; gap: 8px 16px; }
+}
+
+/* Phone (Phone.html, the `.rt.phone` rules of gen7.mjs), up to 639px as usePhone.ts: 16px gutters, the headline and
+   a 14px lede (the install command waits for the install section), the bare tree, the tab track scrolling sideways
+   with the legend wrapped under it, the card full-bleed between two rules, the outcome box above the list (SessionCard)
+   and the final answer under it, everything below in one column. */
+@media (max-width: 639px) {
+  .v7.bar { height: 56px; }
+  .v7 .hero { padding-top: 40px; }
+  .v7 .hero-top { display: block; }
+  .v7 .hero-top .cmdbox { display: none; }
+  .v7 .lede { font-size: var(--text-14); line-height: 1.5; }
+  .v7 .hero-tree { margin-top: 24px; }
+  .v7 .under { display: block; margin-top: 16px; }
+  .v7 .tabs { overflow-x: auto; scrollbar-width: none; }
+  .v7 .tab { flex: none; }
+  .v7 .under .legend { flex-wrap: wrap; gap: 6px 12px; margin-top: 12px; }
+  .v7 .frame { margin: 0; border-radius: 0; box-shadow: inset 0 0.5px 0 var(--slate-6), inset 0 -0.5px 0 var(--slate-6); padding: 24px 16px; }
+  .v7 .sess { display: block; padding-bottom: 20px; }
+  .v7 .frame > .side { margin-top: 20px; }
+  .v7 .cols { display: block; margin-top: 16px; }
+  .v7 .ph-answer { margin-top: 28px; }
+  .v7 .install { gap: 20px; margin-top: 56px; }
+  .v7 .agents { gap: 8px; }
+  .v7 .more { gap: 28px; margin-top: 56px; padding-top: 28px; }
+  .v7 .sites { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .v7.foot { margin-top: 56px; }
 }

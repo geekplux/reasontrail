@@ -205,16 +205,21 @@ export interface ListLayout { height: number; placed: Placed[]; rails: Rail[]; r
 
 const f1 = (v: number) => v.toFixed(1);
 
-/** Place the rows top to bottom from y 32 (under the header) and draw the rails. `open`: the open episode and its
- * (possibly truncated) step rows; `target`: the row the blue path from the root runs to (the selected step, else the
- * open episode). */
-export function layoutList(rows: ListRow[], open?: { episodeId: string; steps: (StepRow | MoreRow)[] }, target?: string): ListLayout {
+/** The columns the list shows: all of them (a header over #, Episode, Steps and Start) or, compact (the phone's 358px
+ * list, Phone.html), no header, no # and no Start, the titles from x 52 and the step counts at the right edge. */
+export interface ListColumns { head: boolean; num: boolean; at: boolean }
+export const listColumns = (compact = false): ListColumns => ({ head: !compact, num: !compact, at: !compact });
+
+/** Place the rows top to bottom from `top` (y 32, under the header; 0 without one) and draw the rails. `open`: the open
+ * episode and its (possibly truncated) step rows; `target`: the row the blue path from the root runs to (the selected
+ * step, else the open episode). */
+export function layoutList(rows: ListRow[], open?: { episodeId: string; steps: (StepRow | MoreRow)[] }, target?: string, top: number = GEO.head): ListLayout {
   const { mainX: MX, subX: SX } = GEO;
   const placed: Placed[] = [];
   const rails: Rail[] = [];
   const forks: { x: number; y: number }[] = [];
   const highlight: string[] = [];
-  let y: number = GEO.head;
+  let y = top;
   let rootY = y + 20;
   let mainFrom = rootY;
   let railFrom = 0;

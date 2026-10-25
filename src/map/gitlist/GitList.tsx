@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEve
 import type { LabelOverlay, SessionGraph } from '../../../shared/session/types';
 import { episodeTags, tagName } from '../../ai/labels';
 import { AlertIcon, KindGlyph, VerdictIcon } from './marks';
-import { STEP_ROWS_MAX, episodeSteps, layoutList, listRows, type AnyRow, type GlyphKind, type MoreRow, type Placed, type StepRow } from './rows';
+import { GEO, STEP_ROWS_MAX, episodeSteps, layoutList, listColumns, listRows, type AnyRow, type GlyphKind, type MoreRow, type Placed, type StepRow } from './rows';
 import './gitlist.css';
 
 /** What the list has open: an episode, and maybe one of its steps. Phase 32's tree and detail panel read this. */
@@ -26,6 +26,8 @@ export interface GitListProps {
   onActive?(active: ListSelection | undefined, via: 'focus' | 'pointer'): void;
   /** The episode hovered in the tree: its row (episode or lane verdict) gets the hover background. */
   hover?: string | undefined;
+  /** The phone's list (`listColumns`): no header, # or Start column; the numbers and start times stay for screen readers. */
+  compact?: boolean;
 }
 
 const KIND: Record<GlyphKind, string> = { discuss: 'task', explore: 'explore', change: 'change', verify: 'verify', answer: 'answer' };
@@ -66,8 +68,9 @@ const activeOf = (row: AnyRow): ListSelection => {
   return sel;
 };
 
-export function GitList({ g, overlay, selection, onSelect, onActive, hover: treeHover }: GitListProps) {
+export function GitList({ g, overlay, selection, onSelect, onActive, hover: treeHover, compact = false }: GitListProps) {
   const rows = useMemo(() => listRows(g), [g]);
+  const cols = listColumns(compact);
   const [own, setOwn] = useState<ListSelection>({});
   const sel = selection ?? own;
   const [all, setAll] = useState(false);
@@ -95,7 +98,8 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
   const listedSteps = shown.filter((s) => s.kind === 'step').length;
   const target = sel.stepId ? `step:${sel.stepId}` : sel.episodeId ? `ep:${sel.episodeId}` : undefined;
   // A leaf episode (nothing to list) is selected in place: no step rows, no gap under it.
-  const L = useMemo(() => layoutList(rows, sel.episodeId && shown.length > 0 ? { episodeId: sel.episodeId, steps: shown } : undefined, target), [rows, sel.episodeId, shown, target]);
+  const top = cols.head ? GEO.head : 0;
+  const L = useMemo(() => layoutList(rows, sel.episodeId && shown.length > 0 ? { episodeId: sel.episodeId, steps: shown } : undefined, target, top), [rows, sel.episodeId, shown, target, top]);
   const tags = useMemo(() => {
     if (!overlay) return undefined;
     const ofStep = new Map(g.episodes.filter((e) => !e.parentId).flatMap((e) => e.stepIds.map((id) => [id, e.id] as const)));
@@ -212,7 +216,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
   };
 
   const content = (r: AnyRow) => {
-    const at = (word: string, text: string) => text && <span className="gl-main gl-at">{vh(word)}{text}</span>;
+    const at = (word: string, text: string) => text && (cols.at ? <span className="gl-main gl-at">{vh(word)}{text}</span> : vh(`${word}${text}`));
     // An open episode lists fewer rows than its steps (results fold into their calls, long ones cut off): say how many.
     const count = (n: number | undefined, listed?: number) => n !== undefined && <span className="gl-main gl-steps">{vh(', ')}{n}{vh(n === 1 ? ' step' : ' steps')}{listed !== undefined && listed < n && vh(`, ${listed} shown`)}</span>;
     switch (r.kind) {
@@ -222,7 +226,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
         const tag = tags?.get(r.episodeId);
         return (
           <>
-            <span className="gl-main gl-num">{vh('Episode ')}{r.n}{vh(': ')}</span>
+            {cols.num ? <span className="gl-main gl-num">{vh('Episode ')}{r.n}{vh(': ')}</span> : vh(`Episode ${r.n}: `)}
             <span className="gl-main gl-title">
               <span className="gl-text">{r.title}</span>{r.title.toLowerCase() !== KIND[r.glyph] && vh(`, ${KIND[r.glyph]}`)}
               {tag && overlay && (<><span className="ai-tag" aria-hidden="true" title={tagName(tag, overlay.model)}>{tag.label}</span>{vh(`, ${tagName(tag, overlay.model)}`)}</>)}
@@ -251,8 +255,8 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
   };
 
   return (
-    <div className="gl" style={{ height: L.height }}>
-      <div className="gl-head" aria-hidden="true"><span className="gl-num">#</span><span className="gl-title">Episode</span><span className="gl-steps">Steps</span><span className="gl-at">Start</span></div>
+    <div className={compact ? 'gl is-compact' : 'gl'} style={{ height: L.height }}>
+      {cols.head && <div className="gl-head" aria-hidden="true"><span className="gl-num">#</span><span className="gl-title">Episode</span><span className="gl-steps">Steps</span><span className="gl-at">Start</span></div>}
       <svg ref={svg} className="gl-svg" width="100%" height={L.height} aria-hidden="true" focusable="false">
         {L.rails.map((r, i) => <path key={i} d={r.d} className={r.cls} />)}
         {L.highlight.map((d, i) => <path key={`h${i}`} d={d} className="r-hi" />)}

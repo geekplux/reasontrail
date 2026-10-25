@@ -8,6 +8,7 @@ import { LogoMark } from '../brand/LogoMark';
 import { Wordmark } from '../brand/Wordmark';
 import type { SiteView } from '../app/urlState';
 import { SOURCE_URL } from '../components/AppShell';
+import { usePhone } from './usePhone';
 
 export const PRIVACY = 'Parsed in your browser. Nothing is uploaded.';
 /** The tab title of a page other than home: "Install – Reasontrail" (an en dash). */
@@ -53,6 +54,7 @@ const HOW = '?view=how';
 
 export function SiteShell({ children, onFile, view }: { children: ReactNode; onFile(file: File): void; view: SiteView }) {
   const dragging = useFileDrop(onFile);
+  const phone = usePhone();
   const current = (v: SiteView) => (view === v ? 'page' : undefined);
   return (
     <>
@@ -63,7 +65,7 @@ export function SiteShell({ children, onFile, view }: { children: ReactNode; onF
           <a href="./#install">Install</a>
           <a href={SOURCE_URL}>GitHub</a>
         </nav>
-        <a className="btn primary" href="?view=open" aria-current={current('open')}>Open a session</a>
+        <a className="btn primary" href="?view=open" aria-current={current('open')}>{phone ? 'Open session' : 'Open a session'}</a>
       </header>
       <main className="site-main">{children}</main>
       <footer className="v7 foot">

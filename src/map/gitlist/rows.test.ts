@@ -3,7 +3,7 @@ import type { SessionGraph } from '../../../shared/session/types';
 import implementer from '../../sessions/samples/implementer-checks.graph.json';
 import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
-import { GEO, STEP_ROWS_MAX, episodeSteps, layoutList, listRows, shortTitle, type EpisodeRow, type ListRow, type VerdictRow } from './rows';
+import { GEO, STEP_ROWS_MAX, episodeSteps, layoutList, listColumns, listRows, shortTitle, type EpisodeRow, type ListRow, type VerdictRow } from './rows';
 
 const VFF = vff as unknown as SessionGraph;
 const IMPL = implementer as unknown as SessionGraph;
@@ -91,6 +91,14 @@ describe('layoutList (gitlist.mjs geometry)', () => {
     const open = layoutList(rows, { episodeId: 'e18', steps: episodeSteps(VFF, 'e18') }, 'step:s41');
     expect(open.height).toBe(1136 + 18 * GEO.step + GEO.stepsGap);
     expect(open.height).toBe(1682);
+  });
+
+  it('compact (the phone): no header, # or Start column, and the rows start at y 0 (Phone.html: 1104 tall)', () => {
+    expect(listColumns()).toEqual({ head: true, num: true, at: true });
+    expect(listColumns(true)).toEqual({ head: false, num: false, at: false });
+    const L = layoutList(listRows(VFF), undefined, undefined, 0);
+    expect(L.height).toBe(1104);
+    expect(L.root).toEqual({ x: 4.5, y: 20 });
   });
 
   it('forks at each lane row, merges after each verdict, and dots the main rail while a subagent runs', () => {

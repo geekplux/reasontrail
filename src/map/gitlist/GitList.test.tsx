@@ -262,3 +262,15 @@ describe('GitList long episodes', () => {
     expect(name(items().find((el) => name(el).startsWith('Episode 6:'))!)).toContain(', AI labels, suggested by test-model: dead end (1 step), 1 failed command');
   });
 });
+
+describe('GitList compact (the phone, Phone.html)', () => {
+  it('drops the header, # and Start columns from view but keeps the numbers and times for screen readers', () => {
+    const { container } = render(<GitList g={G} compact />);
+    expect(container.querySelector('.gl.is-compact')).toBeTruthy();
+    expect(container.querySelector('.gl-head, .gl-num, .gl-at')).toBeNull();
+    expect((container.querySelector('.gl') as HTMLElement).style.height).toBe('1104px');
+    const ep7 = row('Episode 7: ');
+    expect(name(ep7)).toBe('Episode 7: Edit zz-verify-scratch.test.ts +8 more, change, 15 min wait, 20 steps, starts at 17 min');
+    expect(shown(ep7)).toBe('Edit zz-verify-scratch.test.ts +8 more15 min wait20');
+  });
+});

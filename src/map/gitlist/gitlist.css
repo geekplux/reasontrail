@@ -68,3 +68,12 @@
 .gl-row.is-open .gl-num { font-weight: 600; }
 .gl-row.is-open .gl-sub { color: var(--slate-11); }
 .gl .ai-tag { flex: none; }
+
+/* Compact (the phone, Phone.html): no header, # or Start; titles from x 52 (sublines and verdict durations follow),
+   cut 96px short of the edge as on the canvas; step counts and exit codes at the right edge; states bleed 8px. */
+.gl.is-compact .gl-title { left: 52px; }
+.gl.is-compact .gl-main.gl-title { right: 96px; }
+.gl.is-compact .gl-indent { left: 72px; }
+.gl.is-compact .gl-steps { right: 0; }
+.gl.is-compact .gl-row::before, .gl.is-compact .gl-row::after { inset: 2px -8px; }
+.gl.is-compact :is(.gl-step, .gl-more)::before, .gl.is-compact :is(.gl-step, .gl-more)::after { inset: 1px -8px; }

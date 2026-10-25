@@ -1,6 +1,7 @@
 // The home's hero tree (v7 §4.3, docs/design/v7/preview/Home.html): the sample's tree at the full content width with
 // the legend inside the figure, top right. 1200 × 520 at desktop; it measures its width, keeps the legend's corner
-// free and, below 960px, draws the bare silhouette (no text) at the phone's proportions.
+// free and, below 960px, draws the bare silhouette (no text) at the phone's proportions. On the phone the legend goes
+// under the sample tabs instead (`legend={false}`; Home draws it there).
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { TreeLegend } from '../map/tree/TreeLegend';
@@ -14,7 +15,7 @@ const LABELS_FROM = 960;
 interface Measure { width: number; reserve: Box[] }
 
 /** `onPick` also says whether the tree has its text (desktop) or is the bare silhouette (phone). */
-export function HeroTree({ id, g, hover, onHover, onPick, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void } & Pick<TreeViewProps, 'selected' | 'callout'>) {
+export function HeroTree({ id, g, hover, onHover, onPick, legend = true, ...pick }: { id: string; g: SessionGraph | null; hover?: string | undefined; onHover(episodeId: string | undefined): void; onPick?(hit: HitTarget, labels: boolean): void; legend?: boolean } & Pick<TreeViewProps, 'selected' | 'callout'>) {
   const fig = useRef<HTMLElement>(null);
   // The canvas size until measured (and where nothing is laid out, as in tests): no jump on the first desktop paint.
   const [m, setM] = useState<Measure>({ width: DESKTOP.width, reserve: [] });
@@ -49,7 +50,7 @@ export function HeroTree({ id, g, hover, onHover, onPick, ...pick }: { id: strin
   const height = labels ? DESKTOP.height : Math.round((m.width * 190) / 358);
   return (
     <figure className="hero-tree" id={id} ref={fig}>
-      <TreeLegend />
+      {legend && <TreeLegend />}
       <div className="tree-wrap" aria-busy={g ? undefined : true}>
         {g && <TreeView g={g} width={m.width} height={height} labels={labels} reserve={m.reserve} hover={hover} onHover={onHover} {...pick} {...(onPick ? { onPick: (h: HitTarget) => onPick(h, labels) } : {})} />}
       </div>
