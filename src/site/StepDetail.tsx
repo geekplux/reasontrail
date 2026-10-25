@@ -1,8 +1,8 @@
 // The detail panel (docs/design/v7/PROMPT.md §4.5; docs/design/v7/preview/Step.html `.detail`): in place of the outcome
 // column while a step is selected. Where the step is, with a close button; its kind (⚠ when it failed) and time; the
-// summary; the command in a `pre`; its output; the next step; the source file and line; Previous / Next step. Esc
-// closes it. Everything from the transcript is rendered as text.
-import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
+// summary; the command in a `pre`; its output; the next step; the source file and line, with "Show raw" for the verbatim
+// record when the graph kept it; Previous / Next step. Esc closes it. Everything from the transcript is rendered as text.
+import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { AlertIcon, OkIcon } from '../map/gitlist/marks';
 import type { StepDetail as Detail, StepTone } from './stepDetail';
 
@@ -23,6 +23,10 @@ export interface StepDetailProps {
 export function StepDetail({ d, focusOnOpen = false, level = 3, onStep, onClose }: StepDetailProps) {
   const [H, L] = level === 2 ? (['h2', 'h3'] as const) : (['h3', 'h4'] as const);
   const title = useRef<HTMLHeadingElement>(null);
+  const rawId = useId();
+  // The raw record is shown for one step at a time; another step starts with it hidden.
+  const [rawFor, setRawFor] = useState<string>();
+  const showRaw = d.raw !== undefined && rawFor === d.stepId;
   useLayoutEffect(() => {
     const el = title.current;
     if (!focusOnOpen || !el) return;
@@ -75,6 +79,12 @@ export function StepDetail({ d, focusOnOpen = false, level = 3, onStep, onClose 
         </>
       )}
       <p className="d-src muted">Source <span className="code">{d.source.file}</span> line {d.source.line}</p>
+      {d.raw !== undefined && (
+        <>
+          <button type="button" className="link d-raw" aria-expanded={showRaw} aria-controls={showRaw ? rawId : undefined} onClick={() => setRawFor(showRaw ? undefined : d.stepId)}>{showRaw ? 'Hide raw' : 'Show raw'}</button>
+          {showRaw && <pre id={rawId} className="raw" aria-label="Raw record">{d.raw}</pre>}
+        </>
+      )}
       <div className="d-nav">
         <button type="button" className="btn ghost" aria-disabled={!d.prevId} onClick={() => go(d.prevId)}>Previous step</button>
         <button type="button" className="btn ghost" aria-disabled={!d.nextId} onClick={() => go(d.nextId)}>Next step</button>

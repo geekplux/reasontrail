@@ -102,6 +102,9 @@
 .v7 .d-label { margin: 0; display: flex; gap: 8px; font-size: var(--text-12); font-weight: 600; }
 .v7 .d-label .muted { font-weight: 400; }
 .v7 .d-src { font-size: var(--text-12); overflow-wrap: anywhere; }
+/* "Show raw": a 12px link 8px under the Source line; the verbatim record in a `pre` under it. */
+.v7 .d-raw { justify-self: start; margin-top: -8px; font-size: var(--text-12); }
+.v7 .detail pre.raw { max-height: 320px; overflow: auto; }
 .v7 .d-next { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; align-items: start; }
 .v7 .d-next .ic { margin-top: 3px; }
 .v7 .d-next pre { margin-top: 8px; }

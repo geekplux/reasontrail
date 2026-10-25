@@ -2,7 +2,7 @@
 // selected (the list's step rows, in list order across episodes), and everything the detail panel and the tree's
 // callout show for one, from the session's data only.
 import type { SessionGraph } from '../../shared/session/types';
-import { excerpt, lineDiff, rowStatus, stepRows, textHead, type Row } from '../map/details';
+import { excerpt, lineDiff, rawRecords, rowStatus, stepRows, textHead, type Row } from '../map/details';
 import { episodeSteps, listRows, type EpisodeRow, type StepRow } from '../map/gitlist/rows';
 import { isUnstoredThinking } from '../map/outline';
 
@@ -43,6 +43,8 @@ export interface StepDetail {
   output?: StepOutput;
   next?: { stepId: string; summary: string; at: string; tone: StepTone; output?: string };
   source: { file: string; line: number };
+  /** The verbatim source record(s) behind the step ("Show raw"), when the graph kept them. */
+  raw?: string;
   prevId?: string;
   nextId?: string;
 }
@@ -114,6 +116,8 @@ export function stepDetail(g: SessionGraph, stepId: string): StepDetail | undefi
   if (r.step.kind === 'thinking') d.text = isUnstoredThinking(r.step) ? 'Only a signature was recorded, so no text is shown.' : textHead(r.step.text ?? '', 8, 600).head;
   const out = output(r);
   if (out) d.output = out;
+  const raw = rawRecords(g, r).flatMap((x) => (x.text !== undefined ? [x.text] : []));
+  if (raw.length) d.raw = raw.join('\n');
   // Previous / Next stay within the episode (Step.html greys Previous on an episode's first step).
   const same = (o: Selectable | undefined) => (o && o.episode.episodeId === s.episode.episodeId ? o : undefined);
   const prev = same(all[i - 1]);
