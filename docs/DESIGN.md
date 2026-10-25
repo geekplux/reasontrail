@@ -121,7 +121,7 @@ All edges at 1440 are 120px: header content, headline, tree root, tabs, card, in
 - Headline, then the lede at 14; no hero command box (the install section has it).
 - The tree as a bare silhouette, 358px wide at the 358:190 proportions: no text, shape and verdict marks only.
 - Tabs as a sideways-scrolling track (no visible scrollbar), the legend wrapped under them.
-- The card turns full-bleed (top and bottom rules only, padding 16); the header has no buttons and no branch, and the meta line wraps. The outcome box comes above the list; the list drops the header, # and Start columns and cuts titles with an ellipsis. Then the final answer, then the actions row (AI titles, Details, Share), then install, Made by GeekPlux in one column, and the footer.
+- The card turns full-bleed (top and bottom rules only, padding 24 16); the header has no buttons and no branch, and the meta line wraps. The outcome box comes above the list; the list drops the header, # and Start columns and cuts titles with an ellipsis. Then the final answer, then the actions row (AI titles, Details, Share), then install, Made by GeekPlux in one column, and the footer.
 - 640–1023px stacks the card's columns with every list column kept; the tree keeps its labels from 960px.
 
 ### 6.3 Dark (`HomeDark.html`)
@@ -134,8 +134,8 @@ The local viewer (the HTML the CLI and the skill write, and Share's redacted cop
 
 - A header with the wordmark only (the viewer) or the site header (an opened session).
 - The session title as the page's h1 (32/600, max 760px), the meta line and the actions in the hero's place; the tag in the meta line names what it is ("Sample", the file name, "Pasted chat", "Shared copy, redacted (N items replaced)").
-- The tree 48px under the header (24 on the phone) at the full content width, **trimmed to the drawing**: from 24px above its top (below the legend) to 24px under its bottom, at least 240px, never more than 520. The legend lists **only the entries the tree draws**.
-- Then the card: the list and the outcome column, as on the home. A chat's outcome box shows only its trouble, and no box when there is none; its meta line drops "Chat" beside the tag.
+- The tree 32px under the session header block (24 on the phone) at the full content width, **trimmed to the drawing**: from 24px above its top (below the legend) to 24px under its bottom, at least 240px, never more than 520. The legend lists **only the entries the tree draws**.
+- Then the card: the list and the outcome column, as on the home. A chat's outcome box shows only its trouble, and no box when there is none; its meta line drops "Chat" beside the "Pasted chat" tag.
 - The viewer's footer: "Made with Reasontrail" (reasontrail.geekplux.com) and "geekplux.com", plain links; no requests from `file://`.
 
 ### 6.5 Open a session (`Open.html`)
@@ -191,7 +191,7 @@ Engine: `src/map/tree/` (pure, typed, deterministic); renderer: `TreeView.tsx`; 
 ## 9. Outcome and step panel
 
 - **Outcome box** (radius 10, 0.5px slate-7 ring, hairline rows, padding 14 16): the last check (blue ✓ "Passed on re-verify" or orange ⚠ "Failed", the command and when), the trouble (orange ⚠ "1 failed review", "N trouble spots", or ✓ "No trouble detected"), the files changed (a file icon, the first path and "and N more"). Rows come from the graph for any session. Then **Final answer** (14/600 heading): up to four lines and "Read the full answer".
-- **Step panel** (`Step.html .detail`), in the outcome column's place while a step is selected: radius 14, slate-2, 0.5px slate-6 ring, padding 20, gap 16. Where it is ("Verify phase 12, episode 6, step 1 of 28") with a close button; the title ("Command failed" with ⚠) and time; **for a thinking step with its text, a 12px slate-11 note right under the title: "Written reasoning is the model's own account, not a record of how it computed."** (no eyebrow, no card); the summary; the command in a `pre` (radius 6); "Output" and its note; "Next step" with its icon and output; "Source <file> line N" (12); "Show raw" (12 link) disclosing the verbatim record; "Previous step" / "Next step" within the episode. Esc closes it.
+- **Step panel** (`Step.html .detail`), in the outcome column's place while a step is selected: radius 14, slate-2, 0.5px slate-6 ring, padding 20, gap 16. Where it is ("Verify phase 12, episode 6, step 1 of 28") with a close button; the title ("Command failed" with ⚠) and time; **for a thinking step whose text was stored, a 12px slate-11 note right under the title: "Written reasoning is the model's own account, not a record of how it computed."** (no eyebrow, no card); the summary; the command in a `pre` (radius 6); "Output" and its note; "Next step" with its icon and output; "Source <file> line N" (12); "Show raw" (12 link) disclosing the verbatim record; "Previous step" / "Next step" within the episode. Esc closes it.
 
 ## 10. Interaction
 
@@ -204,7 +204,7 @@ Engine: `src/map/tree/` (pure, typed, deterministic); renderer: `TreeView.tsx`; 
 
 - Never colour alone: failed is orange **and** ✕ or ⚠; passed is blue **and** ✓; a selected step's row is slate-3 **and** weight 500 **and** a ring on its mark; an on toggle shows ✓.
 - Text reaches AA, marks and focus rings 3:1 (hence the deviations in §12); blue-9, orange-9 and slate-12 pass protanopia, deuteranopia and tritanopia checks in light and dark.
-- Visible focus everywhere (2px blue-9 ring, 2px outside); a focused heading after navigation shows none.
+- Visible focus everywhere: a 2px ring, 2px outside (blue-9; blue-11 on list rows, inset on tabs); a blue-9 stroke on garden branches; an underline on the lens's text controls. A focused heading after navigation shows none.
 - The list's rows are named by their visible text plus visually hidden words that read the columns as a sentence; the legend is `aria-hidden` (the SVG summary and the list carry the meaning).
 - No functionality is lost on the phone or at 400% zoom (WCAG 1.4.10); targets are ≥ 24px (≥ 44px on phones).
 - axe-core: zero violations on every page, light and dark, 1440 and 390.
@@ -226,13 +226,13 @@ Each is recorded in `docs/DECISIONS.md` with its reason. Anything not listed her
 | Phone silhouette verdicts | coloured ◉ | ✕ (failed), ✓ ring (passed) | never colour alone; no text there |
 | Phone "Read the full answer" | not shown (its text fits) | shown when the answer is cut | otherwise unreachable |
 | Step panel | Source line only | "Show raw" link after Source | provenance to the raw record |
-| Step panel, thinking | no note | the honesty line under the title (§9) | written reasoning is the model's own account |
+| Step panel, thinking | no note | the honesty line under the title, for a thinking step whose text was stored (§9) | written reasoning is the model's own account |
 | Viewer h1 | 18ch (the home's headline) | max 760px | long session titles would push the tree below the fold |
-| Viewer spacing | the hero's 64 + 32 | tree 48px under the header; phone frame 24px under the legend | no hero copy above it |
+| Viewer spacing | the hero's 64 + 32 | tree 32px under the session header block (phone 24); phone frame 24px under the legend | no hero copy above it |
 | Session pages (viewer, opened) | 1200 × 520 tree, full legend | box trimmed to the drawing (≥ 240px), legend of drawn entries only | small sessions left up to 300px empty; the home is unchanged |
-| Chat outcome box | (no chat frame) | only the trouble row, else no box; no "Chat" beside the tag | "No check run found / 0 files changed" says nothing for a chat |
-| Outcome and list wording | hand-written rows ("A gap in the sample audit", shorter titles, 34 min) | derived from the graph ("Verify phase 12 failed, fixed in cceb2d5", recorded titles, 33 min) | works for any session; layout identical |
-| Tree numbers 1, 3, 14, 16 | halos over ribbons | moved 3.7–7.6px off the ribbons | a halo would hide part of a ribbon |
+| Chat outcome box | (no chat frame) | only the trouble row, else no box; no "Chat" beside the "Pasted chat" tag | "No check run found / 0 files changed" says nothing for a chat |
+| Outcome, list and the step panel's next-step output wording | hand-written rows ("A gap in the sample audit", shorter titles, 34 min) | derived from the graph ("Verify phase 12 failed, fixed in cceb2d5", recorded titles, 33 min) | works for any session; layout identical |
+| Tree numbers 1, 3, 14, 16 | halos over ribbons | glyphs 3, 14 and 16 move 3.7–7.6px off the ribbons; glyph 1 flips to the limb's other side; their numbers re-place 9–40px | a halo would hide part of a ribbon |
 | Install copy | (canvas) | the canvas's sentence, not PROMPT §4.6's | the canvas wins |
 | AI titles in the tree and list | not drawn | dashed 1px blue-9 ring (glyph r + 5); slate-3 tag | §7 asks for both; blue-8 is under 2:1 |
 | Garden page title | (no frame) | visually hidden heading; the selected tab names the garden | said once (rule 2) |
