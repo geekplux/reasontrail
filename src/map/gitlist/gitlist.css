@@ -64,6 +64,7 @@
 .gl-bad { color: var(--slate-12); font-weight: 500; }
 /* blue-12, not the canvas's blue-11 (4.25:1 on blue-3, 4.19:1 on slate-3): AA text; the glyph keeps blue-11. */
 .gl-row.is-open .gl-title, .gl-row.is-open .gl-num, .gl-step.is-sel .gl-title { color: var(--blue-12); }
+.gl-step.is-sel .gl-title { font-weight: 500; }
 .gl-row.is-open .gl-num { font-weight: 600; }
 .gl-row.is-open .gl-sub { color: var(--slate-11); }
 .gl .ai-tag { flex: none; }

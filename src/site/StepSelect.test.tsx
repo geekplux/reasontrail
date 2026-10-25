@@ -6,7 +6,8 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { Site } from '../Site';
 import { highlight, type HitTarget } from '../map/tree';
 import { TreeView } from '../map/tree/TreeView';
-import { treeFor } from '../map/tree/view';
+import type { Box } from '../map/tree/types';
+import { treeCallout, treeFor } from '../map/tree/view';
 import { defaultSessionGraph as g } from '../sessions/samples';
 import { Home } from './Home';
 import { selectableSteps } from './stepDetail';
@@ -37,6 +38,29 @@ describe('the tree with a selected step', () => {
   it('draws no selection for an id it does not draw', () => {
     const { container } = render(<TreeView g={g} width={1200} height={520} selected="nope" />);
     expect(container.querySelector('svg.tree.dim, .b.hi, .ring, .callout')).toBeNull();
+  });
+
+  it('rings the step without labels too (the phone), with no callout', () => {
+    const { container } = render(<TreeView g={g} width={358} height={190} labels={false} selected="s41" callout={['Inspect vitest config for log suppression', 'Exit code 2, 16 min']} />);
+    expect(container.querySelectorAll('circle.ring')).toHaveLength(1);
+    expect(container.querySelector('.callout')).toBeNull();
+  });
+
+  it('keeps the hover tooltip off the selected step\'s callout and ring', () => {
+    const lines: [string, string] = ['Inspect vitest config for log suppression', 'Exit code 2, 16 min'];
+    const call = treeCallout(t, 's41', lines)!;
+    const ring = { x0: call.ring.x - 10, y0: call.ring.y - 10, x1: call.ring.x + 10, y1: call.ring.y + 10 };
+    const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    const covered = t.episodes.filter((e) => {
+      const { container, unmount } = render(<TreeView g={g} width={1200} height={520} selected="s41" callout={lines} hover={e.episodeId} />);
+      const tip = container.querySelector('.tip');
+      const [x, y] = (tip?.getAttribute('transform') ?? '').match(/[\d.]+/g)!.map(Number) as [number, number];
+      const rect = tip!.querySelector('rect')!;
+      const box = { x0: x, y0: y, x1: x + Number(rect.getAttribute('width')), y1: y + Number(rect.getAttribute('height')) };
+      unmount();
+      return hit(box, call.box) || hit(box, ring);
+    });
+    expect(covered.map((e) => e.episodeId)).toEqual([]);
   });
 
   it('picks the mark under a click or a tap', () => {
@@ -92,13 +116,46 @@ describe('Home: step selection', () => {
     expect(panel()?.querySelector('h3')?.textContent).toBe('Command');
   });
 
-  it('steps with Previous / Next across episodes, and Esc closes the panel with focus back on the row', () => {
+  it('moves focus to the title again on a second tree click', () => {
+    const onStep = vi.fn<(stepId: string | undefined) => void>();
+    const { container, rerender } = render(<Home session={null} onSession={() => {}} onStep={onStep} />);
+    const svg = container.querySelector('.hero-tree svg.tree')!;
+    fireEvent.click(svg, { clientX: twig('s41').tip.x, clientY: twig('s41').tip.y });
+    rerender(<Home session={null} step="s41" onSession={() => {}} onStep={onStep} />);
+    expect(document.activeElement?.textContent).toBe('Command failed');
+    act(() => row('step:s41')!.focus());
+    fireEvent.click(svg, { clientX: twig('s43').tip.x, clientY: twig('s43').tip.y });
+    expect(onStep).toHaveBeenLastCalledWith('s43');
+    rerender(<Home session={null} step="s43" onSession={() => {}} onStep={onStep} />);
+    expect(document.activeElement).toBe(panel()?.querySelector('h3'));
+    expect(document.activeElement?.textContent).toBe('Command');
+  });
+
+  it('announces a step picked in the list or by Previous / Next; the panel itself is not a live region', () => {
+    const onStep = vi.fn<(stepId: string | undefined) => void>();
+    const live = () => document.querySelector('.frame [data-role="live"]')?.textContent?.trim();
+    // Open episode 6 and close the panel (the episode stays open), then pick its first step from the list.
+    const { rerender } = render(<Home session={null} step="s43" onSession={() => {}} onStep={onStep} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Close step details' }));
+    rerender(<Home session={null} step={null} onSession={() => {}} onStep={onStep} />);
+    act(() => row('step:s41')!.focus());
+    fireEvent.keyDown(row('step:s41')!, { key: 'Enter' });
+    expect(onStep).toHaveBeenLastCalledWith('s41');
+    expect(live()).toBe('Command failed: Inspect vitest config for log suppression, Verify phase 12, episode 6, step 1 of 28');
+    rerender(<Home session={null} step="s41" onSession={() => {}} onStep={onStep} />);
+    expect(panel()?.querySelector('[aria-live]')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
+    expect(live()).toMatch(/^Command: .+, Verify phase 12, episode 6, step 3 of 28$/);
+  });
+
+  it('steps with Previous / Next within the episode, and Esc closes the panel with focus back on the row', () => {
     const all = selectableSteps(g);
-    const at = all.findIndex((s) => s.step.stepId === 's41');
     const onStep = vi.fn<(stepId: string | undefined) => void>();
     render(<Home session={null} step="s41" onSession={() => {}} onStep={onStep} />);
+    // s41 opens episode 6: Previous is greyed, as on the canvas.
+    expect(screen.getByRole('button', { name: 'Previous step' }).getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Previous step' }));
-    expect(onStep).toHaveBeenLastCalledWith(all[at - 1]!.step.stepId);
+    expect(onStep).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
     expect(onStep).toHaveBeenLastCalledWith('s43');
     fireEvent.keyDown(panel()!.querySelector('h3')!, { key: 'Escape' });
@@ -119,18 +176,31 @@ describe('Site: the selected step in the URL', () => {
     return render(<Site />);
   };
 
-  it('writes the step on select, follows Back and Forward, and a tab switch clears it', async () => {
+  const travel = async (to: 'back' | 'forward') => {
+    await act(async () => {
+      window.history[to]();
+      await new Promise((r) => setTimeout(r, 20));
+    });
+  };
+
+  it('pushes the first step and replaces the next, Back closes the panel like Esc, Forward reopens it, and a tab switch clears it', async () => {
     const { container } = renderSite('?session=verify-fail-fix');
+    const depth = window.history.length;
     fireEvent.click(container.querySelector('.hero-tree svg.tree')!, { clientX: twig('s41').tip.x, clientY: twig('s41').tip.y });
     expect(window.location.search).toBe('?session=verify-fail-fix&step=s41');
     expect(panel()?.dataset.step).toBe('s41');
+    expect(window.history.length).toBe(depth + 1);
     fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
     expect(window.location.search).toBe('?session=verify-fail-fix&step=s43');
-    await act(async () => {
-      window.history.back();
-      await new Promise((r) => setTimeout(r, 20));
-    });
-    await waitFor(() => expect(panel()?.dataset.step).toBe('s41'));
+    expect(window.history.length).toBe(depth + 1);
+    // Back leaves the step: the panel closes and focus goes to the step's row, not the page heading.
+    await travel('back');
+    await waitFor(() => expect(panel()).toBeNull());
+    expect(window.location.search).toBe('?session=verify-fail-fix');
+    expect(document.activeElement).toBe(row('step:s43'));
+    await travel('forward');
+    await waitFor(() => expect(panel()?.dataset.step).toBe('s43'));
+    expect(document.activeElement).toBe(row('step:s43'));
     fireEvent.click(screen.getByRole('tab', { name: 'Lint and typecheck fail, then pass' }));
     expect(window.location.search).toBe('?session=implementer-checks');
     expect(panel()).toBeNull();

@@ -5,7 +5,7 @@ import { lazy, Suspense, useEffect, useId, useRef, useState } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import type { AiSource } from '../ai/AiControl';
 import { LiveRegion, useAnnouncer } from '../components/LiveRegion';
-import { GitList, type GitListProps } from '../map/gitlist/GitList';
+import { GitList, type GitListProps, type ListSelection } from '../map/gitlist/GitList';
 import { AlertIcon, OkIcon, UnknownIcon } from '../map/gitlist/marks';
 import { taskCard } from '../map/outline';
 import { ShareAction } from '../share/ShareAction';
@@ -76,24 +76,42 @@ export function SessionCard({ g, sample = false, branch, id, selection, onSelect
   const card = taskCard(g);
   const detail = selection?.stepId ? stepDetail(g, selection.stepId) : undefined;
   // Closing the panel puts focus back on the step's row in the list (its episode's row if the step is folded away).
+  // A close from outside (Back) does the same, without scrolling, when focus went away with the panel.
   const frame = useRef<HTMLElement>(null);
   const refocus = useRef<{ stepId: string; episodeId: string }>(undefined);
+  const shown = useRef<{ stepId: string; episodeId: string }>(undefined);
   useEffect(() => {
-    const to = refocus.current;
+    const was = shown.current;
+    shown.current = detail && { stepId: detail.stepId, episodeId: detail.episodeId };
+    const lost = !document.activeElement || document.activeElement === document.body;
+    const to = refocus.current ?? (was && !detail && lost ? was : undefined);
     if (!to) return;
+    const scroll = refocus.current !== undefined;
     refocus.current = undefined;
     const row = (key: string) => frame.current?.querySelector<HTMLElement>(`[data-row="${key}"]`);
-    (row(`step:${to.stepId}`) ?? row(`ep:${to.episodeId}`))?.focus();
+    (row(`step:${to.stepId}`) ?? row(`ep:${to.episodeId}`))?.focus(scroll ? undefined : { preventScroll: true });
   });
   const close = () => {
     if (!detail) return;
     refocus.current = { stepId: detail.stepId, episodeId: detail.episodeId };
     onSelect?.({ episodeId: detail.episodeId });
   };
+  const say = (stepId: string) => {
+    const d = stepDetail(g, stepId);
+    if (d) announce(`${d.title}: ${d.summary}, ${d.where}`);
+  };
   const toStep = (stepId: string) => {
     const s = findStep(g, stepId);
-    if (s) onSelect?.({ episodeId: s.episode.episodeId, stepId });
-  };  return (
+    if (!s) return;
+    say(stepId);
+    onSelect?.({ episodeId: s.episode.episodeId, stepId });
+  };
+  // A step picked in the list while none is open is announced (the panel itself is not a live region).
+  const fromList = (next: ListSelection) => {
+    if (next.stepId && !detail) say(next.stepId);
+    onSelect?.(next);
+  };
+  return (
     <section className="frame" id={id} ref={frame} role="tabpanel" aria-labelledby="sess-title">
       <header className="sess">
         <div className="sess-l">
@@ -118,7 +136,7 @@ export function SessionCard({ g, sample = false, branch, id, selection, onSelect
         <p className="muted request">{card.request.replace(/\*\*|`/g, '')}</p>
       </div>
       <div className="cols">
-        <GitList g={g} overlay={overlay} hover={hover} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect } : {})} {...(onActive ? { onActive } : {})} />
+        <GitList g={g} overlay={overlay} hover={hover} {...(selection ? { selection } : {})} {...(onSelect ? { onSelect: fromList } : {})} {...(onActive ? { onActive } : {})} />
         {detail ? <StepDetail d={detail} focusOnOpen={focusDetail} onStep={toStep} onClose={close} /> : <Outcome g={g} />}
       </div>
       <LiveRegion message={message} />

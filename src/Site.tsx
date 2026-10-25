@@ -49,12 +49,13 @@ export function Site() {
   // focused element went away with the old view (focus fell to <body>).
   const navigated = useRef(false);
   const popped = useRef(false);
+  // (A Back that closes the step panel is handled by the session card: focus goes to the step's row, as on Esc.)
   const focusTitle = useCallback(() => {
     const lost = popped.current && (!document.activeElement || document.activeElement === document.body);
+    popped.current = false;
     const h1 = navigated.current || lost ? document.querySelector<HTMLElement>('main h1') : null;
     if (!h1) return;
     navigated.current = false;
-    popped.current = false;
     h1.focus();
   }, []);
   useEffect(focusTitle, [search, focusTitle]);
@@ -148,6 +149,7 @@ export function Site() {
       } else el?.focus();
     });
   };
+  // Opening a step from none and closing the panel are history entries; stepping from one step to another replaces.
   const page =
     state.view === 'open' || state.view === 'chat' ? (
       <Suspense fallback={<p className="page muted">Loading…</p>}>
@@ -158,7 +160,7 @@ export function Site() {
     ) : state.view === 'how' ? (
       <div className="page"><HowToReadMap page /></div>
     ) : (
-      <Home session={state.session} step={state.step} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} onStep={(id) => go(writeStep(window.location.search, id))} />
+      <Home session={state.session} step={state.step} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} onStep={(id) => go(writeStep(window.location.search, id), !(state.step && id))} />
     );
   return (
     <>

@@ -10,7 +10,8 @@ const Tone = ({ tone }: { tone: StepTone }) => (tone === 'fail' ? <AlertIcon siz
 
 export interface StepDetailProps {
   d: Detail;
-  /** Move focus to the title when the panel opens (a click in the tree), without scrolling. */
+  /** Move focus to the title when the panel opens or shows another step from a click in the tree; it scrolls only
+   * when the title is out of view (the phone layout, where the panel is below the list). */
   focusOnOpen?: boolean;
   onStep(stepId: string): void;
   onClose(): void;
@@ -19,8 +20,14 @@ export interface StepDetailProps {
 export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDetailProps) {
   const title = useRef<HTMLHeadingElement>(null);
   useLayoutEffect(() => {
-    if (focusOnOpen) title.current?.focus({ preventScroll: true });
-  }, [focusOnOpen]);
+    const el = title.current;
+    if (!focusOnOpen || !el) return;
+    const r = el.getBoundingClientRect();
+    const hidden = r.top < 0 || r.bottom > window.innerHeight;
+    el.focus({ preventScroll: true });
+    if (hidden) el.scrollIntoView?.({ block: 'nearest' });
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- another step picked in the tree moves focus again
+  }, [focusOnOpen, d.stepId]);
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key !== 'Escape') return;
     e.preventDefault();
@@ -31,7 +38,7 @@ export function StepDetail({ d, focusOnOpen = false, onStep, onClose }: StepDeta
     // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Esc closes the panel from anywhere inside it
     <aside className="side detail" aria-label="Step details" data-step={d.stepId} onKeyDown={onKeyDown}>
       <div className="d-head">
-        <p className="muted" aria-live="polite">{d.where}</p>
+        <p className="muted">{d.where}</p>
         <button type="button" className="iconbtn" aria-label="Close step details" onClick={onClose}>
           <svg className="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
         </button>
