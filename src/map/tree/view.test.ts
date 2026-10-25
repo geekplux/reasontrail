@@ -213,6 +213,19 @@ describe('treeCallout (phase 32b, Step.html)', () => {
     expect(onRing).toEqual([]);
   });
 
+  it('prefers a leader that crosses no ribbon: fewer crossings than without the penalty (36, 26, 21), s41 as the canvas', () => {
+    const side = (p: Pt, q: Pt, r: Pt) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x));
+    const cross = (a: Pt, b: Pt, c: Pt, d: Pt) => side(a, b, c) * side(a, b, d) < 0 && side(c, d, a) * side(c, d, b) < 0;
+    const counts = [VFF, IMPL, PLAN].map((g) => {
+      const tt = treeFor(g, 1200, 520, true, reserve);
+      return tt.twigs.filter((w) => {
+        const [a, b] = treeCallout(tt, w.stepId, lines, reserve)!.leader;
+        return tt.ribbons.some((rb) => rb.line.some((p, i) => i > 0 && cross(a, b, rb.line[i - 1]!, p)));
+      }).length;
+    });
+    expect(counts).toEqual([29, 19, 18]);
+  });
+
   it('puts the callout beside the step, at its own height, where that is clear', () => {
     const beside = [VFF, IMPL, PLAN].flatMap((g) => {
       const tt = treeFor(g, 1200, 520, true, reserve);
