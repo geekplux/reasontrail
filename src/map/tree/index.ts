@@ -13,11 +13,9 @@ export function highlight(t: TreeLayout, id: string): string[] {
   return (t.paths[id] ?? []).flatMap(({ part, to }) => {
     const r = t.ribbons.find((x) => x.id === part);
     if (!r) return [];
-    // Without the trunk's root flare, and no wider than where the part ends (tree.mjs): an 11px stub at the root, not
-    // a blue wedge around a thin path.
-    const ws = (r.core ?? r.widths).slice(0, to + 1);
-    const end = ws[to] ?? 0;
-    return [ribbonPath(r.line.slice(0, to + 1), ws.map((x) => Math.min(x, end)))];
+    // Without the trunk's root flare (the core widths, tree.mjs): an 11px stub at the root, and as wide as its branch
+    // further on, so no grey fringe shows along the path.
+    return [ribbonPath(r.line.slice(0, to + 1), (r.core ?? r.widths).slice(0, to + 1))];
   });
 }
 

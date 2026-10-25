@@ -5,7 +5,7 @@ import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
 import { boxesHit } from './labels';
 import { textWidth } from './text';
-import { highlight } from '.';
+import { highlight, ribbonPath } from '.';
 import type { Box, Pt } from './types';
 import { treeCallout, treeFor, treeSummary, treeTip } from './view';
 import { labelBox } from './labels';
@@ -205,5 +205,15 @@ describe('treeCallout (phase 32b, Step.html)', () => {
   it('draws the highlighted trunk without the root flare: an 11px stub, as the canvas (305.6 to 294.4)', () => {
     const ys = (highlight(t, 's41')[0] ?? '').match(/-?[\d.]+/g)!.map(Number).filter((_, i) => i % 2 === 1);
     expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(11.2, 0);
+  });
+
+  it('draws the highlighted limb and branch as wide as the ribbons they cover (no grey fringe), as the canvas (~9px)', () => {
+    const [, limb, branch] = t.paths.s41!;
+    for (const [i, p] of [[1, limb!], [2, branch!]] as const) {
+      const r = t.ribbons.find((x) => x.id === p.part)!;
+      expect(highlight(t, 's41')[i]).toBe(ribbonPath(r.line.slice(0, p.to + 1), r.widths.slice(0, p.to + 1)));
+    }
+    const r = t.ribbons.find((x) => x.id === limb!.part)!;
+    expect(Math.max(...r.widths.slice(0, limb!.to + 1))).toBeGreaterThan(8);
   });
 });
