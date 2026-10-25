@@ -1,5 +1,5 @@
-/* Local viewer and outline (DESIGN §5, §8, §10.2, §13.1). Geist and Geist Mono are inlined as data URLs: weights
-   400–600, Latin only (scripts/subset-viewer-fonts.sh), 29 KB together, so the one-file page works offline inside its
+/* The local viewer (v7 §7): the home's tree, card and footer (home.css) under a wordmark-only header. Geist and
+   Geist Mono are inlined as data URLs: weights 400–600, Latin only (scripts/subset-viewer-fonts.sh), 29 KB together, so the one-file page works offline inside its
    300 KB budget (v7 §3.2, DECISIONS 2026-10-24). */
 @font-face {
   font-family: 'Geist';
@@ -16,17 +16,18 @@
   src: url('./fonts/geist-mono-400-600.woff2') format('woff2');
 }
 
-.viewer-footer { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 24px; margin: 0; font-size: var(--text-12); color: var(--slate-11); }
-.viewer-footer { padding: 24px 40px 40px; border-top: var(--hair-soft); }
-/* The shared-copy line (SO2): one muted mono line on paper, no fill and no rule (CL10). */
-.shared-ribbon { display: block; width: 100%; max-width: 1280px; margin: 0 auto; padding: 8px 40px 0; font: 500 var(--text-12) var(--font-mono); color: var(--slate-11); }
-.viewer-main { --frame-top: 24px; width: 100%; max-width: 1280px; margin: 0 auto; padding: 24px 40px 40px; }
-.viewer-error { padding: 40px 24px; max-width: 65ch; }
-.bang { display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; color: var(--on-orange-9); background: var(--orange-9); font-weight: 600; }
+/* The tree right under the header (no headline): 48px of air, then the figure with its legend top right. */
+.v7.viewer > .hero { padding-top: 48px; }
+.v7.viewer .hero-tree { margin-top: 0; }
+.v7.viewer > .frame { margin-top: 32px; }
+/* "Shared copy, redacted (N items replaced)" is the meta line's last tag; it wraps under text zoom. */
+.v7.viewer .tag { height: auto; min-height: 20px; white-space: normal; }
+.v7.foot a { color: var(--slate-11); }
+.v7.foot a:hover { color: var(--slate-12); }
+.viewer-error { display: grid; gap: 8px; padding: 48px var(--gutter, 16px); max-width: 72ch; }
+.viewer-error .strong { display: flex; align-items: center; gap: 8px; }
 
-@media (max-width: 767px) {
-  .viewer-header { padding: 8px 16px; }
-  .viewer-main { padding: 16px; }
-  .viewer-footer, .shared-ribbon { padding-inline: 16px; }
+@media (max-width: 639px) {
+  .v7.viewer > .hero { padding-top: 24px; }
+  .v7.viewer > .frame { margin-top: 24px; }
 }
-.viewer-footer .share-button { padding: 0; border: 0; font: inherit; color: var(--slate-12); background: none; text-decoration: underline; text-underline-offset: 0.2em; cursor: pointer; }

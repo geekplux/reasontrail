@@ -3,20 +3,18 @@
 // tabs right under it, the session card, install, and "Made by GeekPlux". The header and footer are SiteShell's.
 // A step selected in the tree or the list (or by `&step=` in the URL) highlights its path in the tree with a callout,
 // opens its episode in the list and the detail panel in the card.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { COMMANDS, SKILL_CALL } from '../../shared/commands';
 import { InlineNote } from '../components/states/InlineNote';
-import type { ListSelection } from '../map/gitlist/GitList';
-import type { HitTarget } from '../map/tree';
 import { defaultSessionGraph, sessionSamples } from '../sessions/samples';
 import { CommandLine } from './Install';
 import { MAKER, MORE_SITES, shownUrl } from './moreSites';
 import { HeroTree } from './HeroTree';
 import { SessionCard } from './SessionCard';
-import { findStep, stepFacts } from './stepDetail';
 import { revealTab } from './revealTab';
 import { usePhone } from './usePhone';
+import { useSessionMap } from './useSessionMap';
 import { TreeLegend } from '../map/tree/TreeLegend';
 
 const CARD_ID = 'session';
@@ -85,52 +83,10 @@ export function Home({ session, onSession, step = null, onStep }: { session: str
       live = false;
     };
   }, [graph, sample]);
-  // The hovered episode, from the tree (pointer) or the list (pointer or focus); a tab switch clears it. When the
-  // pointer leaves, the focused list row's episode (if any) is shown again; when focus leaves the rows, the episode
-  // under the pointer (if any).
-  type Active = { id: string; episodeId: string } | undefined;
-  const [hover, setHover] = useState<Active>();
-  const [pointer, setPointer] = useState<Active>();
-  const [focused, setFocused] = useState<Active>();
-  // A tab switch drops the focused row too (adjusted during render, not in an effect).
-  const [focusedOn, setFocusedOn] = useState(sample.id);
-  if (focusedOn !== sample.id) {
-    setFocusedOn(sample.id);
-    setFocused(undefined);
-  }
-  const hovered = hover?.id === sample.id ? hover.episodeId : undefined;
-  const of = (episodeId: string | undefined): Active => (episodeId ? { id: sample.id, episodeId } : undefined);
-  const current = (a: Active): Active => (a?.id === sample.id ? a : undefined);
-  const onActive = (episodeId: string | undefined, via: 'focus' | 'pointer') => {
-    if (via === 'pointer') {
-      setPointer(of(episodeId));
-      setHover(of(episodeId) ?? current(focused));
-      return;
-    }
-    setFocused(of(episodeId));
-    setHover(of(episodeId) ?? current(pointer));
-  };
-  // The selection: the URL's step (when this sample lists it), else the episode open in the list.
-  const picked = graph ? findStep(graph, step) : undefined;
-  const [open, setOpen] = useState<{ id: string; episodeId: string }>();
-  // The step last picked in the tree, and how the panel scrolls its title into view: just into view where the tree
-  // has text (desktop), to the top under the phone's bare tree.
-  const [treePick, setTreePick] = useState<{ stepId: string | undefined; block: 'nearest' | 'start' }>();
-  const openEp = open?.id === sample.id ? open.episodeId : undefined;
-  const selection: ListSelection = picked ? { episodeId: picked.episode.episodeId, stepId: picked.step.stepId } : openEp ? { episodeId: openEp } : {};
-  const callout = useMemo<[string, string] | undefined>(() => (graph && picked ? [picked.step.label, stepFacts(graph, picked)] : undefined), [graph, picked]);
-  const select = (next: ListSelection, fromTree?: { labels: boolean }) => {
-    setTreePick(fromTree ? { stepId: next.stepId, block: fromTree.labels ? 'nearest' : 'start' } : undefined);
-    setOpen(next.episodeId ? { id: sample.id, episodeId: next.episodeId } : undefined);
-    if (next.stepId !== picked?.step.stepId) onStep?.(next.stepId);
-  };
-  const onPick = (hit: HitTarget, labels: boolean) => {
-    const s = graph && hit.kind === 'step' ? findStep(graph, hit.id) : undefined;
-    select(s ? { episodeId: s.episode.episodeId, stepId: s.step.stepId } : { episodeId: hit.episodeId }, { labels });
-  };
+  const { hovered, onActive, picked, selection, callout, select, onPick, focusDetail } = useSessionMap(sample.id, graph, step, onStep);
   const card = graph ? (
-    <SessionCard key={sample.id} id={CARD_ID} g={graph} sample branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)}
-      selection={selection} onSelect={(next) => select(next)} focusDetail={picked !== undefined && treePick?.stepId === picked.step.stepId && treePick.block} />
+    <SessionCard key={sample.id} id={CARD_ID} g={graph} tag="Sample" branch={sample.branch} hover={hovered} onActive={(a, via) => onActive(a?.episodeId, via)}
+      selection={selection} onSelect={(next) => select(next)} focusDetail={focusDetail} tabs />
   ) : failed === sample.id ? (
     <div className="frame" id={CARD_ID}>
       <InlineNote variant="error">This sample did not load. Reload the page to try again.</InlineNote>

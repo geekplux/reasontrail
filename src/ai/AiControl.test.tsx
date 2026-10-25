@@ -69,13 +69,13 @@ describe('AI labels (phase 21)', () => {
     vi.stubGlobal('fetch', fetch);
     const labels: LabelOverlay = { model: 'fake-model', createdAt: '', labels: [{ stepId: last, label: 'answer', confidence: 1 }], links: [] };
     const { container } = render(<Viewer loaded={{ ok: true, payload: { graph, meta: { version: '0' }, labels } }} />);
-    return screen.findByRole('button', { name: 'AI labels, suggested by fake-model' }).then((toggle) => {
-      expect(toggle.getAttribute('aria-pressed')).toBe('false');
-      expect(container.querySelector('.ai-tag:not(.ai-swatch)')).toBeNull();
-      fireEvent.click(toggle);
-      expect(container.querySelector('.route-canvas .ai-tag')?.textContent).toBe('answer');
-      expect(fetch).not.toHaveBeenCalled();
-    });
+    const toggle = screen.getByRole('button', { name: 'AI titles' });
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    expect(container.querySelector('.ai-tag')).toBeNull();
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(container.querySelector('.ai-tag')?.textContent).toBe('answer');
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('announces progress and a cancel once, and does not announce a note that takes focus', async () => {

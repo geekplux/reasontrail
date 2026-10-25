@@ -41,7 +41,7 @@ describe('Home (v7 §4, §12)', () => {
   it('draws the git-style list for every sample, so a tab switch swaps the list too', async () => {
     for (const sample of sessionSamples) {
       const g = await sample.load();
-      const { unmount } = render(<SessionCard g={g} sample />);
+      const { unmount } = render(<SessionCard g={g} tag="Sample" />);
       const tree = screen.getByRole('tree', { name: 'Episodes in order' });
       const rows = [...tree.querySelectorAll('[role="treeitem"]')].map((el) => el.textContent);
       expect(rows[0]).toBe('Main agent, starts at 0 min');

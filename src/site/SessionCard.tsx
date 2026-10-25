@@ -20,6 +20,7 @@ import { usePhone } from './usePhone';
 // The AI labels control, its consent dialog and client load only when first used.
 const AiControl = lazy(() => import('../ai/AiControl'));
 const LIVE: AiSource = { live: true };
+const SITE_SHARE: CardShare = { from: 'site' };
 
 const Runs = ({ value }: { value: Run[] }) => value.map((r, i) => (r.code ? <code key={i} className="code">{r.text}</code> : <span key={i}>{r.text}</span>));
 
@@ -70,11 +71,16 @@ function FinalAnswer({ g }: { g: SessionGraph }) {
   );
 }
 
-/** `sample`: a built-in sample, so the meta line ends with the "Sample" tag (never on a user's own session). `branch`:
- * the sample's branch where the recorded one is the main checkout. `selection` / `onSelect` / `onActive` / `hover`:
- * the list's open episode and selected step, its focused or hovered row, and the episode hovered in the tree. A
- * selected step opens the detail panel; `focusDetail` moves focus into it as it opens (`StepDetail`'s `focusOnOpen`). */
-export function SessionCard({ g, sample = false, branch, id, selection, onSelect, onActive, hover, focusDetail = false }: { g: SessionGraph; sample?: boolean; branch?: string | undefined; id?: string; focusDetail?: false | 'nearest' | 'start' } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
+/** How the card's Share makes its copy (`ShareAction`): from the website's viewer template, or from this page. */
+export interface CardShare { from: 'site' | 'page'; version?: string | undefined; prior?: number | undefined }
+
+/** `tag`: the meta line's last item ("Sample" for a built-in sample, never on a user's own session). `branch`: the
+ * sample's branch where the recorded one is the main checkout. `tabs`: the card is the sample tabs' panel. `ai`: where
+ * AI titles come from (the website asks the model; a viewer page made with `--ai` has them in the page; `null`: no AI
+ * titles button). `share`: how Share writes its copy. `selection` / `onSelect` / `onActive` / `hover`: the list's open
+ * episode and selected step, its focused or hovered row, and the episode hovered in the tree. A selected step opens
+ * the detail panel; `focusDetail` moves focus into it as it opens (`StepDetail`'s `focusOnOpen`). */
+export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share = SITE_SHARE, selection, onSelect, onActive, hover, focusDetail = false }: { g: SessionGraph; tag?: string | undefined; branch?: string | undefined; id?: string; tabs?: boolean; ai?: AiSource | null; share?: CardShare; focusDetail?: false | 'nearest' | 'start' } & Pick<GitListProps, 'selection' | 'onSelect' | 'onActive' | 'hover'>) {
   const [message, announce] = useAnnouncer();
   const phone = usePhone();
   const [aiLoaded, setAiLoaded] = useState(false);
@@ -189,13 +195,16 @@ export function SessionCard({ g, sample = false, branch, id, selection, onSelect
   const branchItem = sessionMeta(g, branch).find((m) => m.key === 'branch');
   const actions = (
     <>
-      {aiLoaded ? (
-        <Suspense fallback={null}><AiControl g={g} source={LIVE} onOverlay={setOverlay} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
-      ) : (
+      {ai && 'overlay' in ai ? (
+        // A viewer page made with `--ai`: the titles are in the page, so the button only shows or hides them.
+        <button type="button" className="btn ghost" aria-pressed={overlay !== undefined} onClick={() => setOverlay(overlay ? undefined : ai.overlay)}>AI titles</button>
+      ) : ai && aiLoaded ? (
+        <Suspense fallback={null}><AiControl g={g} source={ai} onOverlay={setOverlay} announce={announce} label="AI titles" buttonClass="btn ghost" /></Suspense>
+      ) : ai ? (
         <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setAiLoaded(true)}>AI titles</button>
-      )}
+      ) : null}
       <button type="button" className="btn ghost" aria-expanded={details} aria-controls={detailsId} onClick={() => setDetails(!details)}>Details</button>
-      <ShareAction graph={g} from="site" label="Share" className="btn ghost" />
+      <ShareAction graph={g} from={share.from} version={share.version} prior={share.prior} label="Share" className="btn ghost" />
     </>
   );
   // The phone's Details also names the branch, which its meta line leaves out.
@@ -207,13 +216,13 @@ export function SessionCard({ g, sample = false, branch, id, selection, onSelect
     </div>
   );
   return (
-    <section className="frame" id={id} ref={frame} role="tabpanel" aria-labelledby="sess-title">
+    <section className="frame" id={id} ref={frame} role={tabs ? 'tabpanel' : undefined} aria-labelledby="sess-title">
       <header className="sess" ref={head}>
         <div className="sess-l">
           <h2 id="sess-title">{g.displayTitle ?? g.title}</h2>
           <ul className="meta">
             {sessionMeta(g, branch).filter((m) => !phone || m.key !== 'branch').map((m) => ('strong' in m ? <li key={m.key}><b>{m.strong}</b> {m.rest}</li> : <li key={m.key} className={m.code ? 'code' : undefined}>{m.text}</li>))}
-            {sample && <li className="tag">Sample</li>}
+            {tag && <li className="tag">{tag}</li>}
           </ul>
         </div>
       </header>

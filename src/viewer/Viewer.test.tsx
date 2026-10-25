@@ -1,123 +1,102 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { parseSession } from '../../shared/session/adapter';
-import { HONESTY_TEXT } from '../map/HonestyLabel';
+import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 import { loadGraph } from '../map/loadGraph';
-import { Viewer } from './Viewer';
+import { defaultSessionGraph } from '../sessions/samples';
+import { MAKER_URL, SITE_URL, Viewer, readStep } from './Viewer';
 
 import basic from '../../fixtures/sessions/claude-code/basic.jsonl?raw';
-import trouble from '../../fixtures/sessions/claude-code/trouble.jsonl?raw';
 
-const fixture = (name: 'basic' | 'trouble') => {
-  const graph = parseSession({ files: [{ path: `${name}.jsonl`, text: name === 'basic' ? basic : trouble }] });
-  return JSON.stringify({ graph, meta: { version: '0.1.0' } });
-};
+const page = (graph: SessionGraph, meta: Record<string, unknown> = {}, labels?: LabelOverlay) => loadGraph(JSON.stringify({ graph, meta: { version: '0.1.0', ...meta }, ...(labels ? { labels } : {}) }));
+const user = () => parseSession({ files: [{ path: 'basic.jsonl', text: basic }] });
+const panel = () => document.querySelector<HTMLElement>('aside.detail');
 
 afterEach(() => {
   cleanup();
   window.history.replaceState(null, '', '/');
 });
-const outline = () => window.history.replaceState(null, '', '/#view=outline');
 
 describe('local viewer', () => {
-  it('opens the map by default: four glance regions, one application widget, and the outline one toggle away', () => {
-    const { container } = render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
-    expect([...container.querySelectorAll('[data-region]')].map((r) => r.getAttribute('data-region'))).toEqual(['task', 'glance', 'route', 'trouble', 'outcome']);
-    expect(container.querySelector('[data-testid="map"]')?.getAttribute('data-view')).toBe('map');
-    const app = screen.getByRole('application');
-    expect(app.getAttribute('aria-roledescription')).toBe('reasoning map');
-    expect(document.getElementById(app.getAttribute('aria-describedby') ?? '')?.textContent).toMatch(/The Outline view lists the same content as text\.$/);
-    expect(app.querySelectorAll('[tabindex="0"]')).toHaveLength(1);
-    expect(container.querySelector('[data-region="task"] [data-honesty]')?.textContent).toContain(HONESTY_TEXT);
-    fireEvent.click(screen.getByRole('button', { name: 'Outline' }));
-    expect(window.location.hash).toBe('#view=outline');
-    expect(container.querySelector('[data-testid="map"]')?.getAttribute('data-view')).toBe('outline');
-    expect(screen.getByRole('button', { name: 'Outline' }).getAttribute('aria-pressed')).toBe('true');
+  it('draws the tree, the git-style list and the outcome under a wordmark-only header, with no old map', () => {
+    const { container } = render(<Viewer loaded={page(defaultSessionGraph)} />);
+    expect(container.querySelector('header.bar')?.textContent).toBe('Reasontrail');
+    expect(container.querySelector('.hero-tree svg[role="img"]')?.getAttribute('aria-label')).toContain('Verify phase 12 (failed: 1 gap)');
+    expect(container.querySelector('.hero-tree > .legend')).not.toBeNull();
+    expect(screen.getByRole('tree', { name: 'Episodes in order' }).querySelectorAll('[role="treeitem"]').length).toBeGreaterThan(3);
+    expect(screen.getByRole('complementary', { name: 'Outcome' }).querySelectorAll('.res-row').length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { level: 2 }).textContent).toBe('Verify phase 12, fix the audit gap, re-verify');
+    expect(container.querySelector('[data-region], [role="application"], [role="tablist"], [role="tabpanel"]')).toBeNull();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
   });
 
-  it('moves along the route with arrow keys, jumps to patterns with ] and announces wrap-around', async () => {
-    render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
-    const app = screen.getByRole('application');
-    const first = app.querySelector<HTMLElement>('[tabindex="0"]');
-    first?.focus();
-    expect(first?.getAttribute('aria-label')).toMatch(/^Episode 1 of \d+, /);
-    fireEvent.keyDown(first as HTMLElement, { key: 'ArrowRight' });
-    expect(document.activeElement?.getAttribute('aria-label')).toMatch(/^Episode 2 of /);
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowLeft' });
-    expect(document.activeElement).toBe(first);
-    fireEvent.keyDown(first as HTMLElement, { key: 'ArrowLeft' });
-    expect(document.activeElement).toBe(first); // a dead end does nothing
-    const n = app.querySelectorAll('[data-trouble-kind]').length;
-    for (let i = 0; i <= n; i++) fireEvent.keyDown(document.activeElement as HTMLElement, { key: ']' });
-    expect(document.activeElement?.getAttribute('data-n')).toBe('1');
-    expect(screen.getByRole('status').textContent?.trim()).toBe(`Pattern 1 of ${n}, wrapped`);
-    const blaze = document.activeElement as HTMLElement;
-    fireEvent.keyDown(blaze, { key: 'Enter' });
-    expect(blaze.getAttribute('aria-current')).toBe('true');
-    await screen.findByTestId('detail-panel'); // the panel's code loads after the first view
-    // Enter opens the details: focus on the panel title, the step in the hash; Esc returns focus to the blaze.
-    expect(document.activeElement?.classList.contains('panel-title')).toBe(true);
-    expect(window.location.hash).toMatch(/^#step=s\d+$/);
-    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Escape' });
-    expect(screen.queryByTestId('detail-panel')).toBeNull();
-    expect(document.activeElement).toBe(blaze);
+  it('shows a user session without the Sample tag, and Details and Share but no AI titles without labels in the page', () => {
+    const { container } = render(<Viewer loaded={page(user())} />);
+    expect(container.querySelector('.meta .tag')).toBeNull();
+    expect(container.textContent).not.toContain('Sample');
+    const names = screen.getAllByRole('button').map((b) => b.textContent);
+    expect(names).toContain('Details');
+    expect(names).toContain('Share');
+    expect(names).not.toContain('AI titles');
+  });
+
+  it('turns AI titles on and off when the page has them (`--ai`)', () => {
+    const g = user();
+    const labels: LabelOverlay = { model: 'test-model', createdAt: '', labels: [{ stepId: g.steps[0]!.id, label: 'plan', confidence: 0.9 }], links: [] };
+    render(<Viewer loaded={page(g, {}, labels)} />);
+    const ai = screen.getByRole('button', { name: 'AI titles' });
+    expect(ai.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(ai);
+    expect(ai.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('ends with two plain links: Made with Reasontrail and geekplux.com', () => {
+    render(<Viewer loaded={page(user())} />);
+    const links = [...document.querySelectorAll('footer a')].map((a) => [a.textContent, a.getAttribute('href')]);
+    expect(links).toEqual([['Made with Reasontrail', SITE_URL], ['geekplux.com', MAKER_URL]]);
+  });
+
+  it('keeps the selected step in the hash: a deep link opens it, a list pick writes it, Esc and Back close it', () => {
+    expect(readStep('#step=s41')).toBe('s41');
+    expect(readStep('#a=1&step=s%2041')).toBe('s 41');
+    expect(readStep('#steps=s41')).toBeNull();
+    window.history.replaceState(null, '', '/map.html#step=s41');
+    render(<Viewer loaded={page(defaultSessionGraph)} />);
+    expect(panel()?.getAttribute('data-step')).toBe('s41');
+    expect(document.querySelector('.hero-tree circle.ring')).not.toBeNull();
+    fireEvent.keyDown(panel()!.querySelector('h3')!, { key: 'Escape' });
+    expect(panel()).toBeNull();
     expect(window.location.hash).toBe('');
+    expect(window.location.pathname).toBe('/map.html');
+    // A step row in the open episode: Enter selects it and writes the hash.
+    const step = document.querySelector<HTMLElement>('[data-row^="step:"]')!;
+    fireEvent.keyDown(step, { key: 'Enter' });
+    const id = step.getAttribute('data-row')!.slice('step:'.length);
+    expect(window.location.hash).toBe(`#step=${id}`);
+    expect(panel()?.getAttribute('data-step')).toBe(id);
+    // Back (or a hash edited by hand) closes it again.
+    act(() => {
+      window.history.replaceState(null, '', '/map.html');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(panel()).toBeNull();
   });
 
-  it('renders the four regions as plain document structure with the honesty label in the task card', () => {
-    outline();
-    const { container } = render(<Viewer loaded={loadGraph(fixture('trouble'))} />);
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => [...h.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join('').trim())).toEqual(['Task', 'At a glance', 'Route', 'Destination']);
-    expect([...container.querySelectorAll('[data-region]')].map((r) => r.getAttribute('data-region'))).toEqual(['task', 'glance', 'route', 'outcome']);
-    const task = container.querySelector('[data-region="task"]');
-    expect(task?.querySelector('[data-honesty]')?.textContent).toContain(HONESTY_TEXT);
-    expect(task?.querySelector('[data-honesty] a')?.textContent).toBe('How to read this map');
-    expect(container.querySelector('[role="tree"], [role="treeitem"], [role="grid"], [role="listbox"], [role="menu"]')).toBeNull();
-    expect(container.querySelectorAll('[data-trouble-kind]').length).toBeGreaterThan(0);
-    expect(screen.getByText('Generated on your machine, nothing was uploaded')).toBeTruthy();
-  });
-
-  it('shows an episode\'s steps behind a disclosure button', () => {
-    outline();
-    const { container } = render(<Viewer loaded={loadGraph(fixture('basic'))} />);
-    const button = screen.getAllByRole('button', { name: /^\d+ steps? in / })[0] as HTMLElement;
-    expect(button.getAttribute('aria-expanded')).toBe('false');
-    fireEvent.click(button);
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-    expect(container.querySelector(`#${CSS.escape(button.getAttribute('aria-controls') ?? '')} li`)).not.toBeNull();
+  it('marks a shared copy in the meta line, where a sample has its tag', () => {
+    render(<Viewer loaded={page(user(), { shared: { replaced: 4 } })} />);
+    expect(document.querySelector('.meta .tag')?.textContent).toBe('Shared copy, redacted (4 items replaced)');
   });
 
   it('shows text, never markup, from the transcript; and a calm message for bad data', () => {
-    const payload = JSON.parse(fixture('basic'));
-    payload.graph.steps[0].text = '</script><script>alert(1)</script>';
-    const { container } = render(<Viewer loaded={loadGraph(JSON.stringify(payload))} />);
+    const g = user();
+    g.title = '</script><script>alert(1)</script>';
+    const { container } = render(<Viewer loaded={page(g)} />);
     expect(container.querySelector('main script')).toBeNull();
     expect(container.textContent).toContain('</script><script>alert(1)</script>');
     cleanup();
     render(<Viewer loaded={loadGraph('{')} />);
     expect(screen.getByText('The session data in this page could not be read.')).toBeTruthy();
-  });
-
-  it('marks shared copies in a labelled region, under one page heading', () => {
-    const payload = { ...JSON.parse(fixture('basic')), meta: { version: '0.1.0', shared: { replaced: 4 } } };
-    render(<Viewer loaded={loadGraph(JSON.stringify(payload))} />);
-    expect(screen.getByRole('region', { name: 'Shared copy' }).textContent).toBe('Shared copy, redacted (4 items replaced)');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
-    cleanup();
-    render(<Viewer loaded={loadGraph('{')} />);
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reasoning map');
-  });
-
-  it('shows no "more" button for a one-line request', () => {
-    render(<Viewer loaded={loadGraph(fixture('basic'))} />);
-    expect(screen.queryByRole('button', { name: 'more' })).toBeNull();
-  });
-
-  it('says where skipped lines are behind a native disclosure', () => {
-    const { container } = render(<Viewer loaded={loadGraph(fixture('basic'))} />);
-    const details = container.querySelector('[data-region="task"] details');
-    expect(details?.querySelector('summary')?.textContent).toBe('Show where');
-    expect(details?.querySelector('p')?.textContent).toBe('line 36, line 39');
   });
 });
