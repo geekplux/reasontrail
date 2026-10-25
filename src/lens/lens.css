@@ -29,6 +29,8 @@
 .plate-wide { grid-template-columns: minmax(0, 1fr); }
 .lens-offer, .lens-live { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0; font-size: var(--text-12); }
 .lens-status .inline-note { margin: 8px 0 0; }
+/* Notes in the lens frame are secondary text (slate-11), not the body's slate-12. */
+.lens-head .muted, .lens-bar .muted, .lens-options .muted { color: var(--slate-11); }
 /* The daily-cap line under the opt-in or the live status (12px, slate-11). */
 .lens-cap { margin: 8px 0 0; font-size: var(--text-12); color: var(--slate-11); }
 /* More options (L5): a quiet text button beside Table view; open, its settings follow it. */
