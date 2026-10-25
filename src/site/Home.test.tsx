@@ -176,6 +176,30 @@ describe('Home (v7 §4, §12)', () => {
     expect(onSession).toHaveBeenLastCalledWith('implementer-checks');
   });
 
+  it('scrolls the tab focused by an arrow key into the track\'s view, and the selected tab on load, sideways only', () => {
+    const into = vi.fn<(arg?: boolean | ScrollIntoViewOptions) => void>();
+    const was = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = into;
+    try {
+      // The track (16..374) cuts the third tab (463..715), as on a 390 phone with ?session=planner-pivot.
+      const rect = (left: number, right: number) => () => ({ left, right, top: 0, bottom: 40, width: right - left, height: 40, x: left, y: 0, toJSON() {} });
+      const track = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+        if (this.getAttribute('role') === 'tablist') return rect(16, 374)();
+        return this.getAttribute('aria-selected') === 'true' ? rect(463, 715)() : rect(20, 200)();
+      });
+      render(<Home session="planner-pivot" onSession={() => {}} />);
+      expect(screen.getByRole('tablist').scrollLeft).toBe(715 - 374 + 4);
+      expect(into).not.toHaveBeenCalled(); // the page itself does not scroll on load
+      track.mockRestore();
+      const [first] = screen.getAllByRole('tab');
+      act(() => void fireEvent.keyDown(first!, { key: 'ArrowRight' }));
+      expect(into).toHaveBeenLastCalledWith({ block: 'nearest', inline: 'nearest' });
+      expect(into.mock.contexts.at(-1)).toBe(screen.getAllByRole('tab')[1]);
+    } finally {
+      HTMLElement.prototype.scrollIntoView = was;
+    }
+  });
+
   it('toggles Details and the full final answer', () => {
     render(<Home session={null} onSession={() => {}} />);
     const details = screen.getByRole('button', { name: 'Details' });

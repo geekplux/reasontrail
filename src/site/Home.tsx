@@ -3,7 +3,7 @@
 // tabs right under it, the session card, install, and "Made by GeekPlux". The header and footer are SiteShell's.
 // A step selected in the tree or the list (or by `&step=` in the URL) highlights its path in the tree with a callout,
 // opens its episode in the list and the detail panel in the card.
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { SessionGraph } from '../../shared/session/types';
 import { COMMANDS, SKILL_CALL } from '../../shared/commands';
 import { InlineNote } from '../components/states/InlineNote';
@@ -15,25 +15,34 @@ import { MAKER, MORE_SITES, shownUrl } from './moreSites';
 import { HeroTree } from './HeroTree';
 import { SessionCard } from './SessionCard';
 import { findStep, stepFacts } from './stepDetail';
+import { revealTab } from './revealTab';
 import { usePhone } from './usePhone';
 import { TreeLegend } from '../map/tree/TreeLegend';
 
 const CARD_ID = 'session';
 const TREE_ID = 'hero-tree';
 
-/** The sample tabs (§4.4): a segmented control under the tree, WAI-ARIA tabs with automatic activation. */
+/** The sample tabs (§4.4): a segmented control under the tree, WAI-ARIA tabs with automatic activation. Where the
+ * track scrolls sideways (the phone), the selected tab is kept in view: on load (a `?session=` link), on a switch and
+ * when the arrow keys move focus. */
 function SampleTabs({ current, onChoose }: { current: string; onChoose(id: string): void }) {
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const track = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const tab = tabs.current[sessionSamples.findIndex((s) => s.id === current)];
+    if (track.current && tab) revealTab(track.current, tab);
+  }, [current]);
   const onKey = (e: KeyboardEvent, i: number) => {
     const n = sessionSamples.length;
     const to = { ArrowRight: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
     if (to === undefined) return;
     e.preventDefault();
     tabs.current[to]?.focus();
+    tabs.current[to]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     onChoose(sessionSamples[to]!.id);
   };
   return (
-    <div className="tabs" role="tablist" aria-label="Sample sessions">
+    <div ref={track} className="tabs" role="tablist" aria-label="Sample sessions">
       {sessionSamples.map((s, i) => (
         <button
           key={s.id}
