@@ -59,5 +59,6 @@ export function listTags(g: SessionGraph, overlay: LabelOverlay): Map<string, Ep
   return episodeTags(g, overlay, (id) => ofStep.get(id));
 }
 
-/** The accessible text of an episode's tag; every title says which model suggested it (X3). */
-export const tagName = (tag: EpisodeTag, model: string) => `AI title, suggested by ${model}: ${tag.text}`;
+/** The accessible text of an episode's tag; every title says which model suggested it (X3). The step counts are read
+ * only when the episode has more than one title. */
+export const tagName = (tag: EpisodeTag, model: string) => `AI title, suggested by ${model}: ${tag.others === 0 ? tag.label : tag.text}`;

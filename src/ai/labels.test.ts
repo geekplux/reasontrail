@@ -44,9 +44,10 @@ describe('AI labels overlay', () => {
     expect(tags.size).toBe(3);
   });
 
-  it('names the model on every tag (X3)', () => {
-    const tag = episodeTags(g, overlay).get('e2');
-    expect(tag && tagName(tag, overlay.model)).toBe('AI title, suggested by fake-model: answer (1 step)');
+  it('names the model on every tag (X3); step counts only when an episode has more than one title', () => {
+    const tags = episodeTags(g, overlay);
+    expect(tagName(tags.get('e2')!, overlay.model)).toBe('AI title, suggested by fake-model: answer');
+    expect(tagName(tags.get('e1')!, overlay.model)).toBe('AI title, suggested by fake-model: decision (1 step), evidence (2 steps)');
   });
 
   it("tags the list's and the tree's episodes of every lane, a subagent's steps in their own episode", () => {

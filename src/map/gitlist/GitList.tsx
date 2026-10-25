@@ -225,7 +225,7 @@ export function GitList({ g, overlay, selection, onSelect, onActive, hover: tree
             {cols.num ? <span className="gl-main gl-num">{vh('Episode ')}{r.n}{vh(': ')}</span> : vh(`Episode ${r.n}: `)}
             <span className="gl-main gl-title">
               <span className="gl-text">{r.title}</span>{r.title.toLowerCase() !== KIND[r.glyph] && vh(`, ${KIND[r.glyph]}`)}
-              {tag && overlay && (<><span className="ai-tag" aria-hidden="true" title={tagName(tag, overlay.model)}>{tag.label}</span>{vh(`, ${tagName(tag, overlay.model)}`)}</>)}
+              {tag && overlay && (<><span className="ai-tag" aria-hidden="true">{tag.label}</span>{vh(`, ${tagName(tag, overlay.model)}`)}</>)}
             </span>
             {(r.failed > 0 || r.wait) && (
               <span className="gl-sub gl-title">

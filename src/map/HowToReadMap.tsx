@@ -15,14 +15,14 @@ export function HowToReadMap() {
         <div className="how-text">
           <p>
             The session grows left to right from the root. The trunk is the main agent and each subagent is a limb. Every
-            branch is an episode, ending in its kind&apos;s glyph and its number. Twigs are tool calls: a leaf for a command
+            branch is an episode, ending in its kind&apos;s glyph (task, explore, change, verify or answer) and its number. Twigs are tool calls: a leaf for a command
             that ran, a bud for a file read, a faint twig for thinking, an orange twig with ✕ for a failure. A part&apos;s
             width grows with the tool calls still ahead on it.
           </p>
           <p>
             The list under the tree has the same episodes in order. The main rail is the main agent; a subagent forks off
             on its own rail and merges back with its verdict. Open an episode to list its steps, and select a step for its
-            command, output and source line. ↑ ↓ move, → opens, Enter selects, Esc closes.
+            command, output and source line. ↑ ↓ move, → opens, ← closes, Home and End jump, Enter selects, Esc closes.
           </p>
         </div>
       </div>
