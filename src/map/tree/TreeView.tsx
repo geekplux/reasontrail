@@ -50,15 +50,15 @@ function Text({ l, on = false }: { l: Label; on?: boolean }) {
  * alone); a lane that just ends keeps the ink ◉. */
 function BareTip({ m, fail = false }: { m: TipMark; fail?: boolean }) {
   const { x, y } = m.at;
-  const r = m.r;
+  const r = m.r + 1.4; // a little over the ◉ so the ✓ inside reads at the phone's scale; inside the r + 3 halo
   if (fail) {
     const a = 0.75 * r;
     return <path d={`M${x - a} ${y - a}L${x + a} ${y + a}M${x + a} ${y - a}L${x - a} ${y + a}`} className="x tip-x" />;
   }
   return (
     <g className="tip-check">
-      <circle cx={x} cy={y} r={r - 0.75} />
-      <path d={`M${x - 0.45 * r} ${y + 0.02 * r}L${x - 0.12 * r} ${y + 0.35 * r}L${x + 0.45 * r} ${y - 0.3 * r}`} />
+      <circle cx={x} cy={y} r={r} />
+      <path d={`M${x - 0.5 * r} ${y + 0.02 * r}L${x - 0.15 * r} ${y + 0.38 * r}L${x + 0.5 * r} ${y - 0.35 * r}`} />
     </g>
   );
 }
