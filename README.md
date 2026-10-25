@@ -15,8 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/brand/hero.webp" width="800" alt="The Reasontrail home: the headline &quot;See how your coding agent got there.&quot;, the install command, and the tree of a real session drawn left to right. The main agent is the trunk; three subagents grow as limbs, each ending in its verdict (Verify phase 12 failed with 1 gap, Fix phase 12 audit gap committed cceb2d5, Re-verify phase 12 passed); numbered episodes are branches and tool calls are twigs with leaves, the one failed call an orange twig with an x. Sample tabs sit under the tree.">
-  <br><sub><a href="examples/README.md">Three example maps</a></sub>
+  <img src="docs/brand/hero.webp" width="720" alt="The Reasontrail home: the headline &quot;See how your coding agent got there.&quot;, the install command, and the tree of a real session drawn left to right. The main agent is the trunk; three subagents grow as limbs, each ending in its verdict (Verify phase 12 failed with 1 gap, Fix phase 12 audit gap committed cceb2d5, Re-verify phase 12 passed); numbered episodes are branches and tool calls are twigs with leaves, the one failed call an orange twig with an x.">
 </p>
 
 ## Quick start

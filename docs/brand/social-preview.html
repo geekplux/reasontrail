@@ -3,8 +3,8 @@
      `pnpm check:browser --flows brand`, which inlines every relative file (the hero still and the two fonts) as data
      URLs and writes docs/brand/social-preview.png. Opened directly from a clone it shows the same layout.
      Light Radix tokens (src/styles/tokens.css), Geist, the four type sizes, the veined-leaf wordmark, and the home's tree
-     cut from docs/brand/hero.webp (the 1440×900 home: the tree is drawn in x 120–1320, y 328–800 under its legend
-     row, which is left out). -->
+     cut from docs/brand/hero.webp (the 1440×900 home: the hero is cut from under the site header, so the tree is drawn
+     in x 120–1320, y 264–736 under its legend row, which is left out). -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -20,9 +20,9 @@
   .mark svg { width: 20px; height: 20px; }
   .repo { font: 400 12px 'Geist Mono', ui-monospace, monospace; color: #60646c; }
   h1 { margin-top: 20px; font-size: 32px; font-weight: 600; line-height: 1.1; letter-spacing: -0.025em; }
-  /* The tree, cut out of the hero: 1200 × 472 from (120, 328) at 0.44 (528 × 208), its root on the 32px edge. */
+  /* The tree, cut out of the hero: 1200 × 472 from (120, 264) at 0.44 (528 × 208), its root on the 32px edge. */
   figure { position: absolute; left: 32px; top: 112px; width: 528px; height: 208px; overflow: hidden; }
-  figure img { display: block; width: 633.6px; height: 396px; margin: -144.32px 0 0 -52.8px; }
+  figure img { display: block; width: 633.6px; margin: -116.16px 0 0 -52.8px; }
 </style>
 </head>
 <body>

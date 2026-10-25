@@ -1,7 +1,9 @@
 // Hero flow (brand, never part of "all"): the README's hero, written to a committed path.
 // - docs/brand/hero.webp: the v7 home's first screen (PROMPT §7 "README hero = a 1440 light screenshot of the new
-//   home"): 1440×900, light, motion reduced, the default sample (verify-fail-fix), nothing hovered or selected. It is
-//   also the picture in the social preview (docs/brand/social-preview.html crops it to the tree).
+//   home"): a 1440×900 viewport, light, motion reduced, the default sample (verify-fail-fix), nothing hovered or
+//   selected, cut from under the site header (the README has its own wordmark) to 24px under the tree, so the README's
+//   quick start still shows in the first screen. It is also the picture in the social preview
+//   (docs/brand/social-preview.html crops it to the tree).
 // The wordmark images are the wordmark flow's; the launch GIF is `pnpm brand:hero-gif`.
 // Usage: pnpm check:browser --flows hero
 import { mkdirSync, statSync, writeFileSync } from 'node:fs';
@@ -22,10 +24,14 @@ export async function run({ context, baseURL, root, log, fail }) {
     await page.mouse.move(0, 0);
     await page.waitForTimeout(300);
     // The whole tree must be in the shot (the canvas's first screen is the picture).
-    const bottom = await page.evaluate(() => document.querySelector('.hero-tree')?.getBoundingClientRect().bottom ?? Infinity);
+    const { top, bottom } = await page.evaluate(() => ({
+      top: document.querySelector('header')?.getBoundingClientRect().bottom ?? 0,
+      bottom: document.querySelector('.hero-tree')?.getBoundingClientRect().bottom ?? Infinity,
+    }));
     if (bottom > 900) fail(`hero: the tree ends at ${Math.round(bottom)}px, below the 900px first screen`);
     const hero = join(dir, 'hero.webp');
-    writeFileSync(hero, await page.screenshot({ type: 'webp', quality: 82 }));
+    const clip = { x: 0, y: Math.round(top), width: 1440, height: Math.min(900, Math.round(bottom) + 24) - Math.round(top) };
+    writeFileSync(hero, await page.screenshot({ type: 'webp', quality: 82, clip }));
     log(`screenshot ${hero} (${Math.round(statSync(hero).size / 1024)} KB)`);
   } finally {
     await ctx.close();
