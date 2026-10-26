@@ -59,7 +59,7 @@ describe('map keyboard model (DESIGN §10.3)', () => {
     const r = L.episodes[0];
     if (!r) throw new Error('no episode');
     expect(episodeName(L, r, 3)).toBe(`Episode 1 of 3, Delegate: Verify phase 12 ${countText(r)}, 33 min. subagent verifier, FAIL. No detected patterns.`);
-    expect(laneName(L.lanes[0] as never)).toMatch(/^Subagent lane: verifier 35 calls · \d+ min · FAIL\. Verify phase 12\.$/);
+    expect(laneName(L.lanes[0] as never)).toMatch(/^Subagent lane: verifier 35 calls, \d+ min, FAIL\. Verify phase 12\.$/);
     expect(laneName({ ...(L.lanes[0] as LaneItem), noHandBack: true })).toContain('FAIL, hand-back not recorded in the main session.');
     const I = glanceLayout(implementerChecks as unknown as SessionGraph, 1216);
     expect(blazeName(I, I.blazes[0] as never)).toMatch(/^Detected pattern 1 of 1: error streak, unresolved\. Error streak: .* In the main route, .+\.$/);
@@ -68,19 +68,19 @@ describe('map keyboard model (DESIGN §10.3)', () => {
 
 describe('labels never cut a count or a status word (DM9)', () => {
   it('drops the idle note, then the unit, to fit the count line', () => {
-    const r = { ...(L.episodes[0] as RouteEpisode), steps: 23, idle: ' · 12 min idle' };
-    expect(countText(r)).toBe('23 steps · 12 min idle');
+    const r = { ...(L.episodes[0] as RouteEpisode), steps: 23, idle: ', 12 min idle' };
+    expect(countText(r)).toBe('23 steps, 12 min idle');
     expect(countText(r, 100)).toBe('23 steps');
     expect(countText(r, 30)).toBe('23');
   });
 
   it('drops the lane duration first, then "calls", and keeps the word whole', () => {
     const l = { ...(L.lanes[0] as LaneItem), calls: 35, ms: 20 * 60_000, word: 'changes requested' };
-    expect(laneLines(l)).toMatchObject({ count: '35 calls · 20 min ·', word: 'changes requested' });
-    expect(laneLines(l, { availPx: 260 }).count).toBe('35 calls ·');
-    expect(laneLines(l, { availPx: 180 }).count).toBe('35 ·');
-    expect(laneLines(l, { availPx: 40 })).toMatchObject({ count: '35 ·', word: 'changes requested' });
-    expect(laneLines(l, { duration: false }).count).toBe('35 calls ·');
+    expect(laneLines(l)).toMatchObject({ count: '35 calls, 20 min,', word: 'changes requested' });
+    expect(laneLines(l, { availPx: 260 }).count).toBe('35 calls,');
+    expect(laneLines(l, { availPx: 180 }).count).toBe('35,');
+    expect(laneLines(l, { availPx: 40 })).toMatchObject({ count: '35,', word: 'changes requested' });
+    expect(laneLines(l, { duration: false }).count).toBe('35 calls,');
   });
 
   it('names a lane with the label as drawn, then the full facts (WCAG 2.5.3)', () => {
@@ -89,9 +89,9 @@ describe('labels never cut a count or a status word (DM9)', () => {
       const { name, count, word } = laneLines(l, opts);
       const accessible = laneName(l, opts);
       expect(accessible).toContain(`${name} ${count} ${word}`);
-      expect(accessible).toContain('416 calls · 20 min');
+      expect(accessible).toContain('416 calls, 20 min');
     }
-    expect(laneName(l, { availPx: 78 })).toMatch(/^Subagent lane: \S+ 416 · 5 failed\. 416 calls · 20 min\. /);
+    expect(laneName(l, { availPx: 78 })).toMatch(/^Subagent lane: \S+ 416, 5 failed\. 416 calls, 20 min\. /);
     expect(laneName(l)).not.toMatch(/min\. 416 calls/);
   });
 });

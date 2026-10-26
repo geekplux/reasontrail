@@ -39,25 +39,36 @@ export function writeUrlState(search: string, s: UrlState): string {
   return out ? `?${out}` : '';
 }
 
-/** The website's pages (PLAN phases 16, 19, 23): the showcase with a sample's map or outline, the drop zone, the chat
- * paste page, install. */
-export type SiteView = 'map' | 'outline' | 'open' | 'chat' | 'install';
-const SITE_VIEWS: readonly SiteView[] = ['outline', 'open', 'chat', 'install'];
+/** The website's pages (PLAN phases 16, 19, 23; v7 §4): home with a sample, the drop zone, the chat paste page,
+ * install, and how to read a map. Any other `view` (an old `?view=outline` link) is the home. */
+export type SiteView = 'map' | 'open' | 'chat' | 'install' | 'how';
+const SITE_VIEWS: readonly SiteView[] = ['open', 'chat', 'install', 'how'];
 
 const GARDEN_PARAMS = ['sample', 'path', 't', 'seed'];
 
 /** Which page the website shows: the garden lens when any garden param is set (`?sample=` links keep working), else
- * `?view=open|chat|install`, or the showcase with `?session=<sample id>` (the default when absent) and `?view=outline`.
- * `lens`: `?lens=live`, a sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
-export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; view: SiteView } {
+ * `?view=open|chat|install|how`, or the home with `?session=<sample id>` (the default when absent).
+ * `step`: the selected step (`&step=<id>`; the home ignores an id its sample does not list). `lens`: `?lens=live`, a
+ * sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
+export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; step: string | null; view: SiteView } {
   const q = new URLSearchParams(search);
   const view = q.get('view') as SiteView;
   return {
     garden: GARDEN_PARAMS.some((p) => q.has(p)),
     lens: q.has('lens'),
     session: q.get('session') || null,
+    step: q.get('step') || null,
     view: SITE_VIEWS.includes(view) ? view : 'map',
   };
+}
+
+/** `search` with the selected step written (`step=…`) or dropped, other params kept. */
+export function writeStep(search: string, stepId: string | undefined): string {
+  const q = new URLSearchParams(search);
+  if (stepId) q.set('step', stepId);
+  else q.delete('step');
+  const out = q.toString();
+  return out ? `?${out}` : '';
 }
 
 /** `search` back on the map: the lens and garden params dropped, the map's own (`session`, `step`, `view`) kept. */
@@ -83,4 +94,13 @@ export function writeView(search: string, view: SiteView): string {
   else q.delete('view');
   const out = q.toString();
   return out ? `?${out}` : '';
+}
+
+/** The search a same-page link leads to from `search`. A link to a home section (`./#install`) keeps the selected
+ * sample when the home is already showing; from any other page it opens the home, as written. */
+export function linkSearch(href: string, search: string): string {
+  const url = new URL(href, `http://site/${search}`);
+  const at = readSiteState(search);
+  const home = at.view === 'map' && !at.garden && !at.lens;
+  return url.hash && !url.search && home ? search : url.search;
 }

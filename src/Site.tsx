@@ -1,17 +1,18 @@
-// The website (PLAN phases 16, 19): the showcase home with a live sample map (`?session=<id>`, `?view=outline`), the
-// drop zone (`?view=open`), the chat paste page (`?view=chat`) and install (`?view=install`). Garden links (`?sample=…`) open the zoom-in lens (phase 22),
-// and so does "Zoom into this sentence" in the map's detail panel: the map stays mounted, hidden, under the lens, so
-// Back (the lens's button or the browser's) shows it again with the same selection and focus (Z3).
+// The website (PLAN phases 16, 19; v7 §4): the home with the sample tabs (`?session=<id>`), the drop zone (`?view=open`),
+// the chat paste page (`?view=chat`), install (`?view=install`) and how to read a map (`?view=how`). Garden links (`?sample=…`)
+// open the zoom-in lens (phase 22): the map stays mounted, hidden, under the lens, so Back (the lens's breadcrumb or the
+// browser's) shows it again with the same selection and focus (Z3). `LensContext` is still provided, but no v7 UI reads
+// it: the v7 map has no "Zoom into this sentence" control.
 // Internal links change the URL in place, and everything the site can need later is fetched once it is idle, so the
 // gallery and the drop zone keep working offline after the first load (PLAN phase 19, AC3).
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
-import { lensSearch, mapSearch, readSiteState, writeView, type SiteView } from './app/urlState';
-import { loadDetailPanel } from './map/MapView';
+import { lensSearch, linkSearch, mapSearch, readSiteState, writeStep, writeView } from './app/urlState';
 import { loadShareDialog } from './share/ShareAction';
 import { LensContext, type LensOpener, type LensTarget } from './lens/lensTarget';
 import { sessionSamples } from './sessions/samples';
+import { HowToReadMap } from './map/HowToReadMap';
+import { Home } from './site/Home';
 import { Install } from './site/Install';
-import { Showcase } from './site/Showcase';
 import { SiteShell, pageTitle } from './site/SiteShell';
 
 const Lens = lazy(() => import('./lens/LensFrame').then((m) => ({ default: m.LensFrame })));
@@ -20,11 +21,10 @@ const OpenSession = lazy(() => loadIntake().then((m) => ({ default: m.OpenSessio
 const GARDEN_PARAMS = /[?&](sample|path|t|seed)=/;
 const HOME_TITLE = document.title;
 
-/** Fetches the detail panel, the share dialog, the lazy samples, the drop zone and its parse worker in the background. */
+/** Fetches the share dialog, the lazy samples, the drop zone and its parse worker in the background. */
 function prefetch() {
   const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
   idle(() => {
-    void loadDetailPanel();
     void loadShareDialog().catch(() => {});
     for (const s of sessionSamples.slice(1)) void s.load();
     void loadIntake().then(() => import('./intake/intake')).then((m) => m.warmIntake());
@@ -48,18 +48,19 @@ export function Site() {
   // focused element went away with the old view (focus fell to <body>).
   const navigated = useRef(false);
   const popped = useRef(false);
+  // (A Back that closes the step panel is handled by the session card: focus goes to the step's row, as on Esc.)
   const focusTitle = useCallback(() => {
     const lost = popped.current && (!document.activeElement || document.activeElement === document.body);
+    popped.current = false;
     const h1 = navigated.current || lost ? document.querySelector<HTMLElement>('main h1') : null;
     if (!h1) return;
     navigated.current = false;
-    popped.current = false;
     h1.focus();
   }, []);
   useEffect(focusTitle, [search, focusTitle]);
   // The drop zone names its own tab (the file's name once it is mapped).
   useEffect(() => {
-    if (!lensView && state.view !== 'open' && state.view !== 'chat' && !saved.current) document.title = state.view === 'install' ? pageTitle('Install') : HOME_TITLE;
+    if (!lensView && state.view !== 'open' && state.view !== 'chat' && !saved.current) document.title = state.view === 'install' ? pageTitle('Install') : state.view === 'how' ? pageTitle('How to read a map') : HOME_TITLE;
   }, [lensView, state.view]);
   useEffect(() => {
     const sync = () => {
@@ -95,7 +96,7 @@ export function Site() {
     wasLens.current = lensView;
   }, [lensView]);
   const opener = useMemo<LensOpener>(() => {
-    const sample = state.view === 'map' || state.view === 'outline' ? (sessionSamples.find((s) => s.id === state.session) ?? sessionSamples[0]) : undefined;
+    const sample = state.view === 'map' ? (sessionSamples.find((s) => s.id === state.session) ?? sessionSamples[0]) : undefined;
     return {
       sampleId: sample?.id ?? null,
       sampleTitle: sample?.title,
@@ -124,7 +125,7 @@ export function Site() {
     go(writeView('', 'open'));
   }, [go]);
 
-  // Same-page links (`./`, `?view=…`, `./#how-to-read`) change the view without a page load.
+  // Same-page links (`./`, `?view=…`, `./#install`) change the view without a page load.
   const onClick = (e: MouseEvent) => {
     const a = (e.target as Element).closest?.('a');
     const href = a?.getAttribute('href');
@@ -132,9 +133,10 @@ export function Site() {
     if (!/^(\.\/|\?)/.test(href) || GARDEN_PARAMS.test(href)) return;
     e.preventDefault();
     const url = new URL(href, window.location.href);
+    const next = linkSearch(href, search); // `./#install` on the home keeps the selected sample
     navigated.current = !url.hash;
-    const same = url.search === search;
-    go(url.search);
+    const same = next === search;
+    if (!same || !url.hash) go(next);
     if (same) focusTitle(); // no re-render, so no effect: the heading is already drawn
     requestAnimationFrame(() => {
       const el = url.hash ? document.querySelector<HTMLElement>(url.hash) : null;
@@ -146,7 +148,7 @@ export function Site() {
       } else el?.focus();
     });
   };
-  const setView = (v: SiteView) => go(writeView(window.location.search, v), false);
+  // Opening a step from none and closing the panel are history entries; stepping from one step to another replaces.
   const page =
     state.view === 'open' || state.view === 'chat' ? (
       <Suspense fallback={<p className="page muted">Loading…</p>}>
@@ -154,13 +156,10 @@ export function Site() {
       </Suspense>
     ) : state.view === 'install' ? (
       <Install />
+    ) : state.view === 'how' ? (
+      <div className="page"><HowToReadMap /></div>
     ) : (
-      <Showcase
-        session={state.session}
-        view={state.view}
-        onView={setView}
-        onSession={(id) => go(`?session=${encodeURIComponent(id)}${state.view === 'outline' ? '&view=outline' : ''}`)}
-      />
+      <Home session={state.session} step={state.step} onSession={(id) => go(`?session=${encodeURIComponent(id)}`)} onStep={(id) => go(writeStep(window.location.search, id), !(state.step && id))} />
     );
   return (
     <>
@@ -168,7 +167,7 @@ export function Site() {
         // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- delegated link clicks; links keep their own keyboard behaviour
         <div className="site" onClick={onClick} hidden={lensView}>
           <LensContext.Provider value={opener}>
-            <SiteShell onFile={onFile} home={state.view === 'map' && !state.session} view={state.view}>{page}</SiteShell>
+            <SiteShell onFile={onFile} view={state.view}>{page}</SiteShell>
           </LensContext.Provider>
         </div>
       ) : null}

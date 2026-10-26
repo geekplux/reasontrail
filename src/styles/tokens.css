@@ -1,96 +1,58 @@
 /*
- * Design tokens: the "specimen plate" identity (PLAN §3). Every colour in the app comes from here.
- * Palette contrasts and CVD distances are asserted by tokens.test.ts; edit both together.
+ * Design tokens, v7 (docs/design/v7/PROMPT.md §3). Every colour is a Radix Colors 3.0 step, used by its role:
+ * 1–2 backgrounds, 3–5 component backgrounds, 6–8 lines, 9–10 solid fills, 11–12 text. The values are copied, not
+ * imported (DECISIONS 2026-10-24). tokens.test.ts asserts the values, AA text contrast and CVD distance.
  */
 :root {
   color-scheme: light dark;
 
-  /* Light theme, "paper" (default) */
-  --tg-paper: #f6f3ea;
-  --tg-surface: #fffdf7;
-  --tg-ink: #1c2620;
-  --tg-ink-muted: #4d5a52;
-  --tg-rule: #d9d3c3;
-  --tg-branch-lo: #5f7d6c;
-  --tg-branch-mid: #3d6150;
-  --tg-branch-hi: #1f4535;
-  --tg-accent: #b4530a;
-  --tg-focus: #2f55d4;
-  --tg-error: #a3292b;
-  /* Reasoning map (DESIGN §6.2): ok and trouble are marks paired with a glyph and a word; wash is a background */
-  --tg-ok: #1a6fa0;
-  --tg-trouble: #a3292b;
-  --tg-wash: #f3e3cf;
-  /* Side trails (subagent lanes): strokes only, never text; the band behind an expanded lane is decorative */
-  --tg-lane: #5f7d6c;
-  --tg-lane-band: #efebdf;
+  --slate-1: #fcfcfd; --slate-2: #f9f9fb; --slate-3: #f0f0f3; --slate-4: #e8e8ec; --slate-5: #e0e1e6; --slate-6: #d9d9e0;
+  --slate-7: #cdced6; --slate-8: #b9bbc6; --slate-9: #8b8d98; --slate-10: #80838d; --slate-11: #60646c; --slate-12: #1c2024;
+  --blue-1: #fbfdff; --blue-2: #f4faff; --blue-3: #e6f4fe; --blue-4: #d5efff; --blue-5: #c2e5ff; --blue-6: #acd8fc;
+  --blue-7: #8ec8f6; --blue-8: #5eb1ef; --blue-9: #0090ff; --blue-10: #0588f0; --blue-11: #0d74ce; --blue-12: #113264;
+  --orange-1: #fefcfb; --orange-2: #fff7ed; --orange-3: #ffefd6; --orange-4: #ffdfb5; --orange-5: #ffd19a; --orange-6: #ffc182;
+  --orange-7: #f5ae73; --orange-8: #ec9455; --orange-9: #f76b15; --orange-10: #ef5f00; --orange-11: #cc4e00; --orange-12: #582d1d;
 
-  /* Type: IBM Plex Mono 500 for tokens and numbers, Instrument Serif Italic for names, system UI for the rest */
-  --tg-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
-  --tg-font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-  --tg-font-serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  /* Marks and text on an orange-9 fill: slate-12 in light (5.52:1), slate-1 in dark (6.35:1). */
+  --on-orange-9: var(--slate-12);
 
-  /* Type scale: base 16 px, ratio 1.25 */
-  --tg-text-sm: 0.8rem; /* 12.8 px: probability labels, fine print */
-  --tg-text-md: 1rem;
-  --tg-text-lg: 1.25rem;
-  --tg-text-xl: 1.5625rem;
-  --tg-text-2xl: 1.953rem;
+  /* Type (§3.2): Geist and Geist Mono, self-hosted (fonts.css); four sizes only, tabular figures everywhere. */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --text-12: 12px; /* labels, meta, numbers, code: 400 / 500 */
+  --text-14: 14px; /* body, rows, controls: 400 / 500 / 600 */
+  --text-20: 20px; /* lede 400, titles 600 */
+  --text-32: 32px; /* the one headline: 600, 1.1, -0.025em */
 
-  /* Spacing (DESIGN §18.3): 4/8/16/24/40/64 only; paper corners; hairlines instead of shadows */
-  --tg-space-1: 4px;
-  --tg-space-2: 8px;
-  --tg-space-4: 16px;
-  --tg-space-5: 24px;
-  --tg-space-8: 40px; /* between bands; outer margins at >= 1280 */
-  --tg-space-9: 64px; /* hero room */
-  --tg-radius: 2px;
-  --tg-hairline: 1px solid var(--tg-rule);
-  --tg-measure: 72ch;
+  /* Shape (§3.3): 0.5px lines (an inset ring for frames, a solid rule otherwise); radii 6 inner control, 10 outer
+     control with 4px padding and the outcome box, 14 detail panel, 16 session frame. No shadows. */
+  --hair: 0.5px solid var(--slate-7);
+  --hair-soft: 0.5px solid var(--slate-6);
+  --radius-6: 6px;
+  --radius-10: 10px;
+  --radius-14: 14px;
+  --radius-16: 16px;
 
-  /* Motion (§3.4); zeroed under prefers-reduced-motion below */
-  --tg-ease-grow: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --tg-dur-grow: 180ms;
-  --tg-dur-fade: 120ms;
-  --tg-dur-reshape: 120ms;
-  /* Reasoning map motion (DESIGN §11) */
-  --tg-ease-out: cubic-bezier(0.2, 0, 0, 1);
-  --tg-dur-route: 320ms;
-  --tg-dur-lane: 200ms;
-  --tg-dur-panel: 160ms;
-  --tg-dur-lens: 240ms;
-}
-
-/* Dark theme, "night garden" */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --tg-paper: #111813;
-    --tg-surface: #18211b;
-    --tg-ink: #e9eee7;
-    --tg-ink-muted: #a8b4aa;
-    --tg-rule: #2c372f;
-    --tg-branch-lo: #7fa48f;
-    --tg-branch-mid: #a9cdb8;
-    --tg-branch-hi: #d4ebdc;
-    --tg-accent: #f0a04b;
-    --tg-focus: #8db0ff;
-    --tg-error: #ff8f87;
-    --tg-ok: #4a95cf;
-    --tg-trouble: #e5534b;
-    --tg-wash: #33281a;
-    --tg-lane: #7fa48f;
-    --tg-lane-band: #151d18;
-  }
+  /* Motion (§2 rule 7): colour and opacity only, 250ms ease-out; zeroed under prefers-reduced-motion (below, and
+     base.css for every transition). Script-driven motion reads --motion-ms and --motion-ease. */
+  --motion-ms: 250ms;
+  --motion-ease: ease-out;
+  --motion: var(--motion-ms) var(--motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root { --motion-ms: 0ms; }
+}
+
+/* Dark: the Radix dark scales (blue-9 and orange-9 are the same in both themes). */
+@media (prefers-color-scheme: dark) {
   :root {
-    --tg-dur-grow: 0ms;
-    --tg-dur-fade: 0ms;
-    --tg-dur-reshape: 0ms;
-    --tg-dur-route: 0ms;
-    --tg-dur-lane: 0ms;
-    --tg-dur-panel: 0ms;
-    --tg-dur-lens: 0ms;
+    --slate-1: #111113; --slate-2: #18191b; --slate-3: #212225; --slate-4: #272a2d; --slate-5: #2e3135; --slate-6: #363a3f;
+    --slate-7: #43484e; --slate-8: #5a6169; --slate-9: #696e77; --slate-10: #777b84; --slate-11: #b0b4ba; --slate-12: #edeef0;
+    --blue-1: #0d1520; --blue-2: #111927; --blue-3: #0d2847; --blue-4: #003362; --blue-5: #004074; --blue-6: #104d87;
+    --blue-7: #205d9e; --blue-8: #2870bd; --blue-9: #0090ff; --blue-10: #3b9eff; --blue-11: #70b8ff; --blue-12: #c2e6ff;
+    --orange-1: #17120e; --orange-2: #1e160f; --orange-3: #331e0b; --orange-4: #462100; --orange-5: #562800; --orange-6: #66350c;
+    --orange-7: #7e451d; --orange-8: #a35829; --orange-9: #f76b15; --orange-10: #ff801f; --orange-11: #ffa057; --orange-12: #ffe0c2;
+    --on-orange-9: var(--slate-1);
   }
 }

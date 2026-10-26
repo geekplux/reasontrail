@@ -36,11 +36,11 @@ export function summarize(batches: readonly StructureRequest[], endpoint: string
 export function structureMessage(code: ProviderErrorCode, retryAfterSec?: number): string {
   switch (code) {
     case 'unavailable':
-      return "AI labels aren't available here; the map still works.";
+      return "AI titles aren't available here; the map still works.";
     case 'rate_limited':
       return `Too many requests right now. Try again in ${retryAfterSec ?? 60} s; the map still works.`;
     case 'budget_exhausted':
-      return "Today's budget for AI labels is used up. Try again tomorrow; the map still works.";
+      return "Today's budget for AI titles is used up. Try again tomorrow; the map still works.";
     case 'input_too_large':
     case 'invalid_input':
     case 'prefix_too_long':

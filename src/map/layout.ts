@@ -11,7 +11,7 @@ export const G = {
   segMin: 56, segMax: 240, growMax: 480, segBase: 36, kMax: 19.5, kNum: 204,
   start: 24, end: 30, breakW: 44, pitch: 24, platePitch: 28, foldW: 56,
   laneSpan: 96, laneDrop: 34, trackGap: 64, tracks: 3,
-  routeY: 76, laneLabelH: 54, monoPx: 6.9,
+  routeY: 76, laneLabelH: 54, monoPx: 7.2,
   maxEpisodes: 12, keepFirst: 3, keepLast: 8, idleMs: 10 * 60_000, maxBreaks: 3, maxPlates: 3,
 } as const;
 
@@ -25,7 +25,7 @@ export interface RouteEpisode {
   steps: number;
   /** First to last timed step, lanes included, in ms. */
   ms: number;
-  /** "· 12 min idle" when idle time is not drawn as a break. */
+  /** ", 12 min idle" when idle time is not drawn as a break. */
   idle: string;
 }
 
@@ -225,7 +225,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
   const mk = (e: Episode, len: number): RouteEpisode => {
     const inf = infos.get(e.id);
     const idleMs = (inf?.inner ?? 0) + (noted.get(e.id) ?? 0);
-    return { episode: e, n: nOf.get(e.id) ?? 0, x, len, steps: inf?.steps ?? e.stepIds.length, ms: Number.isFinite(inf?.last) ? (inf?.last ?? 0) - (inf?.first ?? 0) : 0, idle: idleMs > G.idleMs ? ` · ${idleText(idleMs)} idle` : '' };
+    return { episode: e, n: nOf.get(e.id) ?? 0, x, len, steps: inf?.steps ?? e.stepIds.length, ms: Number.isFinite(inf?.last) ? (inf?.last ?? 0) - (inf?.first ?? 0) : 0, idle: idleMs > G.idleMs ? `, ${idleText(idleMs)} idle` : '' };
   };
   const breakBefore = (id: string) => {
     if (!drawn.has(id)) return;

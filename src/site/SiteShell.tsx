@@ -1,17 +1,18 @@
-// The website's chrome (DESIGN §13.3, §13.4, §18): wordmark and two header links; only the showcase home shows "Map your
-// own session" as its one ink-filled action, every other page as a text link, and the current page's link carries
-// aria-current with a 2 px underline (§18.1). How to read and GitHub live in the one-line footer, which says the
-// privacy line once per page; and the drop overlay shown while a file is dragged anywhere over the page.
+// The website's chrome (v7 §4.1, §4.8, docs/design/v7/preview/Home.html): the header bar with the wordmark, three nav
+// links and the one primary button; the footer with the wordmark and its links (both also frame the next-token garden
+// lens, AppShell); and the drop overlay shown while a file is dragged anywhere over the page.
 import { useEffect, useState, type ReactNode } from 'react';
 import './site.css';
+import './home.css';
 import { LogoMark } from '../brand/LogoMark';
 import { Wordmark } from '../brand/Wordmark';
 import type { SiteView } from '../app/urlState';
-import { SOURCE_URL } from '../components/AppShell';
+import { usePhone } from './usePhone';
 
+export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
 export const PRIVACY = 'Parsed in your browser. Nothing is uploaded.';
-/** The tab title of a page other than home: "Install · Reasontrail". */
-export const pageTitle = (what: string) => `${what} · Reasontrail`;
+/** The tab title of a page other than home: "Install – Reasontrail" (an en dash). */
+export const pageTitle = (what: string) => `${what} – Reasontrail`;
 const hasFiles = (e: DragEvent) => e.dataTransfer?.types.includes('Files') ?? false;
 
 /** Shows the overlay while files are dragged over the window, and hands a dropped file to `onFile`. */
@@ -49,31 +50,47 @@ function useFileDrop(onFile: (file: File) => void) {
   return over;
 }
 
-export function SiteShell({ children, onFile, home, view }: { children: ReactNode; onFile(file: File): void; home: boolean; view: SiteView }) {
-  const open = view === 'open';
-  const showcase = view === 'map' || view === 'outline';
+const HOW = '?view=how';
+
+/** The header bar (v7 §4.1): the wordmark, three nav links, `actions` (the garden's Copy link), the one primary button.
+ * `view`: the website page shown, for `aria-current` (none in the lens). */
+export function SiteHeader({ view, actions }: { view?: SiteView | undefined; actions?: ReactNode }) {
+  const phone = usePhone();
+  const current = (v: SiteView) => (view === v ? 'page' : undefined);
+  return (
+    <header className="v7 bar">
+      <a className="brand" href="./" aria-current={view === 'map' ? 'page' : undefined}><Wordmark /></a>
+      <nav className="nav" aria-label="Site">
+        <a href={HOW} aria-current={current('how')}>How to read a map</a>
+        <a href="./#install">Install</a>
+        <a href={SOURCE_URL}>GitHub</a>
+      </nav>
+      {actions}
+      <a className="btn primary" href="?view=open" aria-current={current('open')}>{phone ? 'Open session' : 'Open a session'}</a>
+    </header>
+  );
+}
+
+/** The footer (v7 §4.8): the wordmark and its links. */
+export const SiteFooter = () => (
+  <footer className="v7 foot">
+    <a className="brand" href="./"><Wordmark /></a>
+    <nav aria-label="More">
+      <a href={HOW}>How to read a map</a>
+      <a href="?sample=">Next-token garden</a>
+      <a href={SOURCE_URL}>GitHub</a>
+      <span>MIT licence</span>
+    </nav>
+  </footer>
+);
+
+export function SiteShell({ children, onFile, view }: { children: ReactNode; onFile(file: File): void; view: SiteView }) {
   const dragging = useFileDrop(onFile);
   return (
     <>
-      <header className="site-header showcase-header">
-        {home ? <Wordmark /> : <a className="brand" href="./" aria-label="Reasontrail home"><Wordmark /></a>}
-        <nav className="site-nav" aria-label="Site">
-          <a className="header-link" href="?view=install" aria-current={view === 'install' ? 'page' : undefined}>Install</a>
-        </nav>
-        <a className={showcase ? 'button primary' : 'header-link'} href="?view=open" aria-current={open ? 'page' : undefined}>Map your own session</a>
-      </header>
+      <SiteHeader view={view} />
       <main className="site-main">{children}</main>
-      <footer className="site-footer showcase-footer">
-        {/* The drop zone, the paste page and install say the privacy line in the page, so the footer does not repeat it. */}
-        <p>{showcase ? `${PRIVACY} · ` : ''}MIT · <a className="footer-link" href={SOURCE_URL}>Source on GitHub</a></p>
-        <p>
-          <a className="footer-link" href="./#how-to-read">How to read a map</a> ·{' '}
-          <a className="footer-link" href="?view=install">Install</a> · Zoom into the words:{' '}
-          <a className="footer-link" href="?sample=">the next-token garden</a>
-          {/* DAILY_UPSTREAM_CAP in wrangler.jsonc (worker/budget.ts) keeps the public demo's model bill bounded. */}
-          {' '}(live model calls are capped per day; recorded gardens always work)
-        </p>
-      </footer>
+      <SiteFooter />
       {dragging && (
         <div className="drop-overlay" aria-hidden="true">
           <LogoMark />

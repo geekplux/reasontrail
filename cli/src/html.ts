@@ -22,7 +22,7 @@ export function renderHtml(template: string, payload: ViewerPayload): string {
 /** {@link renderHtml} as the pieces to write one after another, so a large map is not copied into one more string. */
 export function renderHtmlParts(template: string, payload: ViewerPayload): string[] {
   if (!template.includes(DATA_SLOT) || !template.includes(TITLE_SLOT)) throw new Error('viewer template is missing its data or title slot');
-  const title = escapeHtml(`${payload.graph.title} · Reasontrail`);
+  const title = escapeHtml(`${payload.graph.title} – Reasontrail`);
   const json = jsonForScript(payload);
   return template.split(TITLE_SLOT).join(title).split(DATA_SLOT).flatMap((part, i) => (i ? [json, part] : [part]));
 }

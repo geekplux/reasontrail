@@ -1,7 +1,9 @@
-// Entry of the self-contained local viewer (D32): reads the graph the CLI embedded in the page and renders it.
+// Entry of the self-contained local viewer (D32): reads the graph the CLI embedded in the page and renders it with
+// the website home's tree, card and footer styles (home.css).
 import { createRoot } from 'react-dom/client';
 import '../styles/tokens.css';
 import '../styles/core.css';
+import '../site/home.css';
 import './viewer.css';
 import { loadGraph } from '../map/loadGraph';
 import { Viewer } from './Viewer';

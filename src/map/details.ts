@@ -92,7 +92,6 @@ export function sayLabel(text: string, max = 80): string {
 /** "Step 2 of 5: pnpm test" for the live region. */
 export const stepSay = (word: string, n: number, total: number, r: Row) => `${word} ${n} of ${total}: ${sayLabel(rowLabel(r))}`;
 
-/** Assistant text and thinking are the agent's own words: the honesty label repeats for them (M5). */
 export const ownWords = (r: Row) => r.step.kind === 'assistant' || r.step.kind === 'thinking';
 
 export type DiffLine = { op: ' ' | '-' | '+'; text: string };
@@ -249,5 +248,5 @@ export const RULE_WORDS: Record<Trouble['kind'], string> = {
   churn: '4 or more edits to the same file in one episode',
 };
 
-/** "Detected pattern · error streak · resolved". */
-export const patternLine = (t: Trouble[]) => (t.length === 1 && t[0] ? `Detected pattern · ${TROUBLE_WORD[t[0].kind]} · ${t[0].resolved ? 'resolved' : 'unresolved'}` : `Detected patterns · ${t.length}`);
+/** "Detected pattern, error streak, resolved". */
+export const patternLine = (t: Trouble[]) => (t.length === 1 && t[0] ? `Detected pattern, ${TROUBLE_WORD[t[0].kind]}, ${t[0].resolved ? 'resolved' : 'unresolved'}` : `${t.length} detected patterns`);

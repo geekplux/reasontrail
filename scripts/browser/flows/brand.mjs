@@ -1,5 +1,5 @@
-// Brand flow (never part of "all"): renders docs/brand/social-preview.html (PLAN D19) to docs/brand/social-preview.png
-// at 1280×640, with every relative file it uses (the hero still, the fonts) inlined as data URLs first, so the page
+// Brand flow (never part of "all"): renders docs/brand/social-preview.html (PLAN D19; v7 since phase 35: drawn at
+// 640×320 CSS px, rendered at 2×) to docs/brand/social-preview.png at 1280×640, with every relative file it uses (the hero still, the fonts) inlined as data URLs first, so the page
 // makes no request at all. Fails if the PNG is over 1 MB. Uploading it in the GitHub settings is manual.
 // Usage: pnpm check:browser --flows brand
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -23,7 +23,7 @@ export function inlineFiles(html, dir, read = readFileSync) {
 export async function run({ context, root, log, fail }) {
   const template = join(root, 'docs', 'brand', 'social-preview.html');
   const out = join(root, 'docs', 'brand', 'social-preview.png');
-  const ctx = await context.browser().newContext({ viewport: { width: 1280, height: 640 }, colorScheme: 'light', reducedMotion: 'reduce' });
+  const ctx = await context.browser().newContext({ viewport: { width: 640, height: 320 }, deviceScaleFactor: 2, colorScheme: 'light', reducedMotion: 'reduce' });
   const requests = [];
   ctx.on('request', (r) => r.url().startsWith('data:') || requests.push(r.url()));
   try {

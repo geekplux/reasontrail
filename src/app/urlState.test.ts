@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lensSearch, mapSearch, readSiteState, readUrlState, writeUrlState, writeView } from './urlState';
+import { lensSearch, linkSearch, mapSearch, readSiteState, readUrlState, writeStep, writeUrlState, writeView } from './urlState';
 
 describe('urlState', () => {
   it.each([
@@ -30,16 +30,29 @@ describe('urlState', () => {
 
 describe('site state (phase 16)', () => {
   it('opens the map by default, the garden for garden links, and reads the session and view', () => {
-    expect(readSiteState('')).toEqual({ garden: false, lens: false, session: null, view: 'map' });
+    expect(readSiteState('')).toEqual({ garden: false, lens: false, session: null, step: null, view: 'map' });
     expect(readSiteState('?sample=robot&path=1')).toMatchObject({ garden: true });
     expect(readSiteState('?sample=')).toMatchObject({ garden: true });
-    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, lens: false, session: 'planner-pivot', view: 'outline' });
-    expect(writeView('?session=x', 'outline')).toBe('?session=x&view=outline');
-    expect(writeView('?view=outline', 'map')).toBe('');
+    // The old Map/Outline switch is gone: an outline link opens the home with its sample.
+    expect(readSiteState('?session=planner-pivot&view=outline')).toEqual({ garden: false, lens: false, session: 'planner-pivot', step: null, view: 'map' });
+    expect(writeView('?session=x', 'how')).toBe('?session=x&view=how');
+    expect(writeView('?view=how', 'map')).toBe('');
     expect(readSiteState('?view=open').view).toBe('open');
-    expect(readSiteState('?view=install&session=x')).toEqual({ garden: false, lens: false, session: 'x', view: 'install' });
+    expect(readSiteState('?view=install&session=x')).toEqual({ garden: false, lens: false, session: 'x', step: null, view: 'install' });
     expect(readSiteState('?view=nope').view).toBe('map');
-    expect(writeView('?session=x&view=outline', 'open')).toBe('?session=x&view=open');
+    expect(writeView('?session=x&view=how', 'open')).toBe('?session=x&view=open');
+  });
+});
+
+describe('step links (phase 32b)', () => {
+  it('reads and writes the selected step beside the session, keeping other params', () => {
+    expect(readSiteState('?session=verify-fail-fix&step=s41')).toMatchObject({ session: 'verify-fail-fix', step: 's41', view: 'map' });
+    expect(readSiteState('?session=verify-fail-fix&step=').step).toBeNull();
+    expect(writeStep('?session=verify-fail-fix', 's41')).toBe('?session=verify-fail-fix&step=s41');
+    expect(writeStep('?session=verify-fail-fix&step=s41', 's43')).toBe('?session=verify-fail-fix&step=s43');
+    expect(writeStep('?session=verify-fail-fix&step=s41', undefined)).toBe('?session=verify-fail-fix');
+    expect(writeStep('?step=s41', undefined)).toBe('');
+    for (const search of ['?session=a&step=s1', '?step=s2&t=0.5']) expect(writeStep(search, readSiteState(search).step ?? undefined)).toBe(search);
   });
 });
 
@@ -52,5 +65,17 @@ describe('lens links (phase 22)', () => {
     expect(mapSearch('?session=planner-pivot&step=s12&sample=lens-planner-pivot-1&path=0.1&t=0.5&seed=3')).toBe(map);
     expect(mapSearch('?lens=live&path=0')).toBe('');
     expect(lensSearch('?sample=cat&path=1', 'lens-x')).toBe('?sample=lens-x');
+  });
+});
+
+describe('same-page links (phase 29)', () => {
+  it('keeps the selected sample for a home section link on the home, and opens the home from other pages', () => {
+    expect(linkSearch('./#install', '?session=planner-pivot')).toBe('?session=planner-pivot');
+    expect(linkSearch('./#install', '')).toBe('');
+    expect(linkSearch('./#install', '?view=how')).toBe('');
+    expect(linkSearch('./#install', '?session=x&view=install')).toBe('');
+    expect(linkSearch('./#install', '?sample=cat&path=1')).toBe('');
+    expect(linkSearch('./', '?session=planner-pivot')).toBe('');
+    expect(linkSearch('?view=how', '?session=planner-pivot')).toBe('?view=how');
   });
 });

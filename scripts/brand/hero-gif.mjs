@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Hero GIF (PLAN D18), dev-only and never run in CI: builds the site, serves it with `vite preview`, opens one system
-// Chrome at 1024×640, scrolled so the frame starts at the TASK row (no site header or headline, so the route labels stay
-// legible at the README's 800 px), and records the map of the default sample: the map, the pointer moving to the
-// numbered trouble marker, the click that opens its details, the next piece of evidence, and Esc back to the map.
-// The frames are encoded with the system ffmpeg into docs/brand/hero.gif (looping, ≤ 2.5 MB).
-// Without ffmpeg it stops with a message, and the README keeps the still docs/brand/hero.webp.
-// The skill itself runs in an agent's terminal, which a browser cannot record: the GIF shows the map only.
-// Usage: pnpm brand:hero-gif [--no-build]
+// Hero GIF for the launch kit (docs/LAUNCH.md), dev-only and never run in CI: builds the site, serves it with
+// `vite preview`, opens one system Chrome at 1440×900 (the README hero's frame) and records the v7 home: the tree of
+// the default sample, the pointer moving to the failed command s41 (its episode's path stays ink and the tooltip names
+// it), the click that selects it (the blue path from the root and the callout "Exit code 2, 16 min"), and Esc back.
+// The frames are encoded with the system ffmpeg into docs/brand/hero.gif (960 px wide, looping, ≤ 2.5 MB). The README
+// shows the still, docs/brand/hero.webp (`pnpm check:browser --flows hero`); without ffmpeg this script stops with a
+// message. The skill itself runs in an agent's terminal, which a browser cannot record: the GIF shows the map only.
+// Usage: pnpm brand:hero-gif [--no-build]   (under the shared browser lock on a shared machine)
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -18,7 +18,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const out = join(root, 'docs', 'brand', 'hero.gif');
 const tmp = join(root, '.tmp', 'hero-gif');
 const MAX_BYTES = 2.5 * 1024 * 1024;
-const SESSION = 'implementer-checks'; // the README hero's sample: one error streak, then every check passes
+const STEP = 's41'; // the canvas's Step state: the first verifier's failed config check
 const port = Number(process.env.TG_PORT ?? 4318);
 const baseURL = `http://127.0.0.1:${port}`;
 
@@ -42,8 +42,8 @@ const POINTER = `(() => {
   const el = document.createElement('div');
   el.id = 'rt-pointer';
   el.setAttribute('aria-hidden', 'true');
-  el.style.cssText = 'position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;width:22px;height:22px;transform:translate(900px,560px)';
-  el.innerHTML = '<svg viewBox="0 0 22 22" width="22" height="22"><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.5 L12.4 19.2 L9.4 12.6 L15.5 12.6 Z" fill="#1c2620" stroke="#fffdf7" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  el.style.cssText = 'position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;width:22px;height:22px;transform:translate(1300px,840px)';
+  el.innerHTML = '<svg viewBox="0 0 22 22" width="22" height="22"><path d="M2 2 L2 18 L6.5 13.8 L9.6 20.5 L12.4 19.2 L9.4 12.6 L15.5 12.6 Z" fill="#1c2024" stroke="#fcfcfd" stroke-width="1.5" stroke-linejoin="round"/></svg>';
   document.body.append(el);
 })()`;
 
@@ -57,19 +57,18 @@ try {
   server = startPreview(port);
   await waitForHttp(`${baseURL}/`, server.child);
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome', headless: true, args: ['--disable-dev-shm-usage', '--disable-gpu', '--no-first-run'] });
-  const ctx = await browser.newContext({ viewport: { width: 1024, height: 640 }, colorScheme: 'light' });
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
   const page = await ctx.newPage();
 
   const frames = []; // [file, seconds]
-  let top = 0; // page y of the frame's first row (the TASK row); every frame is re-scrolled there
   const shot = async (seconds) => {
-    await page.evaluate((y) => window.scrollTo(0, y), top);
+    await page.evaluate(() => window.scrollTo(0, 0)); // a click focuses the panel below; the frame stays on the tree
     const file = join(tmp, `${String(frames.length).padStart(3, '0')}.png`);
     await page.screenshot({ path: file });
     frames.push([file, seconds]);
   };
-  let at = { x: 900, y: 560 };
-  const moveTo = async (x, y, steps = 10) => {
+  let at = { x: 1300, y: 840 };
+  const moveTo = async (x, y, steps = 12) => {
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;
       const e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2; // ease in-out
@@ -81,45 +80,33 @@ try {
     at = { x, y };
   };
 
-  await page.goto(`${baseURL}/?session=${SESSION}`, { waitUntil: 'load' });
-  await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 15_000 });
+  await page.goto(`${baseURL}/`, { waitUntil: 'load' });
+  await page.waitForSelector('.hero-tree svg.tree[role="img"]', { timeout: 15_000 });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(POINTER);
-  // Room below the map so the frame can start at the TASK row even near the end of the page.
-  await page.addStyleTag({ content: 'body { padding-bottom: 640px; }' });
-  top = await page.evaluate(() => {
-    const row = document.querySelector('.task-eyebrow');
-    if (!row) throw new Error('no TASK row on the map');
-    return Math.max(0, Math.floor(row.getBoundingClientRect().top + window.scrollY - 16));
-  });
-  await page.evaluate((y) => window.scrollTo(0, y), top);
   await page.waitForTimeout(400);
   await shot(1.6);
 
-  const blaze = page.locator('[data-nav^="blaze:"]').first();
-  const box = await blaze.boundingBox();
-  if (!box) throw new Error('no trouble marker on the map');
+  const twig = page.locator(`.hero-tree path[data-step="${STEP}"]`);
+  const box = await twig.boundingBox();
+  if (!box) throw new Error(`no twig for ${STEP} in the hero tree`);
   await moveTo(box.x + box.width / 2, box.y + box.height / 2);
-  await shot(0.5);
+  await page.waitForTimeout(300); // the hover fade (250 ms)
+  await shot(1.8);
   await page.mouse.down();
   await page.mouse.up();
-  await page.locator('[data-testid="detail-panel"]').waitFor({ timeout: 5_000 });
-  await page.waitForTimeout(80);
-  await shot(0.08);
-  await page.waitForTimeout(250);
-  await shot(2.4);
-  await page.keyboard.press('ArrowRight'); // the next piece of evidence: the second failed run
-  await page.waitForTimeout(250);
-  await shot(2.2);
+  await page.locator(`aside.detail[data-step="${STEP}"]`).waitFor({ timeout: 5_000 });
+  await page.waitForTimeout(300);
+  await shot(2.6);
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(250);
-  await shot(1.6);
+  await page.waitForTimeout(300);
+  await shot(1.4);
   await ctx.close();
 
   // ffmpeg concat list: each frame with its duration; the last file is repeated so its duration counts.
   const list = frames.map(([f, s]) => `file '${f}'\nduration ${s}`).join('\n') + `\nfile '${frames.at(-1)[0]}'\n`;
   writeFileSync(join(tmp, 'frames.txt'), list);
-  const filter = 'fps=12,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle';
+  const filter = 'fps=12,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle';
   const ff = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(tmp, 'frames.txt'), '-vf', filter, '-loop', '0', out], { stdio: 'inherit', timeout: 120_000, killSignal: 'SIGKILL' });
   if (ff.status !== 0) throw new Error(`ffmpeg failed (exit ${ff.status ?? ff.signal})`);
   const size = statSync(out).size;

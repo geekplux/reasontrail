@@ -100,7 +100,7 @@ describe('route segments (DM8)', () => {
   it('draws the 3 longest idle gaps over 10 min as breaks at episode boundaries and notes the rest', () => {
     const L = glanceLayout(graph({ eps: [3, 3, 3, 3, 3, 3], gapMin: { 1: 660, 2: 30, 3: 12, 4: 45, 5: 5 } }), 1216);
     expect(L.breaks.map((b) => [b.before, b.label])).toEqual([['e1', '≈11 h idle'], ['e2', '30 min idle'], ['e4', '45 min idle']]);
-    expect(L.episodes.map((e) => e.idle)).toEqual(['', '', '', ' · 12 min idle', '', '']);
+    expect(L.episodes.map((e) => e.idle)).toEqual(['', '', '', ', 12 min idle', '', '']);
     expect(L.pieces).toHaveLength(4);
     const e1 = L.episodes[1] as { x: number };
     expect(e1.x - (L.episodes[0] as { x: number; len: number }).x - (L.episodes[0] as { len: number }).len).toBe(44);

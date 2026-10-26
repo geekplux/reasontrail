@@ -1,16 +1,17 @@
-// CLI flow (phase 13): runs the built CLI with --no-open against fixture sessions in a sandboxed HOME under .tmp/,
-// opens the written file:// page, and checks the map's glance regions (M1, phase 16), the honesty label (M5),
-// that transcript markup stays text (AC3), --share redaction, and zero requests (C3). Fixture data only.
+// CLI flow (phase 13, v7 phase 34a): runs the built CLI with --no-open against fixture sessions in a sandboxed HOME
+// under .tmp/, opens the written file:// page with the network blocked, and checks the v7 viewer (tree, list, outcome,
+// footer, step in the hash, Esc, deep link), that transcript markup stays text (AC3), --share redaction and its note,
+// and zero requests (C3). Fixture data only.
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { STRUCTURE_RULES, axeProblems } from '../axe.mjs';
+import { blockNetwork, checkFacts, checkLayout, openViewer, stepRoundTrip, toPhone, viewerFacts } from '../viewer.mjs';
 
 const XSS = '</script><script>alert(1)</script>';
 const TOKEN = ['gh', 'p_', 'Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2'].join(''); // built at runtime: never committed
 const HOME_DIR = ['', 'home', 'ana'].join('/'); // a synthetic home path, assembled so the repo holds none
-const HONESTY = "Written reasoning is the agent's own account, not a record of how the model computed.";
 
 export async function run({ page, root, shot, log, fail }) {
   const cli = join(root, 'cli', 'dist', 'cli.mjs');
@@ -40,32 +41,29 @@ export async function run({ page, root, shot, log, fail }) {
   const file = reasontrail('--latest', '--no-open');
   if (!file.startsWith(join(sb, 'tmp', 'reasontrail'))) fail(`default output is not under <tmpdir>/reasontrail: ${file}`);
   log(`output ${file}: ${Math.round(readFileSync(file).length / 1024)} KB`);
-  await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
-  await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
-  await page.waitForFunction(() => document.getAnimations().length === 0); // the map's draw-in (≤ 400 ms)
-  const regions = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-region]')].map((r) => [r.getAttribute('data-region'), r.textContent])));
-  log(`regions: ${Object.keys(regions).join(', ')}`);
-  if (Object.keys(regions).join() !== 'task,glance,route,trouble,outcome') fail(`regions: ${Object.keys(regions)}`);
-  if (!regions.task?.includes(HONESTY) || !regions.task.includes('How to read this map')) fail('honesty label missing from the task card');
-  if (!/\d+ tool calls?/.test(regions.task ?? '')) fail('task card has no tool-call count');
-  if ((await page.locator('[data-region="route"] [data-episode-id]').count()) < 2) fail('route lists fewer than 2 episodes');
-  if ((await page.locator('[data-trouble-kind]').count()) < 1) fail('no trouble chip on the route');
-  if (!/files? changed/.test(regions.outcome ?? '') || !/Last verification/i.test(regions.outcome ?? '')) fail('destination lacks files or verification');
-  if (await page.locator('[role="tree"], [role="treeitem"], [role="grid"]').count()) fail('the page uses tree or grid roles');
-  const title = await page.evaluate(() => getComputedStyle(document.querySelector('.task-title')).fontFamily);
-  if (!title.startsWith('"Instrument Serif"') || !(await page.evaluate(() => document.fonts.check('italic 400 16px "Instrument Serif"')))) fail(`task title font: ${title}`);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const blocked = await blockNetwork(page);
+  await openViewer(page, pathToFileURL(file).href);
+  const facts = await viewerFacts(page);
+  log(JSON.stringify({ ...facts, outcome: facts.outcome.slice(0, 80) }));
+  checkFacts(facts, fail, 'cli');
+  await checkLayout(page, fail, 'cli');
+  if (!facts.meta.some((m) => /^\d+ tool calls?$/.test(m))) fail(`the meta line has no tool-call count: ${facts.meta}`);
+  if (!/files? changed/.test(facts.outcome)) fail(`the outcome box names no changed files: ${facts.outcome}`);
   for (const p of await axeProblems(page, 'desktop', STRUCTURE_RULES)) fail(p);
   await shot('cli-map-desktop');
+  const step = await stepRoundTrip(page, fail, 'cli');
+  log(`step ${step}: picked, Esc, deep link`);
+  await shot('cli-map-step');
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  const overflow = await toPhone(page, fail, 'cli');
   if (overflow > 0) fail(`mobile: page overflows horizontally by ${overflow}px`);
-  if (!(await page.locator('[data-honesty]').isVisible())) fail('mobile: honesty label not visible');
   for (const p of await axeProblems(page, 'mobile', STRUCTURE_RULES)) fail(p);
   await shot('cli-map-mobile');
 
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.emulateMedia({ colorScheme: 'dark' });
+  await page.waitForFunction(() => document.getAnimations().length === 0); // the 250ms colour transitions
   for (const p of await axeProblems(page, 'dark', STRUCTURE_RULES)) fail(p);
   await shot('cli-map-dark');
   await page.emulateMedia({ colorScheme: 'light' });
@@ -80,14 +78,20 @@ export async function run({ page, root, shot, log, fail }) {
   if (shared !== join(work, 'reasontrail-sess-sha.html')) fail(`--share wrote ${shared}`);
   const html = readFileSync(shared, 'utf8');
   for (const leak of [TOKEN.slice(0, 8), 'ana@example.org', HOME_DIR]) if (html.includes(leak)) fail(`--share output still contains ${leak.slice(0, 6)}…`);
-  await page.goto(pathToFileURL(shared).href, { waitUntil: 'load' });
-  await page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 10_000 });
-  await page.waitForFunction(() => document.getAnimations().length === 0); // the map's draw-in (≤ 400 ms)
-  const text = await page.locator('[data-region="task"]').textContent();
+  await openViewer(page, pathToFileURL(shared).href);
+  const text = await page.locator('main').textContent();
   if (!text?.includes(XSS)) fail('the </script> payload is not shown as text');
   // data, the packed app, its loader and the inflated app: anything more was injected
   if ((await page.locator('script').count()) !== 4) fail(`the page has ${await page.locator('script').count()} script elements, not 4`);
-  if (!(await page.getByText(/^Shared copy · redacted \(\d+ items replaced\)$/).isVisible())) fail('shared ribbon missing');
+  await checkLayout(page, fail, 'cli --share');
+  const note = await page.locator('.hero-top .meta .tag').textContent().catch(() => '');
+  if (!/^Shared copy, redacted \(\d+ items? replaced\)$/.test(note ?? '') || !(await page.locator('.hero-top .meta .tag').isVisible())) fail(`shared-copy note missing from the meta line: ${note}`);
+  // Share works offline in a shared copy too: its dialog is part of the page.
+  await page.getByRole('button', { name: 'Share' }).click();
+  if (!(await page.getByRole('dialog').isVisible().catch(() => false))) await page.getByRole('dialog').waitFor({ timeout: 5_000 }).catch(() => fail('Share opened no dialog'));
+  await page.keyboard.press('Escape');
+  if (blocked.length) fail(`the viewer requested ${blocked.length} URL(s): ${blocked.slice(0, 3).join(', ')}`);
+  log(`requests blocked: ${blocked.length}`);
   for (const p of await axeProblems(page, 'share', STRUCTURE_RULES)) fail(p);
   await shot('cli-share-redacted');
 

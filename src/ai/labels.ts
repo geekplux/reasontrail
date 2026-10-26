@@ -1,5 +1,5 @@
-// The AI overlay read for the map (PLAN phase 21, X3, DESIGN §13.6): step labels summed up per top-level episode,
-// and claim → support pairs that name only steps of this graph. Pure; the overlay never changes the graph (D22).
+// The AI titles overlay read for the map (PLAN phase 21, X3; v7 §7): step labels summed up per top-level episode, for
+// the list's 12px tags and the tree's rings. Pure; the overlay never changes the graph (D22).
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 
 /** Most conclusive first: an episode's tag is its most conclusive label. */
@@ -32,9 +32,9 @@ export function episodeOfStep(g: SessionGraph): (stepId: string) => string | und
   return (id) => find(id);
 }
 
-/** One tag per labelled top-level episode, keyed by episode id. */
-export function episodeTags(g: SessionGraph, overlay: LabelOverlay): Map<string, EpisodeTag> {
-  const of = episodeOfStep(g);
+/** One tag per labelled top-level episode, keyed by episode id. `of` maps a step to its episode: by default the
+ * main-route episode (a subagent's steps count for the episode that spawned it). */
+export function episodeTags(g: SessionGraph, overlay: LabelOverlay, of: (stepId: string) => string | undefined = episodeOfStep(g)): Map<string, EpisodeTag> {
   const counts = new Map<string, Map<string, number>>();
   for (const l of overlay.labels) {
     const ep = of(l.stepId);
@@ -52,31 +52,13 @@ export function episodeTags(g: SessionGraph, overlay: LabelOverlay): Map<string,
   return tags;
 }
 
-/** The accessible text of an episode's tag; every label says which model suggested it (X3). */
-export const tagName = (tag: EpisodeTag, model: string) => `AI labels, suggested by ${model}: ${tag.text}`;
-
-/** The label the model suggested for one step, if any. */
-export const stepLabel = (overlay: LabelOverlay, stepId: string) => overlay.labels.find((l) => l.stepId === stepId);
-
-/** The supporting steps of a claim step that exist in the graph, in step order. */
-export function supportsOf(g: SessionGraph, overlay: LabelOverlay, claimStepId: string): string[] {
-  const ids = new Set(overlay.links.find((l) => l.claimStepId === claimStepId)?.supportStepIds ?? []);
-  return g.steps.filter((s) => ids.has(s.id) && s.id !== claimStepId).map((s) => s.id);
+/** The list's and the tree's tags: one per labelled top-level episode of any lane (a step counts for its own episode),
+ * keyed by episode id. */
+export function listTags(g: SessionGraph, overlay: LabelOverlay): Map<string, EpisodeTag> {
+  const ofStep = new Map(g.episodes.filter((e) => !e.parentId).flatMap((e) => e.stepIds.map((id) => [id, e.id] as const)));
+  return episodeTags(g, overlay, (id) => ofStep.get(id));
 }
 
-/** Claim episode → supporting episodes, for the claims inside `episodeIds` (existing, other episodes only). */
-export function supportPairs(g: SessionGraph, overlay: LabelOverlay, episodeIds: ReadonlySet<string>): { from: string; to: string[] }[] {
-  const of = episodeOfStep(g);
-  const out = new Map<string, Set<string>>();
-  for (const l of overlay.links) {
-    const from = of(l.claimStepId);
-    if (!from || !episodeIds.has(from)) continue;
-    const to = out.get(from) ?? new Set<string>();
-    for (const s of supportsOf(g, overlay, l.claimStepId)) {
-      const ep = of(s);
-      if (ep && ep !== from) to.add(ep);
-    }
-    out.set(from, to);
-  }
-  return [...out].filter(([, to]) => to.size > 0).map(([from, to]) => ({ from, to: [...to] }));
-}
+/** The accessible text of an episode's tag; every title says which model suggested it (X3). The step counts are read
+ * only when the episode has more than one title. */
+export const tagName = (tag: EpisodeTag, model: string) => `AI title, suggested by ${model}: ${tag.others === 0 ? tag.label : tag.text}`;

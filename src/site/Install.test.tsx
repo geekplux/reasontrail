@@ -17,7 +17,7 @@ const flush = () => act(async () => {
 });
 
 describe('CommandLine copy feedback', () => {
-  it('says "Copied" in a visible status, again on a repeat, and clears it after a while', async () => {
+  it('says "Copied" in a status, again on a repeat, and clears it after a while', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     clipboard(() => Promise.resolve());
     render(<CommandLine command="npx reasontrail" label="the map command" />);

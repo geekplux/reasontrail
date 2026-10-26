@@ -15,7 +15,7 @@ function SampledLink({ d, w, i, dash }: { d: string; w: number; i: number; dash?
   return (
     <>
       <path data-role="sampled-underlay" d={d} style={{ strokeWidth: w + 3 }} />
-      <path data-role="sampled-stroke" data-sampled-step={i} data-walk={dash ? 'fade' : 'draw'} d={d} pathLength={dash ? undefined : 1} strokeDasharray={dash} style={walkStyle(i, w)} />
+      <path data-role="sampled-stroke" data-sampled-step={i} data-walk="fade" d={d} strokeDasharray={dash} style={walkStyle(i, w)} />
     </>
   );
 }
@@ -200,7 +200,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
         viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
         width={box.width}
         height={box.height}
-        style={{ fontSize: M.TOKEN_PX, '--tg-step': `${stepMs}ms` } as CSSProperties}
+        style={{ fontSize: M.TOKEN_PX, '--step-ms': `${stepMs}ms` } as CSSProperties}
         data-walk={animate ? 'on' : undefined}
       >
         <circle className="seed" cx={0} cy={0} r={M.SEED_R} />
@@ -221,7 +221,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
               {drew ? <SampledLink key={walk} d={link} w={w} i={steps.size} dash={dash} /> : null}
               <text x={r.tipX + M.LABEL_DX} y={r.y} dominantBaseline="middle" fontSize={M.VALUE_PX}>
                 {remainderLabel(p)}
-                {drew ? ' · sampled' : ''}
+                {drew ? ', sampled' : ''}
               </text>
             </g>
           );
@@ -270,7 +270,7 @@ export function GardenView({ garden, layout, sampled = null, selectedKey, hoverK
                 <Marker kind={marker} x={tipX} y={y} />
               )}
               {self ? <circle className="selected-ring" cx={tipX} cy={y} r={M.SELECTED_R} /> : null}
-              <text x={labelX} y={y} dominantBaseline="middle">
+              <text x={labelX} y={y} dominantBaseline="middle" aria-hidden="true">
                 <WsText text={formatToken(b.token)} Run="tspan" />
               </text>
               {self ? <line className="selected-underline" x1={labelX} x2={labelEnd} y1={y + 9.5} y2={y + 9.5} /> : null}

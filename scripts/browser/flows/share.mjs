@@ -1,7 +1,7 @@
-// Share flow (phase 24, PLAN V4): "Save shareable copy…" on a dropped session holding a token, an address and a home
-// path (written at runtime, never committed) and on the default website sample. The dialog says what is replaced and
+// Share flow (phase 24, PLAN V4; v7 phase 34b): the session card's "Share" on a dropped session holding a token, an
+// address and a home path (written at runtime, never committed) and on the default website sample. The dialog says what is replaced and
 // previews the redacted text; the downloaded HTML has none of the originals and passes the audit:samples rules on its
-// decoded graph; it opens offline with zero requests, and its own "Save shareable copy…" writes a copy that opens too
+// decoded graph; it opens offline with zero requests, and its own Share writes a copy that opens too
 // (the local viewer path). The map card is a 1200×630 PNG, with its alt text shown after the save. Writes .tmp/share-dialog.webp and
 // .tmp/share-card.webp.
 import { mkdirSync, readFileSync, rmSync } from 'node:fs';
@@ -13,7 +13,8 @@ import { axeProblems } from '../axe.mjs';
 const TOKEN = ['gh', 'p_', 'Z9y8X7w6V5u4T3s2R1q0P9o8N7m6L5k4J3i2'].join('');
 const MAIL = ['ana', 'example.org'].join('@');
 const HOME = ['', 'home', 'ana'].join('/');
-const ready = (page) => page.waitForSelector('[data-testid="map"][data-ready="true"]', { timeout: 15_000 });
+const ready = (page) => page.waitForSelector('.gl [role="treeitem"]', { timeout: 15_000 });
+const share = (page) => page.locator('.frame, .hero').getByRole('button', { name: 'Share', exact: true }).first();
 const DATA = /<script id="reasontrail-data" type="application\/json">([\s\S]*?)<\/script>/;
 
 /** Every decoded string in `value`, including strings that are themselves JSON. */
@@ -84,8 +85,8 @@ async function steps({ page, context, baseURL, root, log, fail }) {
     p.on('pageerror', (e) => fail(`${label}: page error ${e.message}`));
     await p.goto(pathToFileURL(file).href, { waitUntil: 'load' });
     await ready(p);
-    const ribbon = await p.locator('.shared-ribbon').textContent().catch(() => '');
-    if (!/^Shared copy · redacted \(\d+ items replaced\)$/.test(ribbon ?? '')) fail(`${label}: ribbon "${ribbon}"`);
+    const ribbon = await p.locator('.meta .tag').last().textContent().catch(() => '');
+    if (!/^Shared copy, redacted \(\d+ items? replaced\)$/.test(ribbon ?? '')) fail(`${label}: meta tag "${ribbon}"`);
     if (requests.length) fail(`${label}: ${requests.length} request(s) offline: ${requests.slice(0, 3)}`);
     log(`${label}: ${Math.round(html.length / 1024)} KB, 0 audit hits, opened offline with ${requests.length} requests; ${ribbon}`);
     return { offline, p };
@@ -99,7 +100,7 @@ async function steps({ page, context, baseURL, root, log, fail }) {
   await page.goto(`${baseURL}/?view=open`, { waitUntil: 'load' });
   await page.locator('input[type="file"]').setInputFiles({ name: 'leaky.jsonl', mimeType: 'application/jsonl', buffer: Buffer.from(text) });
   await ready(page);
-  const button = page.getByRole('button', { name: 'Save shareable copy…' });
+  const button = share(page);
   await button.click();
   const dialog = page.getByRole('dialog', { name: 'Save a shareable copy' });
   await opens(dialog, 'dropped session');
@@ -120,7 +121,7 @@ async function steps({ page, context, baseURL, root, log, fail }) {
 
   // 2. The local viewer re-serializes itself: its own share writes a copy that opens offline too.
   if (opened) {
-    await opened.p.getByRole('button', { name: 'Save shareable copy…' }).click();
+    await share(opened.p).click();
     await opens(opened.p.getByRole('dialog'), 'viewer re-share');
     const again = await save(opened.p, () => opened.p.getByRole('button', { name: 'Download HTML' }).click());
     await (await checkHtml(again.file, 'viewer re-share'))?.offline.close();
@@ -147,12 +148,12 @@ async function steps({ page, context, baseURL, root, log, fail }) {
 
   await page.keyboard.press('Escape');
   if ((await dialog.count()) > 0) fail('Esc did not close the dialog');
-  if (!(await button.evaluate((b) => b === document.activeElement))) fail('focus did not return to "Save shareable copy…"');
+  if (!(await button.evaluate((b) => b === document.activeElement))) fail('focus did not return to "Share"');
 
   // 4. The default website sample: the built /viewer.html template, redacted.
   await page.goto(`${baseURL}/`, { waitUntil: 'load' });
   await ready(page);
-  await page.getByRole('button', { name: 'Save shareable copy…' }).click();
+  await share(page).click();
   await opens(page.getByRole('dialog'), 'website sample');
   const sample = await save(page, () => page.getByRole('dialog').getByRole('button', { name: 'Download HTML' }).click());
   await (await checkHtml(sample.file, 'website sample'))?.offline.close();

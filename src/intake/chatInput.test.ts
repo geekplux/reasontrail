@@ -17,7 +17,7 @@ describe('chat import helpers', () => {
   it('filters by every word and describes each conversation', () => {
     expect(filterChats(chats, 'iso REGEX').map((c) => c.id)).toEqual(['a']);
     expect(filterChats(chats, '  ')).toHaveLength(2);
-    expect(chatMeta(chats[0] as (typeof chats)[0])).toBe('15 Oct 2026 · 3 messages from you');
+    expect(chatMeta(chats[0] as (typeof chats)[0])).toBe('15 Oct 2026, 3 messages from you');
     expect(chatMeta(chats[1] as (typeof chats)[0])).toBe('1 message from you');
   });
 });

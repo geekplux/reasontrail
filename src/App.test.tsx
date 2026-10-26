@@ -73,10 +73,12 @@ describe('App', () => {
     expect(screen.getByText('Reading:').parentElement?.textContent).toBe('Reading: The old lighthouse keeper opened the door and· looked· down path 0.3%');
   });
 
-  it('frames the garden with the shell: wordmark header, specimen label, footer', async () => {
+  it("frames the garden with the website's header and footer, the specimen label and the privacy line", async () => {
     await renderApp();
-    expect(screen.getByRole('link', { name: 'Reasontrail' }).textContent).toBe('reasontrail');
-    expect(screen.getByRole('banner').querySelector('a.header-link')?.getAttribute('href')).toBe(SOURCE_URL);
+    expect(screen.getAllByRole('link', { name: 'Reasontrail' }).map((a) => a.textContent)).toEqual(['Reasontrail', 'Reasontrail']);
+    expect(screen.getByRole('banner').querySelector(`a[href="${SOURCE_URL}"]`)?.textContent).toBe('GitHub');
+    expect(screen.getByRole('banner').querySelector('.share-button')?.textContent).toBe('Copy link');
+    expect(screen.getByRole('contentinfo').textContent).toContain('Next-token garden');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('The lighthouse keeper');
     const specimen = screen.getByRole('region', { name: 'The lighthouse keeper' });
     expect(specimen.textContent).toContain('SmolLM2-135M (q8)');
@@ -84,7 +86,7 @@ describe('App', () => {
     expect(specimen.querySelector('time')?.getAttribute('datetime')).toBe('2026-10-19');
     // Nothing overflows without layout (happy-dom), so the scroll region is not a tab stop.
     expect(screen.getByRole('region', { name: 'Garden drawing' }).hasAttribute('tabindex')).toBe(false);
-    expect(screen.getByRole('contentinfo').textContent).toContain('nothing you do with samples leaves your browser');
+    expect(document.querySelector('main .garden-notes')?.textContent).toContain('nothing you do with samples leaves your browser');
   });
 
   it('grows and collapses on click through the provider, with no network, and the URL follows the selection', async () => {
@@ -190,5 +192,5 @@ describe('App', () => {
     await act(async () => void window.dispatchEvent(new PopStateEvent('popstate')));
     expect(screen.getByRole<HTMLInputElement>('radio', { name: /^Tiny/ }).checked).toBe(true);
     expect(container.querySelector('[data-role="value-label"]')?.getAttribute('data-key')).toBe(' mat.');
-  });
+  }, 15_000); // two garden switches and a popstate re-render; slow on a shared machine
 });

@@ -25,13 +25,13 @@ export function PasteBox({ onText, onFile, onShareLink, invalid = false, ref }: 
       if (isShareLink(text)) onShareLink();
       else if (text.trim()) onText(text);
     }}>
-      <label htmlFor="chat-text" className="section-label paste-label">Paste a conversation</label>
+      <label htmlFor="chat-text" className="paste-label">Paste a conversation</label>
       <p id="chat-text-hint" className="muted paste-hint">Include the “You said:” or “User:” lines</p>
       <textarea ref={ref} id="chat-text" aria-invalid={invalid || undefined} aria-describedby={invalid ? 'chat-text-hint intake-error' : 'chat-text-hint'} rows={10} spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} />
       <div className="paste-actions">
-        <button type="submit" className="button primary" disabled={!text.trim()}>Map this conversation</button>
+        <button type="submit" className="btn primary" disabled={!text.trim()}>Map this conversation</button>
         <label className="text-button file-link">
-          or choose an export file (conversations.json)
+          Choose an export file (conversations.json)
           <input type="file" accept=".json,application/json" onChange={(e) => {
             const f = e.target.files?.[0];
             e.target.value = '';

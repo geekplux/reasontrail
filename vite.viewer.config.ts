@@ -6,6 +6,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   publicDir: false,
+  // The viewer never asks the model or fetches the website's template: those paths drop out of the bundle.
+  define: { 'import.meta.env.LOCAL_VIEWER': 'true' },
   build: {
     outDir: 'dist-viewer',
     emptyOutDir: true,

@@ -11,7 +11,7 @@ import type { CanGrow } from '../garden/buildTree';
 import { mapSearch } from '../app/urlState';
 import { LIVE_K, LIVE_MAX_CALLS, LIVE_MAX_DEPTH, liveProvider } from '../llm/cachedProvider';
 import { providerMessage } from '../llm/messages';
-import { InfoGlyph } from '../map/Glyph';
+import { InfoIcon } from '../map/gitlist/marks';
 import { modelLabel } from '../samples/describe';
 import type { SampleGarden } from '../samples/types';
 import { sessionSamples } from '../sessions/samples';
@@ -25,6 +25,17 @@ import type { LensTarget } from './lensTarget';
 export const Z2_TEXT = "An open model's predictions for this text, not what the session's model computed.";
 const OPT_IN = 'Grow live with an open model';
 const OPT_IN_NOTE = 'Sends this text to the Reasontrail Worker. Nothing is sent until you choose this.';
+/** Said wherever live growth is offered or on. The public Worker counts upstream calls per UTC day against
+ * DAILY_UPSTREAM_CAP (wrangler.jsonc, worker/budget.ts), which keeps the demo's model bill bounded. */
+export const CAP_NOTE = 'Live model calls are capped per day; recorded gardens always work.';
+/** In More options, beside "Recorded, works offline.", only the cap needs saying. */
+export const CAP_NOTE_SHORT = 'Live model calls are capped per day.';
+/** Renders at most once per page (the bar's or More options'), so its id is unique. */
+const capLine = (text: string) => (
+  <p id="lens-cap" className="lens-cap">
+    {text}
+  </p>
+);
 /** The footer's privacy line once live growth is on (L6). */
 const LIVE_PRIVACY = 'Live: this sentence is sent to the Reasontrail Worker to predict tokens.';
 
@@ -100,7 +111,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     if (!recorded) setMount((n) => n + 1); // nothing grown yet: a new garden asks for its first fork, live
   };
 
-  // The sentence moves from where it was in the panel to its place here (DESIGN §11, 240 ms; instant under reduced
+  // Opened from the panel, the sentence fades in at its place here (rule 7: opacity only; instant under reduced
   // motion, where the duration token is 0). Nothing waits for the animation.
   const quote = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
@@ -108,10 +119,9 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
     const el = quote.current;
     const from = target.from;
     if (!el || !from || typeof el.animate !== 'function') return;
-    const ms = parseFloat(getComputedStyle(el).getPropertyValue('--tg-dur-lens')) || 0;
-    const to = el.getBoundingClientRect();
-    const easing = getComputedStyle(el).getPropertyValue('--tg-ease-out').trim() || 'cubic-bezier(0.2, 0, 0, 1)';
-    if (ms > 0) el.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)` }, { transform: 'none' }], { duration: ms, easing });
+    const ms = parseFloat(getComputedStyle(el).getPropertyValue('--motion-ms')) || 0;
+    const easing = getComputedStyle(el).getPropertyValue('--motion-ease').trim() || 'ease-out';
+    if (ms > 0) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms, easing });
   }, [target]);
   useEffect(() => {
     if (focusOnOpen) document.getElementById('lens-title')?.focus({ preventScroll: true });
@@ -127,7 +137,7 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       <p className="lens-sentence-text">{target.sentence}</p>
       <figcaption className="mono muted">
         Step {target.stepId}
-        {target.where ? ` · ${target.where}` : ''}
+        {target.where ? `, ${target.where}` : ''}
       </figcaption>
     </LensHeader>
   );
@@ -146,12 +156,17 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
       {error ? <InlineNote variant="error">{providerMessage(error.code, error.retryAfterSec)}</InlineNote> : null}
     </div>
   );
-  const offer = (
+  // The bar's cap line gives way to a live error, which already says what went wrong (rule 2).
+  const barCap = (live || !rec) && !error;
+  // Rendered once (in the bar or in More options), so the ids are unique; the cap line is beside it whenever it is.
+  const offer = (withCap: boolean) => (
     <>
-      <button type="button" className="lens-optin" onClick={optIn}>
+      <button type="button" className="lens-optin" onClick={optIn} aria-describedby={withCap ? 'lens-optin-note lens-cap' : 'lens-optin-note'}>
         {OPT_IN}
       </button>
-      <span className="muted">{OPT_IN_NOTE}</span>
+      <span id="lens-optin-note" className="muted">
+        {OPT_IN_NOTE}
+      </span>
     </>
   );
   // A recorded sentence needs no bar until live growth is on: the figcaption says it works offline and the opt-in waits
@@ -159,20 +174,27 @@ function SentenceLens({ target, focusOnOpen, onBack }: { target: LensTarget; foc
   const bar = (
     <div className="lens-bar">
       {live ? (
-        <p id="lens-live" className="lens-live muted" tabIndex={-1}>
-          Live growth on · {modelLabel({ provider: '', name: provider!.model })} · {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep ·{' '}
+        <p id="lens-live" className="lens-live muted" tabIndex={-1} aria-describedby={barCap ? 'lens-cap' : undefined}>
+          Live growth on, {modelLabel({ provider: '', name: provider!.model })}, {LIVE_K} branches per fork, up to {LIVE_MAX_DEPTH} tokens deep,{' '}
           {provider!.callsLeft} of {LIVE_MAX_CALLS} live calls left in this tab
         </p>
       ) : rec ? null : (
         <p className="lens-offer">
           <span className="muted">No recording for this sentence.</span>
-          {offer}
+          {offer(barCap)}
         </p>
       )}
+      {barCap ? capLine(CAP_NOTE) : null}
       {status}
     </div>
   );
-  const options = rec && !live ? <p className="lens-offer lens-offer-options">{offer}</p> : null;
+  const options =
+    rec && !live ? (
+      <div className="lens-offer-options">
+        <p className="lens-offer">{offer(true)}</p>
+        {capLine(CAP_NOTE_SHORT)}
+      </div>
+    ) : null;
   return <App key={mount} header={header} lens={source} bar={bar} options={options} recorded={Boolean(rec)} privacy={live ? LIVE_PRIVACY : undefined} />;
 }
 
@@ -204,8 +226,8 @@ function LensHeader({ onBack, where, quote, children }: { onBack(): void; where?
         </nav>
       </div>
       <p className="lens-z2">
-        <InfoGlyph />
-        <span>{children ? Z2_TEXT : "An open model's predictions for this prompt, recorded so it works offline."}</span>
+        <InfoIcon />
+        <span>{children ? Z2_TEXT : "An open model's predictions for this prompt."}</span>
       </p>
       {children ? (
         <figure className="lens-quote" ref={quote}>

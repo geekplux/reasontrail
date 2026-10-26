@@ -1,35 +1,23 @@
 import type { ReactNode } from 'react';
-import { Wordmark } from '../brand/Wordmark';
+import { SiteFooter, SiteHeader } from '../site/SiteShell';
 
-export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
+export { SOURCE_URL } from '../site/SiteShell';
 
-/** Page frame: header with the wordmark (+ `actions`), the main area, and a footer (+ `footer`) with the privacy line and
- * source link. The header has the website's wordmark size and outer margins (DESIGN §18, L1). `privacy`: replaces the
- * offline line once live growth is on (L6). */
+/** The next-token garden's page frame: the website's header (+ `actions`, the garden's Copy link) and footer, with the
+ * garden's notes (`footer`) and the privacy line at the end of the page. `privacy`: replaces the offline line once
+ * live growth is on (L6). */
 export function AppShell({ children, actions, footer, privacy }: { children: ReactNode; actions?: ReactNode; footer?: ReactNode; privacy?: string | undefined }) {
   return (
     <>
-      <header className="site-header showcase-header">
-        <a className="brand" href="./">
-          <Wordmark />
-        </a>
-        <div className="header-actions">
-          {actions}
-          <a className="header-link" href={SOURCE_URL}>
-            GitHub
-          </a>
+      <SiteHeader actions={actions} />
+      <main className="site-main garden-page">
+        {children}
+        <div className="garden-notes">
+          {footer}
+          <p>{privacy ?? 'Runs offline; nothing you do with samples leaves your browser.'}</p>
         </div>
-      </header>
-      <main className="site-main">{children}</main>
-      <footer className="site-footer">
-        {footer}
-        <p>{privacy ?? 'Runs offline; nothing you do with samples leaves your browser.'}</p>
-        <p>
-          <a className="footer-link" href={SOURCE_URL}>
-            Source on GitHub
-          </a>
-        </p>
-      </footer>
+      </main>
+      <SiteFooter />
     </>
   );
 }

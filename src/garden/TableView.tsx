@@ -5,8 +5,8 @@ import { WsText } from './GardenView';
 import { visibleItems } from './keyboard';
 import { formatPct, spokenToken, STATE_TEXT, visibleWs } from './scales';
 
-/** "1.4 bits · medium · ≈ 2.6 choices" (spec §10.2). */
-const uncertainty = (f: Fork) => `${f.entropy.toFixed(1)} bits · ${entropyBand(f.entropy)} · ≈ ${(2 ** f.entropy).toFixed(1)} choices`;
+/** "1.4 bits, medium, ≈ 2.6 choices" (spec §10.2). */
+const uncertainty = (f: Fork) => `${f.entropy.toFixed(1)} bits, ${entropyBand(f.entropy)}, ≈ ${(2 ** f.entropy).toFixed(1)} choices`;
 
 /** The text alternative to the drawing (A3): every visible branch, in tree order, with the same numbers. */
 /** `missingState`: the State cell of a branch that can't grow (default "not recorded"). */

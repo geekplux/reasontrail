@@ -53,7 +53,7 @@ export const remainderLabel = (p: number) => `other ${formatPct(p)}`;
 export const valueWidth = (b: Parameters<typeof formatValue>[0]) => textWidth(formatValue(b), M.VALUE_PX) + 2 * M.VALUE_PAD_X;
 /** The widest value label a row of this kind can show at any temperature, so the layout never depends on T. */
 const reservedValueWidth = (b: GardenBranch) => valueWidth({ p: 1, pathP: 1, depth: b.depth, next: b.next && { entropy: 1.5 } });
-const REMAINDER_RESERVE = `${remainderLabel(1)} · sampled`;
+const REMAINDER_RESERVE = `${remainderLabel(1)}, sampled`;
 
 /** A fork's links at the given stroke widths (bundle order): temperature restacks the bundle, never moves a tip. */
 export function forkLinks(f: ForkLayout, widths: readonly number[]) {

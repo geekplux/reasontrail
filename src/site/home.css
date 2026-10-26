@@ -1,0 +1,216 @@
+/* The v7 website page (docs/design/v7/PROMPT.md §4, §13; every size, gap and state from the `CSS` constant of
+   docs/design/v7/gen7.mjs). Scoped to `.v7` (the header bar, the home and the footer). Colours are Radix steps only;
+   lines 0.5px; type 12/14/20/32. 1200px content with gutters that grow on wider screens (120 at 1440). */
+.v7 { --gutter: max(16px, calc((100% - 1200px) / 2)); --bg: var(--slate-1); }
+.v7 h1, .v7 h2, .v7 h3, .v7 p, .v7 ol, .v7 ul, .v7 dl, .v7 dd, .v7 figure { margin: 0; padding: 0; }
+.v7 ol, .v7 ul { list-style: none; }
+.v7 a { color: inherit; text-decoration: none; }
+.v7 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.v7 .code { font-family: var(--font-mono); font-size: var(--text-12); }
+.v7 .muted { color: var(--slate-11); }
+.v7 .strong { font-weight: 500; }
+:is(.v7, .page) .ic { flex: none; display: block; }
+.v7 .g { flex: none; display: block; color: var(--slate-12); }
+.v7 a, .v7 button { transition: color var(--motion), background-color var(--motion), opacity var(--motion); }
+
+/* Header bar */
+.v7.bar { height: 64px; display: flex; align-items: center; gap: 32px; padding: 0 var(--gutter); border-bottom: var(--hair-soft); }
+.v7 .brand { display: inline-flex; border-radius: var(--radius-6); }
+.v7 .nav { margin-left: auto; display: flex; gap: 24px; color: var(--slate-11); }
+.v7 .nav a:hover, .v7.foot nav a:hover { color: var(--slate-12); }
+.v7 .nav a[aria-current='page'] { color: var(--slate-12); }
+:is(.v7, .page) .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-6); font-weight: 500; white-space: nowrap; }
+:is(.v7, .page) .btn.primary { background: var(--slate-12); color: var(--slate-1); }
+:is(.v7, .page) .btn.ghost { box-shadow: inset 0 0 0 0.5px var(--slate-7); background: var(--slate-1); }
+:is(.v7, .page) .btn.ghost:hover { background: var(--slate-3); }
+/* An on/off button that is on (AI titles): a ✓ before the label and the slate-3 face, so the state is not colour alone. */
+:is(.v7, .page) .btn.ghost[aria-pressed='true'] { background: var(--slate-3); }
+:is(.v7, .page) .btn[aria-pressed='true']::before { content: '✓' / ''; font-size: var(--text-12); }
+:is(.v7, .page) .iconbtn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: var(--radius-6); color: var(--slate-11); }
+:is(.v7, .page) .iconbtn:hover { background: var(--slate-3); color: var(--slate-12); }
+.v7 .link { color: var(--slate-11); font-weight: 500; text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+
+/* Hero: the promise, then the tree itself as the picture */
+.v7 .hero { padding: 64px var(--gutter) 0; }
+.v7 .hero-top { display: flex; align-items: last baseline; justify-content: space-between; gap: 32px; }
+.v7 h1 { font-size: var(--text-32); line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; text-wrap: balance; }
+.v7 .lede { margin-top: 12px; font-size: var(--text-20); line-height: 1.4; letter-spacing: -0.01em; color: var(--slate-11); max-width: 34ch; }
+:is(.v7, .page) .cmdbox { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 14px; border-radius: var(--radius-10); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-6); }
+:is(.v7, .page) .cmdbox .code { color: var(--slate-12); white-space: nowrap; }
+.v7 .hero-tree { position: relative; margin-top: 32px; }
+.v7 .hero-tree > .legend { position: absolute; top: 0; right: 0; }
+.v7 .legend { display: flex; gap: 16px; color: var(--slate-11); font-size: var(--text-12); white-space: nowrap; }
+.v7 .legend span { display: inline-flex; align-items: center; gap: 6px; }
+.v7 .legend .g { color: var(--slate-11); }
+.v7 .lg-gap { width: 8px; }
+.v7 .tree-wrap { min-height: 520px; }
+.v7 .hero-tree.fit .tree-wrap { min-height: 0; }
+.v7 .under { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 24px; }
+
+/* Sample tabs: a segmented control, outer radius 10 = inner radius 6 + padding 4 */
+.v7 .tabs { display: flex; width: fit-content; max-width: 100%; padding: 4px; border-radius: var(--radius-10); background: var(--slate-3); }
+.v7 .tab { height: 32px; padding: 0 12px; border-radius: var(--radius-6); color: var(--slate-11); font-weight: 500; white-space: nowrap; }
+.v7 .tab:hover { color: var(--slate-12); }
+.v7 .tab[aria-selected='true'] { background: var(--slate-1); color: var(--slate-12); box-shadow: 0 0 0 0.5px var(--slate-7); }
+/* The ring drawn inside the tab, on its slate-1 face: 3.18:1, where outside on the slate-3 track it would be 2.87:1. */
+.v7 .tab:focus-visible { outline-offset: -2px; }
+
+/* The session card */
+.v7 .frame { margin: 32px var(--gutter) 0; border-radius: var(--radius-16); background: var(--slate-1); box-shadow: inset 0 0 0 0.5px var(--slate-7); padding: 32px; }
+.v7 .sess { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.v7 .sess h2 { font-size: var(--text-20); line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+.v7 .meta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 20px; margin-top: 8px; color: var(--slate-11); }
+.v7 .meta b { color: var(--slate-12); font-weight: 500; }
+.v7 .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; background: var(--slate-3); color: var(--slate-11); font: 500 var(--text-12) / 1 var(--font-sans); }
+.v7 .sess-r { display: flex; gap: 8px; }
+.v7 .note { display: flex; gap: 6px; align-items: flex-start; max-width: 72ch; margin-top: 8px; font-size: var(--text-12); }
+.v7 .note .ic { margin-top: 1px; }
+.v7 .details { margin-top: 16px; }
+.v7 .details .request { margin-top: 8px; max-width: 72ch; }
+/* The list is 680 at 1440 and gives way first between 1024 and 1200, so the outcome column keeps its 360. The list,
+   the outcome box (or the panel) and the final answer are siblings on every layout (SessionCard): the list spans both
+   rows and its extra height goes to the 1fr row, so the final answer sits 28px under the outcome box. */
+.v7 .cols { display: grid; grid-template-columns: minmax(0, 680px) 360px; grid-template-rows: auto 1fr; justify-content: space-between; gap: 28px 48px; margin-top: 24px; align-items: start; }
+.v7 .cols > .gl { grid-column: 1; grid-row: 1 / span 2; }
+.v7 .cols > .side { grid-column: 2; grid-row: 1; }
+.v7 .cols > .detail { grid-row: 1 / span 2; }
+.v7 .cols > .final { grid-column: 2; grid-row: 2; }
+.v7 .cols.no-side > .final { grid-row: 1 / span 2; }
+/* AI titles on: who suggested them, 12px under the list. */
+.v7 .cols > .ai-by { grid-column: 1; grid-row: 3; margin-top: -12px; font-size: var(--text-12); }
+
+/* The outcome column: one bordered box with hairline rows, then the final answer */
+.v7 .side { display: grid; gap: 28px; }
+.v7 .res { display: grid; border-radius: var(--radius-10); box-shadow: inset 0 0 0 0.5px var(--slate-7); }
+.v7 .res-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; }
+.v7 .res-row + .res-row { border-top: var(--hair-soft); }
+.v7 .res-row .ic { margin-top: 2px; }
+.v7 .res-row p + p { margin-top: 2px; }
+.v7 .block { display: grid; gap: 12px; }
+/* Keyed to classes, not tags: their level follows the session title's (h2/h3 in the viewer, h3/h4 on the website). */
+.v7 .block-h, .v7 .d-h { font-size: var(--text-14); font-weight: 600; }
+.v7 .answer { color: var(--slate-12); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.v7 .answer.is-full { display: block; white-space: pre-line; }
+.v7 .block .link { justify-self: start; font-size: var(--text-12); }
+
+/* The detail panel, in place of the outcome column while a step is selected (Step.html `.detail`) */
+.v7 .detail { gap: 16px; padding: 20px; border-radius: var(--radius-14); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-6); min-width: 0; }
+.v7 .d-head { display: flex; justify-content: space-between; align-items: center; font-size: var(--text-12); margin: -4px -8px -4px 0; }
+.v7 .d-title { display: flex; align-items: center; gap: 8px; }
+.v7 .d-title .at { margin-left: auto; color: var(--slate-11); font-size: var(--text-12); }
+/* A title scrolled into view on a tree click keeps its focus ring and a line of air inside the viewport. */
+.v7 .d-title .d-h { scroll-margin: 24px; }
+/* Under a thinking step's title: written reasoning is the model's own account (12px, slate-11, 4px under the title). */
+.v7 .d-own { margin-top: -12px; font-size: var(--text-12); }
+.v7 .detail pre { margin: 0; font: 400 var(--text-12) / 1.6 var(--font-mono); white-space: pre-wrap; word-break: break-word; padding: 12px; border-radius: var(--radius-6); background: var(--slate-1); box-shadow: inset 0 0 0 0.5px var(--slate-6); color: var(--slate-12); }
+.v7 .d-label { margin: 0; display: flex; gap: 8px; font-size: var(--text-12); font-weight: 600; }
+.v7 .d-label .muted { font-weight: 400; }
+.v7 .d-src { font-size: var(--text-12); overflow-wrap: anywhere; }
+/* "Show raw": a 12px link 8px under the Source line; the verbatim record in a `pre` under it. */
+.v7 .d-raw { justify-self: start; margin-top: -8px; font-size: var(--text-12); }
+.v7 .detail pre.raw { max-height: 320px; overflow: auto; }
+.v7 .d-next { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; align-items: start; }
+.v7 .d-next .ic { margin-top: 3px; }
+.v7 .d-next pre { margin-top: 8px; }
+.v7 .d-nav { display: flex; justify-content: space-between; }
+.v7 .d-nav .btn[aria-disabled='true'] { color: var(--slate-9); cursor: default; }
+.v7 .d-nav .btn[aria-disabled='true']:hover { background: var(--slate-1); }
+
+/* Install */
+.v7 .install { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; margin: 96px var(--gutter) 0; padding-top: 40px; border-top: var(--hair-soft); }
+.v7 .install h2, .v7 .maker h2 { font-size: var(--text-20); font-weight: 600; letter-spacing: -0.015em; }
+.v7 .install .muted { margin-top: 8px; max-width: 44ch; }
+:is(.v7, .page) .cmdbox.big { height: 48px; width: 100%; justify-content: space-between; padding: 0 8px 0 16px; }
+.v7 .agents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.v7 .agents dt { color: var(--slate-11); font-size: var(--text-12); }
+.v7 .agents dd { margin-top: 2px; }
+
+/* Made by GeekPlux */
+.v7 .more { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; margin: 72px var(--gutter) 0; padding-top: 40px; border-top: var(--hair-soft); }
+.v7 .maker { display: grid; gap: 8px; align-content: start; justify-items: start; }
+.v7 .url { font: 400 var(--text-12) var(--font-mono); color: var(--slate-11); }
+.v7 .maker .url { color: var(--slate-12); text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+.v7 .sites { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 48px; }
+.v7 .sites a { display: grid; gap: 2px; border-radius: var(--radius-6); }
+.v7 .sites a:hover .strong { text-decoration: underline 0.5px var(--slate-8); text-underline-offset: 3px; }
+.v7 .sites .url { margin-top: 4px; }
+
+/* Footer */
+.v7.foot { display: flex; align-items: center; justify-content: space-between; margin: 72px var(--gutter) 0; padding: 24px 0 40px; border-top: var(--hair-soft); }
+.v7.foot nav { display: flex; gap: 24px; color: var(--slate-11); }
+
+@media (max-width: 1023px) {
+  .v7 .hero-top, .v7 .sess, .v7 .install, .v7 .more { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .v7 .cols { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  .v7 .cols > *, .v7 .cols > .ai-by, .v7 .cols.no-side > .final { grid-column: 1; grid-row: auto; }
+  .v7 .cols > .side { margin-top: 20px; }
+  .v7 .hero-tree > .legend { position: static; flex-wrap: wrap; gap: 6px 12px; white-space: normal; margin-bottom: 16px; }
+  .v7 .tree-wrap { min-height: 0; }
+  .v7 .tabs { overflow-x: auto; }
+  .v7 .nav { display: none; }
+  .v7.bar { justify-content: space-between; }
+  .v7.foot { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .v7.foot nav { flex-wrap: wrap; gap: 8px 16px; }
+}
+
+/* 640–759px: the legend (696px on one line) breaks after the glyphs, as on the phone, so no item wraps alone; the
+   break is a 6px full-width spacer in place of the row gap. */
+@media (min-width: 640px) and (max-width: 759px) {
+  .v7 .hero-tree > .legend { row-gap: 0; }
+  .v7 .hero-tree > .legend .lg-gap { flex-basis: 100%; height: 6px; }
+}
+
+/* Phone (Phone.html, the `.rt.phone` rules of gen7.mjs), up to 639px as usePhone.ts: 16px gutters, the headline and
+   a 14px lede (the install command waits for the install section), the bare tree, the tab track scrolling sideways
+   with the legend wrapped under it, the card full-bleed between two rules, the outcome box above the list (SessionCard)
+   and the final answer under it, then the card's actions in a row, everything below in one column. */
+@media (max-width: 639px) {
+  .v7.bar { height: 56px; }
+  .v7 .hero { padding-top: 40px; }
+  .v7 .hero-top { display: block; }
+  .v7 .hero-top .cmdbox { display: none; }
+  .v7 .lede { font-size: var(--text-14); line-height: 1.5; }
+  .v7 .hero-tree { margin-top: 24px; }
+  .v7 .under { display: block; margin-top: 16px; }
+  .v7 .tabs { overflow-x: auto; scrollbar-width: none; scroll-padding-inline: 4px; }
+  .v7 .tab { flex: none; }
+  .v7 .under .legend { flex-wrap: wrap; gap: 6px 12px; margin-top: 12px; }
+  .v7 .frame { margin: 0; border-radius: 0; box-shadow: inset 0 0.5px 0 var(--slate-6), inset 0 -0.5px 0 var(--slate-6); padding: 24px 16px; }
+  .v7 .sess { display: block; padding-bottom: 20px; }
+  .v7 .cols { display: block; margin-top: 20px; }
+  .v7 .cols > .side { margin-top: 0; }
+  .v7 .cols > .gl { margin-top: 16px; }
+  .v7 .cols > .final { margin-top: 28px; }
+  .v7 .cols > .ai-by { margin-top: 12px; }
+  .v7 .frame > .sess-r { flex-wrap: wrap; margin-top: 16px; }
+  .v7 .details .meta .code { overflow-wrap: anywhere; }
+  /* A tap that opens the panel brings its top (context line and ✕) 16px under the screen's top (StepDetail). */
+  .v7 .detail { scroll-margin-top: 16px; }
+  /* 200% text zoom: button labels and the links below wrap instead of pushing the page sideways (32px at 100%, as now). */
+  :is(.v7, .page) .btn { white-space: normal; text-align: center; height: auto; min-height: 32px; padding-block: 4px; }
+  .v7 .more a span { overflow-wrap: anywhere; }
+  /* 200% text zoom: the command wraps inside its box instead of pushing the page sideways. */
+  :is(.v7, .page) .cmdbox { height: auto; min-height: 40px; }
+  :is(.v7, .page) .cmdbox.big { height: auto; min-height: 48px; }
+  :is(.v7, .page) .cmdbox .code { white-space: normal; overflow-wrap: anywhere; }
+  .v7 .install { gap: 20px; margin-top: 56px; }
+  .v7 .agents { gap: 8px; }
+  .v7 .more { gap: 28px; margin-top: 56px; padding-top: 28px; }
+  .v7 .sites { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .v7.foot { margin-top: 56px; }
+}
+
+/* One session on its own page (SessionMap) */
+/* The session header in the home's hero place (v7 §7; the local viewer and a session opened on the site): the title as the home's h1, the meta line 12px under it, the
+   actions on its last baseline (`.hero-top`), Details opening 16px below; then the tree 32px down; the card holds only
+   the list and the outcome. */
+.v7.session-page h1 { max-width: 760px; }
+.v7.session-page .hero-top .meta { margin-top: 12px; }
+.v7.session-page .frame > .cols { margin-top: 0; }
+/* "Shared copy, redacted (N items replaced)" is the meta line's last tag; it wraps under text zoom. */
+.v7.session-page .tag { height: auto; min-height: 20px; white-space: normal; }
+@media (max-width: 639px) {
+  .v7.session-page h1 { font-size: var(--text-20); line-height: 1.3; letter-spacing: -0.015em; max-width: none; }
+  .v7.session-page .hero-top .meta { margin-top: 8px; }
+  .v7.session-page > .frame { margin-top: 24px; }
+}

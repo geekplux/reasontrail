@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
-import { episodeOfStep, episodeTags, stepLabel, supportPairs, supportsOf, tagName } from './labels';
+import { episodeOfStep, episodeTags, listTags, tagName } from './labels';
 
 // main: e0 (s0, s1), e1 (s2 spawns lane "sub" with s5, s6; e1b is a folded child), e2 (s3, s4: the answer).
 const g = {
@@ -44,15 +44,16 @@ describe('AI labels overlay', () => {
     expect(tags.size).toBe(3);
   });
 
-  it('names the model on every tag (X3)', () => {
-    const tag = episodeTags(g, overlay).get('e2');
-    expect(tag && tagName(tag, overlay.model)).toBe('AI labels, suggested by fake-model: answer (1 step)');
-    expect(stepLabel(overlay, 's1')?.label).toBe('hypothesis');
+  it('names the model on every tag (X3); step counts only when an episode has more than one title', () => {
+    const tags = episodeTags(g, overlay);
+    expect(tagName(tags.get('e2')!, overlay.model)).toBe('AI title, suggested by fake-model: answer');
+    expect(tagName(tags.get('e1')!, overlay.model)).toBe('AI title, suggested by fake-model: decision (1 step), evidence (2 steps)');
   });
 
-  it('links a claim only to existing other steps, and to other episodes for the curves', () => {
-    expect(supportsOf(g, overlay, 's4')).toEqual(['s1', 's3', 's6']);
-    expect(supportPairs(g, overlay, new Set(['e2']))).toEqual([{ from: 'e2', to: ['e0', 'e1'] }]);
-    expect(supportPairs(g, overlay, new Set(['e0']))).toEqual([]);
+  it("tags the list's and the tree's episodes of every lane, a subagent's steps in their own episode", () => {
+    const tags = listTags(g, overlay);
+    expect([...tags.keys()].sort()).toEqual(['e0', 'e1', 'e2', 'l0']);
+    expect(tags.get('e1')).toEqual({ label: 'decision', others: 0, text: 'decision (1 step)' });
+    expect(tags.get('l0')?.label).toBe('evidence');
   });
 });

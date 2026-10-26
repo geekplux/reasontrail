@@ -27,6 +27,6 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}', 'cli/test/**/*.test.ts', 'shared/**/*.test.ts', 'worker/**/*.test.ts', 'scripts/**/*.test.{js,mjs,ts}', 'skills/**/*.test.mjs'],
     maxWorkers: 2,
-    css: { include: [/tokens\.css/] }, // tokens.test.ts reads the real file via ?raw
+    css: { include: [/\.css\?raw$/] }, // tokens.test.ts reads every stylesheet via ?raw; component tests skip CSS
   },
 });

@@ -35,8 +35,9 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
 }
 
 /** `from`: where the viewer template comes from: the website's built `/viewer.html`, or this page itself (a local map). */
-/** `prior`: items an already shared copy had replaced, carried into the new copy's ribbon. */
-export function ShareAction({ graph, from, version, prior }: { graph: SessionGraph; from: 'site' | 'page'; version?: string | undefined; prior?: number | undefined }) {
+/** `prior`: items an already shared copy had replaced, carried into the new copy's ribbon. `label` and `className`: the
+ * button's text and class where a page sets it differently (the v7 session card's "Share"). */
+export function ShareAction({ graph, from, version, prior, label = 'Save shareable copy…', className = 'text-button share-button' }: { graph: SessionGraph; from: 'site' | 'page'; version?: string | undefined; prior?: number | undefined; label?: string; className?: string }) {
   const [open, setOpen] = useState(false);
   const [tries, setTries] = useState(0);
   const button = useRef<HTMLButtonElement>(null);
@@ -60,10 +61,10 @@ export function ShareAction({ graph, from, version, prior }: { graph: SessionGra
   const close = () => setOpen(false);
   return (
     <>
-      <button ref={button} type="button" className="text-button share-button" aria-haspopup="dialog" onClick={() => {
+      <button ref={button} type="button" className={className} aria-haspopup="dialog" onClick={() => {
         setTries((t) => t + 1);
         setOpen(true);
-      }}>Save shareable copy…</button>
+      }}>{label}</button>
       {open && (
         <Boundary key={tries}>
           <Suspense fallback={null}>

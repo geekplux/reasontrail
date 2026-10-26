@@ -35,7 +35,7 @@ Run these before you open a pull request. CI runs the same ones (its definition 
 
 `pnpm check:browser` uses the system Chrome (`/usr/bin/google-chrome`, or set `CHROME_PATH`) and port 4317 (or set `TG_PORT`). `--flows a,b` runs only some flows. It always closes the browser and stops the server.
 
-The README's images come from the app: `pnpm check:browser --flows hero` rewrites `docs/brand/hero.webp` and the wordmarks, and `node scripts/browser/readme-shot.mjs` renders the README with GitHub's Markdown API (needs `gh`) and checks that the first screen shows the pitch, the hero and the quick start.
+The README's images come from the app: `pnpm check:browser --flows hero` rewrites `docs/brand/hero.webp`, `--flows wordmark` the two wordmark images, and `node scripts/browser/readme-shot.mjs` renders the README with GitHub's Markdown API (needs `gh`) and checks that the first screen shows the pitch, the hero and the quick start.
 
 ## Where things live
 

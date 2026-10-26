@@ -38,10 +38,10 @@ export function ConsentDialog({ summary, onSend, onCancel }: { summary: Structur
         onCancel();
       }}
     >
-      <h2 id={titleId} className="ai-dialog-title">Ask a model to label this session?</h2>
+      <h2 id={titleId} className="ai-dialog-title">Ask a model to title this session?</h2>
       <p id={descId}>
-        A model suggests a label for each step and links the final answer to the steps that support it. The map
-        doesn&apos;t change; you can switch the labels off.
+        A model suggests a title for each step; the list shows them as tags and the tree rings their episodes. The map
+        doesn&apos;t change; you can switch the titles off.
       </p>
       <dl className="ai-facts">
         <dt>What is sent</dt>
@@ -56,8 +56,8 @@ export function ConsentDialog({ summary, onSend, onCancel }: { summary: Structur
         <dd>{summary.caching}</dd>
       </dl>
       <div className="ai-dialog-actions">
-        <button type="button" className="ai-primary" onClick={onSend}>Send</button>
-        <button ref={cancel} type="button" onClick={onCancel}>Cancel</button>
+        <button type="button" className="btn primary" onClick={onSend}>Send</button>
+        <button ref={cancel} type="button" className="btn ghost" onClick={onCancel}>Cancel</button>
       </div>
     </dialog>
   );

@@ -1,59 +1,77 @@
-// The local viewer's chrome (DESIGN §13.1, §18.1): wordmark and Map/Outline, an optional quiet shared-copy line, the map
-// (or the outline, `#view=outline`) and a one-line footer that says where the page was made. No website navigation.
+// The local viewer (v7 §7 "Local viewer", docs/design/v7/preview/Home.html without the site chrome): the wordmark
+// header; the session header in the home's hero place (the title as the page's h1, the meta line, AI titles when the
+// page has them, Details, Share), the session's tree at the full content width with its legend; the card with the
+// git-style list and the outcome or the step's detail panel; and a footer of two plain links. The selected step lives in the hash (`#step=s41`), so it works from file:// and deep links
+// within the file open the same state. One file, no requests.
 import { useEffect, useState } from 'react';
 import { Wordmark } from '../brand/Wordmark';
-import { HOW_TO_READ_URL } from '../map/HonestyLabel';
-import type { Loaded } from '../map/loadGraph';
-import { MapView, ViewSwitch, useMapReady, type View } from '../map/MapView';
-import { Outline } from '../map/Outline';
-import { ShareAction } from '../share/ShareAction';
+import { AlertIcon } from '../map/gitlist/marks';
+import type { Loaded, ViewerPayload } from '../map/loadGraph';
+import { SessionMap } from '../site/SessionMap';
 
-const SOURCE = 'https://github.com/geekplux/reasontrail';
-const readView = (): View => (/(^#|&)view=outline(&|$)/.test(window.location.hash) ? 'outline' : 'map');
+export const SITE_URL = 'https://reasontrail.geekplux.com';
+export const MAKER_URL = 'https://geekplux.com';
 
-export function Viewer({ loaded }: { loaded: Loaded }) {
-  const [view, setView] = useState(readView);
+/** The step in the hash: `#step=s41` (other hash text is ignored). */
+export function readStep(hash = window.location.hash): string | null {
+  const m = /^#(?:.*&)?step=([^&]+)/.exec(hash);
+  if (!m) return null;
+  try {
+    return decodeURIComponent(m[1]!);
+  } catch {
+    return null; // a malformed escape (`#step=%`)
+  }
+}
+
+/** The hash state: opening a step from none and closing the panel are history entries; stepping replaces the entry. */
+function useHashStep(): [string | null, (stepId: string | undefined) => void] {
+  const [step, setStep] = useState(() => readStep());
   useEffect(() => {
-    const sync = () => setView(readView());
+    const sync = () => setStep(readStep());
     window.addEventListener('hashchange', sync);
-    return () => window.removeEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    return () => {
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+    };
   }, []);
-  const change = (next: View) => {
-    history.replaceState(history.state, '', `${window.location.pathname}${window.location.search}${next === 'outline' ? '#view=outline' : ''}`);
-    setView(next);
+  const write = (next: string | undefined) => {
+    const { pathname, search } = window.location;
+    history[step && next ? 'replaceState' : 'pushState'](history.state, '', `${pathname}${search}${next ? `#step=${encodeURIComponent(next)}` : ''}`);
+    setStep(next ?? null);
   };
-  const meta = loaded.ok ? loaded.payload.meta : undefined;
+  return [step, write];
+}
+
+function Session({ payload }: { payload: ViewerPayload }) {
+  const { graph, meta, labels } = payload;
+  const [step, onStep] = useHashStep();
+  const replaced = meta.shared?.replaced;
   return (
-    <>
-      <header className="site-header viewer-header">
-        <Wordmark />
-        {loaded.ok ? <ViewSwitch view={view} onChange={change} /> : null}
-      </header>
-      {meta?.shared && (
-        <section className="shared-ribbon" aria-label="Shared copy">Shared copy · redacted ({meta.shared.replaced} items replaced)</section>
-      )}
-      <main className="site-main viewer-main">
-        <h1 className="visually-hidden">Reasoning map</h1>
-        {loaded.ok ? (
-          view === 'map' ? <MapView graph={loaded.payload.graph} link="hash" ai={loaded.payload.labels ? { overlay: loaded.payload.labels } : undefined} /> : <Outline graph={loaded.payload.graph} />
-        ) : (
-          <ViewerError reason={loaded.reason} />
-        )}
-      </main>
-      <footer className="viewer-footer">
-        <span className="viewer-privacy">Generated on your machine · nothing was uploaded</span> · Reasontrail {meta?.version ?? ''} · <a href={HOW_TO_READ_URL}>How to read this map</a> · <a href={SOURCE}>Source</a>
-        {loaded.ok && <> · <ShareAction graph={loaded.payload.graph} from="page" version={meta?.version} prior={meta?.shared?.replaced} /></>}
-      </footer>
-    </>
+    <SessionMap id="viewer" g={graph} step={step} onStep={onStep} tag={replaced === undefined ? undefined : `Shared copy, redacted (${replaced} ${replaced === 1 ? 'item' : 'items'} replaced)`}
+      ai={labels ? { overlay: labels } : null} share={{ from: 'page', version: meta.version, prior: replaced }} />
   );
 }
 
-function ViewerError({ reason }: { reason: string }) {
-  useMapReady();
+export function Viewer({ loaded }: { loaded: Loaded }) {
   return (
-    <div className="viewer-error" data-testid="map" data-ready="false">
-      <p className="strong"><span className="bang" aria-hidden="true">!</span> {reason}</p>
-      <p>Run the command again to write a fresh page.</p>
-    </div>
+    <>
+      <header className="v7 bar">
+        <Wordmark />
+      </header>
+      <main className="v7 viewer session-page">
+        {loaded.ok ? <Session payload={loaded.payload} /> : (
+          <div className="viewer-error">
+            <h1 className="visually-hidden">Reasoning map</h1>
+            <p className="strong"><AlertIcon size={14} /> {loaded.reason}</p>
+            <p className="muted">Run the command again to write a fresh page.</p>
+          </div>
+        )}
+      </main>
+      <footer className="v7 foot">
+        <a href={SITE_URL}>Made with <span className="made">Reasontrail</span></a>
+        <a href={MAKER_URL}>geekplux.com</a>
+      </footer>
+    </>
   );
 }

@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Redesign v7: the session as a tree
+
+- **A new look.** Radix slate, blue and orange in light and dark, Geist and Geist Mono (self-hosted, inlined in the local viewer), four type sizes, 0.5px lines, and a new logo: a leaf split into a blue and an orange half with a branching vein. The old paper palette, serif and caps labels are gone, and no "·" separators are left.
+- **The tree.** Every session is drawn as a tree grown left to right: the main agent is the trunk, subagents are limbs that end in their verdict and hand back to the trunk, episodes are branches with a kind glyph and a number, tool calls are twigs (a leaf when they worked, an orange twig with ✕ when they failed, a bud for a read), and width follows the tool calls still ahead. The layout engine (`src/map/tree`) is pure and deterministic, and labels never overlap.
+- **The git-style list.** Under the tree, the same session as rails, forks, merges and verdict rows. It is the keyboard path (a WAI-ARIA tree: arrows, Home/End, Enter, Esc), and hovering or focusing a row lights its path in the tree, and the other way round.
+- **Select a step.** Click a twig, press Enter on a row, or follow a `?session=…&step=…` link: the path from the root turns blue with a callout, and a panel shows the command, its output, the next step, the source file and line, and "Show raw". Thinking steps note that written reasoning is the model's own account.
+- **The home.** The headline and install command over the default sample's tree at full width, sample tabs under it, then one session card (title, meta line, AI titles, Details, Share, the list, an outcome box with the last check, the trouble and the files changed, and the final answer), install, "Made by GeekPlux" and the footer. On a phone the tree is a bare silhouette and the card runs edge to edge; dark mode follows the system.
+- **Everything else on the same design.** The local viewer and Share's redacted copy (still one offline file), a session opened from a file or a pasted chat (its tree trimmed to its height, its legend to what it draws, and a chat's outcome box only when there is trouble), AI titles (small tags in the list and a dashed ring in the tree), How to read a map (one figure, two paragraphs), Install and the next-token garden. The old map (route, task card, Map/Outline switch, trouble blazes) is removed; `?view=outline` opens the home.
+- **README, examples and brand.** The README hero is the new home, the examples gallery and the social preview are retaken, and `docs/DESIGN.md` is rewritten for v7, with every deviation from the design canvas listed.
+
+### Other
+
 - Deploys through Cloudflare Workers Builds ([docs/DEPLOY.md](docs/DEPLOY.md)): a `previews` block for branch previews, and wrangler 4.151 with Node 22 for development. The CLI still runs on Node 20.19+.
+- Live model calls on the public site are capped per day (`DAILY_UPSTREAM_CAP`); the next-token lens says so beside its live opt-in, and recorded gardens always work. The Worker's rate limiters have account-unique namespace ids.
 - The CLI is published to npm by a GitHub Actions workflow on a `cli-v*` release, using npm trusted publishing ([docs/PUBLISH.md](docs/PUBLISH.md)).
 
 ## [0.1.0] (not released yet; the date is added on release)

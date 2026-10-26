@@ -1411,6 +1411,24 @@ The old phases 10–13 (live mode, README, gallery/launch, deploy prep) are **[s
 
 ---
 
+### 6.v7 Redesign v7, canvas-first restart (phases 29–36)
+
+Spec: `docs/design/v7/PROMPT.md` (§13 wins over §1–§12; the canvas `docs/design/v7/preview/*.html` and `docs/design/v7/canvas-2026-10-24/*.png` win over prose). Canvas frames are rendered with `scripts/design/canvas.mjs frames` into `docs/design/v7/frames/`. Every UI phase: side-by-side app vs canvas under `docs/screenshots/phase-<n>/`, lead-designer MATCH required (§13.4), exactly two review rounds.
+
+| # | Branch | Goal |
+|---|---|---|
+| 29 | `phase-29-v7-canvas-page` | Reference copy; Radix tokens, self-hosted Geist, four sizes, 0.5px lines, radii; veined-leaf LogoMark/Wordmark/favicon SVG; the full website page matching `Home.html` at 1440 light (header, hero, static reference tree port, legend, tabs, session card with the §12 header, static list placeholder sized like the canvas, outcome box, install, Made by GeekPlux, footer); old layout removed from the website route; old fonts removed |
+| 29b | `phase-29b-v7-brand-cleanup` | Remaining surfaces (drop zone, garden lens, AI, share, viewer) moved onto the Radix tokens; old palette deleted; token test widened to every `src/**/*.css`; favicon PNG and wordmark PNGs; interim DESIGN.md identity/type/colour/shape from the spec |
+| 30 | `phase-30-v7-gitlist` | Git-style list (§6) with rails, rows, states, WAI-ARIA tree keyboard; replaces the placeholder; outcome box from real sample data |
+| 31 | `phase-31-v7-tree-engine` | Pure tree layout engine in `src/map/tree/` (§5.2–5.3) with label placement |
+| 32a | `phase-32a-v7-tree-render` | SVG renderer replaces the static tree; legend; hover + tooltip linked to the list; 12px hit testing; tab switching swaps tree, list, outcome |
+| 32b | `phase-32b-v7-step-detail` | Step selection: blue path, callout, detail panel, Prev/Next, Esc, list link; URL state (sample, step) |
+| 33 | `phase-33-v7-phone-dark` | Phone 390 and dark |
+| 34a | `phase-34a-v7-viewer` | Local viewer on the new design; Share's redacted copy; viewer budget/offline; skill audit/evals |
+| 34b | `phase-34b-v7-features` | AI titles overlay, drop zone, HowToReadMap, lens; lens/ai/share flows; old map code removed |
+| 35 | `phase-35-v7-polish-docs` | Full before/after set vs canvas; README hero, wordmarks, social preview, examples, CHANGELOG, DESIGN.md rewrite |
+| 36 | `phase-36-v7-deploy-prep` | `pnpm run check:deploy` dry run; stops for Sean's approval |
+
 ## 7. Out of scope (and what was cut)
 
 Not built, with the reason:

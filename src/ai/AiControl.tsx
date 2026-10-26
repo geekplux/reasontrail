@@ -1,9 +1,9 @@
-// The route header's quiet "AI labels" control (DESIGN §13.6, PLAN phase 21), loaded only when it is first used.
-// Website: consent dialog → "Labelling k of n" + Cancel → an overlay toggle, or a calm note. Local viewer (`--ai`):
-// the overlay is already in the page, so it is only a toggle. Off by default; off restores the deterministic map.
+// The session card's "AI titles" control (PLAN phase 21; v7 §7), loaded only when it is first used. Website: the
+// consent dialog, then "Labelling k of n…" with Cancel, then an on/off toggle, or a calm note. Local viewer (`--ai`):
+// the overlay is already in the page, so it is only a toggle. Off by default; off restores the plain map.
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
-import { InfoGlyph } from '../map/Glyph';
+import { AlertIcon, InfoIcon } from '../map/gitlist/marks';
 import { ConsentDialog } from './ConsentDialog';
 import { useStructure } from './useStructure';
 import './ai.css';
@@ -16,6 +16,8 @@ interface Props {
   onOverlay(overlay: LabelOverlay | undefined): void;
   announce(text: string): void;
 }
+
+const LABEL = 'AI titles';
 
 export default function AiControl({ g, source, onOverlay, announce }: Props) {
   return 'overlay' in source ? <Toggle overlay={source.overlay} onOverlay={onOverlay} /> : <Live g={g} onOverlay={onOverlay} announce={announce} />;
@@ -31,14 +33,7 @@ function Toggle({ overlay, onOverlay, initial = false, focusRef }: { overlay: La
     setOn(!on);
     onOverlay(on ? undefined : overlay);
   };
-  return (
-    <span className="ai-control">
-      {/* One button, so the key never adds a header row: the dashed swatch says what a suggested label looks like. */}
-      <button ref={focusRef} type="button" className="ai-button ai-toggle" aria-pressed={on} aria-label={`AI labels, suggested by ${overlay.model}`} onClick={flip}>
-        <span className="ai-tag ai-swatch" aria-hidden="true" /> AI labels · suggested by <span className="ai-model">{overlay.model}</span>
-      </button>
-    </span>
-  );
+  return <button ref={focusRef} type="button" className="btn ghost" aria-pressed={on} onClick={flip}>{LABEL}</button>;
 }
 
 function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
@@ -47,7 +42,7 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
   const button = useRef<HTMLButtonElement>(null);
   const status = useRef<HTMLSpanElement>(null);
   const said = useRef('');
-  // The user asked by activating the MapView placeholder that loaded this chunk: open the consent dialog once.
+  // The user asked by activating the card's placeholder button that loaded this chunk: open the consent dialog once.
   const asked = useRef(false);
   useEffect(() => {
     if (asked.current) return;
@@ -67,10 +62,10 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
     const prev = was.current;
     was.current = state.status;
     const say = state.status === 'sending'
-      ? (state.total > 1 ? `Labelling ${state.done + 1} of ${state.total}` : 'Asking a model for AI labels')
-      : state.status === 'ready' ? 'AI labels added'
+      ? (state.total > 1 ? `Labelling ${state.done + 1} of ${state.total}` : 'Asking a model for AI titles')
+      : state.status === 'ready' ? 'AI titles added'
       : (state.status === 'unavailable' || state.status === 'error') && document.activeElement !== status.current ? state.message
-      : state.status === 'idle' && prev === 'sending' ? 'AI labels cancelled; nothing was kept'
+      : state.status === 'idle' && prev === 'sending' ? 'AI titles cancelled; nothing was kept'
       : '';
     if (say && say !== said.current) announce(say);
     said.current = say;
@@ -80,19 +75,17 @@ function Live({ g, onOverlay, announce }: Omit<Props, 'source'>) {
   if (state.status === 'sending') {
     return (
       <span className="ai-control">
-        <span className="ai-status"><span className="ai-tag ai-swatch" aria-hidden="true" /> Labelling {Math.min(state.done + 1, state.total)} of {state.total}…</span>
-        <button ref={button} type="button" className="ai-button" onClick={ai.cancel}>Cancel</button>
+        <span className="ai-status">Labelling {Math.min(state.done + 1, state.total)} of {state.total}…</span>
+        <button ref={button} type="button" className="btn ghost" onClick={ai.cancel}>Cancel</button>
       </span>
     );
   }
   const note = state.status === 'unavailable' || state.status === 'error' ? state.message : '';
   return (
     <span className="ai-control">
-      {note ? <span ref={status} tabIndex={-1} className="ai-status" data-ai-note={state.status}><InfoGlyph />{note}</span> : null}
+      {note ? <span ref={status} tabIndex={-1} className="ai-status" data-ai-note={state.status}>{state.status === 'error' ? <AlertIcon size={14} /> : <InfoIcon />}{note}</span> : null}
       {state.status !== 'unavailable' && (
-        <button ref={button} type="button" className="ai-button" aria-haspopup="dialog" onClick={() => ai.request()}>
-          {state.status === 'error' ? 'Try AI labels again' : 'AI labels…'}
-        </button>
+        <button ref={button} type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => ai.request()}>{LABEL}</button>
       )}
       {state.status === 'consent-needed' && (
         <ConsentDialog summary={state.summary} onSend={() => void ai.consent()} onCancel={ai.cancel} />
