@@ -6,11 +6,11 @@ const rules = parseHeaders(readFileSync(new URL('../public/_headers', import.met
 const csp = (path) => headersFor(rules, path).get('content-security-policy') ?? '';
 
 describe('public/_headers', () => {
-  it('gives every page the site CSP: self only, no inline code, blob: workers', () => {
+  it('gives every page the site CSP: self and Google Analytics only, no inline code, blob: workers', () => {
     for (const path of ['/', '/anything', '/assets/index-abc.js']) {
       const policy = csp(path);
-      expect(policy).toContain("script-src 'self';");
-      expect(policy).toContain("connect-src 'self';");
+      expect(policy).toContain("script-src 'self' https://*.googletagmanager.com;");
+      expect(policy).toContain("connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;");
       expect(policy).toContain("worker-src 'self' blob:");
       expect(policy).not.toContain('unsafe-inline');
       expect(policy).not.toContain('unsafe-eval');
@@ -29,6 +29,7 @@ describe('public/_headers', () => {
     for (const path of ['/viewer.html', '/viewer']) {
       expect(csp(path)).toMatch(/^default-src 'none'; script-src 'unsafe-inline';/);
       expect(csp(path)).toContain("connect-src 'none'");
+      expect(csp(path)).not.toContain('google');
       expect(csp(path)).not.toContain(', '); // detached, not joined with the site CSP
     }
   });

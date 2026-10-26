@@ -4,9 +4,10 @@
 #
 # CSP, from what the built app needs: its own scripts, CSS and self-hosted fonts; fetches only to itself (the
 # lazy chunks, /viewer.html, /api/*); the intake Web Worker starts from a blob: URL; map cards and downloads use
-# blob: URLs; no inline scripts or styles.
+# blob: URLs; no inline scripts or styles. The Google hosts are gtag.js and its hits (src/analytics.ts, the
+# website only), as Google's CSP guide for Google Analytics 4 lists them; the viewer's own policy below has none.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://*.googletagmanager.com; style-src 'self'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()

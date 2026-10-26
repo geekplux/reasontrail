@@ -73,7 +73,7 @@ Grok Build   ─┘            provenance for every step        outcome box and 
 
 ## Privacy and honesty
 
-- Everything runs on your machine. The CLI reads only the session's files and writes one HTML file; it makes no network request unless you pass `--ai`. The website parses dropped files in your browser and uploads nothing.
+- Everything runs on your machine. The CLI reads only the session's files and writes one HTML file; it makes no network request unless you pass `--ai`. The website parses dropped files in your browser and uploads nothing. It counts page views with Google Analytics: one per visit, with the page's path and nothing else, never a file, a map or anything in them (no events, no Google signals, no ad personalisation; Google Analytics sets its own `_ga` cookies; [src/analytics.ts](src/analytics.ts)). The CLI's maps load no analytics.
 - The default map is private and unredacted. `--share` (or "Share" on a map) replaces secrets, tokens, emails and home paths with typed placeholders and tells you how many it replaced.
 - Written reasoning is the model's own account, not a record of how it computed; a thinking step's panel says so. Thinking whose text was not stored is shown as such; nothing is invented for it. Trouble (error streaks, retries, reverts, failed reviews) is found by fixed rules, not by a model.
 - Codex support is built from the public session format and has not yet been checked against a real Codex session.
