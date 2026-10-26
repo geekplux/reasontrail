@@ -11,7 +11,7 @@
 
 export const ANALYTICS_HOST = 'reasontrail.geekplux.com';
 /** The GA4 web stream for {@link ANALYTICS_HOST}; empty keeps analytics off. */
-export const MEASUREMENT_ID = '';
+export const MEASUREMENT_ID = 'G-H9HXK7H39Z';
 const PAGE_TITLE = 'Reasontrail';
 const PATHS = new Set(['/']);
 
