@@ -77,7 +77,8 @@
 .garden path[data-role='sampled-underlay'] { stroke: var(--slate-12); }
 .garden path[data-role='sampled-stroke'] { stroke: var(--blue-9); }
 /* Dark: an ink (light) underlay is too close to the accent, so the outline is paper there (contrast vs accent). */
-@media (prefers-color-scheme: dark) { .garden path[data-role='sampled-underlay'] { stroke: var(--slate-1); } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .garden path[data-role='sampled-underlay'] { stroke: var(--slate-1); } }
+:root[data-theme='dark'] .garden path[data-role='sampled-underlay'] { stroke: var(--slate-1); }
 .marker-diamond { fill: var(--blue-9); stroke: var(--slate-12); stroke-width: 1; }
 .legend [data-role='legend-not-recorded'] { stroke: var(--slate-11); stroke-dasharray: 4 3; }
 .garden [data-role='remainder'] text, .garden-empty { fill: var(--slate-11); }

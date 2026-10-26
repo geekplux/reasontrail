@@ -2,7 +2,7 @@
 
 Owner: `llm-integration`. Date: 2026-10-19. Status: planning decision (see `docs/DECISIONS.md`).
 
-token-garden needs one thing from a model: **for a text prefix, the top-k next tokens with their log-probabilities**. Every live expansion is exactly one such query. This doc records what was evaluated, the evidence, the choice, and the contract the app and Worker build against.
+reasontrail needs one thing from a model: **for a text prefix, the top-k next tokens with their log-probabilities**. Every live expansion is exactly one such query. This doc records what was evaluated, the evidence, the choice, and the contract the app and Worker build against.
 
 ## TL;DR
 
