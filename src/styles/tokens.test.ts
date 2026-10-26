@@ -41,6 +41,14 @@ const STYLESHEETS = byPath(import.meta.glob('../**/*.css', { query: '?raw', impo
 const SCRIPTS = byPath(import.meta.glob(['../**/*.{ts,tsx}', '!../**/*.test.{ts,tsx}', '!../test/**', '!../site/static/**'], { query: '?raw', import: 'default', eager: true }));
 const uncommented = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, '');
 
+describe('tokens.css, a dark pick', () => {
+  it('declares the same dark values for a dark system and for data-theme="dark"', () => {
+    const pick = css.lastIndexOf(":root[data-theme='dark'] {");
+    expect(pick).toBeGreaterThan(darkStart);
+    expect(declared(css.slice(pick))).toEqual(declared(css.slice(darkStart, pick)));
+  });
+});
+
 describe('colorMath', () => {
   it('computes WCAG contrast at the known extremes', () => {
     expect(contrast('#000', '#fff')).toBeCloseTo(21, 5);

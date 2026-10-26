@@ -12,7 +12,7 @@ export interface MoreSite {
 export const MAKER = { name: 'GeekPlux', line: 'Writing, projects and data visualization', url: 'https://geekplux.com' } as const;
 
 export const MORE_SITES: readonly MoreSite[] = [
-  { name: 'Vert', line: 'Turn a GPX track into a terrain poster', url: 'https://vert.geekplux.org' },
+  { name: 'Vert', line: 'Turn a GPX track into a terrain poster', url: 'https://vert.geekplux.com' },
   { name: 'Explorable', line: 'Turn a paper into an interactive essay', url: 'https://explorable.geekplux.com' },
   { name: 'Pagelapse', line: 'Watch a web page change over the years', url: 'https://pagelapse.geekplux.com' },
   { name: 'markvis', line: 'Charts written in Markdown', url: 'https://github.com/geekplux/markvis' },
