@@ -4,6 +4,9 @@
   "description": "See what your coding agent did: a self-contained map of an AI session, with a next-token lens.",
   "private": true,
   "license": "MIT",
+  "homepage": "https://reasontrail.geekplux.com",
+  "repository": { "type": "git", "url": "git+https://github.com/geekplux/reasontrail.git" },
+  "bugs": { "url": "https://github.com/geekplux/reasontrail/issues" },
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "engines": {
