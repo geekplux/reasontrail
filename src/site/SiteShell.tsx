@@ -8,6 +8,7 @@ import { LogoMark } from '../brand/LogoMark';
 import { Wordmark } from '../brand/Wordmark';
 import type { SiteView } from '../app/urlState';
 import { usePhone } from './usePhone';
+import { ThemeButton } from './theme/ThemeButton';
 
 export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
 export const PRIVACY = 'Parsed in your browser. Nothing is uploaded.';
@@ -52,7 +53,8 @@ function useFileDrop(onFile: (file: File) => void) {
 
 const HOW = '?view=how';
 
-/** The header bar (v7 §4.1): the wordmark, three nav links, `actions` (the garden's Copy link), the one primary button.
+/** The header bar (v7 §4.1): the wordmark, three nav links, `actions` (the garden's Copy link), the theme button, the
+ * one primary button.
  * `view`: the website page shown, for `aria-current` (none in the lens). */
 export function SiteHeader({ view, actions }: { view?: SiteView | undefined; actions?: ReactNode }) {
   const phone = usePhone();
@@ -66,6 +68,7 @@ export function SiteHeader({ view, actions }: { view?: SiteView | undefined; act
         <a href={SOURCE_URL}>GitHub</a>
       </nav>
       {actions}
+      <ThemeButton />
       <a className="btn primary" href="?view=open" aria-current={current('open')}>{phone ? 'Open session' : 'Open a session'}</a>
     </header>
   );

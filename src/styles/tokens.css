@@ -44,9 +44,14 @@
   :root { --motion-ms: 0ms; }
 }
 
-/* Dark: the Radix dark scales (blue-9 and orange-9 are the same in both themes). */
+/* A visitor's pick (the header's theme button, src/site/theme) overrides the system: data-theme on <html>. */
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+/* Dark: the Radix dark scales (blue-9 and orange-9 are the same in both themes), for a dark system without a light
+   pick, and for a dark pick. The two blocks hold the same values (tokens.test.ts checks). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --slate-1: #111113; --slate-2: #18191b; --slate-3: #212225; --slate-4: #272a2d; --slate-5: #2e3135; --slate-6: #363a3f;
     --slate-7: #43484e; --slate-8: #5a6169; --slate-9: #696e77; --slate-10: #777b84; --slate-11: #b0b4ba; --slate-12: #edeef0;
     --blue-1: #0d1520; --blue-2: #111927; --blue-3: #0d2847; --blue-4: #003362; --blue-5: #004074; --blue-6: #104d87;
@@ -55,4 +60,14 @@
     --orange-7: #7e451d; --orange-8: #a35829; --orange-9: #f76b15; --orange-10: #ff801f; --orange-11: #ffa057; --orange-12: #ffe0c2;
     --on-orange-9: var(--slate-1);
   }
+}
+
+:root[data-theme='dark'] {
+  --slate-1: #111113; --slate-2: #18191b; --slate-3: #212225; --slate-4: #272a2d; --slate-5: #2e3135; --slate-6: #363a3f;
+  --slate-7: #43484e; --slate-8: #5a6169; --slate-9: #696e77; --slate-10: #777b84; --slate-11: #b0b4ba; --slate-12: #edeef0;
+  --blue-1: #0d1520; --blue-2: #111927; --blue-3: #0d2847; --blue-4: #003362; --blue-5: #004074; --blue-6: #104d87;
+  --blue-7: #205d9e; --blue-8: #2870bd; --blue-9: #0090ff; --blue-10: #3b9eff; --blue-11: #70b8ff; --blue-12: #c2e6ff;
+  --orange-1: #17120e; --orange-2: #1e160f; --orange-3: #331e0b; --orange-4: #462100; --orange-5: #562800; --orange-6: #66350c;
+  --orange-7: #7e451d; --orange-8: #a35829; --orange-9: #f76b15; --orange-10: #ff801f; --orange-11: #ffa057; --orange-12: #ffe0c2;
+  --on-orange-9: var(--slate-1);
 }
