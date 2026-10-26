@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Page-view counts on the website
+
+- reasontrail.geekplux.com counts page views with Google Analytics: the path only, never a dropped file or the map's state. The CLI's maps and the local viewer load no analytics.
+
 ### Redesign v7: the session as a tree
 
 - **A new look.** Radix slate, blue and orange in light and dark, Geist and Geist Mono (self-hosted, inlined in the local viewer), four type sizes, 0.5px lines, and a new logo: a leaf split into a blue and an orange half with a branching vein. The old paper palette, serif and caps labels are gone, and no "·" separators are left.

@@ -24,4 +24,4 @@ Out of scope: the private local map is unredacted by design (it shows your own t
 
 ## What Reasontrail does with your data
 
-The CLI and the website make no network request unless you opt in to AI labels (`--ai`, or "AI labels…" then "Send"), which sends redacted one-line step summaries to the Worker. The lens grows a sentence live only after you ask it to. Nothing else leaves your machine.
+The website counts page views with Google Analytics (the page's path only, never a file or anything in it); the CLI's maps load no analytics. Beyond that, the CLI and the website make no network request unless you opt in to AI labels (`--ai`, or "AI labels…" then "Send"), which sends redacted one-line step summaries to the Worker. The lens grows a sentence live only after you ask it to. Nothing else leaves your machine.
