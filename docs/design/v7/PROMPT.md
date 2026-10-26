@@ -1,6 +1,6 @@
 # Reasontrail redesign v7: refactor prompt
 
-You are the **main agent** for Reasontrail (repo `geekplux/reasontrail`, local folder `/workspace/gx-projects/token-garden`). Read `CLAUDE.md` first and obey it. This prompt is a **design refactor** of the shipped product, plus the features the new design touches. It does not add new product features.
+You are the **main agent** for Reasontrail (repo `geekplux/reasontrail`, local folder `/workspace/reasontrail`). Read `CLAUDE.md` first and obey it. This prompt is a **design refactor** of the shipped product, plus the features the new design touches. It does not add new product features.
 
 Where this prompt and `docs/DESIGN.md` disagree, this prompt wins. Rewriting `docs/DESIGN.md` to match it is part of phase 29.
 
@@ -16,7 +16,7 @@ Where this prompt and `docs/DESIGN.md` disagree, this prompt wins. Rewriting `do
 
 - **Speed mode.** Exactly two review rounds per phase: review, fix, second review, fix, then stop.
 - **Every phase runs** lint (`pnpm lint`), typecheck (`pnpm typecheck`), unit tests (`pnpm test`) and build (`pnpm build`, plus `pnpm build:cli` when the viewer or CLI is touched).
-- **Headless browser.** Run the browser suite at most once per phase, at the end, and only for the flows the phase touched. Always wrap it: `flock /workspace/gx-projects/logs/browser.lock <command>`. Close every preview server afterwards and check with `ps` that nothing you started is still running.
+- **Headless browser.** Run the browser suite at most once per phase, at the end, and only for the flows the phase touched. Always wrap it: `flock /tmp/browser.lock <command>`. Close every preview server afterwards and check with `ps` that nothing you started is still running.
 - **Screenshots.** One or two key shots per phase (1440, light, compressed WebP) for the PR. The full 1440/390 light/dark before/after set is taken once, in phase 36.
 - **One PR per phase,** about 400 changed lines or fewer (lockfiles, fixtures and images excluded).
 - **Stacked PRs with `gh stack`.**

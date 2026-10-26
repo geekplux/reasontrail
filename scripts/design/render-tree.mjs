@@ -3,7 +3,7 @@
 // Vite's module runner, turns its output into standalone HTML pages styled like the canvas (the CSS of
 // docs/design/v7/preview/Home.html, Geist from node_modules), and with --shoot screenshots them.
 // Always run --shoot under the shared browser lock:
-//   flock /workspace/gx-projects/logs/browser.lock node scripts/design/render-tree.mjs --shoot
+//   flock /tmp/browser.lock node scripts/design/render-tree.mjs --shoot
 // Options: --out <dir for HTML> (default /tmp/reasontrail-tree), --shots <dir> (default docs/screenshots/phase-31).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';

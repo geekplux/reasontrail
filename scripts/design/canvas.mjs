@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Canvas comparison helper for redesign v7 (docs/design/v7/PROMPT.md §13.4). Always run under the shared browser lock:
-//   flock /workspace/gx-projects/logs/browser.lock node scripts/design/canvas.mjs <command> ...
+//   flock /tmp/browser.lock node scripts/design/canvas.mjs <command> ...
 //
 // Commands:
 //   frames [--out docs/design/v7/frames] [--only <name>]
