@@ -1,6 +1,6 @@
 # Reasontrail: plan
 
-Written by `planner` on 2026-10-19 and revised on 2026-10-20 for the **repositioning**. Binding inputs: `CLAUDE.md` (including "Repositioning 2026-10-20" and its addendum), `/workspace/gx-projects/logs/token-garden.change-request.md` (including the addendum at its end), `docs/llm-provider.md` and `docs/DECISIONS.md`.
+Written by `planner` on 2026-10-19 and revised on 2026-10-20 for the **repositioning**. Binding inputs: `CLAUDE.md` (including "Repositioning 2026-10-20" and its addendum), Sean's change request (kept outside the repository), `docs/llm-provider.md` and `docs/DECISIONS.md`.
 
 **What changed on 2026-10-20.** The project (now **Reasontrail**) is a **reasoning map of AI sessions**. You run one skill in a Claude Code, Codex or Grok Build session, and a local page opens. It shows what the task was, the route the agent took, where it got stuck or backtracked, and what it finally changed or answered. Chat transcripts come later. The next-token garden built in phases 1–9 stays as a **zoom-in lens** ("zoom into this sentence"). Its encoding, keyboard and accessibility work is reused, not deleted.
 
@@ -9,7 +9,7 @@ Written by `planner` on 2026-10-19 and revised on 2026-10-20 for the **repositio
 - Phases 10–28 are new.
 - **Revised 2026-10-21 (Sean's design direction, "calm layout"):** from phase 18 on, every UI phase is reviewed against DESIGN.md "Calm layout", and a dedicated polish phase (25) was inserted before README/community. Former phases 25–27 are now 26–28.
 - Superseded items are kept only where open PRs refer to them, and are marked **[superseded]**: the live prompt box (old phase 10, criteria F9–F12), the garden as the first view, and "no CLI or agent skill".
-- **Renamed 2026-10-20: the product is Reasontrail** (repo `geekplux/reasontrail`, `npx reasontrail`, skill `/reasontrail`). The local folder and historical phases 1–8 keep `token-garden`; the code rename (package name, page title, wordmark, CLI and skill names) lands in phase 13.
+- **Renamed 2026-10-20: the product is Reasontrail** (repo `geekplux/reasontrail`, `npx reasontrail`, skill `/reasontrail`). Historical phases 1–8 keep the earlier working name; the code rename (package name, page title, wordmark, CLI and skill names) lands in phase 13.
 
 Contents:
 
@@ -95,7 +95,7 @@ URL entry points:
 
 > **Superseded from phase 10 by `docs/DESIGN.md`** (owned by `lead-designer`) for the reasoning map and for any identity change. This section remains the spec for the lens (garden) and the baseline identity tokens, type and logo until DESIGN.md records a reasoned change.
 
-The identity is **"specimen plate"**: the garden is drawn like a plate from a botanical field notebook. Warm paper, moss-ink branches whose thickness is the data, token labels set like typewritten specimen tags, and an italic serif for titles in the way Latin species names are set. Each garden carries a **specimen label** card (prompt, "recorded with", k, date) so the provenance of every distribution is always visible. This metaphor is specific to token-garden: the product literally grows and collects specimens of model behaviour. It is not a SaaS template: no gradients, no glass, no card grids, no stock illustrations, no decorative 3D.
+The identity is **"specimen plate"**: the garden is drawn like a plate from a botanical field notebook. Warm paper, moss-ink branches whose thickness is the data, token labels set like typewritten specimen tags, and an italic serif for titles in the way Latin species names are set. Each garden carries a **specimen label** card (prompt, "recorded with", k, date) so the provenance of every distribution is always visible. This metaphor is specific to reasontrail: the product literally grows and collects specimens of model behaviour. It is not a SaaS template: no gradients, no glass, no card grids, no stock illustrations, no decorative 3D.
 
 `dataviz-designer` turns this section into the exact encoding spec `docs/viz/garden.md` at the start of phase 3, before any tree-rendering work beyond the phase 1 skeleton. Phase 2 implements the identity itself (tokens, type, logo, shell), so every screenshot from phase 2 onward looks like the real product.
 
@@ -189,7 +189,7 @@ The two bold pairs are close under one CVD type. That is acceptable only because
 | State | Where | Visual | Text |
 |---|---|---|---|
 | First view | whole app | the default garden, already grown one level | none needed |
-| Empty (live mode before Grow) | garden area | the logo mark as a lone seed, a sentence and 3 example chips that fill the prompt box (no call) | "Type a beginning. token-garden shows what the model might say next." |
+| Empty (live mode before Grow) | garden area | the logo mark as a lone seed, a sentence and 3 example chips that fill the prompt box (no call) | "Type a beginning. reasontrail shows what the model might say next." |
 | Loading (live expansion) | at the branch tip | hollow circle marker + "growing…" stub, `aria-busy` on the treeitem | announced politely |
 | Not recorded | at the branch | dashed muted stroke + hollow circle | "Not in this recording." + "Grow it live" button |
 | Depth limit | at the branch | muted stroke + bar marker (⊣) | "Depth limit (12 tokens)" |
@@ -770,7 +770,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - **Project config:** `package.json` (license MIT; scripts `dev`, `build`, `preview`, `lint` = `oxlint --deny-warnings`, `typecheck`, `test` = `vitest run`, `check:browser`), `pnpm-lock.yaml`, `.nvmrc`, `vite.config.ts` (with the Vitest `test` block), `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json` (Q1 flags), `.oxlintrc.json` (plugins `react`, `typescript`, `jsx-a11y`, `vitest`; deny `no-explicit-any`), `index.html` (`lang="en"`, title, description, no external resources).
   - **App:** `src/main.tsx`, `src/App.tsx`, `src/styles.css` (system font stack; phase 2 replaces it), `src/samples/types.ts`, `src/samples/index.ts`, `src/samples/lighthouse.json` (tiny hand-checked fixture: root = the 5 real spike tokens from llm-provider.md §4, two illustrative child lists, `"model": {"provider": "fixture", ...}`; phase 6 replaces it), `src/garden/buildTree.ts` (+ test), `src/garden/GardenView.tsx` (minimal horizontal `d3-hierarchy` `tree()`, `<path>` links with `stroke-width = 1.5 + 18.5·p`, token labels, `<title>` with the percentage, the §6.0 test hooks), `src/App.test.tsx` (happy-dom: prompt + 5 branch labels), `performance.mark('tg:garden-ready')`.
   - **Browser harness:** `scripts/check-browser.mjs`, `scripts/browser/lib.mjs`, `scripts/browser/axe.mjs` (inject `axe-core/axe.min.js`, fail on serious/critical), `scripts/browser/flows/smoke.mjs`.
-  - **CI and repo files:** `ci/github-workflow.yml` (ubuntu, pnpm 9, Node 20.19: install, lint, typecheck, test, build, check:browser), `.gitignore` (`node_modules`, `dist`, `.tmp/`, `.wrangler/`, `.dev.vars`), `LICENSE` (MIT, "Copyright (c) 2026 geekplux and token-garden contributors"), `CHANGELOG.md` (Keep a Changelog skeleton with an `[Unreleased]` entry), minimal `README.md` (one-line pitch + "Develop" section; phase 11 rewrites it).
+  - **CI and repo files:** `ci/github-workflow.yml` (ubuntu, pnpm 9, Node 20.19: install, lint, typecheck, test, build, check:browser), `.gitignore` (`node_modules`, `dist`, `.tmp/`, `.wrangler/`, `.dev.vars`), `LICENSE` (MIT, "Copyright (c) 2026 geekplux and reasontrail contributors"), `CHANGELOG.md` (Keep a Changelog skeleton with an `[Unreleased]` entry), minimal `README.md` (one-line pitch + "Develop" section; phase 11 rewrites it).
 - **Acceptance criteria:**
   1. On Node 20.19.2 / pnpm 9.15.9: `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (≥ 3 tests) and `pnpm build` all exit 0. Vite is v8.
   2. `pnpm check:browser --out <dir>` exits 0, writes `smoke-desktop.png` and `smoke-mobile.png`, prints the cleanup line, and afterwards no preview or Chrome process from it remains.
@@ -930,7 +930,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
 - **Goal:** a tested Worker endpoint that turns a prefix into a normalized top-k list through Workers AI, cached in KV, with the full error envelope.
 - **User value:** the foundation for growing your own text without any key in the browser; repeated prefixes are free and fast thanks to the cache.
 - **Scope:**
-  - `wrangler.jsonc`: `name: "token-garden"`, `main: "worker/index.ts"`, a recent `compatibility_date`; `assets: {directory: "./dist", not_found_handling: "single-page-application", run_worker_first: ["/api/*"]}`; `ai: {binding: "AI"}`; `kv_namespaces: [{binding: "TG_CACHE"}]` (D10); `vars: {MODEL_ID: "@cf/zai-org/glm-4.7-flash", UPSTREAM: "workers-ai"}`.
+  - `wrangler.jsonc`: `name: "reasontrail"`, `main: "worker/index.ts"`, a recent `compatibility_date`; `assets: {directory: "./dist", not_found_handling: "single-page-application", run_worker_first: ["/api/*"]}`; `ai: {binding: "AI"}`; `kv_namespaces: [{binding: "TG_CACHE"}]` (D10); `vars: {MODEL_ID: "@cf/zai-org/glm-4.7-flash", UPSTREAM: "workers-ai"}`.
   - `tsconfig.worker.json` and the `Env` interface (D13).
   - `worker/index.ts`, `worker/handler.ts`, `worker/validate.ts` (body ≤ 4 KB, JSON, NFC, 1–1000 chars, control chars, k 1–8), `worker/errors.ts`, `worker/cache.ts` (SHA-256 key, slice to k, `waitUntil` put, put failure logged not surfaced), `worker/upstream/workersAi.ts` (system prompt and params from llm-provider.md §1.4/§5; thinking-token-first response → `upstream_error`).
   - `shared/llm/normalize.ts`, `shared/llm/parseOpenAiLogprobs.ts`.
@@ -1070,7 +1070,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
   - Harness: `--file` mode; flow `scripts/browser/flows/cli.mjs` runs the CLI on a fixture with `--no-open`, opens the file and asserts the glance text regions (M1 a, b, d as text) and zero requests.
 - **Acceptance criteria:**
   1. C1, C2 (Claude Code), C3, C4 and C5. The CLI dist has no `node_modules` requirement (`node cli/dist/cli.mjs --version` works from a clean copy of `cli/dist`).
-  2. On this box, `node cli/dist/cli.mjs --latest --no-open` from the project directory writes the HTML for the newest token-garden session, and the verifier opens it and screenshots it. The verifier keeps the file in `.tmp/` and does **not** commit it (it is unredacted), so for this run the screenshots must also not be committed. Committed screenshots come from fixtures or `--share` output only.
+  2. On this box, `node cli/dist/cli.mjs --latest --no-open` from the project directory writes the HTML for the newest reasontrail session, and the verifier opens it and screenshots it. The verifier keeps the file in `.tmp/` and does **not** commit it (it is unredacted), so for this run the screenshots must also not be committed. Committed screenshots come from fixtures or `--share` output only.
   3. A transcript containing `</script><script>alert(1)</script>` renders as text.
   4. The outline view meets G1 (outline part) and M5; `lead-designer`: `DESIGN: APPROVED`; `a11y-reviewer` passes.
 - **Verifier checks:** the common steps; `pnpm build:cli`; CLI unit tests; flow `cli`; `ps` shows no opener or browser left; output size check.
@@ -1100,7 +1100,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
   2. `install-skill --dry-run` in a sandbox `HOME` lists the exact files. A real install into the sandbox, then a second install, reports "unchanged". A modified installed file blocks a reinstall without `--force`.
   3. Every evaluation runs with no network and leaves no process.
   4. The real `~/.claude/skills` on this box is untouched (the verifier compares listings before and after).
-- **Verifier checks:** the common steps; audit; evals; sandbox install; one manual end-to-end run on this box. In a throwaway shell with `CLAUDE_CODE_SESSION_ID` set to a real token-garden session id, `node skills/reasontrail/kit/run.mjs --no-open` prints `MAP:`, and the HTML stays in `.tmp/`, not committed.
+- **Verifier checks:** the common steps; audit; evals; sandbox install; one manual end-to-end run on this box. In a throwaway shell with `CLAUDE_CODE_SESSION_ID` set to a real reasontrail session id, `node skills/reasontrail/kit/run.mjs --no-open` prints `MAP:`, and the HTML stays in `.tmp/`, not committed.
   - **Screenshots:** `skill-map-fixture.png` (the file from an eval case).
 - **Risks:**
   - The skill formats differ or change: the audit pins the frontmatter rules; references are dated.
@@ -1363,7 +1363,7 @@ The session file may still be growing while the CLI reads it, so the reader stop
 - **Goal:** everything needed to deploy the showcase site and Worker, and to publish the CLI, is ready and dry-run-verified. **Nothing is deployed or published.**
 - **User value:** Sean can put the site online and publish `npx reasontrail` with reviewed commands. Self-hosters get a runbook.
 - **Scope:**
-  - `wrangler.jsonc` `name: "reasontrail"` (renamed from `token-garden`, 2026-10-20).
+  - `wrangler.jsonc` `name: "reasontrail"` (renamed 2026-10-20).
   - As old phase 13: `wrangler.jsonc` finalized (all bindings, including the structure route), `public/_headers` (CSP `connect-src 'self'`, long-cache assets), `docs/DEPLOY.md` (prerequisites, `pnpm install --frozen-lockfile && pnpm build && pnpm run check:deploy`, the smoke script, KV, the optional secret, **the exact deploy command `pnpm exec wrangler deploy`, run only by Sean or after his approval**, post-deploy checks for `/api/next-tokens` and `/api/structure`, URL replacement for D20, rollback, cost notes).
   - Plus `docs/PUBLISH.md`:
     - `pnpm build:cli && pnpm --dir cli pack` verified, and the tarball contents listed;

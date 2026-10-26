@@ -34,7 +34,7 @@ Last updated: 2026-10-25 (phase 36 done; STATE: DONE, awaiting Sean's approval t
 
 ## History: phases 1–28
 
-# Status (Reasontrail, formerly token-garden)
+# Status (Reasontrail)
 
 - Current phase: none — finished; final phase 28 (`phase-28-deploy-prep`, PR #29) stops for Sean's approval
 - Plan: `docs/PLAN.md` (28 phases after the 2026-10-20 pivot and the 2026-10-21 polish phase; final = Cloudflare deploy prep, stops for Sean's approval)

@@ -243,6 +243,6 @@ Each is recorded in `docs/DECISIONS.md` with its reason. Anything not listed her
 ## 13. How to check
 
 - Unit: `pnpm test` (tokens, CVD, tree overlaps and determinism, list model, step panel, outcome rows).
-- Browser, under `flock /workspace/gx-projects/logs/browser.lock`: `pnpm check:browser --flows v7home,v7phone,v7list,map,site,details,cli,open,chat,ai,share,lens` (type sizes ⊆ {12, 14, 20, 32}, Radix-only colours, 0.5px lines, no "·", the 120px edges, the tree above the fold, axe, keyboard).
+- Browser, under `flock /tmp/browser.lock`: `pnpm check:browser --flows v7home,v7phone,v7list,map,site,details,cli,open,chat,ai,share,lens` (type sizes ⊆ {12, 14, 20, 32}, Radix-only colours, 0.5px lines, no "·", the 120px edges, the tree above the fold, axe, keyboard).
 - Canvas comparison: `node scripts/design/canvas.mjs frames | shoot | pair` puts a canvas frame and the app side by side; the phase 35 set is indexed in `docs/screenshots/phase-35/README.md`.
 - Brand images: `pnpm check:browser --flows hero,gallery,brand,wordmark,polish` and `pnpm brand:hero-gif`.
