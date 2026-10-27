@@ -1,7 +1,7 @@
 # Publishing the `reasontrail` CLI to npm
 
-The CLI lives in `cli/` as its own zero-dependency package. It is not on npm yet: `cli/package.json` keeps
-`"private": true` so nothing can be published by accident.
+The CLI lives in `cli/` as its own zero-dependency package, published to npm as
+[`reasontrail`](https://www.npmjs.com/package/reasontrail) (0.1.0 by hand on 2026-10-27; later versions from a tag).
 
 > **Approval required (PLAN D36).** Publishing is like deploying: a name and a version on npm cannot be taken back.
 > Steps 3 and 4 are run only by Sean, or by someone else after his explicit approval. Steps 1 and 2 are safe at any
@@ -79,8 +79,8 @@ trusted publishing keeps working.
 
 ### 3b. Every release after that
 
-1. In a pull request: bump `version` in `cli/package.json` and add a dated `## [<version>] - <date>` heading to
-   `CHANGELOG.md`. Merge it.
+1. In a pull request: bump `version` in `cli/package.json` and `VERSION` in `skills/reasontrail/kit/run.mjs` (a test
+   keeps them equal), and add a dated `## [<version>] - <date>` heading to `CHANGELOG.md`. Merge it.
 2. Tag the merge and push the tag:
 
    ```sh
@@ -92,13 +92,7 @@ trusted publishing keeps working.
 
 ## 4. After publishing
 
-1. **Pin the skill kit.** In `skills/reasontrail/kit/run.mjs`, turn on the last fallback as
-   `npx --yes reasontrail@<version> --current` (the comment at the top of the file marks the spot), so a skill
-   installed without a local CLI still works and always runs the version it was tested with. Run
-   `pnpm skill:audit && pnpm skill:evals`.
-2. **Docs.** Remove the README's "Not on npm yet" note (the "From a clone" section can stay for contributors) and
-   update `docs/LAUNCH.md`'s checklist.
-3. **Verify from a clean folder,** outside the repository, with no global install:
+1. **Verify from a clean folder,** outside the repository, with no global install:
 
    ```sh
    cd "$(mktemp -d)" && npx --yes reasontrail@<version> --help && npx --yes reasontrail@<version> --version

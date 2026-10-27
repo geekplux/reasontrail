@@ -11,7 +11,7 @@ Reasontrail looks for sessions of the current working directory in three stores 
 Then:
 
 - Run the kit from the project folder the session started in.
-- Map a file directly: `node cli/dist/cli.mjs <path to session>.jsonl` (once Reasontrail is published: `npx reasontrail <path>`).
+- Map a file directly: `npx reasontrail <path to session>.jsonl` (from a clone: `node cli/dist/cli.mjs <path>`).
 
 ## The map shows the wrong session
 
@@ -27,13 +27,11 @@ Over SSH, in a container or without a display, no browser opens; the kit still p
 
 ## "reasontrail: the CLI was not found"
 
-Until `reasontrail` is published to npm, the kit needs a built CLI:
+The kit runs the CLI whose path `install-skill` recorded, or a clone's `cli/dist/cli.mjs`. It never downloads one, so it makes no network request. The recorded CLI is gone when npm's cache was cleared or the clone moved:
 
-1. In a clone of the repository: `pnpm install && pnpm build:cli`.
-2. Then either run `node cli/dist/cli.mjs install-skill` (the installed kit remembers where the CLI is) or set `REASONTRAIL_CLI=/path/to/cli/dist/cli.mjs`.
-
-Once published, the kit will use `npx --yes reasontrail@<version>` instead.
+1. Run `npx reasontrail install-skill` again; it records the new path and keeps your edits to the skill.
+2. Or set `REASONTRAIL_CLI=/path/to/cli.mjs`.
 
 ## The skill does not show up
 
-Run `node cli/dist/cli.mjs install-skill --dry-run` to see where it would go, then without `--dry-run`. Restart the agent so it rescans its skills. Codex looks in `~/.agents/skills/`, Claude Code and Grok Build in `~/.claude/skills/`. If you edited the installed files, the installer keeps your changes and stops; add `--force` to replace them.
+Run `npx reasontrail install-skill --dry-run` to see where it would go, then without `--dry-run`. Restart the agent so it rescans its skills. Codex looks in `~/.agents/skills/`, Claude Code and Grok Build in `~/.claude/skills/`. If you edited the installed files, the installer keeps your changes and stops; add `--force` to replace them.
