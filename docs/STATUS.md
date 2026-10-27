@@ -29,7 +29,6 @@ Last updated: 2026-10-25 (phase 36 done; STATE: DONE, awaiting Sean's approval t
 ### Follow-ups
 - AI claim→support links need a v7 UI (the CLI still computes them).
 - Upload `docs/brand/social-preview.png` as the repo's social preview; create `public/og-card.png` (DEPLOY.md step 1).
-- Move `ci/github-workflow.yml` to `.github/workflows/` (needs workflow scope).
 - Local `backup/pre-rebase/*` branches (not pushed) can be deleted once the stack is merged.
 
 ## History: phases 1–28
@@ -74,7 +73,6 @@ Last updated: 2026-10-25 (phase 36 done; STATE: DONE, awaiting Sean's approval t
 
 ## Follow-ups
 
-- Move `ci/github-workflow.yml` to `.github/workflows/` (needs `workflow` token scope).
 - Provide a valid Cloudflare API token (for live-mode checks and deploy).
 - npm publish of the CLI waits for Sean's approval, like deploy (D36).
 - Grok Build: supported (all 58 local sessions parse with 0 skipped lines). `--current` via `GROK_SESSION_ID` is unverified: Grok documents it for hook processes only; without it the CLI falls back to the newest session for the folder and says so (open item, not a blocker).

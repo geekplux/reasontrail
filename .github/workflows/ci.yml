@@ -1,5 +1,4 @@
-# CI definition. Lives in ci/ because the current GitHub token lacks `workflow` scope;
-# move it to .github/workflows/ci.yml once that scope is granted (follow-up in docs/STATUS.md).
+# CI: lint, typecheck, tests, build and the checks below, on every push to main and every pull request.
 name: ci
 
 on:
