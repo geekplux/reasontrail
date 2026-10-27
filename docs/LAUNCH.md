@@ -104,7 +104,7 @@ Researched on **2026-10-22** from each project's README or documentation (linked
 - [ ] **Enable private vulnerability reporting:** Settings → Code security, so the route in `SECURITY.md` works.
 - [ ] Repository description and topics set (e.g. `claude-code`, `codex`, `ai-agents`, `visualization`, `developer-tools`).
 - [ ] `CHANGELOG.md`: add the release date to the `[0.1.0]` heading.
-- [ ] Move `ci/github-workflow.yml` to `.github/workflows/` (needs a token with the workflow scope).
+- [ ] `.github/workflows/ci.yml` green on `main`.
 - [ ] Re-check the comparison table above against the linked pages on the day of posting.
 - [ ] Open each demo link in a fresh browser on the deployed site: the tree loads and the panel opens on the linked step.
 - [ ] **Make the repository public** (Settings → General → Danger zone), after a final secrets scan (`pnpm audit:samples` and a search of the git history).

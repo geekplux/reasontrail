@@ -18,7 +18,7 @@ node cli/dist/cli.mjs --help
 
 ## Checks
 
-Run these before you open a pull request. CI runs the same ones (its definition is in `ci/github-workflow.yml`).
+Run these before you open a pull request. CI runs the same ones (its definition is in [.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 | Command | What it checks |
 | --- | --- |
