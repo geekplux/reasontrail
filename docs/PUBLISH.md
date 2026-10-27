@@ -45,65 +45,50 @@ If it is taken, pick a scoped name (for example `@geekplux/reasontrail`), change
 
 ## 3. Publish (Sean, or after his approval)
 
-Releases are published by GitHub Actions: `.github/workflows/publish-cli.yml`. It runs when a GitHub release
-whose tag is `cli-v<version>` is published. It checks that the tag matches `version` in `cli/package.json`, that
-`"private": true` is gone and that the version is not on npm yet. Then it runs lint, typecheck, tests,
-`build:cli`, `check:pack` and `cli.mjs --version`, and only after that runs `npm publish --access public` from
-`cli/`. A pre-release goes out under the dist-tag `next`. A manual run (Actions → publish-cli → Run workflow)
-is a dry run by default and publishes nothing.
+Releases are published by GitHub Actions, the same way as vert and markvis: `.github/workflows/release.yml`
+runs when a `v<version>` tag is pushed (for example `v0.1.1`). It runs the whole `ci.yml` first, fails unless the
+tag is `v` + `version` in `cli/package.json`, runs `build:cli`, `check:pack` and `cli.mjs --version`, and then
+`npm publish --provenance --access public` from `cli/`. npm trusted publishing authenticates it through GitHub
+OIDC: no token is stored anywhere.
 
-### 3a. One-time setup (Sean)
+### 3a. Once: the first version, by hand
 
-npm trusted publishing (OIDC) needs no stored token, but npm can only attach a trusted publisher to a package
-that **already exists**. So the very first version goes out with a short-lived token (or by hand), and every
-later release uses OIDC.
+npm lets a trusted publisher be set only on a package that exists, so 0.1.0 goes up from your machine:
 
-1. **First publish (bootstrap).** Pick one:
-   - **From the workflow (recommended):** on npmjs.com create a **granular access token** (Access Tokens →
-     Generate New Token → Granular): permission *Read and write*, packages *All packages* (the package does not
-     exist yet), expiry 7 days. In GitHub, add it as the secret `NPM_TOKEN` (repo Settings → Secrets and
-     variables → Actions, or as an environment secret of the `npm` environment). Then cut the release as in 3b.
-   - **By hand:** `npm login`, then `pnpm build:cli && pnpm check:pack && cd cli && npm publish --access public`
-     (add `--otp <code>` with 2FA). Then tag and release as in 3b so the tag exists.
-2. **Add the trusted publisher.** On npmjs.com: Packages → `reasontrail` → Settings → Trusted publishing →
-   GitHub Actions, and enter exactly:
+```sh
+git switch main && git pull     # a clean main
+pnpm install --frozen-lockfile
+pnpm build:cli && pnpm check:pack
+npm login                       # the geekplux account
+cd cli && npm publish --access public   # add --otp <code> if npm asks for it
+```
 
-   | Field | Value |
-   |---|---|
-   | Organization or user | `geekplux` |
-   | Repository | `reasontrail` |
-   | Workflow filename | `publish-cli.yml` |
-   | Environment name | `npm` |
-   | Allowed actions | tick **npm publish** (configurations created since 2026-09-03 allow only `npm stage publish` by default) |
+Do not push a `v0.1.0` tag: `release.yml` would try to publish 0.1.0 again and fail.
 
-   The first publish through the new configuration must happen within 2 days, or it expires and has to be
-   recreated.
-3. **Remove the token.** Delete the `NPM_TOKEN` secret and revoke the token on npmjs.com. Then under Settings →
-   Publishing access choose "Require two-factor authentication and disallow tokens". OIDC keeps working.
-4. **Optional:** in GitHub, Settings → Environments → `npm` (created on the first run), add yourself as a
-   required reviewer so every publish waits for a click.
+Then on npmjs.com: Packages → `reasontrail` → **Settings** → **Trusted publishing** → **GitHub Actions**:
 
-**Token-only fallback.** If you skip trusted publishing, keep `NPM_TOKEN` as a granular token limited to the
-`reasontrail` package with *Read and write*, and rotate it before it expires. The workflow uses it whenever the
-secret is set.
+| Field | Value |
+|---|---|
+| Organization or user | `geekplux` |
+| Repository | `reasontrail` |
+| Workflow filename | `release.yml` |
+| Environment name | leave blank |
 
-**Provenance.** npm attaches a provenance statement automatically with OIDC, but only for public repositories.
-While `geekplux/reasontrail` is private, packages are published without provenance; nothing needs to change in
-the workflow when the repository goes public.
+Then under **Settings** → **Publishing access**, choose "Require two-factor authentication and disallow tokens";
+trusted publishing keeps working.
 
-### 3b. Each release
+### 3b. Every release after that
 
-1. Set the version in `cli/package.json` (`0.1.0` for the first release) and add the release date to
-   `CHANGELOG.md`'s `[0.1.0]` heading. For the first release, also delete the line `"private": true,` from
-   `cli/package.json`.
-2. Run `pnpm build:cli && pnpm check:pack`, commit, and push to `main`.
-3. Create the release. The tag must be `cli-v` plus the version:
+1. In a pull request: bump `version` in `cli/package.json` and add a dated `## [<version>] - <date>` heading to
+   `CHANGELOG.md`. Merge it.
+2. Tag the merge and push the tag:
 
    ```sh
-   gh release create cli-v0.1.0 --target main --title "reasontrail CLI 0.1.0" --notes-file <notes.md>
+   git switch main && git pull
+   git tag v0.1.1 && git push origin v0.1.1
    ```
 
-   (or GitHub → Releases → Draft a new release, tag `cli-v0.1.0`). Watch the run under Actions → publish-cli.
+   Watch the run under Actions → release.
 
 ## 4. After publishing
 

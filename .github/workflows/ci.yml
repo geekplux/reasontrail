@@ -1,10 +1,12 @@
-# CI: lint, typecheck, tests, build and the checks below, on every push to main and every pull request.
+# CI: lint, typecheck, tests, build and the checks below, on every push to main and every pull request;
+# release.yml runs it before publishing the CLI.
 name: ci
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
