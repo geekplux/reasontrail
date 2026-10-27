@@ -57,7 +57,7 @@ const STOP = /\s+(?:of|for|to|and|the|in|on|at|a|an|with)$/i;
 export function shortTitle(title: string): string {
   let t = title.split(/(?<=[.!?])\s/, 1)[0] ?? title;
   const paren = t.indexOf(' (');
-  // What the parenthesis described (a path, a branch) goes with it: "Re-verify Phase 12 of Reasontrail (/workspace/…".
+  // What the parenthesis described (a path, a branch) goes with it: "Re-verify Phase 12 of Reasontrail (/work/…".
   if (paren > 0) t = t.slice(0, paren).replace(/ of [^\s]+$/, '');
   else if (t.endsWith('…')) t = t.slice(0, t.lastIndexOf(' ') > 0 ? t.lastIndexOf(' ') : undefined);
   while (STOP.test(t)) t = t.replace(STOP, '');

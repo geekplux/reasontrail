@@ -53,7 +53,7 @@ describe('listRows', () => {
   });
 
   it('shortens recorded requests to a title', () => {
-    expect(shortTitle('Re-verify Phase 12 of Reasontrail (/workspace/reasontrail, branch …')).toBe('Re-verify Phase 12');
+    expect(shortTitle('Re-verify Phase 12 of Reasontrail (/work/reasontrail, branch …')).toBe('Re-verify Phase 12');
     expect(shortTitle('Build Phase 5: Keyboard navigation and screen-reader alternative of token-garde…')).toBe('Build Phase 5: Keyboard navigation and screen-reader alternative');
     expect(shortTitle('Read PLAN.md')).toBe('Read PLAN.md');
   });
