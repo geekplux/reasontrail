@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { defaultSessionGraph as g } from '../sessions/samples';
 import { OWN_ACCOUNT, StepDetail } from './StepDetail';
-import { stepDetail } from './stepDetail';
+import { stepDetail } from './stepDetailData';
 
 afterEach(cleanup);
 const noop = () => {};

@@ -9,7 +9,7 @@ import { listTags } from '../ai/labels';
 import { listRows } from '../map/gitlist/rows';
 import type { ListSelection } from '../map/gitlist/GitList';
 import type { HitTarget } from '../map/tree';
-import { findStep, stepFacts } from './stepDetail';
+import { findStep, stepFacts } from './stepDetailData';
 
 type Active = { id: string; episodeId: string } | undefined;
 
