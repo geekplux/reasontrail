@@ -103,7 +103,7 @@ Ideas that are ready to pick up are in [`docs/GOOD-FIRST-ISSUES.md`](docs/GOOD-F
 
 Contributions are welcome: read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and checks, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [`SECURITY.md`](SECURITY.md). Changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
-This project is built by a team of AI agents; see the PR history. The sample maps on the website are their own sessions, and [`docs/PLAN.md`](docs/PLAN.md) is the plan they work from.
+This project is built by a team of AI agents; see the PR history. The sample maps on the website are their own sessions.
 
 ## License
 
