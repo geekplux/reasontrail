@@ -1,108 +1,50 @@
-# CLAUDE.md: operating manual for the main agent (reasontrail)
+# CLAUDE.md: maintainer guide (Reasontrail)
 
-You are the **main agent** for `reasontrail` (repo `geekplux/reasontrail`). You are the product manager and orchestrator. You run unattended: do not ask questions; make reasonable decisions and record each one in `docs/DECISIONS.md` (date, decision, alternatives, why).
+Reasontrail turns a coding-agent session (Claude Code, Codex, Grok Build) or a chat transcript into a map: a tree of
+episodes and subagents, a git-style list of every step, and the outcome. It ships as a zero-dependency CLI
+(`npx reasontrail`), an agent skill (`/reasontrail`) and a showcase site at https://reasontrail.geekplux.com, with a
+next-token "garden" as a zoom-in lens. Everything is parsed locally; nothing is uploaded.
 
-## Product
+How the code fits together: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Visual spec: `docs/DESIGN.md`.
+Extending: `docs/EXTENDING.md`. Deploy and publish: `docs/DEPLOY.md`, `docs/PUBLISH.md`.
 
-Type a prompt and watch the model's possible continuations grow as a garden of branches: each fork is a next-token choice, branch thickness is that token's probability, and clicking any branch grows it further. It makes sampling, temperature and uncertainty visible at a glance. A built-in recorded sample means the very first view costs nothing and works offline.
+## Stack and commands
 
-Product specifics:
-- First view: a recorded sample garden (committed JSON, several prompts) rendered instantly, fully explorable offline: clicking a branch in a recorded tree expands from recorded data where available.
-- Live mode: one prompt box. Each expansion = one call for top-k next tokens with logprobs; expand lazily on click only (lean AI), cap depth/width, cache by prefix.
-- Logprob provider decision is part of planning (record it in docs/DECISIONS.md). Evaluate at least: OpenAI-compatible chat/completions `logprobs` + `top_logprobs`; whether any Cloudflare Workers AI text model returns logprobs (prefer it if it does, since deploy target is Cloudflare); an in-browser small model (transformers.js / WebGPU) that yields the full distribution with no key (watch RAM on this box). If the chosen provider needs a key, the recorded sample must still work without it and the key goes into docs/STATUS.md as a blocker.
-- Probability encoded by thickness AND an on-hover/focus numeric label; low-probability branches are still selectable via keyboard; colors are a secondary, CVD-safe channel.
+React 19 + Vite + TypeScript, Vitest, oxlint, pnpm 9, Node 22+ (the published CLI runs on Node 20.19+). The site
+and the optional AI endpoints run on one Cloudflare Worker (Workers AI, KV, rate limits).
 
-Initial stack: React + Vite + TypeScript, Vitest, oxlint; tree layout and rendering in SVG/Canvas 2D (d3-hierarchy style layout, no decorative 3D); an LLM provider that exposes token logprobs, called through a Cloudflare Worker (provider chosen in planning, see CLAUDE.md); recorded sample trees committed as JSON so no key is needed for the default experience.
+```sh
+pnpm dev                 # Vite dev server          pnpm dev:worker      # wrangler dev
+pnpm lint                # oxlint, warnings fail    pnpm typecheck       # tsc for app, node, worker, session, cli
+pnpm test                # Vitest, one run          pnpm build           # website into dist/
+pnpm build:cli           # npm package in cli/dist  pnpm check:size      # size budgets, dependency allowlist
+pnpm check:docs          # links, alt text, README commands      pnpm check:pack   # npm tarball contents
+pnpm run check:deploy    # wrangler dry run, deploys nothing     pnpm check:browser # headless Chrome flows + axe
+pnpm audit:samples       # no secrets or personal data in samples
+pnpm skill:audit / skill:evals          pnpm samples:sessions / samples:record
+```
 
-## Your role
+## Rules
 
-- You **do not write feature code**. Delegate as much as possible to the sub-agents in `.claude/agents/`. You write only orchestration artefacts: `docs/STATUS.md`, `docs/DECISIONS.md`, PR descriptions, and small glue fixes if a sub-agent is unavailable (record that in DECISIONS.md).
-- Give each sub-agent a self-contained task message: the phase goal, the acceptance criteria, relevant file paths, and the rules from this file that matter for the task (sub-agents do load CLAUDE.md, but restate the critical ones).
-- Wait for each sub-agent's report before starting the next dependent step. Run at most one implementer and one verifier at a time (shared, RAM-tight machine).
-
-Sub-agents:
-- `planner`: writes `docs/PLAN.md`.
-- `implementer`: builds one phase.
-- `verifier`: checks one phase; never edits feature code.
-- `llm-integration`: Owns the logprobs provider: evaluates options, designs the Worker API, caching, rate limits, recorded-sample format, and the no-key fallback. Use for any work touching model calls or sample recording.
-- `dataviz-designer`: Designs the branching-tree visual encoding (layout, thickness scale, labels, interaction, motion) and reviews rendered screenshots against it. Use before and after tree-rendering work.
-- `a11y-reviewer`: Reviews UI for accessibility: keyboard tree navigation, screen-reader text, contrast, reduced motion, color-vision-deficiency safety. Use proactively on every UI phase before the verifier signs off.
-
-Models: `implementer` and `verifier` (and the other sub-agents) run on **Claude Opus 5.5 at high effort** (`model: claude-opus-5-5`, `effort: high` in their frontmatter). Do not override the model or effort when invoking them.
-
-## Workflow
-
-### Step 1: plan
-Have `planner` write `docs/PLAN.md`: product goal, acceptance criteria for the whole product, and the work split into **phases**. Each phase = **exactly one PR**, reviewable in about 20 minutes (roughly <= 400 changed lines excluding lockfiles/fixtures), with its own goal, acceptance criteria, and verification steps. Phase 1 sets up the toolchain (Vite + React + TS, Vitest, oxlint, typecheck, headless-browser check script) and the built-in sample path. The **final phase is deployment** to Cloudflare. Commit PLAN.md on `main` and push (`git push origin main`) before any phase starts. Update `docs/STATUS.md`.
-
-### Step 2: phases (stacked PRs with `gh stack`)
-- Before the first phase: `gh stack init <phase-1-branch>` (this initialises the stack on top of `main` and creates/checks out the phase-1 branch; passing the branch name keeps it non-interactive).
-- Every later phase: from the top of the stack, `gh stack add <branch>` creates the next branch stacked on the previous one. Branch names: `phase-<n>-<short-slug>`.
-- Per phase loop:
-  1. `implementer` builds the phase on the current branch and commits.
-  2. `verifier` checks: lint (oxlint), typecheck (`tsc --noEmit`), unit tests (Vitest), a **real headless-browser check of the UI with screenshots** (saved under `docs/screenshots/phase-<n>/` and committed), and every acceptance criterion of the phase. It returns PASS or FAIL with a list of problems.
-  3. On FAIL: `implementer` fixes exactly the listed problems, then `verifier` runs again. **At most 5 verify rounds per phase.** If still failing after round 5, stop the loop, and list the open problems in the PR description under "Known gaps".
-  4. `gh stack submit --auto --open` (non-interactive: pushes all branches and creates/updates the stacked PRs; each phase is its own PR based on the previous phase's branch).
-  5. Set the PR title and description with `gh pr edit <branch> --title "Phase <n>: <title>" --body-file <file>`. The description has: **What / why**, **How verified** (commands run, results, verify round count), **Screenshots** for UI (embed the committed images with `https://github.com/geekplux/reasontrail/blob/<branch>/docs/screenshots/phase-<n>/<file>.png?raw=true`), **Known gaps**.
-  6. Update `docs/STATUS.md` (commit it on the current phase branch and include it in the push), then continue with the next phase.
-- If the stack needs re-syncing (e.g. a branch was updated), use `gh stack sync`; inspect with `gh stack view --short`.
-
-### Never merge
-**Never merge PRs** (no `gh pr merge`, no `gh stack merge`, no pushing phase work directly to `main`). Sean reviews and merges on GitHub. Only planning docs go to `main` before phase 1.
-
-### Progress file: `docs/STATUS.md`
-Keep it current so an outside monitor can read progress. **The first line is always `STATE: <state>`**, one of `PLANNING`, `IN-PROGRESS`, `BLOCKED`, `DONE`. Below it: current phase, a table of phases (branch, PR link, state, verify rounds), blockers, and last-updated time. When everything (up to the deployment phase's approval stop) is done, the first line is `STATE: DONE`. If you cannot continue, first line `STATE: BLOCKED` and the reason right below. Push STATUS.md updates with each phase.
-
-## Hard rules: stack
-- Web UI = **pure React + Vite**. Use the VoidZero ecosystem: Vite, Vitest, Oxc/oxlint, Rolldown where sensible. **No Next.js, no Remix**, no other meta-framework.
-- Package manager: pnpm.
-- Anything deployed runs on **Cloudflare** (Workers / Pages, Workers AI, D1, R2, KV). Use `wrangler` for local dev.
-- **Deployment is the final phase and stops for Sean's approval.** Prepare everything (wrangler config, build, and a dry run via the package script `pnpm run check:deploy`, defined as `wrangler deploy --dry-run --outdir .wrangler/dry-run`), document the exact deploy command in the PR, set `STATE: DONE` with a note "awaiting Sean's approval to deploy". **Never deploy without that approval.** `.claude/settings.json` denies `wrangler deploy`, `wrangler pages deploy`, `pnpm run deploy`, `gh pr merge` and `gh stack merge` as a backstop; do not try to work around those rules, and do not edit `.claude/settings.json`.
-
-## Hard rules: resources (shared, RAM-tight machine: ~2 GB free, 8 cores, other agents running)
-- Never leave dev servers, preview servers, wrangler dev, or browsers running after a verify step. Start them in the background, record the PID, and kill them when done; check with `ps` that nothing you started is left.
-- Use **one headless browser at a time**. Prefer the system Chrome (`/usr/bin/google-chrome`) with Playwright (`playwright-core`, `channel`/`executablePath`) rather than downloading browsers.
-- Avoid parallel heavy builds; no watch modes left running; keep test runs single-process if memory is tight.
-
-## Hard rules: product (binding)
-- The first step must cost the user almost nothing: paste a URL, type, or pick a built-in sample. Built-in samples work offline and without any API key.
-- Lean AI: use the model only where it adds real value; deterministic code first; cache results; minimal calls.
-- Any agent skill must meet the wheresryan22/anatomy bar: SKILL.md + kit + references + audit scripts + evals.
-- Accessibility: never rely on color alone; palettes must pass color-vision-deficiency checks (protanopia, deuteranopia, tritanopia); keyboard-operable; reduced motion respected.
-- No decorative 3D.
-- Nothing finance-related (no prices, trading, crypto, payments features or sample data).
+- **Toolchain:** pure React + Vite with the VoidZero tools (Vite, Vitest, oxlint). No Next.js, no Remix, no other
+  meta-framework. Package manager: pnpm. Anything deployed runs on Cloudflare; use `wrangler` for local dev.
+- **Deployment** happens only through Cloudflare Workers Builds on merge to `main`. Never run `wrangler deploy`;
+  the dry run `pnpm run check:deploy` is fine and should pass before every PR. Merging is the maintainer's call, so
+  a merged PR is a deploy. Never merge PRs yourself.
+- `.claude/settings.json` denies `gh pr merge`, `gh stack merge`, every form of `wrangler deploy` and
+  `wrangler pages deploy`, `pnpm run deploy`, `pnpm deploy`, `npm run deploy` and force-pushes to `main`. Do not
+  work around it and do not edit it.
+- **Secrets:** never commit them. Local secrets go in `.dev.vars` (gitignored); deployed ones via
+  `wrangler secret put`.
+- **Accessibility:** never rely on colour alone; palettes must pass protanopia, deuteranopia and tritanopia checks;
+  everything keyboard-operable; `prefers-reduced-motion` respected.
+- No decorative 3D. Nothing finance-related (no prices, trading, crypto, payments features or sample data).
 - No company names in project content, samples, docs, commits or PRs, apart from tools, services and cited sources.
-
-## CI
-CI lives in `.github/workflows/ci.yml` and runs on every push to `main` and every pull request. Keep it in step with the checks contributors run locally.
-
-## Hard rules: secrets
-- Never commit secrets. Local secrets go in `.dev.vars` (gitignored); deployed secrets via `wrangler secret put`.
-- If an API key is needed, design so the built-in sample works without it, and mark the missing key as a blocker in `docs/STATUS.md` (the rest of the work continues).
-
-## North star: a star-worthy open-source project (added by Sean, 2026-10-19)
-
-This project will be released as open source and is not meant to be commercialized. Build and package it to the standard of a top open-source project that people star, share, and recommend.
-
-- **User first.** Before features, write down who the user is, the moment they would reach for this, and the fastest path to their first "wow". Zero install for the web app, no account, no API key for the first run (built-in sample works offline). If there is a CLI or skill, one command to try it.
-- **Value, then convenience.** Every feature must answer: what does the user get, and how does this save them time or effort? Cut anything that doesn't.
-- **Its own design.** Beautiful, distinctive visual identity specific to this project (not a generic template, not a copy of Sean's other sites): a design-direction section in PLAN.md with type, color (color-vision-deficiency safe, never color alone), layout, motion, and a simple logo/wordmark. Polish empty, loading, and error states.
-- **Open-source packaging is part of the product,** planned as real phases: README that sells in 10 seconds (one-line pitch, hero GIF or screenshot, live demo link placeholder, quick start, how it works, roadmap), LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, issue/PR templates, a CHANGELOG, good-first-issue candidates listed in docs, a social preview image, and an examples/ gallery.
-- **Quality signals:** tests and CI config (`.github/workflows/ci.yml`), typed public APIs, small dependency footprint, fast load, accessible (keyboard + screen reader), docs for extending it.
-- **Launch-ready:** include a short launch kit in docs/LAUNCH.md (Show HN / X post draft, 3 demo scenarios, comparison with alternatives). Do not post anything anywhere.
-
-## Repositioning 2026-10-20 (Sean) — overrides the Product section above
-The product is now a **reasoning map** for AI sessions: coding-agent sessions (Claude Code / Codex .jsonl) first, chat transcripts second; the next-token garden stays only as a zoom-in lens. A new `lead-designer` sub-agent owns docs/DESIGN.md and signs off every UI phase.
-Addendum: the primary entry point is a **skill** (Claude Code / Codex / Grok Build) backed by one local CLI that opens the session's reasoning map in a local web page; the hosted site is the showcase.
-Rename 2026-10-20: the product is now **Reasontrail** (repo geekplux/reasontrail). Use the name in all user-facing text, package name, CLI (`npx reasontrail`), skill name, README and PR links.
-
-## Design direction 2026-10-21 (Sean)
-Calmer, less cramped layout plus a dedicated polish phase, starting with your next phase (do not redo the current one).
-
-## Speed mode 2026-10-21 (Sean): go as fast as possible, starting now
-Sean wants maximum development speed. Quality bar for shipped code is unchanged, but cut verification overhead:
-- Exactly two review rounds per phase (review, fix, second review, fix), then stop. Never run a third review round.
-- Per phase run lint, typecheck, unit tests and build. Run the headless-browser suite (check:browser / smoke / e2e / a11y probes) at most ONCE per phase, at the end, and only the flows the phase touched.
-- Wrap EVERY headless Chrome / Playwright / browser check in a shared lock so only one project on this machine runs a browser at a time: `flock /tmp/browser.lock <command>`. Close preview servers right after.
-- Screenshots: per phase only 1-2 key shots (1440 light) for the PR description, compressed WebP. The full 1440/390 light/dark before/after set is done once, in the calm-polish phase.
-- Keep PRs focused; don't gold-plate docs mid-phase.
+- **Lean AI:** deterministic code first; use the model only where it adds real value. Cache every answer and keep
+  the global daily cap (`DAILY_UPSTREAM_CAP` in `wrangler.jsonc`) and the per-IP rate limits in place.
+- **Samples:** the built-in samples work offline and without any API key. Committed samples are redacted
+  (`tools/session-samples.json`) and must pass `pnpm audit:samples`.
+- **CI** lives in `.github/workflows/ci.yml` and runs on every push to `main` and every pull request. Keep it in
+  step with the checks contributors run locally (`CONTRIBUTING.md`).
+- New work is ordinary branches and PRs against `main`. Before calling work done: `pnpm lint && pnpm typecheck &&
+  pnpm test && pnpm build`, plus `check:size`, `check:docs` and the dry run when they apply.
