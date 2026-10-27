@@ -2,7 +2,6 @@
   "name": "reasontrail",
   "version": "0.1.0",
   "description": "See what your coding agent did: turns a Claude Code, Grok Build or Codex session into a self-contained HTML map. Local only; nothing is uploaded.",
-  "private": true,
   "license": "MIT",
   "type": "module",
   "bin": {
