@@ -8,7 +8,7 @@ We aim to reply within a week. Once a fix is ready we publish the advisory and c
 
 ## Supported versions
 
-Reasontrail is in early development. Only the latest commit on `main` (and, once published, the latest npm release) gets security fixes.
+Reasontrail is in early development. Only the latest commit on `main` and the latest npm release get security fixes.
 
 ## Scope
 
