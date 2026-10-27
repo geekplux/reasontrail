@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// Size budgets (PLAN P1) and the runtime-dependency allowlist (PLAN Q2), checked on dist/ after `pnpm build`.
+// Size budgets and the runtime-dependency allowlist, checked on dist/ after `pnpm build`.
 // Usage: pnpm check:size [--dist <dir>] [--package <package.json>]
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
-/** Runtime dependencies allowed in package.json; adding one needs a DECISIONS.md entry and an edit here. */
+/** Runtime dependencies allowed in package.json; adding one needs a reason in the PR and an edit here. */
 export const RUNTIME_ALLOWLIST = ['@fontsource-variable/geist', '@fontsource-variable/geist-mono', 'd3-hierarchy', 'react', 'react-dom'];
-/** `jsGzip`: PLAN G2 (≤ 170 KB gzip with the default sample), which supersedes P1's 130 KB for the website first view
- * (PLAN §4.1). The default sample now carries its raw records for "Show raw" (phase 17). */
+/** `jsGzip`: ≤ 170 KB gzip for the website's first view, default sample included; that sample carries its raw
+ * records for "Show raw". */
 export const BUDGETS = { jsGzip: 170 * 1024, cssGzip: 15 * 1024, fontBytes: 55 * 1024, fontFiles: 2 };
 
 /** Problems with the runtime dependency list: anything missing from or extra to the allowlist. */
@@ -58,7 +58,7 @@ export function initialAssets(html) {
   };
 }
 
-/** G2 (phase 19): what must load lazily, never with the first view, and its own gzip budget. */
+/** What must load lazily, never with the first view, and its own gzip budget. */
 export const LAZY = [
   { name: 'sample implementer-checks', re: /^implementer-checks\.graph-.*\.js$/, max: 80 * 1024 },
   { name: 'sample planner-pivot', re: /^planner-pivot\.graph-.*\.js$/, max: 80 * 1024 },
@@ -77,7 +77,7 @@ export function checkLazy(assets, initialJs, sizes) {
   return problems;
 }
 
-/** The CLI (C3, C4): no runtime dependencies, and the viewer template (when built) at most 300 KB before session data. */
+/** The CLI: no runtime dependencies, and the viewer template (when built) at most 300 KB before session data. */
 export const VIEWER_MAX = 300 * 1024;
 export function checkCli(cliPkg, viewerBytes) {
   const deps = Object.keys({ ...cliPkg.dependencies, ...cliPkg.optionalDependencies, ...cliPkg.peerDependencies });

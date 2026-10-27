@@ -1,6 +1,6 @@
 # Logprob provider: spike findings and design
 
-Owner: `llm-integration`. Date: 2026-10-19. Status: planning decision (see `docs/DECISIONS.md`).
+Written 2026-10-19, when the provider was chosen. Code comments cite its sections for the provider contract (§3), the sample format (§4), the Worker API (§5) and caching (§6).
 
 reasontrail needs one thing from a model: **for a text prefix, the top-k next tokens with their log-probabilities**. Every live expansion is exactly one such query. This doc records what was evaluated, the evidence, the choice, and the contract the app and Worker build against.
 

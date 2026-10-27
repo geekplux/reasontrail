@@ -1,5 +1,4 @@
-/* The v7 website page (docs/design/v7/PROMPT.md §4, §13; every size, gap and state from the `CSS` constant of
-   docs/design/v7/gen7.mjs). Scoped to `.v7` (the header bar, the home and the footer). Colours are Radix steps only;
+/* The v7 website page (every size, gap and state from the design canvas). Scoped to `.v7` (the header bar, the home and the footer). Colours are Radix steps only;
    lines 0.5px; type 12/14/20/32. 1200px content with gutters that grow on wider screens (120 at 1440). */
 .v7 { --gutter: max(16px, calc((100% - 1200px) / 2)); --bg: var(--slate-1); }
 .v7 h1, .v7 h2, .v7 h3, .v7 p, .v7 ol, .v7 ul, .v7 dl, .v7 dd, .v7 figure { margin: 0; padding: 0; }
@@ -95,7 +94,7 @@
 .v7 .answer.is-full { display: block; white-space: pre-line; }
 .v7 .block .link { justify-self: start; font-size: var(--text-12); }
 
-/* The detail panel, in place of the outcome column while a step is selected (Step.html `.detail`) */
+/* The detail panel, in place of the outcome column while a step is selected */
 .v7 .detail { gap: 16px; padding: 20px; border-radius: var(--radius-14); background: var(--slate-2); box-shadow: inset 0 0 0 0.5px var(--slate-6); min-width: 0; }
 .v7 .d-head { display: flex; justify-content: space-between; align-items: center; font-size: var(--text-12); margin: -4px -8px -4px 0; }
 .v7 .d-title { display: flex; align-items: center; gap: 8px; }
@@ -163,7 +162,7 @@
   .v7 .hero-tree > .legend .lg-gap { flex-basis: 100%; height: 6px; }
 }
 
-/* Phone (Phone.html, the `.rt.phone` rules of gen7.mjs), up to 639px as usePhone.ts: 16px gutters, the headline and
+/* Phone, up to 639px as usePhone.ts: 16px gutters, the headline and
    a 14px lede (the install command waits for the install section), the bare tree, the tab track scrolling sideways
    with the legend wrapped under it, the card full-bleed between two rules, the outcome box above the list (SessionCard)
    and the final answer under it, then the card's actions in a row, everything below in one column. */
@@ -204,7 +203,7 @@
 }
 
 /* One session on its own page (SessionMap) */
-/* The session header in the home's hero place (v7 §7; the local viewer and a session opened on the site): the title as the home's h1, the meta line 12px under it, the
+/* The session header in the home's hero place (the local viewer and a session opened on the site): the title as the home's h1, the meta line 12px under it, the
    actions on its last baseline (`.hero-top`), Details opening 16px below; then the tree 32px down; the card holds only
    the list and the outcome. */
 .v7.session-page h1 { max-width: 760px; }

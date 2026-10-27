@@ -27,7 +27,7 @@ import './garden/garden.css';
 const RECORDED_ONLY = 'Not in this recording.';
 const SCROLL_CUE = { start: 'Scroll sideways for more →', middle: '← Scroll sideways →', end: '← Scroll sideways to the seed' };
 
-/** A sentence's garden in the zoom-in lens (phase 22), shown in place of the picker's samples. */
+/** A sentence's garden in the zoom-in lens, shown in place of the picker's samples. */
 export interface LensSource {
   garden: SampleGarden;
   /** Kept for the lens's life: a new one would mount a new garden. */
@@ -59,9 +59,9 @@ const newSeed = () => 1 + Math.floor(Math.random() * 9999);
 
 /**
  * The picker and the garden it shows. Choosing a garden, or going back/forward to a share link (no network needed),
- * mounts a fresh garden: default expansion (D11) or the link's path, and the URL follows it. In the lens (`lens`) it
- * shows that sentence's garden instead, full width, with its specimen fields and the settings behind "More options"
- * (DESIGN §18.1); `header` and `bar` are the lens frame's (breadcrumb, Z2 line, live status), `options` its opt-in.
+ * mounts a fresh garden: default expansion or the link's path, and the URL follows it. In the lens (`lens`) it
+ * shows that sentence's garden instead, full width, with its specimen fields and the settings behind "More options";
+ * `header` and `bar` are the lens frame's (breadcrumb, Z2 line, live status), `options` its opt-in.
  */
 export function App({ header, lens, bar, options, recorded, privacy }: { header?: ReactNode; lens?: LensSource; bar?: ReactNode; options?: ReactNode; recorded?: boolean; privacy?: string | undefined } = {}) {
   const [view, setView] = useState<View>(() => ({ ...boot(lens), n: 0, walk: 0 }));
@@ -80,7 +80,7 @@ export function App({ header, lens, bar, options, recorded, privacy }: { header?
   };
   const sampleWith = (seed: number) => setView((v) => ({ ...v, seed, walk: v.walk + 1 }));
   const setT = (t: number) => setView((v) => ({ ...v, t, walk: 0 }));
-  // Visible: the slider and "Sample a path"; the presets and New seed wait in More options (DESIGN §18.1, GA2).
+  // Visible: the slider and "Sample a path"; the presets and New seed wait in More options.
   const settings = (
     <div className="controls-row">
       <TemperatureControl t={view.t} onChange={setT} />
@@ -97,7 +97,7 @@ export function App({ header, lens, bar, options, recorded, privacy }: { header?
       </button>
     </div>
   );
-  // More options: one quiet text button after the readout, beside Table view (L5). In the lens it also holds the
+  // More options: one quiet text button after the readout, beside Table view. In the lens it also holds the
   // specimen fields, whether it works offline, the live opt-in and the settings.
   const more = (
     <details className="lens-options">
@@ -208,7 +208,7 @@ function Garden({ view, lens, heading, announce, more }: { view: View; lens: Len
     else if (b?.state === 'expanded') announce(grewMessage(b));
   }, [activations, garden, state.status, announce, missingText]);
 
-  // Phones: the sticky readout covers the bottom of the viewport, so focus scrolling keeps that much clear (A1).
+  // Phones: the sticky readout covers the bottom of the viewport, so focus scrolling keeps that much clear.
   useEffect(() => {
     const readout = document.querySelector<HTMLElement>('[data-role="readout"]');
     if (!readout || typeof ResizeObserver === 'undefined') return;
@@ -217,7 +217,7 @@ function Garden({ view, lens, heading, announce, more }: { view: View; lens: Len
     return () => observer.disconnect();
   }, []);
 
-  // The address bar always reopens this view (F14): replaceState, debounced so rapid selection changes write once.
+  // The address bar always reopens this view: replaceState, debounced so rapid selection changes write once.
   useEffect(() => {
     if (!opened) return;
     const path = selectedKey ? pathTo(garden, selectedKey).map((b) => b.rank) : [];
@@ -228,7 +228,7 @@ function Garden({ view, lens, heading, announce, more }: { view: View; lens: Len
   }, [opened, selectedKey, garden, view.urlId, t, seed]);
 
   return (
-    // In the lens the specimen fields sit in More options and the garden takes the full width (DESIGN D1).
+    // In the lens the specimen fields sit in More options and the garden takes the full width.
     <div className={lens ? 'plate plate-wide' : 'plate'}>
       {lens ? null : <SpecimenLabel sample={sample} level={heading} />}
       <figure className="garden-figure">

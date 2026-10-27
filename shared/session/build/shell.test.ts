@@ -50,7 +50,7 @@ describe('commands', () => {
   });
 });
 
-describe('verification and read summaries (DESIGN §8.9, phase 16 titles)', () => {
+describe('verification and read summaries', () => {
   it.each([
     ['cd /w && pnpm -s lint && echo LINT-OK && git diff --numstat', 'pnpm lint', ['lint']],
     ['pnpm -s lint && pnpm -s typecheck; pnpm lint', 'pnpm lint && pnpm typecheck', ['lint', 'typecheck']],

@@ -1,10 +1,10 @@
-// The tree renderer (docs/design/v7/PROMPT.md §5.1, §5.4; classes and states of the canvas, docs/design/v7/gen7.mjs):
+// The tree renderer (classes and states of the design canvas):
 // draws `layoutTree` output as one SVG, `role="img"` with a factual summary (the list is the operable structure).
 // Hover: the pointer's nearest branch, twig, glyph or number within 12 screen px picks an episode; its path from the
 // root stays ink, the rest fades to slate-8 (colour only), and a tooltip names it. `hover` comes from the parent, so
 // the list's hovered or focused row drives the same state. Selection: a click or tap on a mark picks it (`onPick`);
 // the selected step's path from the root turns blue-9, the rest dims to slate-9, and the step gets a ring and a
-// callout with a leader line (Step.html). AI titles on: a thin dashed blue-9 ring around each titled episode's glyph
+// callout with a leader line. AI titles on: a thin dashed blue-9 ring around each titled episode's glyph
 // (the list's tag says the title in words).
 import { useMemo, useState, type MouseEvent, type PointerEvent } from 'react';
 import type { SessionGraph } from '../../../shared/session/types';
@@ -120,7 +120,7 @@ export function TreeView({ g, width, height, labels = true, reserve, hover, onHo
   const hi = (stepId: string) => (stepId === sel ? ' hi' : '');
   const z = t.root.r / 5.5; // a scaled-down tree draws its hand-back dots smaller
   return (
-    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- a pointer shortcut; the list is the keyboard path to every step (§5.4)
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- a pointer shortcut; the list is the keyboard path to every step
     <svg
       className={`tree${on ? ' hvmode' : ''}${sel ? ' dim' : ''}${onPick ? ' pickable' : ''}`}
       width={t.width}

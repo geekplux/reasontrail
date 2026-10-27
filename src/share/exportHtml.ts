@@ -1,4 +1,4 @@
-// "Save shareable copy" (PLAN V4, phase 24): redact the graph, summarise what was replaced, and write it into the
+// "Save shareable copy": redact the graph, summarise what was replaced, and write it into the
 // self-contained viewer template. The website fetches its own built `/viewer.html`; the local viewer rebuilds the
 // template from its own document. Pure apart from `fetchTemplate`, `templateFromDocument` and `download`.
 import { DATA_SLOT, TITLE_SLOT, renderHtml } from '../../cli/src/html';

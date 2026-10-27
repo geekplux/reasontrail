@@ -1,4 +1,4 @@
-/* The zoom-in lens frame (DESIGN §13.5, §18.1): the garden is the focal point; the breadcrumb, the Z2 line and the
+/* The zoom-in lens frame: the garden is the focal point; the breadcrumb, the Z2 line and the
    sentence are quieter, above it, and the settings sit behind "More options" after it. Colours only via tokens.css. */
 .lens-head, .lens-bar { padding: 16px var(--gutter, 40px) 0; animation: lens-in var(--motion-ms) var(--motion-ease); }
 /* The bar's spacing comes from what it shows: with only the (empty) status region it takes no room. */

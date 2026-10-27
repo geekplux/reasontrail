@@ -1,4 +1,4 @@
-/* Base layout and elements for the "specimen plate" identity (PLAN §3.3). Colours only via tokens.css. */
+/* Base layout and elements for the "specimen plate" identity. Colours only via tokens.css. */
 @import './core.css';
 
 .site-main { flex: 1; }

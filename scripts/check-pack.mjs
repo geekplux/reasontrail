@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pack check (PLAN phase 28, AC2): `pnpm --dir cli pack` into a temporary folder, then fail unless the tarball holds
+// Pack check: `pnpm --dir cli pack` into a temporary folder, then fail unless the tarball holds
 // exactly the built CLI, the viewer template, package.json, README and LICENSE, with the viewer's data slot still empty
 // and no session data. The tarball is deleted afterwards. Needs `pnpm build:cli` first. Usage: pnpm check:pack
 import { execFileSync } from 'node:child_process';

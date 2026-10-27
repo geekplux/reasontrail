@@ -1,4 +1,4 @@
-// Lens flow, v7 (docs/design/v7/PROMPT.md §4.8, §7; phase 34b): the footer's "Next-token garden" opens the garden in
+// Lens flow, v7: the footer's "Next-token garden" opens the garden in
 // the website's v7 header and footer (120px edges, no "·" in the chrome); a recorded lens sentence (`?sample=lens-…`)
 // opens on its own offline data with the Z2 line and grows recorded branches with no request at all; its breadcrumb
 // "Map" goes back to the home; More options holds the live opt-in, which calls `/api/next-tokens` only after it is

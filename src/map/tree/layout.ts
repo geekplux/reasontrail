@@ -1,5 +1,5 @@
-// The tree layout engine (docs/design/v7/PROMPT.md §5.2–5.3; the algorithm of docs/design/v7/tree.mjs, generalised for
-// any session). Pure and deterministic: the same graph and box always give the same tree.
+// The tree layout engine (the algorithm of the design canvas's tree, kept as __fixtures__/tree.mjs, generalised
+// for any session). Pure and deterministic: the same graph and box always give the same tree.
 // Geometry is computed in a design box 520 units tall (the canvas's hero tree); a shorter box (the phone silhouette)
 // scales the whole drawing down, like the canvas does.
 import type { SessionGraph } from '../../../shared/session/types';
@@ -105,7 +105,7 @@ export function layoutTree(g: SessionGraph, opts: TreeOptions): TreeLayout {
   // Room on the right for the tip's text block (about 210px on the canvas).
   const blockW = Math.max(0, ...m.trunk.block.map((l) => labelBox({ key: '', x: 0, y: 0, anchor: 'start', ...l }).x1));
   // As tree.mjs: 28 units on the left (root, flare), the label room on the right (54 units without labels, which puts
-  // the phone silhouette's tips on Phone.html's).
+  // the phone silhouette's tips on the canvas's phone frame).
   const along = Math.max(1, W - 28 - (labels ? Math.max(210, blockW + 26) / z : NO_LABEL_ROOM));
   // Along-axis: one unit per record, +9 after a spawn, +4 on return to main, packed closer below MIN_UNIT. Each part
   // ends 2 units after its last record; that tail may reach TAIL units into the label room (one unit of it on the

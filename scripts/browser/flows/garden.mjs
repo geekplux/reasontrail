@@ -1,4 +1,4 @@
-// Garden flow (phase 3): the encoding of docs/viz/garden.md measured in the real browser: stroke widths, caps,
+// Garden flow: the encoding of docs/viz/garden.md measured in the real browser: stroke widths, caps,
 // band colours, markers, remainder stubs, legend, value label on hover, path readout, mobile scroll, dark and CVD.
 import { axeProblems } from '../axe.mjs';
 import { applyCvd, MATRICES } from '../cvd.mjs';

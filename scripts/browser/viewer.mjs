@@ -1,4 +1,4 @@
-// The local viewer's checks, shared by the cli and file flows (v7 §7): open a file:// page with every non-file request
+// The local viewer's checks, shared by the cli and file flows: open a file:// page with every non-file request
 // aborted, then the tree, the git-style list, the outcome and the footer's two links; a step picked in the list opens
 // its panel and writes `#step=`; Esc closes it; a deep link opens it again.
 const SITE = 'https://reasontrail.geekplux.com/';
@@ -55,7 +55,7 @@ export function checkFacts(f, fail, where = 'viewer') {
   if (!/^"?Geist\b/.test(f.titleFont) || !f.geist) fail(`${where}: session title font ${f.titleFont}`);
 }
 
-/** The session header in the hero (v7 §7, Home's hero geometry), at 1440×900: the h1 is the session title with
+/** The session header in the hero (Home's hero geometry), at 1440×900: the h1 is the session title with
  * nothing above it in the hero, the tree starts 32px under `.hero-top` and ends inside the first screen (also with a
  * synthetic 120-character title), the card holds only `.cols`, and the wordmark, h1, tree, card and footer share the
  * 120px left edge. */

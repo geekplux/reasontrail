@@ -1,4 +1,4 @@
-// Hand-written validation for POST /api/structure (PLAN X1): the request limits, the JSON schema the model is asked
+// Hand-written validation for POST /api/structure: the request limits, the JSON schema the model is asked
 // to follow, and the check of its answer. Unknown step ids and invalid labels are dropped, never shown.
 import { ProviderError } from '../../shared/llm/types';
 import {

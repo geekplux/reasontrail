@@ -1,4 +1,4 @@
-// Real session maps bundled with the website (PLAN phase 15, D28): the agents that built Reasontrail, trimmed and
+// Real session maps bundled with the website: the agents that built Reasontrail, trimmed and
 // redacted by `pnpm samples:sessions` from tools/session-samples.json. The default is bundled; the others load lazily.
 import type { SessionGraph } from '../../../shared/session/types';
 import defaultGraph from './verify-fail-fix.graph.json';
@@ -8,7 +8,7 @@ export interface SessionSample {
   title: string;
   /** The showcase heading (tools/session-samples.json `displayTitle`). */
   displayTitle?: string;
-  /** ≤ 40 characters, for the showcase's sample switcher (DESIGN §13.3). */
+  /** ≤ 40 characters, for the showcase's sample switcher. */
   short: string;
   /** The branch the session's work ran on, when it differs from the recorded `source.gitBranch`. */
   branch?: string;

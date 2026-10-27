@@ -1,4 +1,4 @@
-// PLAN phase 19, AC2: the website's commands come from shared/commands.ts; each must be valid for this CLI.
+// The website's commands come from shared/commands.ts; each must be valid for this CLI.
 import { describe, expect, it } from 'vitest';
 import { COMMANDS, NPX, SKILL_HOMES } from '../../shared/commands';
 import { parseArgs } from '../src/args';

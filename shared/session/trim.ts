@@ -1,4 +1,4 @@
-// Trim a normalized session to a step range (CLI `--trim <from>:<to>`, PLAN phase 15). Pure and deterministic.
+// Trim a normalized session to a step range (CLI `--trim <from>:<to>`). Pure and deterministic.
 import { buildSteps } from './build/steps';
 import type { NormalizedSession, Step } from './types';
 

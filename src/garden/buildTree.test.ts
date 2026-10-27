@@ -42,7 +42,7 @@ describe('buildTree', () => {
 });
 
 describe('defaultExpanded', () => {
-  it('opens the most probable recorded child (D11)', () => {
+  it('opens the most probable recorded child', () => {
     expect([...defaultExpanded(sample)]).toEqual([' mat']);
   });
 });

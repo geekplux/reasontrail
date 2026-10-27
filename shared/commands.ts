@@ -1,5 +1,5 @@
-// The commands people type, shared by the CLI's --help, the skill installer and the website's Install section
-// (PLAN phase 19, AC2), so the three can never disagree. No DOM or Node imports.
+// The commands people type, shared by the CLI's --help, the skill installer and the website's Install section,
+// so the three can never disagree. No DOM or Node imports.
 
 export const PKG_NAME = 'reasontrail';
 export const NPX = `npx ${PKG_NAME}`;

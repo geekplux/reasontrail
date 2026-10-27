@@ -1,8 +1,8 @@
-// v7 home flow (docs/design/v7/PROMPT.md §9, §13.5 phase 29): at 1440×900 the whole hero tree is above the fold; the
+// v7 home flow: at 1440×900 the whole hero tree is above the fold; the
 // header content, headline, tree root, tabs, card, install and footer share the 120px edge; no middle dot in rendered
 // text or aria-labels; nothing above the session title in its card; every font size is 12, 14, 20 or 32; axe clean.
 // Phase 32a: the tree is drawn by the renderer with its legend top right; hovering episode 7's branch shows the
-// canvas tooltip and tints the same row in the list (§5.4).
+// canvas tooltip and tints the same row in the list.
 import { axeProblems } from '../axe.mjs';
 
 const SIZES = [12, 14, 20, 32];

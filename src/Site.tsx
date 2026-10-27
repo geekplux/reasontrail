@@ -1,10 +1,10 @@
-// The website (PLAN phases 16, 19; v7 §4): the home with the sample tabs (`?session=<id>`), the drop zone (`?view=open`),
+// The website: the home with the sample tabs (`?session=<id>`), the drop zone (`?view=open`),
 // the chat paste page (`?view=chat`), install (`?view=install`) and how to read a map (`?view=how`). Garden links (`?sample=…`)
-// open the zoom-in lens (phase 22): the map stays mounted, hidden, under the lens, so Back (the lens's breadcrumb or the
-// browser's) shows it again with the same selection and focus (Z3). `LensContext` is still provided, but no v7 UI reads
+// open the zoom-in lens: the map stays mounted, hidden, under the lens, so Back (the lens's breadcrumb or the
+// browser's) shows it again with the same selection and focus. `LensContext` is still provided, but no v7 UI reads
 // it: the v7 map has no "Zoom into this sentence" control.
 // Internal links change the URL in place, and everything the site can need later is fetched once it is idle, so the
-// gallery and the drop zone keep working offline after the first load (PLAN phase 19, AC3).
+// gallery and the drop zone keep working offline after the first load.
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { lensSearch, linkSearch, mapSearch, readSiteState, writeStep, writeView } from './app/urlState';
 import { loadShareDialog } from './share/ShareAction';

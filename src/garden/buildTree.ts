@@ -11,7 +11,7 @@ export interface GardenBranch {
   key: string;
   token: string;
   logprob: number;
-  /** Shown conditional probability: exp(logprob), tempered (PLAN D8); equal to `recordedP` at T = 1. */
+  /** Shown conditional probability: exp(logprob), tempered; equal to `recordedP` at T = 1. */
   p: number;
   recordedP: number;
   /** Probability of the whole continuation: the product of `p` from the root. */
@@ -78,7 +78,7 @@ export function buildTree(src: TreeSource, expanded: ReadonlySet<string>, canGro
   return { prompt: src.prompt, ...forkAt(src, canGrow, '', 1, 1, expanded, t) };
 }
 
-/** Default expansion (PLAN D11): the root plus its most probable child, if that child is recorded. */
+/** Default expansion: the root plus its most probable child, if that child is recorded. */
 export function defaultExpanded(sample: SampleGarden): Set<string> {
   const top = sample.nodes['']?.[0];
   return new Set(top && Object.hasOwn(sample.nodes, top.token) ? [top.token] : []);

@@ -1,7 +1,7 @@
-// CLI flow (phase 13, v7 phase 34a): runs the built CLI with --no-open against fixture sessions in a sandboxed HOME
+// CLI flow: runs the built CLI with --no-open against fixture sessions in a sandboxed HOME
 // under .tmp/, opens the written file:// page with the network blocked, and checks the v7 viewer (tree, list, outcome,
-// footer, step in the hash, Esc, deep link), that transcript markup stays text (AC3), --share redaction and its note,
-// and zero requests (C3). Fixture data only.
+// footer, step in the hash, Esc, deep link), that transcript markup stays text, --share redaction and its note,
+// and zero requests. Fixture data only.
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

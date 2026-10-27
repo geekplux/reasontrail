@@ -1,4 +1,4 @@
-// --trim (phase 15): a step range of the full graph, kept whole per record, lanes and title follow.
+// --trim: a step range of the full graph, kept whole per record, lanes and title follow.
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { normalizeSession } from './adapter';

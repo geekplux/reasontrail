@@ -1,4 +1,4 @@
-// Sean's other sites (v7 §4.7), the "Made by GeekPlux" block above the footer. One exported constant, so the other
+// The maintainer's other sites, the "Made by GeekPlux" block above the footer. One exported constant, so the other
 // project sites can copy the same list.
 
 export interface MoreSite {

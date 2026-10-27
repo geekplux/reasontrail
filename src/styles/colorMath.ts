@@ -1,5 +1,5 @@
 /**
- * Colour maths for the palette guards (PLAN §3.2): WCAG 2.x contrast, Machado et al. (2009) colour-vision-deficiency
+ * Colour maths for the palette guards: WCAG 2.x contrast, Machado et al. (2009) colour-vision-deficiency
  * simulation at severity 1.0, and CIE76 ΔE in CIELAB (D65). Pure functions; used by tokens.test.ts.
  */
 

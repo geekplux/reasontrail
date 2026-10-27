@@ -1,4 +1,4 @@
-// Writes the graph into the self-contained viewer template (D26, D32). The JSON is embedded so that no transcript
+// Writes the graph into the self-contained viewer template. The JSON is embedded so that no transcript
 // text can close the script element or inject markup: every "<" becomes < (AC3).
 import type { ViewerPayload } from '../../src/map/loadGraph';
 

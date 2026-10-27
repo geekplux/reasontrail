@@ -1,4 +1,4 @@
-// Synthetic sessions for the tree engine's tests and the dev-only debug render (scripts/design/render-tree.mjs): any
+// Synthetic sessions for the tree engine's tests and debugging: any
 // number of subagent lanes, sequential or spawned together, and long one-lane sessions. Not used by the app.
 import type { Episode, Lane, SessionGraph, Step, StepStatus } from '../../../shared/session/types';
 

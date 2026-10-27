@@ -1,4 +1,4 @@
-// Episodes (PLAN §5.11): deterministic segments of one lane's steps, at most MAX_TOP_EPISODES top-level ones per lane.
+// Episodes: deterministic segments of one lane's steps, at most MAX_TOP_EPISODES top-level ones per lane.
 import type { Episode, Lane, Step } from '../types';
 import { FILE_SPLIT_STEPS, KIND_WINDOW, MAX_EPISODE_STEPS, MAX_TOP_EPISODES, MIN_EPISODE_STEPS } from './constants';
 import { relPath } from './outcome';
@@ -68,7 +68,7 @@ function verifyTitle(calls: Step[]): string {
 }
 
 /**
- * Deterministic episode titles for the glance (DESIGN §8.2): the user's words for user turns, the files read or edited
+ * Deterministic episode titles for the glance: the user's words for user turns, the files read or edited
  * (basename + "+n more"), checks by name, the delegated task. Never a generic interpreter or pager ("sed", "python3").
  */
 function title(kind: Kind, steps: Step[], cwd: string | undefined): string {

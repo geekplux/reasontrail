@@ -1,8 +1,8 @@
-// Site flow, v7 (docs/design/v7/PROMPT.md §7, §13; phase 32b): deep links. `?session=verify-fail-fix&step=s41` opens
+// Site flow, v7: deep links. `?session=verify-fail-fix&step=s41` opens
 // the Step state (blue path, callout, list, detail panel) with nothing else to do; every `?session=…&step=…` link in
 // examples/README.md opens its sample with the panel on that step; an id the sample does not list is ignored; Back and
 // Forward walk the selection; a tab switch clears it (URL, tree and panel); offline after the first load the tabs
-// still switch. The drop zone and install checks of the pre-v7 site flow return with their restyle (phase 34).
+// still switch. The drop zone and install checks of the pre-v7 site flow return with their restyle.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';

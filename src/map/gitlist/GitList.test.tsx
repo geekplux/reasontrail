@@ -273,7 +273,7 @@ describe('GitList long episodes', () => {
   });
 });
 
-describe('GitList compact (the phone, Phone.html)', () => {
+describe('GitList compact (the phone)', () => {
   it('drops the header, # and Start columns from view but keeps the numbers and times for screen readers', () => {
     const { container } = render(<GitList g={G} compact />);
     expect(container.querySelector('.gl.is-compact')).toBeTruthy();

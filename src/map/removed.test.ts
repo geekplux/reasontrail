@@ -1,4 +1,4 @@
-// The pre-v7 map is gone (phase 34b): the route view, task card, outline, old detail panel and their CSS, and nothing
+// The pre-v7 map is gone: the route view, task card, outline, old detail panel and their CSS, and nothing
 // imports them. The pure modules the v7 list, tree, detail panel and share card still use (details, layout, outline,
 // keyboard) stay.
 import { describe, expect, it } from 'vitest';

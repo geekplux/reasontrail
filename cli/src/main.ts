@@ -1,4 +1,4 @@
-// The reasontrail CLI (PLAN C1–C5, D26, D37): find a session, parse it locally, write one self-contained HTML file.
+// The reasontrail CLI: find a session, parse it locally, write one self-contained HTML file.
 // No server, zero runtime dependencies, and no network unless the user passes --ai and confirms (X5).
 import { closeSync, mkdirSync, openSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';

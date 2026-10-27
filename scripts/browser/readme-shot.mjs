@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// README rendering check (PLAN phase 26, S1): render README.md with GitHub's own Markdown API (`gh api /markdown`),
+// README rendering check: render README.md with GitHub's own Markdown API (`gh api /markdown`),
 // wrap it in a page with GitHub-like light CSS and a <base> at the repo root, open it from file:// in the one headless
 // Chrome, and check that the first screen at 1440×900 shows the wordmark, pitch, hero, demo link and quick start.
 // Writes readme-above-fold.webp, readme-full.webp and readme-mobile.webp into --out (default .tmp/readme).

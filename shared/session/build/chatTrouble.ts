@@ -1,4 +1,4 @@
-// Trouble in chats (PLAN phase 23, DESIGN §13.8): only `interrupt` patterns, each a "detected pattern" found by rule:
+// Trouble in chats: only `interrupt` patterns, each a "detected pattern" found by rule:
 // an answer regenerated or a prompt edited and sent again (a fork in the message chain), and a user correction right
 // after a reply ("no", "that's wrong", "actually…"). The coding rules (error streaks, retries, reverts, churn) do not apply.
 import type { Edge, Step, Trouble } from '../types';

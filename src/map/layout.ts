@@ -1,4 +1,4 @@
-// The glance layout (DESIGN §8.1–8.5, §8.11): pure and deterministic. Episodes become route segments whose length
+// The glance layout: pure and deterministic. Episodes become route segments whose length
 // encodes effort (√steps), subagents become side trails below, detected patterns become numbered blazes, long idle
 // gaps become breaks. Only episodes and lanes are laid out, never single steps, and no text is measured: label room is
 // given in characters from the mono estimate (0.6 em).
@@ -6,7 +6,7 @@ import type { Episode, Lane, SessionGraph, Step, Trouble } from '../../shared/se
 
 export type GlyphStatus = 'ok' | 'error' | 'interrupted' | 'unknown';
 
-/** Geometry constants, px (DESIGN §8.1, §8.3, §8.5). */
+/** Geometry constants, px. */
 export const G = {
   segMin: 56, segMax: 240, growMax: 480, segBase: 36, kMax: 19.5, kNum: 204,
   start: 24, end: 30, breakW: 44, pitch: 24, platePitch: 28, foldW: 56,
@@ -112,7 +112,7 @@ export function verdictOf(text: string): string | undefined {
   return end.size === 1 ? [...end][0] : undefined;
 }
 
-/** Lane status word (DESIGN §8.3): a verdict from the lane's final text, else done / failed / interrupted. A lane whose
+/** Lane status word: a verdict from the lane's final text, else done / failed / interrupted. A lane whose
  * hand-back is missing from the main session but which ended on its own report counts as done (`handBack: false`). */
 export function laneStatus(g: SessionGraph, lane: Lane, steps: Step[] = g.steps.filter((s) => s.laneId === lane.id)): { status: GlyphStatus; word: string; handBack: boolean } {
   const last = [...steps].reverse().find((s) => s.kind === 'assistant' && s.text);
@@ -180,7 +180,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
     return { steps: all.length, first: ts[0] ?? Number.NaN, last: ts[ts.length - 1] ?? Number.NaN, inner };
   };
 
-  // Fold the middle past 12 drawn episodes: the first 3 and the last 8 (answer included) stay (§8.11).
+  // Fold the middle past 12 drawn episodes: the first 3 and the last 8 (answer included) stay.
   const drawnCount = segs.length + (answerEp ? 1 : 0);
   const folding = !opts.unfold && drawnCount > G.maxEpisodes;
   const lastKeep = G.keepLast - (answerEp ? 1 : 0);
@@ -195,7 +195,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
   const noted = new Map(gaps.filter((x) => x.ms > G.idleMs && !drawn.has(x.before)).map((x) => [x.before, x.ms]));
 
   // Segment lengths: clamp(56, 36 + k·√steps, 240); a short route grows uniformly to fill the band (the longest
-  // segment at most 480 px), a long one shrinks uniformly to fit, floored at 56 (§8.1).
+  // segment at most 480 px), a long one shrinks uniformly to fit, floored at 56.
   const maxSteps = Math.max(1, ...shown.map((e) => infos.get(e.id)?.steps ?? 1));
   const k = Math.min(G.kMax, G.kNum / Math.sqrt(maxSteps));
   const base = shown.map((e) => clamp(G.segBase + k * Math.sqrt(infos.get(e.id)?.steps ?? 1), G.segMin, G.segMax));
@@ -253,7 +253,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
   const routeEnd = x;
   pieces.push([pieceStart, routeEnd]);
 
-  // x(step) = segStart + segLen · indexInEpisode / steps (§8.1); folded steps sit on the fold chip.
+  // x(step) = segStart + segLen · indexInEpisode / steps; folded steps sit on the fold chip.
   const segOf = new Map(episodes.map((r) => [r.episode.id, r]));
   const xOf = (stepId: string | undefined): number | undefined => {
     const w = stepId ? where.get(stepId) : undefined;
@@ -264,7 +264,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
     return r.x + (r.len * w.i) / Math.max(1, w.e.stepIds.length);
   };
 
-  // Side trails: one item per top lane, on the first track free since it was spawned; crowded segments bundle (§8.3).
+  // Side trails: one item per top lane, on the first track free since it was spawned; crowded segments bundle.
   const resultOf = new Map<string, Step>();
   for (const s of g.steps) if (s.kind === 'tool-result' && s.laneId === main && s.tool?.callId) resultOf.set(s.tool.callId, s);
   const lanes: LaneItem[] = [];
@@ -322,7 +322,7 @@ export function glanceLayout(g: SessionGraph, width: number, opts: { unfold?: bo
     it.chars = Math.max(4, Math.floor((next - it.x1 - 12 - 8) / G.monoPx));
   }
 
-  // Blazes on their first evidence step: the route, or the lane item holding it (§8.5).
+  // Blazes on their first evidence step: the route, or the lane item holding it.
   const laneItemOf = new Map<string, LaneItem>();
   for (const it of lanes) for (const l of it.lanes) for (const [id, top] of topOf) if (top === l.id) laneItemOf.set(id, it);
   const placed = g.trouble.map((t, i) => {
@@ -432,14 +432,14 @@ export function troubleNumbers(g: SessionGraph): Map<string, number> {
   return n;
 }
 
-/** A side trail expanded in place (DESIGN §8.3 [17]): the lane laid out as its own route, every episode drawn. */
+/** A side trail expanded in place: the lane laid out as its own route, every episode drawn. */
 export function laneLayout(g: SessionGraph, laneId: string, width: number): GlanceLayout | undefined {
   const lane = g.lanes.find((l) => l.id === laneId);
   if (!lane) return undefined;
   return glanceLayout({ ...g, lanes: [lane, ...g.lanes.filter((l) => l.id !== laneId)], trouble: [] }, width, { unfold: true });
 }
 
-/** Box of an expanded side trail's episode item and its label (DESIGN §8.3 [17]). The one just before the answer
+/** Box of an expanded side trail's episode item and its label. The one just before the answer
  * stops 8 px short of the answer's label (its box starts 52 px left of the terminus), so its count steps down
  * instead of running into "Answer". */
 export function lepBox(open: GlanceLayout, r: RouteEpisode): { width: number; text: number } {
@@ -454,10 +454,10 @@ export function lepBox(open: GlanceLayout, r: RouteEpisode): { width: number; te
 export const lepCountOnly = (box: { text: number }) => box.text < 48;
 
 
-/** Px per visible episode title on the horizontal route (CL5): a title gets at least this much room. */
+/** Px per visible episode title on the horizontal route: a title gets at least this much room. */
 export const TITLE_PITCH = 96;
 
-/** The episodes whose titles show on the horizontal route (DESIGN §18.2, CL5): at most min(8, ⌊width / 96⌋), chosen in
+/** The episodes whose titles show on the horizontal route: at most min(8, ⌊width / 96⌋), chosen in
  * the order first, last, with a blaze, delegate, verify, then the longest segments, each at least 96 px from the titles
  * already chosen. The others show only their glyph; their title is in their accessible name and shows on hover or focus. */
 export function labelledEpisodes(L: GlanceLayout, width: number = L.width): Set<string> {

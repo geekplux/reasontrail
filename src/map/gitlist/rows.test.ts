@@ -10,7 +10,7 @@ const IMPL = implementer as unknown as SessionGraph;
 const PLAN = planner as unknown as SessionGraph;
 const shape = (rows: ListRow[]) => rows.map((r) => (r.kind === 'episode' ? `${r.main ? 'M' : 'S'}${r.n}` : r.kind === 'verdict' ? `V:${r.text}` : r.kind === 'lane' ? `L:${r.name}` : 'end'));
 
-describe('listRows (v7 §6)', () => {
+describe('listRows', () => {
   it('verify-fail-fix: three subagent lanes in order, each forking with its episodes and merging after its verdict', () => {
     const rows = listRows(VFF);
     expect(shape(rows)).toEqual([
@@ -53,7 +53,7 @@ describe('listRows (v7 §6)', () => {
   });
 
   it('shortens recorded requests to a title', () => {
-    expect(shortTitle('Re-verify Phase 12 of Reasontrail (/workspace/reasontrail, branch …')).toBe('Re-verify Phase 12');
+    expect(shortTitle('Re-verify Phase 12 of Reasontrail (/work/reasontrail, branch …')).toBe('Re-verify Phase 12');
     expect(shortTitle('Build Phase 5: Keyboard navigation and screen-reader alternative of token-garde…')).toBe('Build Phase 5: Keyboard navigation and screen-reader alternative');
     expect(shortTitle('Read PLAN.md')).toBe('Read PLAN.md');
   });
@@ -84,7 +84,7 @@ describe('episodeSteps', () => {
   });
 });
 
-describe('layoutList (gitlist.mjs geometry)', () => {
+describe('layoutList', () => {
   it('matches the canvas heights: 1136 collapsed, 1682 with episode 6 open', () => {
     const rows = listRows(VFF);
     expect(layoutList(rows).height).toBe(1136);
@@ -93,7 +93,7 @@ describe('layoutList (gitlist.mjs geometry)', () => {
     expect(open.height).toBe(1682);
   });
 
-  it('compact (the phone): no header, # or Start column, and the rows start at y 0 (Phone.html: 1104 tall)', () => {
+  it('compact (the phone): no header, # or Start column, and the rows start at y 0 (the canvas phone frame: 1104 tall)', () => {
     expect(listColumns()).toEqual({ head: true, num: true, at: true });
     expect(listColumns(true)).toEqual({ head: false, num: false, at: false });
     const L = layoutList(listRows(VFF), undefined, undefined, 0);

@@ -1,6 +1,6 @@
-// `?view=open` (DESIGN §13.4, §12; PLAN V1, V2, V5; v7 §7): drop or choose a session file; it is read and mapped in
+// `?view=open`: drop or choose a session file; it is read and mapped in
 // this browser, with progress and Cancel for big files, and calm, specific messages for anything that cannot be mapped.
-// `?view=chat` (phase 23): the same page with the paste box as its focal point, and the picker for chat exports.
+// `?view=chat`: the same page with the paste box as its focal point, and the picker for chat exports.
 // A mapped session shows on the v7 session page (SessionMap: header, tree, list and outcome), as in the local viewer.
 import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
@@ -78,7 +78,7 @@ export function OpenSession({ file, onFile, onMount, chat = false }: { file: Fil
     void j.result.then((r) => {
       if (job.current !== j || !r) return;
       job.current = null;
-      performance.measure('tg:intake-parse', 'tg:intake-start'); // PLAN G2: ≤ 3 s for 10 MB
+      performance.measure('tg:intake-parse', 'tg:intake-start'); // target: ≤ 3 s for 10 MB
       if (r.ok === 'pick') return setState({ at: 'pick', file: f, chats: r.chats });
       if (!r.ok) return setState({ at: 'error', error: r.error, mb: megabytes(f.size) });
       const episodes = r.graph.episodes.filter((e) => !e.parentId).length;
@@ -217,7 +217,7 @@ function Progress({ lines, total, onCancel }: { lines: number; total: number; on
   );
 }
 
-/** "The map couldn't be drawn" (DESIGN §12); the page's "Open another file" stays under it. */
+/** "The map couldn't be drawn"; the page's "Open another file" stays under it. */
 class MapBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   override state = { failed: false };
   static getDerivedStateFromError() {
@@ -233,7 +233,7 @@ class MapBoundary extends Component<{ children: ReactNode }, { failed: boolean }
   }
 }
 
-/** The canvas Open frame's 24px file icon (docs/design/v7/gen7.mjs `openPage`), slate-11 strokes. */
+/** The design canvas's 24px file icon for the Open page, slate-11 strokes. */
 function FileIcon() {
   return (
     <svg className="ic" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">

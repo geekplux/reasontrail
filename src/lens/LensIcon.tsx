@@ -1,5 +1,5 @@
 /**
- * The lens icon: the original seed-and-fork mark, kept for the zoom-in lens (DESIGN §4, §13.5). A seed, a stem, and a
+ * The lens icon: the original seed-and-fork mark, kept for the zoom-in lens. A seed, a stem, and a
  * fork into three branches whose stroke widths (4, 2.5, 1.25) are the lens's own encoding: thicker = more likely.
  */
 export const MARK_BRANCHES = [

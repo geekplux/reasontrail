@@ -1,7 +1,7 @@
 # Garden visual encoding (spec)
 
-Owner: `dataviz-designer`. Builds on PLAN §3 (tokens in `src/styles/tokens.css`), §4 (F5, F6, A1–A5), D5, D6, D7, D8, D11.
-Scope: what phases 3–7 build. Every row carries the phase that delivers it. States that only live mode produces (loading, error, depth limit, end of text) get their shape here so the vocabulary is complete, but phase 3 does not implement them.
+The encoding of the next-token garden (the zoom-in lens). Colours and type now follow `docs/DESIGN.md` and `src/styles/tokens.css`; the `--tg-*` names below are the garden's original token names.
+The last column of each table is the build step that delivered the row. States that only live mode produces (loading, error, depth limit, end of text) get their shape here so the vocabulary is complete, though the recorded garden never shows them.
 
 ## 1. The question it answers
 
@@ -16,7 +16,7 @@ Per visible branch the data model (`buildTree`) provides `key`, `token`, `p` (co
 | Data | Channel | Exact rule | Phase |
 |---|---|---|---|
 | Next-token choice | one link (parent fork -> child tip) + tip marker + label | one row per choice, siblings ordered by `rank` top to bottom | 3 |
-| Conditional `p` | **stroke width** (primary) | `w = 1.5 + 18.5·clamp(p,0,1)` px (D5); 5% = 2.425, 25% = 6.125, 75% = 15.375, 100% = 20 | 3 |
+| Conditional `p` | **stroke width** (primary) | `w = 1.5 + 18.5·clamp(p,0,1)` px; 5% = 2.425, 25% = 6.125, 75% = 15.375, 100% = 20 | 3 |
 | Conditional `p` | **numeric value label** on hover / selection / focus | `formatPct(p)`: one decimal, `<0.1%` below 0.0005 | 3 (focus: 5) |
 | `pathP` | second part of the value label | depth 1: `44.7%`; depth ≥ 2: `30.1% · path 2.7%` | 3 |
 | `p` band | stroke colour (secondary only) | `p < 0.10` `--tg-branch-lo`; `0.10 ≤ p < 0.40` `--tg-branch-mid`; `p ≥ 0.40` `--tg-branch-hi`; exposed as `data-band="lo|mid|hi"` | 3 |
@@ -25,7 +25,7 @@ Per visible branch the data model (`buildTree`) provides `key`, `token`, `p` (co
 | State | tip marker shape + dash pattern (table §3) | colour never distinguishes a state on its own | 3–10 |
 | Selected / hovered branch | casing + ring + underline + value label | §3 | 3 |
 | Sampled path | accent stroke with ink outline + diamond markers | §3 | 7 |
-| Temperature | widths and labels recomputed from tempered `p'` (D8, remainder included); **layout never depends on T** | widths transition 120 ms; labels switch instantly; "approximate (top-k only)" note when T ≠ 1. Full rules §10 | 7 |
+| Temperature | widths and labels recomputed from tempered `p'` (remainder included); **layout never depends on T** | widths transition 120 ms; labels switch instantly; "approximate (top-k only)" note when T ≠ 1. Full rules §10 | 7 |
 
 ## 3. States: marker and line style (independent of colour)
 
@@ -67,7 +67,7 @@ Layout (`layout.ts`, pure): `d3-hierarchy` `tree().nodeSize([ROW, COL])` on the 
 
 **Fork joint (fixes the phase-2 blob).** Children leave the parent from a **stacked bundle** at `forkX`: child strokes (rank order) then the remainder, each occupying its own `w` vertically, `GAP` px apart, the bundle centred on the parent row. Because `Σp + r = 1`, the bundle height is at most `(k+1)·1.5 + 18.5 + k·GAP` = 32.5 px for k = 5, less than `ROW`. All link strokes use `stroke-linecap: butt` and `stroke-linejoin: round`; no round caps anywhere. Each link (`linkPath.ts`, pure): `M forkX,yᵢ H forkX+STEM C m,yᵢ m,y_c tipX_c−4,y_c` with `m` the midpoint of the curve run. The incoming end stops 4 px before the tip so the marker covers it.
 
-**Growth stability (decided in phase 3 review, built in phase 4).** A tidy tree cannot keep every existing node in place: growing ` entered` in the default garden pushes its subtree (and the root's re-centring moves everything, ` entered` itself by 105 px). We keep the tidy tree (PLAN §3.3, the fan is the identity) and make the *activated* node stand still on screen instead:
+**Growth stability.** A tidy tree cannot keep every existing node in place: growing ` entered` in the default garden pushes its subtree (and the root's re-centring moves everything, ` entered` itself by 105 px). We keep the tidy tree (the fan is the identity) and make the *activated* node stand still on screen instead:
 
 - `layoutGarden` stays a pure function of the visible tree only (no anchor parameter, no memory of the previous layout). Guaranteed by the layout: (a) every node's `tipX = depth·COL`, so x never changes; (b) the seed is fixed at (0, 0) and `viewBox.x = −PAD`, so the drawing only ever widens to the right; (c) growing a node whose next column has no visible nodes nearby moves nothing (all ` looked` children in the default garden); (d) new children sit at `tipX(parent) + COL`; (e) siblings keep their rank order and ≥ `ROW` pitch. Phase 3 tests (a), (c), (d) and that the grown node's ancestors stay put (§9.2); (b) and (e) hold by construction of d3 `tree().nodeSize`.
 - **Anchoring (phase 4).** On every expand/collapse of node K (click or Enter/Space in phase 4; the same handler serves phase-5 keyboard actions), the click handler records `before = hitRect(K).getBoundingClientRect().top` before dispatching. A `useLayoutEffect` keyed on the new layout measures `after` for the same element and calls `window.scrollBy({ top: after − before, behavior: 'instant' })` before paint. Horizontal needs no compensation (x is fixed). Vertical page scroll is the only compensation channel (`.garden-scroll` has `overflow-y: hidden`); measuring rects (not layout maths) also absorbs the mobile scroll cue appearing or disappearing above the drawing. If the browser clamps the scroll (collapse at `scrollY = 0`), the residual shift is accepted. When growth above K is taller than the page can scroll, the compensation uses a temporary bottom slack inside `main` (padding under the garden figure, above the footer), removed on the next activation or scroll-up.
@@ -89,11 +89,11 @@ Layout (`layout.ts`, pure): `d3-hierarchy` `tree().nodeSize([ROW, COL])` on the 
 
 `GardenView` props: `{ garden, selectedKey: string | null, hoverKey?: string | null, onHover?(key), onSelect?(key) }` (phase 4 adds `onSelect`); hover state lives in `App` because the readout follows it too. The labelled key is `hoverKey ?? selectedKey`. **The value label is a rendered element, not `<title>`**: `<g data-role="value-label" data-key aria-hidden="true">` drawn last (on top), at `x = labelEnd + 8`, vertically centred on the row: `rect` fill `--tg-surface`, 1 px `--tg-ink-muted` stroke, radius 2, padding 2×6 px, text `VALUE_PX` mono tabular `--tg-ink`. It never flips: `layoutGarden` reserves `labelEnd + FORK_DX + valueWidth` to the right of every branch in the drawing width, so the box always fits (decided in phase 3 review: a flipped box would cover the incoming links being read). For an `expanded` branch the box would sit on its own fork bundle, so from phase 4 (when click selection makes the label persistent) it is drawn above the row instead: `x = labelX`, bottom edge at `y − 10` (box top `y − 28.8`, clear of the row above, whose glyphs end at about `y − 33`). Text is built from the branch's own `p` / `pathP` (never literals). Remove every `<title>` from the garden. Until phase 5 the `<svg>` stays `role="img"` with an `aria-label` that also names the remainder ("…; other tokens 77.7%").
 
-**Path readout** (`PathReadout.tsx`, directly under the drawing): prompt in `--tg-ink-muted` mono, then each continuation token as a mono `<span>` with a 1 px `--tg-ink-muted` bottom border and 2 px gap between tokens (the break in the underline marks the boundary), whitespace shown as in labels, then `path 2.7%`. With no labelled key it shows the rank-0 chain of the visible expanded nodes prefixed `Most likely:`; otherwise `Reading:`. Mobile (< 48rem): `position: sticky; bottom: 0`, `--tg-surface` background, hairline top (§3.3).
+**Path readout** (`PathReadout.tsx`, directly under the drawing): prompt in `--tg-ink-muted` mono, then each continuation token as a mono `<span>` with a 1 px `--tg-ink-muted` bottom border and 2 px gap between tokens (the break in the underline marks the boundary), whitespace shown as in labels, then `path 2.7%`. With no labelled key it shows the rank-0 chain of the visible expanded nodes prefixed `Most likely:`; otherwise `Reading:`. Mobile (< 48rem): `position: sticky; bottom: 0`, `--tg-surface` background, hairline top.
 
 **Legend** (`Legend.tsx`, under the readout, HTML + inline SVG): row 1 "Thickness = chance of the next token": three 32 px butt-capped line samples at `LEGEND_P = [0.05, 0.25, 0.75]`, width `branchWidth(p)`, band colour, direct label `formatPct(p)` (5.0%, 25.0%, 75.0%), plus a dashed `6 4` sample labelled `other tokens`. Row 2: marker key for the states that exist in the phase (phase 3: bud "can grow", knot "grown", ring "not recorded"), each the real marker glyph + text.
 
-## 6. Motion (§3.4)
+## 6. Motion
 
 | Event | Motion | Phase |
 |---|---|---|
@@ -108,7 +108,7 @@ Reduced motion: durations are 0 ms (already in tokens/base). **No code waits on 
 
 ## 7. Colour validation
 
-Colour carries no meaning on its own (D6). Ramp validated with the dataviz skill validator (`validate_palette.js --ordinal`, Machado 2009, OKLab ΔE×100):
+Colour carries no meaning on its own. Ramp validated with the dataviz skill validator (`validate_palette.js --ordinal`, Machado 2009, OKLab ΔE×100):
 
 | Ramp lo -> hi | Monotone L | Adjacent ΔL ≥ 0.06 | Light end vs paper | Hue spread | Result |
 |---|---|---|---|---|---|
@@ -127,13 +127,13 @@ State colours (branch-hi, accent, error, focus, ink-muted) run as a categorical 
 | accent / branch-mid | light | 19.7 | 8.3 | pass; diamond + outline anyway |
 | focus / branch-hi | light / dark | 26.2 / 20.6 | 17.3 / 17.5 tritan | pass |
 
-Re-stepping `--tg-error` was tried (5 candidates per theme, crimson to pink): none cleared both the accent pair and the green pairs at ≥ 4.5:1, so the tokens stay and the structural rules above are binding. Text pairs keep the §3.2 WCAG values.
+Re-stepping `--tg-error` was tried (5 candidates per theme, crimson to pink): none cleared both the accent pair and the green pairs at ≥ 4.5:1, so the tokens stay and the structural rules above are binding. Text pairs keep their WCAG AA values.
 
 ## 8. Viewports and states of the whole drawing
 
-- **Desktop 1280×800:** the default garden (D11: root + top child, about 11 rows) fits without scrolling.
+- **Desktop 1280×800:** the default garden (root + top child, about 11 rows) fits without scrolling.
 - **Mobile 390×844:** labels stay 14 px; `.garden-scroll` scrolls sideways. On mount and on sample change, set `scrollLeft = max(0, tipX(deepest expanded node on the default path) + PAD − 16)` (instant, no smooth scroll), so that fork and all its children labels are in view. Phase 4: after an expansion, first anchor the activated node (§4), then bring the new fork in with `scrollIntoView({ inline: 'nearest', block: 'nearest' })`. Whenever `scrollWidth > clientWidth`, a plain text cue (`--tg-text-sm`, `--tg-ink-muted`, above the drawing, `aria-hidden`; the region already has a label) reads `← Scroll sideways to the seed` / `Scroll sideways for more →` / `← Scroll sideways →` by position, updated on `scroll` (passive, rAF). No fades or shadows as cues.
-- **No branches** (root list empty): seed only + text "This garden has no recorded branches." (3). The layout reserves the text's width (`LABEL_DX + 37 × 0.6 × TOKEN_PX`) so the `<svg>` does not clip it, and the `aria-label` reads "Garden after the prompt: no recorded branches.". Live empty, loading and error states: §3.6, phase 10.
+- **No branches** (root list empty): seed only + text "This garden has no recorded branches." (3). The layout reserves the text's width (`LABEL_DX + 37 × 0.6 × TOKEN_PX`) so the `<svg>` does not clip it, and the `aria-label` reads "Garden after the prompt: no recorded branches.". Live empty, loading and error states follow the same shapes.
 
 ## 9. Phase 3 acceptance criteria
 
@@ -149,13 +149,13 @@ Re-stepping `--tg-error` was tried (5 candidates per theme, crimson to pink): no
 10. The legend shows samples at 5.0% / 25.0% / 75.0% whose widths equal `branchWidth`, a dashed `other tokens` sample, and the bud / knot / ring key.
 11. Desktop 1280×800 shows the whole default garden without scrolling; at 390×844 the expanded fork and all its child labels are inside the scroll viewport on load and the scroll cue text is present.
 12. No hex colours in `src/**/*.tsx`; `--tg-error` and `--tg-accent` are not used on any phase-3 stroke; `grep -rn "transitionend\|animationend" src` finds nothing.
-13. Screenshots per PLAN phase 3 are committed; in each CVD screenshot bud, knot, ring, remainder and the selected style remain distinguishable by shape/dash alone (dataviz-designer and a11y-reviewer confirm); the ramp re-validates with `validate_palette.js --ordinal` in both themes.
+13. In each CVD screenshot bud, knot, ring, remainder and the selected style remain distinguishable by shape/dash alone; the ramp re-validates with `validate_palette.js --ordinal` in both themes.
 
 ## 10. Phase 7: temperature, entropy, sampled path
 
-### 10.1 Temperature (D8) -> encoding
+### 10.1 Temperature -> encoding
 
-`temper(ps, r, T)` in `src/llm/temperature.ts`, per expanded node (DECISIONS 2026-10-20, "remainder as hidden tokens"). The remainder `r = 1 − Σp_i` is **not** one pseudo-token: it is modelled as `n` equal hidden tokens, each `r/n` and therefore ≤ the smallest shown chance `p_min = min(ps)`:
+`temper(ps, r, T)` in `src/llm/temperature.ts`, per expanded node ("remainder as hidden tokens"). The remainder `r = 1 − Σp_i` is **not** one pseudo-token: it is modelled as `n` equal hidden tokens, each `r/n` and therefore ≤ the smallest shown chance `p_min = min(ps)`:
 
 - `n = max(1, ceil(r / p_min − 1e-9))` when `r > 0` (the `1e-9` stops float noise from adding a token when `r/p_min` is an exact integer); `r ≤ 0` -> remainder weight 0.
 - Weights: `w_i = p_i^(1/T)` for the k shown tokens, `w_r = n·(r/n)^(1/T)` for the remainder. `q_i = w_i / Z`, `q_r = w_r / Z`, `Z = Σw_i + w_r`.
@@ -193,8 +193,8 @@ Layout never depends on T: memoize `layoutGarden` on the visible tree only, and 
 
 ### 10.4 Controls and "How to read"
 
-- Control row (§3.3), after the sample picker: `<label>Temperature</label>` + native `<input type="range" min="0" max="2" step="0.1">` (default 1.0) + `<output>` `T 1.0` / `T 0 (greedy)`; presets as `<button aria-pressed>` "0 (greedy)", "1.0", "1.5"; then "Sample a path", "New seed". URL `t` is clamped to [0, 2] and rounded to 0.1 (invalid -> 1); `seed` is an integer 1–9999.
-- "How to read this garden": footer `<details id="how-to-read">` (§3.3), ≤ 120 words, closed by default; on mobile it sits above the sticky readout's reserved space.
+- Control row, after the sample picker: `<label>Temperature</label>` + native `<input type="range" min="0" max="2" step="0.1">` (default 1.0) + `<output>` `T 1.0` / `T 0 (greedy)`; presets as `<button aria-pressed>` "0 (greedy)", "1.0", "1.5"; then "Sample a path", "New seed". URL `t` is clamped to [0, 2] and rounded to 0.1 (invalid -> 1); `seed` is an integer 1–9999.
+- "How to read this garden": footer `<details id="how-to-read">`, ≤ 120 words, closed by default; on mobile it sits above the sticky readout's reserved space.
 
 ### 10.5 Phase 7 acceptance criteria
 

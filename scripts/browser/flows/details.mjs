@@ -1,4 +1,4 @@
-// Details flow, v7 (docs/design/v7/PROMPT.md §4.5, §5.4, §9.6; phase 32b), keyboard only: Tab into the list, open
+// Details flow, v7, keyboard only: Tab into the list, open
 // episode 6 of verify-fail-fix, Enter on its failed step opens the detail panel (focus stays in the list) and lights
 // the step in the tree; the panel shows the command, the output, the next step and the source; Previous step is
 // greyed on the episode's first step (s41) and stays there, Next and Previous walk s43 and back; Esc in the list closes the panel, a second Esc closes the episode. Under reduced motion

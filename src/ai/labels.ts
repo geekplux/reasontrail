@@ -1,5 +1,5 @@
-// The AI titles overlay read for the map (PLAN phase 21, X3; v7 §7): step labels summed up per top-level episode, for
-// the list's 12px tags and the tree's rings. Pure; the overlay never changes the graph (D22).
+// The AI titles overlay read for the map: step labels summed up per top-level episode, for
+// the list's 12px tags and the tree's rings. Pure; the overlay never changes the graph.
 import type { LabelOverlay, SessionGraph } from '../../shared/session/types';
 
 /** Most conclusive first: an episode's tag is its most conclusive label. */

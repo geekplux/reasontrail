@@ -1,4 +1,4 @@
-// Hand-written Worker bindings (PLAN D13). Minimal structural types so tests can pass plain fakes;
+// Hand-written Worker bindings. Minimal structural types so tests can pass plain fakes;
 // the real bindings from wrangler.jsonc satisfy them. Every binding is optional because a misconfigured
 // deployment must answer with a clear 503 rather than crash.
 

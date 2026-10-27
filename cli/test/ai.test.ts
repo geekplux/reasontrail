@@ -1,4 +1,4 @@
-// `--ai` (PLAN X5, phase 21) against a fake /api/structure on 127.0.0.1, started and closed inside each test.
+// `--ai` against a fake /api/structure on 127.0.0.1, started and closed inside each test.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';

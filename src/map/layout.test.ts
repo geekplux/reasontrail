@@ -50,7 +50,7 @@ function graph(spec: Spec): SessionGraph {
   };
 }
 
-describe('route segments (DM8)', () => {
+describe('route segments', () => {
   it('sizes segments by clamp(56, 36 + k·√steps, 240) with k = min(19.5, 204/√maxSteps), in order, then grows them uniformly up to 480 px', () => {
     const L = glanceLayout(graph({ eps: [1, 9, 49, 400], answer: true }), 4000);
     const k = Math.min(19.5, 204 / Math.sqrt(400));
@@ -107,7 +107,7 @@ describe('route segments (DM8)', () => {
   });
 });
 
-describe('side trails (DM12)', () => {
+describe('side trails', () => {
   it('leave and rejoin at x(step), at least 96 px; an interrupted lane does not rejoin', () => {
     const L = glanceLayout(graph({ eps: [2, 20, 20], lanes: [{ ep: 1, at: 2, back: 18, steps: 30 }, { ep: 2, at: 1, back: 2, steps: 4, status: 'interrupted' }] }), 1216);
     const [a, b] = L.lanes;
@@ -132,7 +132,7 @@ describe('side trails (DM12)', () => {
   });
 });
 
-describe('lane labels (DESIGN §8.3)', () => {
+describe('lane labels', () => {
   it('never clips a status word: a lane 104 px after another on the same track moves to another track', () => {
     const L = glanceLayout(graph({ eps: [6, 6, 6], lanes: [{ ep: 0, at: 5, steps: 3 }, { ep: 1, at: 1, steps: 3 }] }), 965);
     const [a, b] = L.lanes;
@@ -143,7 +143,7 @@ describe('lane labels (DESIGN §8.3)', () => {
   });
 });
 
-describe('lane status (DESIGN §8.3)', () => {
+describe('lane status', () => {
   const lane = (status?: StepStatus): Lane => ({ id: 'L', name: 'L', file: 'L.jsonl', ...(status ? { status } : {}) });
   const st = (kind: Step['kind'], text?: string): Step => ({ id: `s${text ?? kind}`, seq: 0, laneId: 'L', kind, raw: { file: 'L.jsonl', line: 1 }, ...(text ? { text } : {}) });
   const g = graph({ eps: [1] });
@@ -166,7 +166,7 @@ describe('lane status (DESIGN §8.3)', () => {
   });
 });
 
-describe('blazes (DM13)', () => {
+describe('blazes', () => {
   it('numbers patterns in route order, keeps a 28 px pitch and folds more than 3 in a segment into one "+n" plate', () => {
     const L = glanceLayout(graph({ eps: [10, 10], lanes: [{ ep: 0, at: 1, back: 8, steps: 10 }], trouble: [{ ep: 1, at: 0 }, { ep: 0, at: 5 }, { ep: 0, at: 5, resolved: true }, { lane: 0, at: 0 }] }), 1216);
     expect([...L.numbers.entries()]).toEqual([['t3', 1], ['t1', 2], ['t2', 3], ['t0', 4]]);
@@ -182,7 +182,7 @@ describe('blazes (DM13)', () => {
     expect(words(name)).toContain(words('+5 1–5'));
   });
 
-  it('moves a side-trail plate along its line off an idle label (DM9)', () => {
+  it('moves a side-trail plate along its line off an idle label', () => {
     // A background check lane crosses a 45 min idle break; its retry and error streak land on the break's label.
     const files = import.meta.glob<string>('/fixtures/sessions/claude-code/idle-lane{.jsonl,/subagents/*}', { query: '?raw', import: 'default', eager: true });
     const g = parseSession({ files: Object.entries(files).sort().map(([path, text]) => ({ path: path.slice(1), text })) });
@@ -202,7 +202,7 @@ describe('blazes (DM13)', () => {
   });
 });
 
-describe('samples and performance (G2)', () => {
+describe('samples and performance', () => {
   it.each(sessionSamples.map((s) => [s.id, s] as const))('%s lays out deterministically within 12 episodes', async (_, sample) => {
     const g = await sample.load();
     const L = glanceLayout(g, 1216);
@@ -261,7 +261,7 @@ describe('lepBox (an expanded side trail)', () => {
 });
 
 
-describe('labelledEpisodes (CL5)', () => {
+describe('labelledEpisodes', () => {
   it('titles at most min(8, width / 96) episodes, first and last always, each 96 px apart', async () => {
     const { labelledEpisodes, titleRoom, glanceLayout: layout } = await import('./layout');
     const { defaultSessionGraph } = await import('../sessions/samples');

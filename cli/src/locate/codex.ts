@@ -1,4 +1,4 @@
-// Codex CLI session store (PLAN §5.12): ${CODEX_HOME:-~/.codex}/sessions/YYYY/MM/DD/rollout-<time>-<uuid>.jsonl, whose
+// Codex CLI session store: ${CODEX_HOME:-~/.codex}/sessions/YYYY/MM/DD/rollout-<time>-<uuid>.jsonl, whose
 // first line is the `session_meta` record (id, cwd). Codex sets CODEX_THREAD_ID (the session id) for the commands it
 // runs (codex-rs/core/src/exec_env.rs). Not verified against a real Codex install. Only Node built-ins.
 import { readdirSync } from 'node:fs';

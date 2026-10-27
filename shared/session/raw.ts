@@ -1,4 +1,4 @@
-// Show raw (PLAN M3, DESIGN §8.10): attach each record's verbatim text to the first step it produced, capped. Pure.
+// Show raw: attach each record's verbatim text to the first step it produced, capped. Pure.
 import { RAW_TEXT_MAX, type Provenance, type SessionGraph, type SourceFile } from './types';
 
 /** Smallest per-record cap the total budget may push {@link RAW_TEXT_MAX} down to. */

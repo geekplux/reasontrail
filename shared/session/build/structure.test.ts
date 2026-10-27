@@ -1,4 +1,4 @@
-// Phase 12: episodes, trouble patterns and outcome on the synthetic fixtures (PLAN §5.11, AC1–AC3).
+// Episodes, trouble patterns and outcome on the synthetic fixtures.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseSession } from '../adapter';

@@ -1,4 +1,4 @@
-// `reasontrail install-skill` (PLAN C6): copies the skill (SKILL.md, kit, references) into the agent's skills folder.
+// `reasontrail install-skill`: copies the skill (SKILL.md, kit, references) into the agent's skills folder.
 // Idempotent; never overwrites a file the user changed unless --force; --dry-run writes nothing.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -92,7 +92,7 @@ export function installSkill(argv: readonly string[], ctx: InstallContext): numb
     else ok = installInto('Grok Build', join(ctx.env.GROK_HOME || join(ctx.home, '.grok'), 'skills', PKG_NAME), files, o, ctx) && ok;
   }
   if (want('codex')) {
-    // Codex loads user skills from $HOME/.agents/skills (Agent Skills format; see docs/DECISIONS.md, phase 18).
+    // Codex loads user skills from $HOME/.agents/skills (Agent Skills format).
     const extra = Object.fromEntries(Object.entries(CODEX_FILES).map(([k, v]) => [k.replace('../../skills/reasontrail/', ''), v]));
     ok = installInto('Codex', join(ctx.home, '.agents', 'skills', PKG_NAME), { ...files, ...extra }, o, ctx) && ok;
   }

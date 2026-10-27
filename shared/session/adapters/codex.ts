@@ -1,4 +1,4 @@
-// Codex CLI rollouts (PLAN §5.12, D31): ${CODEX_HOME:-~/.codex}/sessions/YYYY/MM/DD/rollout-<time>-<uuid>.jsonl, one
+// Codex CLI rollouts: ${CODEX_HOME:-~/.codex}/sessions/YYYY/MM/DD/rollout-<time>-<uuid>.jsonl, one
 // `{timestamp, type, payload}` line per RolloutItem (session_meta, turn_context, response_item, event_msg, compacted, …).
 // Written from the public source (openai/codex, codex-rs/protocol and codex-rs/history), not yet checked against a real
 // rollout on this project's machines. Unknown records are counted, never fatal.

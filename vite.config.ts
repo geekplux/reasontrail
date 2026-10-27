@@ -6,7 +6,7 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /** The website serves the built local-viewer template as `/viewer.html`: "Save shareable copy" writes the redacted
- * graph into it (phase 24). Built with `build:viewer` before the site, so the two always match. */
+ * graph into it. Built with `build:viewer` before the site, so the two always match. */
 function viewerTemplate(): Plugin {
   return {
     name: 'reasontrail-viewer-template',

@@ -1,4 +1,4 @@
-// The local viewer (v7 §7 "Local viewer", docs/design/v7/preview/Home.html without the site chrome): the wordmark
+// The local viewer (the home's layout without the site chrome): the wordmark
 // header; the session header in the home's hero place (the title as the page's h1, the meta line, AI titles when the
 // page has them, Details, Share), the session's tree at the full content width with its legend; the card with the
 // git-style list and the outcome or the step's detail panel; and a footer of two plain links. The selected step lives in the hash (`#step=s41`), so it works from file:// and deep links

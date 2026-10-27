@@ -1,4 +1,4 @@
-// The website's home (v7 §4, §13, docs/design/v7/preview/Home.html), top to bottom: the hero (headline, lede and the
+// The website's home, top to bottom: the hero (headline, lede and the
 // install command on the lede's last baseline), the sample's tree at the full content width with its legend, the sample
 // tabs right under it, the session card, install, and "Made by GeekPlux". The header and footer are SiteShell's.
 // A step selected in the tree or the list (or by `&step=` in the URL) highlights its path in the tree with a callout,
@@ -20,7 +20,7 @@ import { TreeLegend } from '../map/tree/TreeLegend';
 const CARD_ID = 'session';
 const TREE_ID = 'hero-tree';
 
-/** The sample tabs (§4.4): a segmented control under the tree, WAI-ARIA tabs with automatic activation. Where the
+/** The sample tabs: a segmented control under the tree, WAI-ARIA tabs with automatic activation. Where the
  * track scrolls sideways (the phone), the selected tab is kept in view: on load (a `?session=` link), on a switch and
  * when the arrow keys move focus. */
 function SampleTabs({ current, onChoose }: { current: string; onChoose(id: string): void }) {

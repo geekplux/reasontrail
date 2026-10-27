@@ -1,4 +1,4 @@
-// Pure derivations for the outline view (DESIGN §8.9, §10.2): task card, At a glance, route items, step lines.
+// Pure derivations for the outline view: task card, At a glance, route items, step lines.
 import type { Episode, Lane, SessionGraph, Step, StepStatus, Trouble } from '../../shared/session/types';
 
 const IDLE_MS = 10 * 60_000;
@@ -12,7 +12,7 @@ export const TROUBLE_LABEL: Record<Trouble['kind'], string> = {
   'error-streak': 'Error streak', retry: 'Retry', revert: 'Revert', rewind: 'Rewound', interrupt: 'Interrupted', churn: 'Churn',
 };
 
-/** The bold kind phrase of a pattern; in a chat a user's interruption is a correction (DESIGN §18.1). */
+/** The bold kind phrase of a pattern; in a chat a user's interruption is a correction. */
 export const troubleLabel = (kind: Trouble['kind'], chat = false) => (chat && kind === 'interrupt' ? 'Correction' : TROUBLE_LABEL[kind]);
 
 export const STATUS_WORD: Record<StepStatus, string> = { ok: 'ok', error: 'failed', interrupted: 'interrupted' };
@@ -39,7 +39,7 @@ export function times(steps: readonly Step[]): { wall: number; active: number } 
   return { wall: (t[t.length - 1] as number) - (t[0] as number), active };
 }
 
-/** `s` shortened in the middle with "…" to at most `max` characters (DESIGN §8.10). */
+/** `s` shortened in the middle with "…" to at most `max` characters. */
 export const middle = (s: string, max: number) => (s.length > max ? `${s.slice(0, Math.ceil((max - 1) / 2))}…${s.slice(s.length - Math.floor((max - 1) / 2))}` : s);
 
 /** A provenance file name: the basename, shortened in the middle to 28 characters. */
@@ -49,7 +49,7 @@ export function isUnstoredThinking(s: Step): boolean {
   return s.kind === 'thinking' && (s.textStored === false || !s.text?.trim());
 }
 
-/** The trailhead card (DESIGN §18.2): source and model, the first user request, the meta row of at most 3 items (active
+/** The trailhead card: source and model, the first user request, the meta row of at most 3 items (active
  * time, tool calls, then subagents or idle time; zero counts omitted), and the rest for "Session details" (wall time,
  * unstored thinking, the model). */
 export function taskCard(g: SessionGraph) {
@@ -89,7 +89,7 @@ function turnsRow(g: SessionGraph): GlanceRow {
   return { key: 'turns', status: 'unknown', lead: plural(prompts, 'prompt'), rest: replied || prompts === 0 ? ', all answered' : ', the last one has no reply' };
 }
 
-/** The At a glance rows (DESIGN §8.9): three for an agent session; for a chat, its prompts and its trouble. */
+/** The At a glance rows: three for an agent session; for a chat, its prompts and its trouble. */
 export function glance(g: SessionGraph): GlanceRow[] {
   const v = g.outcome.lastVerification;
   const n = g.trouble.length;
@@ -124,7 +124,7 @@ export function episodeLinks(g: SessionGraph, e: Episode): { trouble: { t: Troub
 export interface StepLine { id: string; kind: Step['kind']; text: string; status?: StepStatus; times: number }
 
 /** One line per step for an episode's step list: calls carry their result's status; results are folded into them;
- * consecutive unstored thinking blocks collapse into one "×n" line (DM20). */
+ * consecutive unstored thinking blocks collapse into one "×n" line. */
 export function stepLines(g: SessionGraph, e: Episode): StepLine[] {
   const byId = new Map(g.steps.map((s) => [s.id, s]));
   const result = new Map(g.steps.filter((s) => s.kind === 'tool-result' && s.tool?.callId).map((s) => [s.tool?.callId, s.status]));
@@ -147,7 +147,7 @@ export function stepLines(g: SessionGraph, e: Episode): StepLine[] {
   return lines;
 }
 
-/** Notes shown under the task meta row (DESIGN §12), as static text. */
+/** Notes shown under the task meta row, as static text. */
 export function parseNotes(g: SessionGraph): string[] {
   const notes: string[] = [];
   const bad = g.stats.skippedLines - g.stats.partialLines;

@@ -1,12 +1,11 @@
-/* The tree (docs/design/v7/PROMPT.md §5.1, §5.4; classes, colours and states of the `CSS` constant in
-   docs/design/v7/gen7.mjs). Hover fades everything off the hovered path to slate-8: colour only, 250ms ease-out,
+/* The tree (classes, colours and states from the design canvas). Hover fades everything off the hovered path to slate-8: colour only, 250ms ease-out,
    none under reduced motion (--motion-ms is 0 there). */
 .tree { display: block; overflow: visible; --bg: var(--slate-1); font-variant-numeric: tabular-nums; }
 .tree .b { fill: var(--slate-12); }
 .tree .tw { fill: none; stroke: var(--slate-12); stroke-width: 1; stroke-linecap: round; }
-/* slate-9, not the canvas's slate-8: 3.22:1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
+/* slate-9, not the canvas's slate-8: 3.22:1 for WCAG 1.4.11. */
 .tree .tw.th { stroke: var(--slate-9); }
-/* orange-10, not the canvas's orange-9: 3.26:1 on slate-1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
+/* orange-10, not the canvas's orange-9: 3.26:1 on slate-1 for WCAG 1.4.11. */
 .tree .tw.fail { stroke: var(--orange-10); }
 .tree :is(.leaf, .root, .dot) { fill: var(--slate-12); }
 .tree .bud { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1; }
@@ -36,7 +35,7 @@
 .tree .tip { pointer-events: none; }
 .tree .tip-box { fill: var(--slate-1); stroke: var(--slate-7); stroke-width: 0.5; }
 
-/* Selection (Step.html): the selected step's path from the root turns blue-9, everything else dims to slate-9 (colour
+/* Selection: the selected step's path from the root turns blue-9, everything else dims to slate-9 (colour
    only); its episode's glyph and number turn blue-11; the step gets a blue ring and a callout with a 0.5px leader. */
 .tree.pickable { cursor: pointer; }
 .tree.dim .b:not(.hi, .hv), .tree.dim :is(.leaf, .dot):not(.hi, .hv) { fill: var(--slate-9); }
@@ -53,7 +52,7 @@
 .tree .x.tip-x { stroke-width: 2; }
 .tree .tip-check :is(circle, path) { fill: none; stroke: var(--blue-9); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* AI titles (v7 §7): a thin dashed ring around a titled episode's glyph; the shape marks it, the list's tag names it.
+/* AI titles: a thin dashed ring around a titled episode's glyph; the shape marks it, the list's tag names it.
    blue-9, not a line step (blue-8 is under 2:1 on slate-1): 3:1 for WCAG 1.4.11; 1px dashed, unlike the 1.5px solid
    selection ring. */
 .tree .ai-ring { fill: none; stroke: var(--blue-9); stroke-width: 1; stroke-dasharray: 2 2; pointer-events: none; }

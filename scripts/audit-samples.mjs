@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// pnpm audit:samples (PLAN R3): fails when a committed sample, fixture or skill eval matches a redaction rule
+// pnpm audit:samples: fails when a committed sample, fixture or skill eval matches a redaction rule
 // (shared/session/redact.ts), or contains a term from the optional, gitignored `.redact-denylist` (one term per line).
 // Prints file:line and the rule only, never the matched text. Usage: pnpm audit:samples [--root <dir>]
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';

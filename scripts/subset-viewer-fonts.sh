@@ -1,5 +1,5 @@
 #!/bin/sh
-# Regenerates src/viewer/fonts/*.woff2, the two fonts the one-file local viewer inlines (v7 §3.2, DECISIONS 2026-10-23):
+# Regenerates src/viewer/fonts/*.woff2, the two fonts the one-file local viewer inlines:
 # Geist and Geist Mono from @fontsource-variable, the weight axis cut to 400–600 and the glyphs to Latin plus the
 # punctuation the map uses (about 16 KB and 13 KB), so the viewer works offline inside its 300 KB budget.
 #

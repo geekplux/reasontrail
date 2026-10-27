@@ -102,19 +102,19 @@ describe('cardTitle', () => {
   });
 });
 
-describe('card polish (phase 25)', () => {
+describe('card polish', () => {
   const font = { family: 'sans' as const, size: 20 };
-  it('never leaves one lone word on the last title line (SC1)', () => {
+  it('never leaves one lone word on the last title line', () => {
     expect(balance(['one two three', 'four'], 200, font, measure)).toEqual(['one two', 'three four']);
     expect(balance(['one two', 'three four'], 200, font, measure)).toEqual(['one two', 'three four']);
     expect(balance(['one', 'two'], 200, font, measure)).toEqual(['one', 'two']);
   });
-  it('writes alt text without doubled stops (SD4)', () => {
+  it('writes alt text without doubled stops', () => {
     const label = cardLabel({ ...defaultSessionGraph, displayTitle: 'A title…' });
     expect(label).not.toMatch(/…\.|\.\./);
     expect(label).toMatch(/^Reasontrail map card: A title\. /);
   });
-  it('draws the trouble and files rows with the map\'s square glyphs (SC2)', () => {
+  it('draws the trouble and files rows with the map\'s square glyphs', () => {
     const shapes = cardShapes(defaultSessionGraph, colors, measure);
     expect(shapes.filter((x) => x.t === 'rect' && x.w === 14 && x.fill === 'var(--i)')).toHaveLength(1);
     expect(shapes.some((x) => x.t === 'rect' && x.w === 20)).toBe(true);

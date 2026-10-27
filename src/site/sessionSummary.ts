@@ -1,4 +1,4 @@
-// What the session card says before the list (v7 §12, §13.2): the meta line under the title and the outcome box's rows
+// What the session card says before the list: the meta line under the title and the outcome box's rows
 // and final answer. Pure derivations from a SessionGraph, so the website and (later) the local viewer say the same.
 import type { SessionGraph } from '../../shared/session/types';
 import { laneStatus } from '../map/layout';
@@ -20,7 +20,7 @@ export function runs(text: string): Run[] {
 /** One item of the meta line: a bold number and its unit ("47 min" "total"), plain text, or code (the branch). */
 export type MetaItem = { key: string; strong: string; rest: string } | { key: string; text: string; code?: boolean };
 
-/** The meta line (§12): the agent, then wall time, subagents and tool calls (zero counts left out), then the branch. A
+/** The meta line: the agent, then wall time, subagents and tool calls (zero counts left out), then the branch. A
  * pasted chat (tagged "Pasted chat") leaves out "Chat", which the tag already says; a chat file keeps it. */
 export function sessionMeta(g: SessionGraph, branch = g.source.gitBranch, tag?: string): MetaItem[] {
   const items: MetaItem[] = g.source.kind === 'chat' && tag === PASTED_CHAT ? [] : [{ key: 'agent', text: SOURCE_LABEL[g.source.kind] }];
@@ -64,7 +64,7 @@ function fixCommit(g: SessionGraph, failedLanes: string[], passedAt: string): st
   return hash;
 }
 
-/** The outcome box (§4.5): the final check, the trouble and the files changed. A chat runs no checks and changes no
+/** The outcome box: the final check, the trouble and the files changed. A chat runs no checks and changes no
  * files, so it keeps only the rows that say something: its trouble, if any (rule 2). */
 export function outcomeRows(g: SessionGraph): OutcomeRow[] {
   if (g.source.kind === 'chat') return agentOutcome(g).filter((r) => r.key === 'trouble' && r.icon === 'alert');

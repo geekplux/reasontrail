@@ -1,4 +1,4 @@
-// In-memory stand-ins for the Worker bindings (PLAN D3).
+// In-memory stand-ins for the Worker bindings.
 import type { TokenChoice } from '../../shared/llm/types';
 import type { AiBinding, Ctx, Env, KvBinding, RateLimitBinding } from '../env';
 

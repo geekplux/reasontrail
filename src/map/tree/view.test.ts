@@ -141,7 +141,7 @@ describe('treeTip', () => {
   });
 });
 
-describe('treeCallout (phase 32b, Step.html)', () => {
+describe('treeCallout', () => {
   const reserve = [{ x0: 470, y0: 0, x1: 1200, y1: 24 }];
   const t = treeFor(VFF, 1200, 520, true, reserve);
   const lines: [string, string] = ['Inspect vitest config for log suppression', 'Exit code 2, 16 min'];
@@ -271,7 +271,7 @@ describe('treeCallout (phase 32b, Step.html)', () => {
   });
 });
 
-describe('treeCrop (phase 35: a session page trims the box to the drawing)', () => {
+describe('treeCrop (a session page trims the box to the drawing)', () => {
   const LEGEND: Box[] = [{ x0: 470, y0: 0, x1: 1200, y1: 24 }];
   const small = synthGraph([{ main: { kind: 'change', calls: 2 } }, { main: { kind: 'verify', calls: 1, failed: 1 } }]);
   const cases: [string, SessionGraph][] = [['verify-fail-fix', VFF], ['implementer-checks', IMPL], ['planner-pivot', PLAN], ['a small session', small]];
@@ -297,7 +297,7 @@ describe('treeCrop (phase 35: a session page trims the box to the drawing)', () 
   });
 });
 
-describe('a trimmed tree keeps its callout and tooltip off the legend where it shows (phase 35)', () => {
+describe('a trimmed tree keeps its callout and tooltip off the legend where it shows', () => {
   const hit = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
   const lines: [string, string] = ['Inspect vitest config for log suppression', 'Exit code 2, 16 min'];
 
@@ -336,7 +336,7 @@ describe('a trimmed tree keeps its callout and tooltip off the legend where it s
   });
 });
 
-describe('legendKeys (phase 35: an opened session lists only what its tree draws)', () => {
+describe('legendKeys (an opened session lists only what its tree draws)', () => {
   it('has every entry for verify-fail-fix', () => {
     expect([...legendKeys(VFF)].sort()).toEqual(['answer', 'change', 'command', 'discuss', 'explore', 'failed', 'thinking', 'verify', 'width'].sort());
   });

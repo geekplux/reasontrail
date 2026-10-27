@@ -1,5 +1,5 @@
-// The optional AI structuring pass (PLAN phase 20, X1–X4): request and response types for `POST /api/structure`,
-// the redacted batches a session is sent as, and how answers merge into a `LabelOverlay` (never into the graph, D22).
+// The optional AI structuring pass: request and response types for `POST /api/structure`,
+// the redacted batches a session is sent as, and how answers merge into a `LabelOverlay` (never into the graph).
 import { redactGraph, redactText } from './redact';
 import type { LabelOverlay, SessionGraph, Step, StepKind } from './types';
 

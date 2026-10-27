@@ -1,4 +1,4 @@
-// Grok Build sessions (PLAN §5.12, D30): ~/.grok/sessions/<url-encoded cwd>/<id>/updates.jsonl, an ACP
+// Grok Build sessions: ~/.grok/sessions/<url-encoded cwd>/<id>/updates.jsonl, an ACP
 // `session/update` stream, plus summary.json (title, model) and subagents/<child id>/meta.json. Child sessions are
 // read from subagents/<child id>/updates.jsonl or from <child id>/updates.jsonl next to the parent.
 // No published stability guarantee (checked against Grok Build 1.0.34): unknown updates are counted, never fatal.

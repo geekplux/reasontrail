@@ -1,4 +1,4 @@
-// The session card under the hero tree (v7 §4.5, §12, §13.2): the title with nothing above it, the meta line on one
+// The session card under the hero tree: the title with nothing above it, the meta line on one
 // baseline, AI titles / Details / Share on the right; then the git-style list (680) and the outcome column (360), which
 // becomes the detail panel while a step is selected. On the phone: the header keeps only the title and the meta line
 // (no branch), the outcome box (or the panel) comes above the compact list, the final answer under it, then the three
@@ -33,7 +33,7 @@ function OutcomeIcon({ icon }: { icon: OutcomeRow['icon'] }) {
   return <UnknownIcon />;
 }
 
-/** The outcome box (§4.5): one bordered box with hairline rows (the final check, the trouble, the files changed). */
+/** The outcome box: one bordered box with hairline rows (the final check, the trouble, the files changed). */
 const OutcomeBox = ({ g }: { g: SessionGraph }) => (
   <ul className="res">
     {outcomeRows(g).map((r) => (
@@ -196,7 +196,7 @@ export function SessionCard({ g, tag, branch, id, tabs = false, ai = LIVE, share
     const r = box.getBoundingClientRect();
     if (r.top < 0 || r.bottom > window.innerHeight) box.scrollIntoView?.({ block: 'nearest' });
   });
-  // On the phone (Phone.html) the outcome box, or the step's panel in its place, comes above the list and the final
+  // On the phone the outcome box, or the step's panel in its place, comes above the list and the final
   // answer below it; the list drops its header, # and Start columns. The list, the panel and the final answer are keyed
   // children of one `.cols` grid on both layouts, so crossing the breakpoint moves them (DOM order stays reading order)
   // without remounting: their state survives and focus is put back (below).

@@ -1,6 +1,6 @@
 // Deterministic text widths for label placement (no DOM): Geist's advance widths for printable ASCII at weight 500,
 // in hundredths of an em, measured once in Chrome from the self-hosted Geist variable font (canvas measureText at
-// 1000px, kerning off; docs/DECISIONS.md 2026-10-24). Weight 400 is ~2.5% narrower and 600 ~2.5% wider on average;
+// 1000px, kerning off). Weight 400 is ~2.5% narrower and 600 ~2.5% wider on average;
 // digits are tabular (`tnum`), so they share one width. Anything else counts as a wide 0.66 em. The result carries a
 // 4% margin, so a placed box is never narrower than the rendered text.
 const ASCII = [

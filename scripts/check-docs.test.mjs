@@ -74,10 +74,10 @@ describe('checkDemoLinks', () => {
   });
   it('rejects unknown samples and steps', () => {
     const md = 'https://reasontrail.geekplux.com/?session=nope\n\n(https://reasontrail.geekplux.com/?session=planner-pivot&step=s99) https://reasontrail.geekplux.com/?step=s1';
-    expect(checkDemoLinks('docs/LAUNCH.md', md, samples)).toEqual([
-      'docs/LAUNCH.md:1: demo link names an unknown sample "nope": https://reasontrail.geekplux.com/?session=nope',
-      'docs/LAUNCH.md:3: demo link names a step "s99" that planner-pivot does not have: https://reasontrail.geekplux.com/?session=planner-pivot&step=s99',
-      'docs/LAUNCH.md:3: demo link has a step but no session: https://reasontrail.geekplux.com/?step=s1',
+    expect(checkDemoLinks('README.md', md, samples)).toEqual([
+      'README.md:1: demo link names an unknown sample "nope": https://reasontrail.geekplux.com/?session=nope',
+      'README.md:3: demo link names a step "s99" that planner-pivot does not have: https://reasontrail.geekplux.com/?session=planner-pivot&step=s99',
+      'README.md:3: demo link has a step but no session: https://reasontrail.geekplux.com/?step=s1',
     ]);
   });
   it('reads the bundled samples and their step ids', () => {

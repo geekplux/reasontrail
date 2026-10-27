@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Folds dist-viewer/ (one JS file, one CSS file with data-URL fonts) into cli/dist/viewer.html: an inline <style>,
-// the data slot the CLI fills, and the app script at the end of <body> (D32). No dependencies.
+// the data slot the CLI fills, and the app script at the end of <body>. No dependencies.
 // The app script is stored gzip-compressed (base64, a non-executable script type) and a 5-line loader inflates it with
 // the browser's DecompressionStream and runs it as an inline script: the page stays one file with zero requests, and
-// the template stays inside the 300 KB budget (C3) as the map grows. Deterministic (gzip header without a timestamp).
+// the template stays inside the 300 KB budget as the map grows. Deterministic (gzip header without a timestamp).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

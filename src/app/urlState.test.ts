@@ -28,7 +28,7 @@ describe('urlState', () => {
   });
 });
 
-describe('site state (phase 16)', () => {
+describe('site state', () => {
   it('opens the map by default, the garden for garden links, and reads the session and view', () => {
     expect(readSiteState('')).toEqual({ garden: false, lens: false, session: null, step: null, view: 'map' });
     expect(readSiteState('?sample=robot&path=1')).toMatchObject({ garden: true });
@@ -44,7 +44,7 @@ describe('site state (phase 16)', () => {
   });
 });
 
-describe('step links (phase 32b)', () => {
+describe('step links', () => {
   it('reads and writes the selected step beside the session, keeping other params', () => {
     expect(readSiteState('?session=verify-fail-fix&step=s41')).toMatchObject({ session: 'verify-fail-fix', step: 's41', view: 'map' });
     expect(readSiteState('?session=verify-fail-fix&step=').step).toBeNull();
@@ -56,7 +56,7 @@ describe('step links (phase 32b)', () => {
   });
 });
 
-describe('lens links (phase 22)', () => {
+describe('lens links', () => {
   it('opens a recorded sentence as a garden link and a live one as lens=live, keeping the map selection', () => {
     const map = '?session=planner-pivot&step=s12';
     expect(lensSearch(map, 'lens-planner-pivot-1')).toBe('?session=planner-pivot&step=s12&sample=lens-planner-pivot-1');
@@ -68,7 +68,7 @@ describe('lens links (phase 22)', () => {
   });
 });
 
-describe('same-page links (phase 29)', () => {
+describe('same-page links', () => {
   it('keeps the selected sample for a home section link on the home, and opens the home from other pages', () => {
     expect(linkSearch('./#install', '?session=planner-pivot')).toBe('?session=planner-pivot');
     expect(linkSearch('./#install', '')).toBe('');

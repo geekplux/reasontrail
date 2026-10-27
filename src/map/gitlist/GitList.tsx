@@ -1,4 +1,4 @@
-// The git-style list (docs/design/v7/PROMPT.md §6, §5.4): one SVG of rails and marks behind real, focusable DOM rows.
+// The git-style list: one SVG of rails and marks behind real, focusable DOM rows.
 // A WAI-ARIA tree: ↑/↓ move, → opens an episode (or enters it, or enters a subagent lane), ← closes it (or goes to the
 // parent row), Home/End, Enter opens an episode or selects a step, Esc clears the step, then closes the episode. One
 // episode is open at a time. Levels: lane, main-lane episode and end rows 1; a subagent's episodes and verdict 2, under

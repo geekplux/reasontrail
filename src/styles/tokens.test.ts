@@ -4,7 +4,7 @@ import css from './tokens.css?raw';
 import favicon from '../../public/favicon.svg?raw';
 import indexHtml from '../../index.html?raw';
 
-// Radix Colors 3.0, exactly as in docs/design/v7/PROMPT.md §3.1 (steps 1–12).
+// Radix Colors 3.0 (steps 1–12), copied exactly.
 const RADIX = {
   light: {
     slate: '#fcfcfd #f9f9fb #f0f0f3 #e8e8ec #e0e1e6 #d9d9e0 #cdced6 #b9bbc6 #8b8d98 #80838d #60646c #1c2024',
@@ -73,7 +73,7 @@ describe.each(THEMES)('tokens.css, %s theme', (theme) => {
     expect(Object.keys(tokens[theme]).filter((k) => !/^(slate|blue|orange)-\d+$/.test(k))).toEqual([]);
   });
 
-  // Text roles (§3.1): ink slate-12 and muted slate-11 on the page and soft fills; blue-11 text sits on slate-1 and
+  // Text roles: ink slate-12 and muted slate-11 on the page and soft fills; blue-11 text sits on slate-1 and
   // slate-2 only (in light it is 4.19:1 on slate-3 and 4.25:1 on blue-3, below AA, so text there stays slate-12).
   const TEXT: [string, string][] = [
     ...['slate-1', 'slate-2', 'slate-3'].flatMap((bg) => [['slate-12', bg], ['slate-11', bg]] as [string, string][]),
@@ -92,7 +92,7 @@ describe.each(THEMES)('tokens.css, %s theme', (theme) => {
   });
 
   // Non-text marks (WCAG 1.4.11): the selected path and the hollow or dotted outlines.
-  // Both themes (phase 33 checks dark): failed marks orange-10 on the page and the detail panel; the list's ring and
+  // Both themes, dark included: failed marks orange-10 on the page and the detail panel; the list's ring and
   // open glyph blue-11 on the blue-3 and slate-3 rows.
   const GRAPHIC: [string, string][] = [
     ['blue-9', 'slate-1'], ['blue-9', 'slate-2'], ['slate-9', 'slate-1'], ['slate-9', 'slate-2'],
@@ -149,9 +149,9 @@ describe('drawing colours in scripts are Radix values', () => {
   });
 });
 
-describe('type in src/**/*.css: four sizes, no uppercase, no letter-spaced labels (v7 §3.2)', () => {
+describe('type in src/**/*.css: four sizes, no uppercase, no letter-spaced labels', () => {
   const SIZES = new Set(['var(--text-12)', 'var(--text-14)', 'var(--text-20)', 'var(--text-32)', '12px', '14px', '20px', '32px', 'inherit']);
-  // The display tracking of §3.2 (headline, titles, wordmark); everything else keeps the font's own spacing.
+  // The display tracking (headline, titles, wordmark); everything else keeps the font's own spacing.
   const TRACKING = new Set(['-0.025em', '-0.015em', '-0.01em', '0', 'normal']);
   const FAMILY = /var\(--font-(?:sans|mono)\)|ui-sans-serif|system-ui|sans-serif|monospace/;
   /** The size in a `font:` shorthand: the token before the optional `/ line-height` and the family. */

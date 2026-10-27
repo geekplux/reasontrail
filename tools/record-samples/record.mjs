@@ -268,7 +268,7 @@ export function serialize(garden) {
   ].join('\n');
 }
 
-/** Structural self-check before writing (PLAN D9); src/samples/validate.ts in the app is the authoritative gate. */
+/** Structural self-check before writing; src/samples/validate.ts in the app is the authoritative gate. */
 export function checkGarden(garden, text, { fullDepth, spineDepth, spinePaths }) {
   const problems = [];
   const nodes = new Map(garden.nodes);

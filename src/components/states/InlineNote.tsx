@@ -3,7 +3,7 @@ import { MARKER_R } from '../../garden/metrics';
 
 export type NoteVariant = 'info' | 'not-recorded' | 'error';
 
-/** Each variant has its own glyph, so the kind of note never depends on colour (PLAN §3.6). */
+/** Each variant has its own glyph, so the kind of note never depends on colour. */
 const GLYPH: Record<NoteVariant, ReactNode> = {
   info: 'i',
   // The hollow r 4 ring of a not-recorded branch tip.

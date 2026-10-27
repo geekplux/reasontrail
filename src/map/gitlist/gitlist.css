@@ -1,5 +1,4 @@
-/* The git-style list (docs/design/v7/PROMPT.md §6; sizes, colours and states from the `CSS` constant of
-   docs/design/v7/gen7.mjs and the geometry of gitlist.mjs). Columns at 680: rails, # at 64, Episode at 92, Steps
+/* The git-style list (sizes, colours and states from the design canvas). Columns at 680: rails, # at 64, Episode at 92, Steps
    right-aligned at 616, Start right-aligned at 680. Row backgrounds sit under the rails, text above them. */
 .gl { position: relative; isolation: isolate; font-variant-numeric: tabular-nums; color: var(--slate-12); }
 .gl-head { position: absolute; inset: 0 0 auto; height: 24px; border-bottom: 0.5px solid var(--slate-6); font: 500 var(--text-12) / 16px var(--font-sans); color: var(--slate-11); }
@@ -18,14 +17,14 @@
 .gl-svg .r-hi { stroke: var(--blue-9); stroke-width: 2; }
 .gl-svg .m-root, .gl-svg .m-fork, .gl-svg .m-step { fill: var(--slate-12); }
 .gl-svg .m-end { fill: var(--slate-1); stroke: var(--slate-12); stroke-width: 1.5; }
-/* slate-9, not the canvas's slate-8: 3:1 for a mark that carries meaning (DECISIONS 2026-10-24). */
+/* slate-9, not the canvas's slate-8: 3:1 for a mark that carries meaning. */
 .gl-svg .m-think { fill: var(--slate-9); }
-/* orange-10, not the canvas's orange-9: 3.26:1 on slate-1 for WCAG 1.4.11 (DECISIONS 2026-10-24). */
+/* orange-10, not the canvas's orange-9: 3.26:1 on slate-1 for WCAG 1.4.11. */
 .gl-svg .x { stroke: var(--orange-10); stroke-width: 1.5; }
 .gl-svg .halo { fill: var(--slate-1); transition: fill var(--motion); }
 .gl-svg .halo.hv { fill: var(--slate-3); }
 .gl-svg .halo.on { fill: var(--blue-3); }
-/* blue-11, not the canvas's blue-9: 3:1 against blue-3 and slate-3 (DECISIONS 2026-10-24). */
+/* blue-11, not the canvas's blue-9: 3:1 against blue-3 and slate-3. */
 .gl-svg .ring { fill: none; stroke: var(--blue-11); stroke-width: 1.5; }
 .gl-svg .g.t-node { display: inline; color: var(--slate-12); --bg: var(--slate-1); transition: color var(--motion); }
 .gl-svg .g.t-node.on { color: var(--blue-11); }
@@ -69,7 +68,7 @@
 .gl-row.is-open .gl-sub { color: var(--slate-11); }
 .gl .ai-tag { flex: none; display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 4px; background: var(--slate-3); color: var(--slate-11); font: 500 var(--text-12) / 1 var(--font-sans); white-space: nowrap; }
 
-/* Compact (the phone, Phone.html): no header, # or Start; titles from x 52 (sublines and verdict durations follow),
+/* Compact (the phone): no header, # or Start; titles from x 52 (sublines and verdict durations follow),
    cut 96px short of the edge as on the canvas; step counts and exit codes at the right edge; states bleed 8px. */
 .gl.is-compact .gl-title { left: 52px; }
 .gl.is-compact .gl-main.gl-title { right: 96px; }

@@ -1,4 +1,4 @@
-// What the map hands the zoom-in lens (PLAN Z1, Z3): the sentence, where it came from, and its recording if there is one.
+// What the map hands the zoom-in lens: the sentence, where it came from, and its recording if there is one.
 // The website provides `LensContext`; without it (the local viewer) the detail panel offers no lens.
 import { createContext } from 'react';
 import type { LensSample } from './lensSamples';
@@ -15,7 +15,7 @@ export interface LensTarget {
   sampleTitle: string | undefined;
   /** The recorded lens garden for this sentence; none means it can only grow live, after an opt-in. */
   recorded: LensSample | undefined;
-  /** Where the sentence was on screen, so the lens can move it into place (DESIGN §11 lens transition). */
+  /** Where the sentence was on screen, so the lens can move it into place (the lens transition). */
   from?: DOMRect | undefined;
 }
 

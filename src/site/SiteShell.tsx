@@ -1,4 +1,4 @@
-// The website's chrome (v7 §4.1, §4.8, docs/design/v7/preview/Home.html): the header bar with the wordmark, three nav
+// The website's chrome: the header bar with the wordmark, three nav
 // links and the one primary button; the footer with the wordmark and its links (both also frame the next-token garden
 // lens, AppShell); and the drop overlay shown while a file is dragged anywhere over the page.
 import { useEffect, useState, type ReactNode } from 'react';
@@ -53,7 +53,7 @@ function useFileDrop(onFile: (file: File) => void) {
 
 const HOW = '?view=how';
 
-/** The header bar (v7 §4.1): the wordmark, three nav links, `actions` (the garden's Copy link), the theme button, the
+/** The header bar: the wordmark, three nav links, `actions` (the garden's Copy link), the theme button, the
  * one primary button.
  * `view`: the website page shown, for `aria-current` (none in the lens). */
 export function SiteHeader({ view, actions }: { view?: SiteView | undefined; actions?: ReactNode }) {
@@ -74,7 +74,7 @@ export function SiteHeader({ view, actions }: { view?: SiteView | undefined; act
   );
 }
 
-/** The footer (v7 §4.8): the wordmark and its links. */
+/** The footer: the wordmark and its links. */
 export const SiteFooter = () => (
   <footer className="v7 foot">
     <a className="brand" href="./"><Wordmark /></a>

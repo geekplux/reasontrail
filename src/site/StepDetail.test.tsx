@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-// "Show raw" (DECISIONS 2026-10-25): a 12px link after the Source line discloses the verbatim record in a `pre`.
+// "Show raw": a 12px link after the Source line discloses the verbatim record in a `pre`.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { defaultSessionGraph as g } from '../sessions/samples';
@@ -47,7 +47,7 @@ describe('the step panel\'s "Show raw"', () => {
   });
 });
 
-describe('the honesty line (phase 35)', () => {
+describe('the honesty line', () => {
   it('sits as a 12px note right under the title of a thinking step, and nowhere else', () => {
     const think = { ...stepDetail(g, stepDetail(g, 's43')!.nextId!)!, text: 'Check the config first.', ownAccount: true as const };
     const { container, rerender } = render(<StepDetail d={think} onStep={noop} onClose={noop} />);

@@ -10,7 +10,7 @@ export interface ViewerPayload {
     /** Set on `--share` copies: how many items redaction replaced. */
     shared?: { replaced: number };
   };
-  /** `--ai` only: the model's suggested labels, kept apart from the graph (D22, X3). */
+  /** `--ai` only: the model's suggested labels, kept apart from the graph. */
   labels?: LabelOverlay;
 }
 

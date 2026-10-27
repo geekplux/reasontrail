@@ -33,7 +33,7 @@ describe('gardenReducer', () => {
 
 describe('openPath through the provider', () => {
   it.each<[number[], string | null, string[], boolean]>([
-    [[], null, [' mat'], true], // D11: the most probable child opens by default
+    [[], null, [' mat'], true], // the most probable child opens by default
     [[0, 0, 0], ' mat and purred', [' mat', ' mat and', ' mat and purred'], true], // depth-3 round trip
     [[2], ' roof', [' mat'], true], // an unrecorded leaf can be selected, not opened
     [[9, 9], null, [' mat'], false],

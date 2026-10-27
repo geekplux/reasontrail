@@ -1,4 +1,4 @@
-// Brand flow (never part of "all"): renders docs/brand/social-preview.html (PLAN D19; v7 since phase 35: drawn at
+// Brand flow (never part of "all"): renders docs/brand/social-preview.html (drawn at
 // 640×320 CSS px, rendered at 2×) to docs/brand/social-preview.png at 1280×640, with every relative file it uses (the hero still, the fonts) inlined as data URLs first, so the page
 // makes no request at all. Fails if the PNG is over 1 MB. Uploading it in the GitHub settings is manual.
 // Usage: pnpm check:browser --flows brand

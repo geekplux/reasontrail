@@ -32,7 +32,7 @@ function Sample({ p, kind = 'legend-sample' }: { p: number; kind?: SampleKind })
   );
 }
 
-/** How to read the drawing (DESIGN §18.1, L4): one closed "Key" disclosure that opens on the sentence, then the thickness
+/** How to read the drawing: one closed "Key" disclosure that opens on the sentence, then the thickness
  * samples with direct labels and the marker shapes. `missingState`: the hollow ring's meaning (default "not recorded";
  * the live lens names its depth limit). */
 export function Legend({ missingState = STATE_TEXT['not-recorded'] }: { missingState?: string | undefined } = {}) {

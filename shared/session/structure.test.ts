@@ -39,7 +39,7 @@ describe('buildBatches (X1, X2)', () => {
   });
 });
 
-describe('mergeOverlay (D22: a separate overlay)', () => {
+describe('mergeOverlay (a separate overlay)', () => {
   const answer = (over: Partial<StructureResponse>): StructureResponse => ({ model: 'm1', cached: false, labels: [], links: [], ...over });
 
   it('newer labels win per step, supports merge per claim, and the overlay names its model', () => {

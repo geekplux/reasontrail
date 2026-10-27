@@ -3,8 +3,8 @@
 The CLI lives in `cli/` as its own zero-dependency package, published to npm as
 [`reasontrail`](https://www.npmjs.com/package/reasontrail) (0.1.0 by hand on 2026-10-27; later versions from a tag).
 
-> **Approval required (PLAN D36).** Publishing is like deploying: a name and a version on npm cannot be taken back.
-> Steps 3 and 4 are run only by Sean, or by someone else after his explicit approval. Steps 1 and 2 are safe at any
+> **Approval required.** Publishing is like deploying: a name and a version on npm cannot be taken back.
+> Steps 3 and 4 are run only by the maintainer, or by someone else after their explicit approval. Steps 1 and 2 are safe at any
 > time, and so is a manual dry run of the publish workflow.
 
 ## 1. Build and check the tarball
@@ -30,7 +30,7 @@ CI runs the same check.
 
 To look at the tarball by hand: `pnpm --dir cli pack --pack-destination .tmp` and `tar -tzf .tmp/reasontrail-*.tgz`.
 
-## 2. The name (PLAN D25)
+## 2. The name
 
 The package and its bin are both `reasontrail`, written everywhere through `PKG_NAME` in `shared/commands.ts`.
 `npm view reasontrail` answered `404 Not Found` on 2026-10-22, so the name was free then. Check again right before
@@ -43,7 +43,7 @@ npm view reasontrail   # E404 means the name is free
 If it is taken, pick a scoped name (for example `@geekplux/reasontrail`), change `name` in `cli/package.json` and
 `PKG_NAME` in `shared/commands.ts`, and run `pnpm test` and `pnpm check:docs`; the bin can stay `reasontrail`.
 
-## 3. Publish (Sean, or after his approval)
+## 3. Publish (the maintainer, or after their approval)
 
 Releases are published by GitHub Actions, the same way as vert and markvis: `.github/workflows/release.yml`
 runs when a `v<version>` tag is pushed (for example `v0.1.1`). It runs the whole `ci.yml` first, fails unless the

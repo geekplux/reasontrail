@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Hero GIF for the launch kit (docs/LAUNCH.md), dev-only and never run in CI: builds the site, serves it with
+// Hero GIF for the README and launch posts, dev-only and never run in CI: builds the site, serves it with
 // `vite preview`, opens one system Chrome at 1440×900 (the README hero's frame) and records the v7 home: the tree of
 // the default sample, the pointer moving to the failed command s41 (its episode's path stays ink and the tooltip names
 // it), the click that selects it (the blue path from the root and the callout "Exit code 2, 16 min"), and Esc back.

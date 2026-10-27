@@ -1,4 +1,4 @@
-// The zoom-in lens (PLAN phase 22, Z1–Z3; DESIGN §13.5, DM35): the existing garden, unchanged, framed by a breadcrumb
+// The zoom-in lens: the existing garden, unchanged, framed by a breadcrumb
 // whose "Map" goes back, one line saying whose predictions these are (Z2), and the sentence with its source step.
 // A recorded sentence grows from its recording with no network request; anything else grows live only after the
 // reader opts in. Plain garden links (`?sample=cat`) open here too. Loaded on demand, so the map never carries it.

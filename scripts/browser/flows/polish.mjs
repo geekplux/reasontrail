@@ -1,8 +1,7 @@
-// Polish flow (v7 phase 35): the after set of every page at 1440×900 and 390×844 (viewport shots, the first screen),
+// Polish flow: the after set of every page at 1440×900 and 390×844 (viewport shots, the first screen),
 // a full-page shot at 1440 for the long pages, and dark for the home, the Step state and the local viewer; light
-// theme, reduced motion, WebP. Writes <out>/after/ (or <out>/before/ with --before). The pages with a canvas frame are
-// also shot and paired by scripts/design/canvas.mjs (docs/screenshots/phase-35/README.md). Not part of `--flows all`.
-// Usage: pnpm check:browser --flows polish --out docs/screenshots/phase-35
+// theme, reduced motion, WebP. Writes <out>/after/ (or <out>/before/ with --before). Not part of `--flows all`.
+// Usage: pnpm check:browser --flows polish --out .tmp/polish
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

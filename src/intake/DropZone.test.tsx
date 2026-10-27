@@ -23,7 +23,7 @@ async function open(file: File, chat = false) {
   return waitFor(() => screen.getByTestId('opened'), { timeout: 5_000 });
 }
 
-describe('Open a session (v7 §7)', () => {
+describe('Open a session', () => {
   it('shows a dropped session on the v7 page: title as the focused h1, tree, list and outcome; the file name is the tag', async () => {
     const page = await open(new File([trouble], 'trouble.jsonl'));
     const h1 = screen.getByRole('heading', { level: 1 });

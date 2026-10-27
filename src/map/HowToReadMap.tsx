@@ -1,4 +1,4 @@
-// How to read a map (`?view=how`; v7 §7): one figure (the default sample's tree drawn by the real renderer, with the
+// How to read a map (`?view=how`): one figure (the default sample's tree drawn by the real renderer, with the
 // legend) and two short paragraphs, the tree and the list. Shape carries every meaning; colour only repeats it.
 import { defaultSessionGraph } from '../sessions/samples';
 import { HeroTree } from '../site/HeroTree';

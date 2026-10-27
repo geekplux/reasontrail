@@ -1,4 +1,4 @@
-// Sentences of an assistant's text for the zoom-in lens (PLAN Z1, DESIGN §13.5): where each one starts and ends, which
+// Sentences of an assistant's text for the zoom-in lens: where each one starts and ends, which
 // ones are worth zooming into, and the opening words a garden grows from (the recorded lens gardens use the same rule).
 
 export interface Sentence {

@@ -1,6 +1,6 @@
-// Every threshold of the deterministic structuring rules (PLAN §5.11, D23), in one place.
+// Every threshold of the deterministic structuring rules, in one place.
 
-/** A lane shows at most this many top-level episodes; more are grouped (DESIGN §8.11). */
+/** A lane shows at most this many top-level episodes; more are grouped. */
 export const MAX_TOP_EPISODES = 12;
 /** An episode holds at most this many steps. */
 export const MAX_EPISODE_STEPS = 40;

@@ -29,7 +29,7 @@ Then ask your agent to "map this session" (`/reasontrail`, or `$reasontrail` in 
 
 ### From a clone
 
-To work on Reasontrail itself, run the same commands from a clone, with `node cli/dist/cli.mjs` in place of `npx reasontrail` (Node 20.19+ and pnpm 9):
+To work on Reasontrail itself, run the same commands from a clone, with `node cli/dist/cli.mjs` in place of `npx reasontrail` (Node 22+ and pnpm 9):
 
 ```sh
 git clone https://github.com/geekplux/reasontrail && cd reasontrail
@@ -90,7 +90,6 @@ The list is the keyboard path to everything: one Tab stop, a WAI-ARIA tree with 
 
 ## Roadmap
 
-- [ ] Publish `npx reasontrail` to npm and deploy the showcase site (waiting for review).
 - [ ] Check the Codex adapter against real sessions.
 - [ ] Follow a running session live (`--watch`).
 - [ ] More agents: Cursor, Aider.
@@ -101,9 +100,9 @@ Ideas that are ready to pick up are in [`docs/GOOD-FIRST-ISSUES.md`](docs/GOOD-F
 
 ## Contributing
 
-Contributions are welcome: read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and checks, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [`SECURITY.md`](SECURITY.md). Changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
+Contributions are welcome: read [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup and checks, [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how the code fits together, and the [Code of Conduct](CODE_OF_CONDUCT.md). Report security issues privately as described in [`SECURITY.md`](SECURITY.md). Changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
-This project is built by a team of AI agents; see the PR history. The sample maps on the website are their own sessions, and [`docs/PLAN.md`](docs/PLAN.md) is the plan they work from.
+This project is built by a team of AI agents; see the PR history. The sample maps on the website are their own sessions.
 
 ## License
 

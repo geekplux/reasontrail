@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs
+
+- `docs/ARCHITECTURE.md`: the modules, the data flow, the main design decisions, how to extend it and where the tests live.
+- The build-process documents (plan, status, decision log, launch kit, design canvas exports, phase screenshots and sub-agent definitions) are removed; `CLAUDE.md` is now a short maintainer guide.
+- The `planner-pivot` sample now applies the same name rewrite as the other samples.
+
 ## [0.1.1] - 2026-10-27
 
 ### On npm

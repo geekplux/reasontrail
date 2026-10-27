@@ -13,7 +13,7 @@ function firstLine(text: string): string {
   return line.length > TITLE_MAX ? `${line.slice(0, TITLE_MAX - 1)}…` : line;
 }
 
-/** Turn an adapter's normalized session into the step graph, with episodes, trouble patterns and outcome (§5.11). */
+/** Turn an adapter's normalized session into the step graph, with episodes, trouble patterns and outcome. */
 export function buildGraph(session: NormalizedSession): SessionGraph {
   const { steps, edges, spawnStep } = buildSteps(session);
   const resultStatus = new Map<string, Lane['status']>();
