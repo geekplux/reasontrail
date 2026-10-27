@@ -1,4 +1,4 @@
-// The session card's "AI titles" control (PLAN phase 21; v7 §7), loaded only when it is first used. Website: the
+// The session card's "AI titles" control, loaded only when it is first used. Website: the
 // consent dialog, then "Labelling k of n…" with Cancel, then an on/off toggle, or a calm note. Local viewer (`--ai`):
 // the overlay is already in the page, so it is only a toggle. Off by default; off restores the plain map.
 import { useEffect, useRef, useState, type RefObject } from 'react';
@@ -25,7 +25,7 @@ export default function AiControl({ g, source, onOverlay, announce }: Props) {
 
 function Toggle({ overlay, onOverlay, initial = false, focusRef }: { overlay: LabelOverlay; onOverlay: Props['onOverlay']; initial?: boolean; focusRef?: RefObject<HTMLButtonElement | null> }) {
   const [on, setOn] = useState(initial);
-  // Shown on arrival when the user just asked for it (website); off by default otherwise (the viewer, DM34).
+  // Shown on arrival when the user just asked for it (website); off by default otherwise (the viewer).
   useEffect(() => {
     if (initial) onOverlay(overlay);
   }, [initial, overlay, onOverlay]);

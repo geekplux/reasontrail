@@ -135,7 +135,7 @@ describe('TreeLegend', () => {
   });
 });
 
-describe('TreeView fit (phase 35)', () => {
+describe('TreeView fit', () => {
   it('draws the home box whole, and a fitted box trimmed to the drawing with the same width', () => {
     const full = render(<TreeView g={VFF} width={1200} height={520} />).container.querySelector('svg')!;
     expect([full.getAttribute('height'), full.getAttribute('viewBox')]).toEqual(['520', '0 0 1200 520']);

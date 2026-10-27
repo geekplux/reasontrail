@@ -1,4 +1,4 @@
-// The v7 glyphs and status icons (docs/design/v7/gen7.mjs): ▶ task, ○ explore, ■ change, ◇ verify, ◉ answer on a
+// The v7 glyphs and status icons: ▶ task, ○ explore, ■ change, ◇ verify, ◉ answer on a
 // 12-unit grid, and the verdict icons. Shape carries the meaning; the hue only repeats it. All are decorative.
 import type { ReactNode } from 'react';
 import type { GlyphKind, VerdictTone } from './rows';

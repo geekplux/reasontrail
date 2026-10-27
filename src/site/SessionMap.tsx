@@ -1,4 +1,4 @@
-// One session on its own page (v7 §7; the local viewer and a session opened on the website's drop zone or chat page):
+// One session on its own page (the local viewer and a session opened on the website's drop zone or chat page):
 // the session header in the home's hero place (the title as the page's h1, the meta line, the actions), the session's
 // tree at the full content width with its legend (the box trimmed to the drawing, the legend to what it draws), then
 // the card with the git-style list and the outcome or the step's detail panel. `step` / `onStep`: the selected step, kept by the page (the viewer's hash, or memory).

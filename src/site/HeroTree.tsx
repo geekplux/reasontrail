@@ -1,4 +1,4 @@
-// The home's hero tree (v7 §4.3, docs/design/v7/preview/Home.html): the sample's tree at the full content width with
+// The home's hero tree: the sample's tree at the full content width with
 // the legend inside the figure, top right. 1200 × 520 at desktop; it measures its width, keeps the legend's corner
 // free and, below 960px, draws the bare silhouette (no text) at the phone's proportions. On the phone the legend goes
 // under the sample tabs instead (`legend={false}`; Home draws it there). A session page (`fit`) trims the box to the

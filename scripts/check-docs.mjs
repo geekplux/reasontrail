@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Docs check (PLAN S7, phase 26): every relative link and image in the top-level docs resolves to a committed file,
+// Docs check: every relative link and image in the top-level docs resolves to a committed file,
 // every image has descriptive alt text, and every `npx reasontrail …` command the README shows is one of `shared/commands.ts`
 // (the single source the CLI's --help, the skill installer and the website use). Demo links
-// (`https://reasontrail.geekplux.com/?session=<id>&step=<id>`, PLAN D20) must name a bundled sample and one of its steps.
+// (`https://reasontrail.geekplux.com/?session=<id>&step=<id>`) must name a bundled sample and one of its steps.
 // Usage: pnpm check:docs
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -63,7 +63,7 @@ export function checkRefs(file, md, has) {
   return problems;
 }
 
-/** The placeholder demo origin (PLAN D20); replaced after Sean deploys (docs/DEPLOY.md lists every file). */
+/** The demo origin; if the site moves, docs/DEPLOY.md lists every file that names it. */
 export const DEMO_ORIGIN = 'https://reasontrail.geekplux.com';
 const escapeRe = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const DEMO_LINK = new RegExp(`${escapeRe(DEMO_ORIGIN)}/?(\\?[^\\s)"'<>\`]*)?`, 'g');

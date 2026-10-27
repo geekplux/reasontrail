@@ -1,4 +1,4 @@
-// The step-graph model (PLAN §5.10, D22). DOM-free and Node-free: runs in the app, a Web Worker, the CLI and the Worker.
+// The step-graph model. DOM-free and Node-free: runs in the app, a Web Worker, the CLI and the Worker.
 
 /** Bump on any breaking change to {@link SessionGraph}. */
 export const SCHEMA_VERSION = 1;
@@ -41,7 +41,7 @@ export interface StepTool {
   category: ToolCategory;
   /** One short line, e.g. "Read src/app.ts". */
   summary: string;
-  /** Files the call names (read, edited, written or searched). Shell writes are detected later (phase 12). */
+  /** Files the call names (read, edited, written or searched). Shell writes are detected later. */
   files: string[];
   callId?: string;
   /** Full shell command (≤ 2000 chars) for `run` tools, kept verbatim for later analysis. */
@@ -94,7 +94,7 @@ export const TEXT_PREVIEW_MAX = 2000;
  * Typed link between two steps, always `from` the earlier step `to` the later one.
  * `next`: conversation order; `result-of`: call → its result; `spawned`: agent call → first subagent step;
  * `forks`: branch point → first step of an alternative branch (rewind or edited prompt);
- * `retry-of` / `reverts`: phase 12; `supports`: AI overlay only.
+ * `retry-of` / `reverts`: added by trouble detection (build/trouble.ts); `supports`: AI overlay only.
  */
 export interface Edge {
   from: string;
@@ -115,7 +115,7 @@ export interface Lane {
 }
 
 /**
- * Deterministic segment of steps (PLAN §5.11). A lane has at most `MAX_TOP_EPISODES` top-level episodes; when its
+ * Deterministic segment of steps. A lane has at most `MAX_TOP_EPISODES` top-level episodes; when its
  * fine-grained episodes are more, they are grouped and each keeps `parentId` pointing at its top-level group.
  */
 export interface Episode {
@@ -128,7 +128,7 @@ export interface Episode {
   parentId?: string;
 }
 
-/** A pattern found by a rule (PLAN §5.11, D23), never by AI. `stepIds` are the evidence, in step order. */
+/** A pattern found by a rule, never by AI. `stepIds` are the evidence, in step order. */
 export interface Trouble {
   id: string;
   kind: 'error-streak' | 'retry' | 'revert' | 'rewind' | 'interrupt' | 'churn';
@@ -142,7 +142,7 @@ export interface Trouble {
   raw: Provenance;
 }
 
-/** What the session produced (phase 12). Paths are relative to `source.cwd` when inside it. */
+/** What the session produced. Paths are relative to `source.cwd` when inside it. */
 export interface Outcome {
   files: { path: string; edits: number; created: boolean }[];
   /** Files left out of `files` because their net change was reverted. */
@@ -195,7 +195,7 @@ export interface SessionGraph {
   /** Samples only: a short authored title (tools/session-samples.json) for the showcase heading; the raw first request
    * stays in the task card's "more" and in the outline. */
   displayTitle?: string;
-  /** Samples only (M2). */
+  /** Samples only. */
   expect?: { task: string; files: string[]; trouble: number; final: 'ok' | 'error' | 'unknown' };
 }
 

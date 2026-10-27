@@ -1,4 +1,4 @@
-// Pure request handler (PLAN D3): everything the Worker does, testable in Node with fakes.
+// Pure request handler: everything the Worker does, testable in Node with fakes.
 import { paidCall } from './budget';
 import { cacheKey, readCache, writeCache } from './cache';
 import type { Ctx, Env } from './env';

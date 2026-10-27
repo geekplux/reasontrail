@@ -1,4 +1,4 @@
-// The tree layout engine's public API (docs/design/v7/PROMPT.md §5): `layoutTree` for the geometry, `highlight` for
+// The tree layout engine's public API: `layoutTree` for the geometry, `highlight` for
 // the root-to-episode or root-to-step path, `nearest` for hit testing (within 12px; twigs are smaller than 24px).
 import { ribbonPath } from './layout';
 import type { HitTarget, Pt, TreeLayout } from './types';
@@ -9,7 +9,7 @@ export type * from './types';
 export type { GlyphKind, VerdictTone } from '../gitlist/rows';
 
 /** Fill paths for the stretch of trunk, limb and branch from the root to an episode or step (empty when unknown).
- * `flare`: keep the trunk's root flare, as the hover does (tree.mjs), so the root stays ink while the rest fades. */
+ * `flare`: keep the trunk's root flare, as the hover does (__fixtures__/tree.mjs), so the root stays ink while the rest fades. */
 export function highlight(t: TreeLayout, id: string, flare = false): string[] {
   return (t.paths[id] ?? []).flatMap(({ part, to }) => {
     const r = t.ribbons.find((x) => x.id === part);

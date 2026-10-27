@@ -1,4 +1,4 @@
-// "Save shareable copy…" (PLAN V4, DESIGN §13.1, §13.9): a native modal dialog that first says what redaction will
+// "Save shareable copy…": a native modal dialog that first says what redaction will
 // replace, can preview the redacted text, and saves the redacted map as one HTML file or as a 1200×630 map card.
 // Loaded on first use only (ShareAction).
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';

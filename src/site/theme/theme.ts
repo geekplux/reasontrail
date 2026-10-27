@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * Light/dark theme (v7 §3.1): follows the system until the visitor picks one with the header button. The pick is
+ * Light/dark theme: follows the system until the visitor picks one with the header button. The pick is
  * remembered in localStorage and cleared when it equals the system theme, so a visitor who switches back follows the
  * system again. `data-theme` on <html> carries a stored pick (public/theme.js sets it before first paint); without
  * it, tokens.css follows `prefers-color-scheme`.

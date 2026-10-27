@@ -1,4 +1,4 @@
-// What the tree renderer needs beyond geometry (docs/design/v7/PROMPT.md §5.4), pure: the layout memoised per graph
+// What the tree renderer needs beyond geometry, pure: the layout memoised per graph
 // and box, the factual summary for the SVG's label, and the hover tooltip ("7  Edit … +8 more" over "20 steps, 6 tool
 // calls, 15 min wait, 17 min"). Numbers, titles and times come from the list's row model, so tree and list agree.
 import type { SessionGraph } from '../../../shared/session/types';
@@ -167,7 +167,7 @@ function place(t: TreeLayout, episodeId: string, n: number | undefined, title0: 
   return { episodeId, ...(n === undefined ? {} : { n }), title, facts, box };
 }
 
-/** The callout of a selected step (Step.html): its summary over "Exit code 2, 16 min", beside the step or by the top
+/** The callout of a selected step: its summary over "Exit code 2, 16 min", beside the step or by the top
  * or bottom edge of the figure, with a 0.5px leader from the step's ring to the text. Lines are layout px; `anchor` is the text's. */
 export interface TreeCallout { stepId: string; ring: Pt; x: number; y: number; anchor: 'start' | 'end'; lines: [string, string]; leader: [Pt, Pt]; box: Box }
 

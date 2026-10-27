@@ -1,4 +1,4 @@
-// v7 git-style list flow (docs/design/v7/PROMPT.md §6, §9.5, §9.6; phase 30): the list root mark's left edge is the
+// v7 git-style list flow: the list root mark's left edge is the
 // card's content edge; a keyboard-only run (Tab into the list, arrows, Enter) reaches the failed step of
 // verify-fail-fix and selects it; axe is clean with that episode open; type sizes stay 12/14/20/32; no middle dot.
 import { axeProblems } from '../axe.mjs';

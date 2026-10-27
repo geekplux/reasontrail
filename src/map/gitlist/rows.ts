@@ -1,4 +1,4 @@
-// The git-style list (docs/design/v7/PROMPT.md §6; geometry from docs/design/v7/gitlist.mjs), pure: the session in
+// The git-style list (geometry from the design canvas), pure: the session in
 // order as rows on rails. The main agent runs down the main rail; each subagent forks off it at its lane row, runs its
 // episodes on its own rail and merges back after its verdict row. An open episode lists its steps on the same rail.
 import type { Episode, Lane, SessionGraph, Step } from '../../../shared/session/types';
@@ -195,7 +195,7 @@ export function episodeSteps(g: SessionGraph, episodeId: string): StepRow[] {
     });
 }
 
-// Geometry at 680 (gitlist.mjs): rails, then # at 64, Episode at 92, Steps right at 616, Start right at 680.
+// Geometry at 680: rails, then # at 64, Episode at 92, Steps right at 616, Start right at 680.
 export const GEO = { mainX: 4.5, subX: 28.5, head: 32, root: 40, lane: 52, episode: 40, episodeSub: 52, verdict: 56, laneGap: 4, step: 30, stepsGap: 6, end: 40 } as const;
 
 /** A row placed at `y` (its top), `h` tall; the mark sits at `cy` on the main or subagent rail. */
@@ -206,7 +206,7 @@ export interface ListLayout { height: number; placed: Placed[]; rails: Rail[]; r
 const f1 = (v: number) => v.toFixed(1);
 
 /** The columns the list shows: all of them (a header over #, Episode, Steps and Start) or, compact (the phone's 358px
- * list, Phone.html), no header, no # and no Start, the titles from x 52 and the step counts at the right edge. */
+ * list), no header, no # and no Start, the titles from x 52 and the step counts at the right edge. */
 export interface ListColumns { head: boolean; num: boolean; at: boolean }
 export const listColumns = (compact = false): ListColumns => ({ head: !compact, num: !compact, at: !compact });
 

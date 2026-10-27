@@ -1,4 +1,4 @@
-// `?view=chat` (PLAN phase 23, DESIGN §13.8, §18.1): the paste box is the focal point; an export file is a quiet text
+// `?view=chat`: the paste box is the focal point; an export file is a quiet text
 // link; format help sits in a <details>. The export picker lists the conversations of a ChatGPT or Claude export.
 import { useState, type Ref } from 'react';
 import type { ChatSummary } from '../../shared/session/adapters/chatExports';

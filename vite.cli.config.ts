@@ -1,4 +1,4 @@
-// The CLI bundle (D33): an SSR build of cli/src/main.ts into one ESM file with a shebang. Node built-ins stay
+// The CLI bundle: an SSR build of cli/src/main.ts into one ESM file with a shebang. Node built-ins stay
 // external; everything else (shared/session) is bundled, so cli/dist needs no node_modules (C4).
 import { defineConfig } from 'vite';
 

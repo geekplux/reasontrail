@@ -1,8 +1,8 @@
-// Open flow (phase 19 drop zone and install checks, back on the v7 pages in phase 34b): the install commands run through
-// the built CLI and its installer (AC2); `?view=open` on the v7 page system (120px edges, 16px drop target, .btn);
-// file pick and drag-and-drop parse with zero requests (V1, V2) into the v7 session page (tree, list, outcome, the file
-// as the meta tag, focus on the session title); progress and Cancel, the 10 MB parse budget (G2); the error states (V5,
-// M8; the 50 MB limit); offline after the first load (AC3). One WebP per page to .tmp/.
+// Open flow (drop zone and install checks on the v7 pages): the install commands run through
+// the built CLI and its installer; `?view=open` on the v7 page system (120px edges, 16px drop target, .btn);
+// file pick and drag-and-drop parse with zero requests into the v7 session page (tree, list, outcome, the file
+// as the meta tag, focus on the session title); progress and Cancel, the 10 MB parse budget; the error states (the
+// 50 MB limit among them); offline after the first load. One WebP per page to .tmp/.
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

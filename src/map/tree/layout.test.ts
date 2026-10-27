@@ -310,7 +310,7 @@ describe('layoutTree: verify-fail-fix against the canvas (__fixtures__/tree.mjs 
   });
 });
 
-describe('layoutTree: generalised (§5.3)', () => {
+describe('layoutTree: generalised', () => {
   const trunkY = (t: TreeLayout) => t.root.at.y;
   /** The vertical span of the drawn marks (ribbons, twig tips, glyphs and tips). */
   const marks = (t: TreeLayout) => {

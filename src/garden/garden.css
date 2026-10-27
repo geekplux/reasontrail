@@ -1,7 +1,7 @@
-/* The next-token garden (PLAN §3.3, docs/viz/garden.md): the lens and garden page only, so it loads with them and
-   not with the map's first view (DESIGN §18, size budget). Colours only via tokens.css. */
+/* The next-token garden (docs/viz/garden.md): the lens and garden page only, so it loads with them and
+   not with the map's first view (size budget). Colours only via tokens.css. */
 
-/* Control row (PLAN §3.3, DESIGN §18.1 GA1): the sample picker as quiet text radios; the chosen one is 600, underlined. */
+/* Control row: the sample picker as quiet text radios; the chosen one is 600, underlined. */
 .controls { padding: 16px var(--gutter, 40px) 0; }
 .picker { margin: 0; padding: 0; border: 0; min-width: 0; }
 .picker-options { display: flex; flex-wrap: wrap; gap: 4px 24px; }
@@ -123,7 +123,7 @@
 .readout-token-sampled { border-bottom-color: var(--blue-9); border-bottom-width: 2px; }
 .readout-note { margin: 0 0 0 8px; font-family: var(--font-sans); font-weight: 400; vertical-align: middle; }
 
-/* Table view (A3) and More options: one quiet text-button row under the readout (L5). Quiet text buttons (CL11): muted,
+/* Table view and More options: one quiet text-button row under the readout. Quiet text buttons: muted,
    no border and no fill, underlined on hover and focus; a pressed one is 600 with a 2 px ink underline. */
 .view-toggle-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 8px 0; }
 .view-toggle { min-height: 24px; padding: 0 4px; font: inherit; font-size: var(--text-12); color: var(--slate-11); background: none; border: 0; border-radius: var(--radius-6); text-underline-offset: 4px; cursor: pointer; }
@@ -150,7 +150,7 @@
   .specimen { order: 1; }
   .controls { padding: 8px 16px 0; }
   .readout { position: sticky; bottom: 0; background: var(--slate-1); border-top: var(--hair-soft); }
-  /* GA1: one sideways-scrolling line of samples. */
+  /* One sideways-scrolling line of samples. */
   .picker-options { flex-wrap: nowrap; overflow-x: auto; padding: 2px 2px 4px; }
   html.tg-lens { scroll-padding-bottom: var(--readout-h, 0px); }
   .garden-table th, .garden-table td { padding-inline: 4px; }

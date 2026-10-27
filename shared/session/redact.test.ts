@@ -1,4 +1,4 @@
-// Synthetic redaction corpus (PLAN R2): no real secrets. Secret-shaped strings are built at runtime from fragments, so
+// Synthetic redaction corpus: no real secrets. Secret-shaped strings are built at runtime from fragments, so
 // nothing in this file looks like a credential to a scanner. Home paths are built the same way.
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -62,7 +62,7 @@ const CASES: [string, string, string][] = [
   ['claude project dir', j(HOME, 'dave/.claude/projects/-ho', 'me-dave-notes/s.jsonl'), '~/.claude/projects/-~-notes/s.jsonl'],
   ['high entropy', `value ${rnd(40, 21)} here`, 'value [secret:high-entropy] here'],
   ['high entropy base64', rnd(44, 22, B64.slice(0, 63)), '[secret:high-entropy]'],
-  // False-positive guards (R2): left exactly as they are.
+  // False-positive guards: left exactly as they are.
   ['short git sha', 'commit a1b2c3d fixed it', 'commit a1b2c3d fixed it'],
   ['full git sha', `HEAD is ${rnd(40, 23, HEX)}`, `HEAD is ${rnd(40, 23, HEX)}`],
   ['uuid', '3f2b8c1e-9d4a-4e6f-8b7c-2a1d0e9f8c7b', '3f2b8c1e-9d4a-4e6f-8b7c-2a1d0e9f8c7b'],
@@ -83,7 +83,7 @@ const CASES: [string, string, string][] = [
   ['tmp path', 'mkdir -p /tmp/x && ls /home', 'mkdir -p /tmp/x && ls /home'],
 ];
 
-describe('redactText corpus (R1, R2)', () => {
+describe('redactText corpus', () => {
   it('has at least 40 cases', () => expect(CASES.length).toBeGreaterThanOrEqual(40));
   it.each(CASES)('%s', (_, input, expected) => {
     expect(redactText(input)).toBe(expected);
@@ -92,7 +92,7 @@ describe('redactText corpus (R1, R2)', () => {
   });
 });
 
-describe('redactGraph (R1, R4)', () => {
+describe('redactGraph', () => {
   const DIR = 'fixtures/sessions/claude-code';
   const g = parseSession({ files: [{ path: j(HOME, 'erin/fx/basic.jsonl'), text: readFileSync(`${DIR}/basic.jsonl`, 'utf8') }] });
   if (!g) throw new Error('fixture');
@@ -157,7 +157,7 @@ describe('high-entropy scan on long blobs', () => {
 });
 
 
-describe('buildBatches sends only redacted text (phase 20 AC3)', () => {
+describe('buildBatches sends only redacted text', () => {
   const base = parseSession({ files: [{ path: j(HOME, 'erin/fx/basic.jsonl'), text: readFileSync('fixtures/sessions/claude-code/basic.jsonl', 'utf8') }] });
   if (!base) throw new Error('fixture');
   const graph = structuredClone(base);

@@ -1,4 +1,4 @@
-// Label placement (docs/design/v7/PROMPT.md §5.2): every label tries its candidate positions in order and takes the
+// Label placement: every label tries its candidate positions in order and takes the
 // first whose box hits no glyph, tip, number, other label, lane block, ribbon, twig, hand-back or reserved zone and
 // stays inside the box. Order: root labels, episode numbers, lane blocks, wait texts; each placed label is an obstacle
 // for the next.

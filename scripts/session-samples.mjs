@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// pnpm samples:sessions (PLAN phase 15, D28): turn the sessions listed in tools/session-samples.json into committed,
-// redacted, trimmed sample graphs under src/sessions/samples/<id>.graph.json, each with its `expect` block (M2).
+// pnpm samples:sessions: turn the sessions listed in tools/session-samples.json into committed,
+// redacted, trimmed sample graphs under src/sessions/samples/<id>.graph.json, each with its `expect` block.
 // Runs the built CLI (`cli.mjs <file> --share --json --trim <from>:<to>`). When a session file is not on this
 // machine the entry is skipped with a message and the committed JSON stays authoritative.
 // Two extra, deterministic scrubs on top of the CLI's redaction: an entry's `hide` map replaces the text of the
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const CLI = join(ROOT, 'cli/dist/cli.mjs');
 const OUT = join(ROOT, 'src/sessions/samples');
-/** Limits from PLAN phase 15, AC1. */
+/** Per-sample limits: a sample stays small enough to bundle and to read. */
 export const LIMITS = { steps: 400, bytes: 250 * 1024 };
 const TASK_WORDS = 8;
 const TOP_FILES = 3;
@@ -125,7 +125,7 @@ export function sessionFile(entry, home) {
 }
 
 /** A subagent lane whose report ends on FAIL or CHANGES REQUESTED: something going wrong a sample can show without a
- * detected pattern (scratch-file churn no longer counts, phase 16). */
+ * detected pattern (scratch-file churn does not count). */
 export function failedLane(g) {
   const mainLane = g.lanes?.[0]?.id;
   return (g.lanes ?? []).some((l) => {
@@ -136,7 +136,7 @@ export function failedLane(g) {
   });
 }
 
-/** Problems with one sample's JSON text against the phase 15 limits (empty when fine). */
+/** Problems with one sample's JSON text against `LIMITS` (empty when fine). */
 export function checkSample(text) {
   const g = JSON.parse(text);
   const problems = [];

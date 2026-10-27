@@ -1,4 +1,4 @@
-// Share flow (phase 24, PLAN V4; v7 phase 34b): the session card's "Share" on a dropped session holding a token, an
+// Share flow: the session card's "Share" on a dropped session holding a token, an
 // address and a home path (written at runtime, never committed) and on the default website sample. The dialog says what is replaced and
 // previews the redacted text; the downloaded HTML has none of the originals and passes the audit:samples rules on its
 // decoded graph; it opens offline with zero requests, and its own Share writes a copy that opens too

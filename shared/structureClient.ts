@@ -1,4 +1,4 @@
-// The client half of the optional AI pass (PLAN phase 21, V3, X3, X5): what will be sent, the sequential POSTs to
+// The client half of the optional AI pass: what will be sent, the sequential POSTs to
 // `/api/structure`, and calm messages for every failure. Shared by the website's `useStructure` and the CLI's `--ai`.
 // Nothing here runs until the caller has the user's consent.
 import { ProviderError, type ProviderErrorCode } from './llm/types';

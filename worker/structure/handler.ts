@@ -1,4 +1,4 @@
-// POST /api/structure (PLAN phase 20, X1–X4): labels one batch of redacted step summaries. Cached in KV by the
+// POST /api/structure: labels one batch of redacted step summaries. Cached in KV by the
 // batch's SHA-256; a miss goes through RL_MISS and the daily budget like /api/next-tokens. No user key.
 import type { StructureStep } from '../../shared/session/structure';
 import { paidCall } from '../budget';

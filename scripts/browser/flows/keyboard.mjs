@@ -1,4 +1,4 @@
-// Keyboard flow (phase 5), keyboard only (never the mouse): one tab stop, tree keys reach the least probable branch
+// Keyboard flow, keyboard only (never the mouse): one tab stop, tree keys reach the least probable branch
 // at every level, Enter grows and collapses in place, tree ARIA in Chrome's AX tree, the live region, the Table view
 // (same branches, same percentages), the sticky readout on phones, and axe.
 import { axeProblems } from '../axe.mjs';

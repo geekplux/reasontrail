@@ -1,5 +1,5 @@
-// Samples flow (phase 6): the picker by mouse and keyboard, `?sample=` deep links and the unknown-sample notice,
-// a recorded spine grown to depth 5, everything still working offline after load (O2), and mobile.
+// Samples flow: the picker by mouse and keyboard, `?sample=` deep links and the unknown-sample notice,
+// a recorded spine grown to depth 5, everything still working offline after load, and mobile.
 // Expectations come from the committed sample JSON, so re-recording a garden does not break the flow.
 import { readFileSync } from 'node:fs';
 import { axeProblems } from '../axe.mjs';
@@ -63,7 +63,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   for (const p of await axeProblems(page, 'samples picker')) fail(p);
   await shot('samples-picker');
 
-  // Deep links: a fork in another garden, and an unknown garden falling back with the notice (§3.6).
+  // Deep links: a fork in another garden, and an unknown garden falling back with the notice.
   await page.goto(`${baseURL}/?sample=cat&path=0.1`, { waitUntil: 'load' });
   await ready(page);
   const fork = keyAt(S.cat, [0, 1]);

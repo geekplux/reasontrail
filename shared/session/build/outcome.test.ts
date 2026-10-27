@@ -1,4 +1,4 @@
-// Outcome: scratch and build output never count as files changed (phase 15 content review).
+// Outcome: scratch and build output never count as files changed.
 import { describe, expect, it } from 'vitest';
 import type { Step } from '../types';
 import { buildOutcome, countedPaths, type FileEvent, fileHistory, isScratchOutput } from './outcome';

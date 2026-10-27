@@ -1,6 +1,6 @@
-/* The local viewer (v7 §7): the home's tree, card and footer (home.css) under a wordmark-only header. Geist and
+/* The local viewer: the home's tree, card and footer (home.css) under a wordmark-only header. Geist and
    Geist Mono are inlined as data URLs: weights 400–600, Latin only (scripts/subset-viewer-fonts.sh), 29 KB together, so the one-file page works offline inside its
-   300 KB budget (v7 §3.2, DECISIONS 2026-10-24). */
+   300 KB budget. */
 @font-face {
   font-family: 'Geist';
   font-style: normal;

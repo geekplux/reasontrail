@@ -1,4 +1,4 @@
-// Claude Code session store (PLAN §5.12): ~/.claude/projects/<cwd, every non-alphanumeric char → "-">/<id>.jsonl,
+// Claude Code session store: ~/.claude/projects/<cwd, every non-alphanumeric char → "-">/<id>.jsonl,
 // plus <id>/subagents/agent-*.jsonl with .meta.json files. Only Node built-ins.
 import { existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';

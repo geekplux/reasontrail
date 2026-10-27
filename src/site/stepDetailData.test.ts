@@ -4,7 +4,7 @@ import type { SessionGraph, Step } from '../../shared/session/types';
 import { defaultSessionGraph as g, sessionSamples } from '../sessions/samples';
 import { findStep, selectableSteps, stepDetail, stepFacts } from './stepDetailData';
 
-describe('selectable steps (phase 32b)', () => {
+describe('selectable steps', () => {
   it('lists the tool calls and thinking steps of every episode row, in list order', () => {
     const all = selectableSteps(g);
     expect(all.every((s) => s.step.kind === 'step')).toBe(true);
@@ -16,7 +16,7 @@ describe('selectable steps (phase 32b)', () => {
   });
 });
 
-describe('step detail (phase 32b, Step.html)', () => {
+describe('step detail', () => {
   it('reads a failed command as the canvas does', () => {
     const d = stepDetail(g, 's41')!;
     expect(d).toMatchObject({
@@ -44,7 +44,7 @@ describe('step detail (phase 32b, Step.html)', () => {
     const th = stepDetail(g, d.nextId!)!;
     expect([th.title, th.tone, th.output, th.code]).toEqual(['Thinking', undefined, undefined, undefined]);
     expect(th.text).toBeTruthy();
-    // Only the model's own words carry the note that written reasoning is its own account (phase 35): not a command,
+    // Only the model's own words carry the note that written reasoning is its own account: not a command,
     // and not thinking whose text was not stored (this one: a signature only).
     expect([th.ownAccount, d.ownAccount, stepDetail(g, 's41')?.ownAccount]).toEqual([undefined, undefined, undefined]);
     const stored: SessionGraph = { ...g, steps: g.steps.map((x): Step => {

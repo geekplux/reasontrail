@@ -1,5 +1,5 @@
 /**
- * The Reasontrail mark, "veined leaf" (docs/design/v7/PROMPT.md §3.4): a leaf split along its midrib into a blue half
+ * The Reasontrail mark, "veined leaf" (docs/DESIGN.md §2): a leaf split along its midrib into a blue half
  * and an orange half (Radix blue-9 and orange-9, the same in light and dark), with a branching vein cut out of it in
  * the page background (`--slate-1`), so it adapts to the theme. Each tool call is a leaf; the leaf holds the trail.
  * public/favicon.svg and public/logo.svg carry the same geometry; keep them in sync.

@@ -39,7 +39,7 @@ describe('check-size', () => {
   });
 });
 
-describe('checkLazy (G2, phase 19)', () => {
+describe('checkLazy', () => {
   const assets = ['index-a.js', 'implementer-checks.graph-abcdefgh.js', 'planner-pivot.graph-abcdefgh.js', 'DropZone-abcdefgh.js', 'parse.worker-abcdefgh.js'];
   const small = Object.fromEntries(assets.map((f) => [f, 1024]));
   it('passes when every lazy chunk exists, is not initial and is within budget', () => {

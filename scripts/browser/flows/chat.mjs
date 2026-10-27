@@ -1,7 +1,7 @@
-// Chat flow (phase 23): paste text → map (T1); a ChatGPT and a Claude export → picker → map (T2); a share link → the
-// paste-text message with focus back on the paste box (T3); zero requests while parsing (T4, V1); the paste box is the
-// focal point (CL1) with few chrome controls; the drop zone's unsupported message links here. A mapped chat shows on the
-// v7 session page (tree, list, outcome; phase 34b), its source as the meta line's tag.
+// Chat flow: paste text → map; a ChatGPT and a Claude export → picker → map; a share link → the
+// paste-text message with focus back on the paste box; zero requests while parsing; the paste box is the
+// focal point with few chrome controls; the drop zone's unsupported message links here. A mapped chat shows on the
+// v7 session page (tree, list, outcome), its source as the meta line's tag.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { axeProblems } from '../axe.mjs';

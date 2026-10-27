@@ -10,7 +10,7 @@ const g = verifyFailFix as unknown as SessionGraph;
 const L = glanceLayout(g, 1216);
 const items = navItems(L);
 
-describe('map keyboard model (DESIGN §10.3)', () => {
+describe('map keyboard model', () => {
   it('moves along the route, into a side trail and back, with dead ends doing nothing', () => {
     const [e0, e1] = L.episodes.map((r) => `ep:${r.episode.id}`);
     expect(move(items, e0 as string, 'ArrowRight', false)).toBe(e1);
@@ -66,7 +66,7 @@ describe('map keyboard model (DESIGN §10.3)', () => {
   });
 });
 
-describe('labels never cut a count or a status word (DM9)', () => {
+describe('labels never cut a count or a status word', () => {
   it('drops the idle note, then the unit, to fit the count line', () => {
     const r = { ...(L.episodes[0] as RouteEpisode), steps: 23, idle: ', 12 min idle' };
     expect(countText(r)).toBe('23 steps, 12 min idle');

@@ -45,7 +45,7 @@ describe.skipIf(PATHS.length === 0)('real sessions (TG_REAL_SESSIONS)', () => {
     for (const e of g.edges) edges[e.kind] = (edges[e.kind] ?? 0) + 1;
     const kinds: Record<string, number> = {};
     for (const s of g.steps) kinds[s.kind] = (kinds[s.kind] ?? 0) + 1;
-    // Structure counts only (phase 12): top-level episodes per lane, trouble by kind, files changed. Never content.
+    // Structure counts only: top-level episodes per lane, trouble by kind, files changed. Never content.
     const top = g.episodes.filter((e) => !e.parentId);
     const topPerLane = Math.max(0, ...g.lanes.map((l) => top.filter((e) => e.laneId === l.id).length));
     const trouble: Record<string, number> = {};

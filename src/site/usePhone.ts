@@ -1,4 +1,4 @@
-// The website's phone layout (docs/design/v7/preview/Phone.html): up to 639px wide the page follows the 390 canvas.
+// The website's phone layout: up to 639px wide the page follows the 390 canvas.
 // home.css uses the same width in its `@media (max-width: 639px)` rules (usePhone.test.tsx checks); the compact list
 // follows its `compact` prop, not the viewport.
 import { useSyncExternalStore } from 'react';

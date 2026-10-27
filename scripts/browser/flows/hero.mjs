@@ -1,6 +1,5 @@
 // Hero flow (brand, never part of "all"): the README's hero, written to a committed path.
-// - docs/brand/hero.webp: the v7 home's first screen (PROMPT §7 "README hero = a 1440 light screenshot of the new
-//   home"): a 1440×900 viewport, light, motion reduced, the default sample (verify-fail-fix), nothing hovered or
+// - docs/brand/hero.webp: the v7 home's first screen: a 1440×900 viewport, light, motion reduced, the default sample (verify-fail-fix), nothing hovered or
 //   selected, cut from under the site header (the README has its own wordmark) to 24px under the tree, so the README's
 //   quick start still shows in the first screen. It is also the picture in the social preview
 //   (docs/brand/social-preview.html crops it to the tree).

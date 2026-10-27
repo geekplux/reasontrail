@@ -1,4 +1,4 @@
-// Session location across sources (PLAN §5.12, D27): Claude Code, Grok Build and Codex, side by side.
+// Session location across sources: Claude Code, Grok Build and Codex, side by side.
 import { accessSync, constants, readFileSync } from 'node:fs';
 import { isAbsolute, resolve } from 'node:path';
 import type { SessionInput } from '../../../shared/session/types';
@@ -23,7 +23,7 @@ function newest(stores: readonly Store[], ctx: LocateContext): SessionRef | unde
   return stores.flatMap((s) => s.listForCwd(ctx).slice(0, 1)).sort((a, b) => b.mtimeMs - a.mtimeMs)[0];
 }
 
-/** Find the session the options ask for. `how` says which rule picked it (printed, D27). */
+/** Find the session the options ask for. `how` says which rule picked it (printed). */
 export function locate(opts: Options, ctx: LocateContext): Located {
   const stores = storesFor(opts);
   if (opts.target) {

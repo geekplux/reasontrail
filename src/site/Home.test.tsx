@@ -9,7 +9,7 @@ import { pageTitle } from './SiteShell';
 
 afterEach(cleanup);
 
-describe('Home (v7 §4, §12)', () => {
+describe('Home', () => {
   it('draws the canvas blocks in order, with the default sample first and no middle dot anywhere', () => {
     const { container } = render(<Home session={null} onSession={() => {}} />);
     const blocks = [...container.querySelectorAll('.home > *')].map((el) => el.className.split(' ')[0]);

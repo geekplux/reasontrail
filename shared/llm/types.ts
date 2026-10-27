@@ -1,4 +1,4 @@
-// Provider interface shared by the app, the Worker client and the recorder (docs/llm-provider.md §3, PLAN D4).
+// Provider interface shared by the app, the Worker client and the recorder (docs/llm-provider.md §3).
 // No DOM types here beyond `AbortSignal`, which Workers and Node also provide.
 
 /** One next-token choice. */

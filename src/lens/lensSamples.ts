@@ -1,4 +1,4 @@
-// Recorded lens data (PLAN phase 22, Z1): two sentences from assistant steps of each website sample, each with a
+// Recorded lens data: two sentences from assistant steps of each website sample, each with a
 // garden recorded by tools/record-samples from the sentence's opening words (tools/record-samples/lens-prompts.json).
 import type { SampleGarden } from '../samples/types';
 

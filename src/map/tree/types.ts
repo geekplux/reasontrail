@@ -1,4 +1,4 @@
-// Typed output of the tree layout engine (docs/design/v7/PROMPT.md §5). Pure data: every coordinate is in px inside
+// Typed output of the tree layout engine. Pure data: every coordinate is in px inside
 // the box given to `layoutTree`; the renderer only turns it into SVG.
 import type { GlyphKind, VerdictTone } from '../gitlist/rows';
 

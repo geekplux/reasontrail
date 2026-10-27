@@ -1,4 +1,4 @@
-// The map's keyboard model and accessible names (DESIGN §10.3, §10.4), pure. One tab stop, a roving tabindex, arrow
+// The map's keyboard model and accessible names, pure. One tab stop, a roving tabindex, arrow
 // keys along a line (the route or a lane track), ↓/↑ (→/← in the vertical layout) between a delegate episode and its
 // side trails, Home/End, and `[` `]` through the detected patterns with wrap-around.
 import { duration } from './outline';

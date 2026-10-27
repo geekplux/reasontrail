@@ -1,5 +1,5 @@
 /**
- * Temperature over a top-k list (PLAN D8, spec §10.1): `q_i = p_i^(1/T) / Z` over the k shown chances. The remainder
+ * Temperature over a top-k list (spec §10.1): `q_i = p_i^(1/T) / Z` over the k shown chances. The remainder
  * `r` (everything outside the top-k) is modelled as `n = max(1, ceil(r / p_min))` equal hidden tokens of `r/n` each
  * (none larger than the smallest shown chance), so its weight is `n·(r/n)^(1/T)`: it shrinks below 1 and grows above.
  * Computed in log space so small T never underflows; the hidden tokens are never materialised. T = 1 returns the

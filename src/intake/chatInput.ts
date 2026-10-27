@@ -1,4 +1,4 @@
-// The chat import's pure helpers (PLAN phase 23, T3): share-link detection, the picker's search and wording.
+// The chat import's pure helpers: share-link detection, the picker's search and wording.
 import type { ChatSummary } from '../../shared/session/adapters/chatExports';
 
 /** T3 (paste-text fallback only): share pages are not fetched, so the link itself cannot be mapped. */

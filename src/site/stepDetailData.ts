@@ -1,4 +1,4 @@
-// A selected step (docs/design/v7/PROMPT.md §4.5, §5.4; docs/design/v7/preview/Step.html), pure: which steps can be
+// A selected step, pure: which steps can be
 // selected (the list's step rows, in list order across episodes), and everything the detail panel and the tree's
 // callout show for one, from the session's data only.
 import type { SessionGraph } from '../../shared/session/types';
@@ -121,7 +121,7 @@ export function stepDetail(g: SessionGraph, stepId: string): StepDetail | undefi
   if (out) d.output = out;
   const raw = rawRecords(g, r).flatMap((x) => (x.text !== undefined ? [x.text] : []));
   if (raw.length) d.raw = raw.join('\n');
-  // Previous / Next stay within the episode (Step.html greys Previous on an episode's first step).
+  // Previous / Next stay within the episode (Previous is greyed on an episode's first step).
   const same = (o: Selectable | undefined) => (o && o.episode.episodeId === s.episode.episodeId ? o : undefined);
   const prev = same(all[i - 1]);
   const next = same(all[i + 1]);

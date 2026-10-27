@@ -5,7 +5,7 @@ import { HowToReadMap } from './HowToReadMap';
 
 afterEach(cleanup);
 
-describe('How to read a map (v7 §7)', () => {
+describe('How to read a map', () => {
   it('is one figure (the real tree renderer on the default sample, with the legend) and two paragraphs', () => {
     const { container } = render(<HowToReadMap />);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('How to read a map');

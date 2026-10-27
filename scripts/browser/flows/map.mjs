@@ -1,4 +1,4 @@
-// Map flow, v7 (docs/design/v7/PROMPT.md §4.5, §5.4; docs/design/v7/preview/Step.html; phase 32b): a click on the
+// Map flow, v7: a click on the
 // failed twig of verify-fail-fix (s41) selects it: its path from the root turns blue-9 and the rest dims to slate-9,
 // the step gets a ring and the callout "Inspect vitest config for log suppression" / "Exit code 2, 16 min", the list
 // opens episode 6 with the step selected, and the detail panel replaces the outcome column. Previous / Next step,

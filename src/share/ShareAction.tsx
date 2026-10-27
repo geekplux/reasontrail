@@ -1,4 +1,4 @@
-// The quiet "Save shareable copy…" text button (DESIGN §13.1, V4). The dialog and its export code are a separate chunk,
+// The quiet "Save shareable copy…" text button. The dialog and its export code are a separate chunk,
 // so the first view's JS does not grow: it is fetched when the browser is idle after the button appears, and once it is
 // here the dialog renders in the click's own frame. Focus returns to the button when the dialog closes.
 import { Component, lazy, Suspense, useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';

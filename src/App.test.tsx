@@ -97,7 +97,7 @@ describe('App', () => {
     expect(branch(container, ' entered the')).not.toBeNull();
     expect(screen.getByText('Reading:')).not.toBeNull();
     await settle();
-    expect(window.location.search).toBe('?sample=lighthouse&path=1'); // garden links always name the garden (phase 16)
+    expect(window.location.search).toBe('?sample=lighthouse&path=1'); // garden links always name the garden
     await act(async () => void fireEvent.click(branch(container, ' entered')));
     expect(branch(container, ' entered').getAttribute('data-state')).toBe('expandable');
     await act(async () => void fireEvent.click(branch(container, ' turned')));
@@ -180,7 +180,7 @@ describe('App', () => {
     await settle();
     expect(window.history.length).toBe(entries + 1); // Back returns to the garden the reader came from
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Tiny test garden');
-    expect(branch(container, ' mat').getAttribute('data-state')).toBe('expanded'); // D11 default expansion
+    expect(branch(container, ' mat').getAttribute('data-state')).toBe('expanded'); // default expansion
     expect(container.querySelector('[data-role="value-label"]')).toBeNull();
     expect(window.location.search).toBe('?sample=tiny');
     await act(async () => void fireEvent.click(radios[0]!));

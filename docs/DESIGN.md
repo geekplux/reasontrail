@@ -1,8 +1,8 @@
 # Reasontrail: design (v7)
 
-Owner: `lead-designer`. Rewritten in phase 35 from `docs/design/v7/PROMPT.md` and the design canvas. **The canvas is the source of truth:** the preview pages `docs/design/v7/preview/*.html`, their CSS (the `CSS` constant in `docs/design/v7/gen7.mjs`) and the frames rendered from them (`docs/design/v7/frames/`, `node scripts/design/canvas.mjs frames`). Where this file, the prompt's prose and the canvas disagree, the canvas wins, except for the deviations listed in §12, each recorded in `docs/DECISIONS.md`.
+The current design spec for the website, the local viewer and the map. It was written from a design canvas of static preview pages (Home, Phone, Dark, Step, Open, Hover); the app follows that canvas except for the deviations in §12, each with its reason. The canvas's reference tree geometry is kept as a test fixture in `src/map/tree/__fixtures__/`.
 
-The next-token garden (the lens) keeps its own encoding in `docs/viz/garden.md`. Older code comments cite sections of the pre-v7 file (DESIGN §8–§18, DM/CL ids, the trail-map grammar); read it with `git show c732cb6:docs/DESIGN.md`.
+The next-token garden (the lens) keeps its own encoding in `docs/viz/garden.md`.
 
 Contents: 1 Identity, 2 Mark and wordmark, 3 Type, 4 Colour, 5 Shape, space and motion, 6 Layout, 7 The tree, 8 The list, 9 Outcome and step panel, 10 Interaction, 11 Accessibility, 12 Deviations from the canvas, 13 How to check.
 
@@ -12,7 +12,7 @@ Contents: 1 Identity, 2 Mark and wordmark, 3 Type, 4 Colour, 5 Shape, space and 
 - **The picture first.** A session is drawn as a real tree grown left to right in session order: trunk = the main agent, limbs = subagents, branches = episodes, twigs = tool calls, leaves = successful calls. The first screen at 1440×900 is that picture, not controls.
 - **Precise second.** A git-style list under the tree is the exact, readable and keyboard-operable view; the outcome box says how it ended.
 - **Calm and specific.** Radix slate with one blue and one orange, Geist, 0.5px lines, four type sizes. Not paper, serif or caps labels; nothing generic or decorative; no 3D.
-- **Rejected, never reintroduced:** a vertical tree, a "walked trail" squiggle, radial, sunburst or treemap views, separate Map and Outline toggles, monochrome logos, a byline beside the logo, the hero tree growing on load (not approved).
+- **Rejected, never reintroduced:** a vertical tree, a "walked trail" squiggle, radial, sunburst or treemap views, separate Map and Outline toggles, monochrome logos, a byline beside the logo, the hero tree growing on load.
 
 ## 2. Mark and wordmark
 
@@ -68,7 +68,7 @@ Every colour is a Radix Colors 3.0 step of **slate**, **blue** or **orange** (`s
 
 ### Checks (`src/styles/tokens.test.ts`)
 
-- The token values equal PROMPT §3.1 in both themes.
+- The token values equal Radix Colors 3.0 steps 1–12 in both themes.
 - Text pairs reach AA (4.5:1); marks reach 3:1.
 - Blue-9, orange-9 and slate-12 stay ≥ 20 ΔE apart under protanopia, deuteranopia and tritanopia (Machado 2009, CIE76).
 - Every colour in `src/**/*.css` and every colour literal in `src/**/*.ts(x)` is a Radix token or value; no `--tg-*` token remains.
@@ -84,7 +84,7 @@ Every colour is a Radix Colors 3.0 step of **slate**, **blue** or **orange** (`s
 - **Hit targets:** ≥ 24×24px on desktop, ≥ 44×44px on phones.
 - **Motion:** colour and opacity only, 250ms ease-out; none under `prefers-reduced-motion`.
 
-### Sean's UI rules (binding, PROMPT §2 and §12)
+### UI rules (binding)
 
 1. No middle dot "·" as a separator in UI copy, aria-labels or the README.
 2. No redundant explanatory text.
@@ -102,7 +102,7 @@ Every colour is a Radix Colors 3.0 step of **slate**, **blue** or **orange** (`s
 
 All edges at 1440 are 120px: header content, headline, tree root, tabs, card, install, Made by GeekPlux and footer share one left edge (within 1px), and the list's root mark sits on the card's content edge.
 
-### 6.1 Home, 1440 (`Home.html`)
+### 6.1 Home, 1440
 
 1. **Header**, 64px, 0.5px bottom rule: the wordmark; right, "How to read a map", "Install", "GitHub" (14, slate-11, 24px apart) and the primary button "Open a session" (32px, radius 6, slate-12 fill, slate-1 text).
 2. **Hero**, padding-top 64: the headline "See how your coding agent got there." (32/600, max 18ch, balanced); 12px under it the lede "Every session as a tree: subagents are limbs, episodes are branches, tool calls are twigs." (20, slate-11, max 34ch); on the lede's last baseline, right, the command box `npx reasontrail install-skill` with a copy icon (40px, radius 10, slate-2, 0.5px slate-6 ring).
@@ -115,7 +115,7 @@ All edges at 1440 are 120px: header content, headline, tree root, tabs, card, in
 7. **Made by GeekPlux**, 72px under, 0.5px top rule: left "Made by GeekPlux" (20/600), "Writing, projects and data visualization" (slate-11), `geekplux.com` (12 mono, underlined); right a 2 × 2 grid of whole-block links from `src/site/moreSites.ts` (Vert, Explorable, Pagelapse, markvis): name 14/500, one line 14 slate-11, URL 12 mono slate-11.
 8. **Footer**, 72px under, 0.5px top rule: the wordmark; right "How to read a map", "Next-token garden", "GitHub", "MIT licence".
 
-### 6.2 Phone, 390 (`Phone.html`), up to 639px
+### 6.2 Phone, 390, up to 639px
 
 - Header: wordmark and "Open session". Gutter 16.
 - Headline, then the lede at 14; no hero command box (the install section has it).
@@ -124,7 +124,7 @@ All edges at 1440 are 120px: header content, headline, tree root, tabs, card, in
 - The card turns full-bleed (top and bottom rules only, padding 24 16); the header has no buttons and no branch, and the meta line wraps. The outcome box comes above the list; the list drops the header, # and Start columns and cuts titles with an ellipsis. Then the final answer, then the actions row (AI titles, Details, Share), then install, Made by GeekPlux in one column, and the footer.
 - 640–1023px stacks the card's columns with every list column kept; the tree keeps its labels from 960px.
 
-### 6.3 Dark (`HomeDark.html`)
+### 6.3 Dark
 
 The same layout on the Radix dark scales, following `prefers-color-scheme` (the site has no override). The mark's halves stay blue-9 and orange-9; its vein is the page colour.
 
@@ -138,7 +138,7 @@ The local viewer (the HTML the CLI and the skill write, and Share's redacted cop
 - Then the card: the list and the outcome column, as on the home. A chat's outcome box shows only its trouble, and no box when there is none; its meta line drops "Chat" beside the "Pasted chat" tag.
 - The viewer's footer: "Made with Reasontrail" (reasontrail.geekplux.com) and "geekplux.com", plain links; no requests from `file://`.
 
-### 6.5 Open a session (`Open.html`)
+### 6.5 Open a session
 
 A 640px column, centred, 96px under the header: "Open a session" (20/600); the drop target (radius 16, slate-2, 0.5px slate-7 ring, padding 56 24) with a file icon, "Drop a session file", "Choose file" and "Parsed in your browser. Nothing is uploaded." (12); then the where-to-find list (112px label column, hairline rows) for Claude Code, Codex, Grok Build and Chat ("Paste the text" or a `conversations.json`); "Files up to 50 MB." (12).
 
@@ -179,7 +179,7 @@ Engine: `src/map/tree/` (pure, typed, deterministic); renderer: `TreeView.tsx`; 
 
 ## 8. The list
 
-`src/map/gitlist/` (`Home.html` lower half, `gitlist.mjs`). Real DOM rows over an SVG of rails.
+`src/map/gitlist/` (the home's lower half). Real DOM rows over an SVG of rails.
 
 - **Columns at 680:** rails, # (x 64), Episode (x 92), Steps (right at 616), Start (right at 680). Header 12 slate-11 with one 0.5px rule from 0 to 680.
 - **Rails:** main at x 4.5, 2px slate-12, its root dot's left edge on the content edge; subagents at x 28.5, 1.5px; cubic forks at the lane row and merges after the verdict row; the main rail dotted slate-8 while a subagent runs.
@@ -191,7 +191,7 @@ Engine: `src/map/tree/` (pure, typed, deterministic); renderer: `TreeView.tsx`; 
 ## 9. Outcome and step panel
 
 - **Outcome box** (radius 10, 0.5px slate-7 ring, hairline rows, padding 14 16): the last check (blue ✓ "Passed on re-verify" or orange ⚠ "Failed", the command and when), the trouble (orange ⚠ "1 failed review", "N trouble spots", or ✓ "No trouble detected"), the files changed (a file icon, the first path and "and N more"). Rows come from the graph for any session. Then **Final answer** (14/600 heading): up to four lines and "Read the full answer".
-- **Step panel** (`Step.html .detail`), in the outcome column's place while a step is selected: radius 14, slate-2, 0.5px slate-6 ring, padding 20, gap 16. Where it is ("Verify phase 12, episode 6, step 1 of 28") with a close button; the title ("Command failed" with ⚠) and time; **for a thinking step whose text was stored, a 12px slate-11 note right under the title: "Written reasoning is the model's own account, not a record of how it computed."** (no eyebrow, no card); the summary; the command in a `pre` (radius 6); "Output" and its note; "Next step" with its icon and output; "Source <file> line N" (12); "Show raw" (12 link) disclosing the verbatim record; "Previous step" / "Next step" within the episode. Esc closes it.
+- **Step panel** (`.detail`), in the outcome column's place while a step is selected: radius 14, slate-2, 0.5px slate-6 ring, padding 20, gap 16. Where it is ("Verify phase 12, episode 6, step 1 of 28") with a close button; the title ("Command failed" with ⚠) and time; **for a thinking step whose text was stored, a 12px slate-11 note right under the title: "Written reasoning is the model's own account, not a record of how it computed."** (no eyebrow, no card); the summary; the command in a `pre` (radius 6); "Output" and its note; "Next step" with its icon and output; "Source <file> line N" (12); "Show raw" (12 link) disclosing the verbatim record; "Previous step" / "Next step" within the episode. Esc closes it.
 
 ## 10. Interaction
 
@@ -211,7 +211,7 @@ Engine: `src/map/tree/` (pure, typed, deterministic); renderer: `TreeView.tsx`; 
 
 ## 12. Deviations from the canvas
 
-Each is recorded in `docs/DECISIONS.md` with its reason. Anything not listed here matches the canvas.
+Each row gives its reason. Anything not listed here matches the canvas.
 
 | Where | Canvas | App | Why |
 |---|---|---|---|
@@ -221,7 +221,7 @@ Each is recorded in `docs/DECISIONS.md` with its reason. Anything not listed her
 | Selected-step ring, list focus ring | blue-9 | blue-11 | 3:1 on slate-1, blue-3 and slate-3 |
 | Selected list row title | weight 400 | weight 500 | a cue besides the blue-3 background |
 | ⚠ "!" ink | orange-1 | `--on-orange-9` (slate-12 light, slate-1 dark) | white on orange-9 is about 2.9:1 |
-| Hover tooltip radius | prose says 10 | 8, as `Hover.html` draws it | the canvas wins over prose |
+| Hover tooltip radius | the written spec said 10 | 8, as the canvas's hover frame draws it | the drawing wins over prose |
 | Phone actions | no AI titles, Details or Share | a row of ghost buttons after the final answer | WCAG 1.4.10: no lost functionality |
 | Phone silhouette verdicts | coloured ◉ | ✕ (failed), ✓ ring (passed) | never colour alone; no text there |
 | Phone "Read the full answer" | not shown (its text fits) | shown when the answer is cut | otherwise unreachable |
@@ -233,16 +233,15 @@ Each is recorded in `docs/DECISIONS.md` with its reason. Anything not listed her
 | Chat outcome box | (no chat frame) | only the trouble row, else no box; no "Chat" beside the "Pasted chat" tag | "No check run found / 0 files changed" says nothing for a chat |
 | Outcome, list and the step panel's next-step output wording | hand-written rows ("A gap in the sample audit", shorter titles, 34 min) | derived from the graph ("Verify phase 12 failed, fixed in cceb2d5", recorded titles, 33 min) | works for any session; layout identical |
 | Tree numbers 1, 3, 14, 16 | halos over ribbons | glyphs 3, 14 and 16 move 3.7–7.6px off the ribbons; glyph 1 flips to the limb's other side; their numbers re-place 9–40px | a halo would hide part of a ribbon |
-| Install copy | (canvas) | the canvas's sentence, not PROMPT §4.6's | the canvas wins |
-| AI titles in the tree and list | not drawn | dashed 1px blue-9 ring (glyph r + 5); slate-3 tag | §7 asks for both; blue-8 is under 2:1 |
+| Install copy | (canvas) | the canvas's sentence, not the written spec's | the drawing wins over prose |
+| AI titles in the tree and list | not drawn | dashed 1px blue-9 ring (glyph r + 5); slate-3 tag | the AI titles need a mark in both views; blue-8 is under 2:1 |
 | Garden page title | (no frame) | visually hidden heading; the selected tab names the garden | said once (rule 2) |
-| Hero tree growth on load | proposed on the sticky note | not built | not approved |
+| Hero tree growth on load | proposed in a canvas note | not built | kept out of scope |
 | AI claim → support links | not on the canvas | no UI; the CLI still computes them | needs its own design pass |
 | Dialog backdrop | (no frame) | `color-mix` of slate-12 at 35% | a Radix alpha scale is not in the tokens; follow-up |
 
 ## 13. How to check
 
 - Unit: `pnpm test` (tokens, CVD, tree overlaps and determinism, list model, step panel, outcome rows).
-- Browser, under `flock /tmp/browser.lock`: `pnpm check:browser --flows v7home,v7phone,v7list,map,site,details,cli,open,chat,ai,share,lens` (type sizes ⊆ {12, 14, 20, 32}, Radix-only colours, 0.5px lines, no "·", the 120px edges, the tree above the fold, axe, keyboard).
-- Canvas comparison: `node scripts/design/canvas.mjs frames | shoot | pair` puts a canvas frame and the app side by side; the phase 35 set is indexed in `docs/screenshots/phase-35/README.md`.
+- Browser: `pnpm check:browser --flows v7home,v7phone,v7list,map,site,details,cli,open,chat,ai,share,lens` (type sizes ⊆ {12, 14, 20, 32}, Radix-only colours, 0.5px lines, no "·", the 120px edges, the tree above the fold, axe, keyboard).
 - Brand images: `pnpm check:browser --flows hero,gallery,brand,wordmark,polish` and `pnpm brand:hero-gif`.

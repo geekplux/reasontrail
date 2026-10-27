@@ -1,4 +1,4 @@
-// Official chat exports (PLAN phase 23, T2): ChatGPT's `conversations.json` (a `mapping` tree per conversation, the
+// Official chat exports: ChatGPT's `conversations.json` (a `mapping` tree per conversation, the
 // shown branch ending at `current_node`) and Claude's `conversations.json` (`chat_messages`, optionally chained by
 // `parent_message_uuid`). Formats as of 2026-10; read tolerantly, unknown parts counted. An export holds many
 // conversations: `readChatExport` lists them and `chatFile` turns the picked one into a small JSONL file (line 1: the

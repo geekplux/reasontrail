@@ -6,7 +6,7 @@ import { Wordmark } from './Wordmark';
 
 afterEach(cleanup);
 
-describe('LogoMark (v7 §3.4)', () => {
+describe('LogoMark', () => {
   it('draws the blue and orange halves and the vein in the page colour, hidden from assistive tech', () => {
     const { container } = render(<LogoMark />);
     const svg = container.querySelector('svg')!;

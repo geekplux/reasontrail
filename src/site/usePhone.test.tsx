@@ -50,7 +50,7 @@ describe('usePhone', () => {
   });
 });
 
-describe('Home on the phone (Phone.html)', () => {
+describe('Home on the phone', () => {
   it('puts the legend under the tabs and the outcome box above the list, the final answer under it', () => {
     viewport(true);
     const { container } = render(<Home session={null} onSession={() => {}} />);

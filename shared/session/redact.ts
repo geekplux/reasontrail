@@ -1,4 +1,4 @@
-// Redaction (PLAN R1, R4, §5.13, D24): secrets, emails and home paths become typed placeholders; content that is not
+// Redaction: secrets, emails and home paths become typed placeholders; content that is not
 // conversation is dropped. On for samples, shared files and anything sent to AI; off in the private local view.
 // Self-contained (type imports only): scripts/audit-samples.mjs loads this file directly.
 import type { NormalizedItem, NormalizedSession, SessionGraph, Step } from './types';

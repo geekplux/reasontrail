@@ -6,7 +6,7 @@ on the reader's machine, so the site still works if the endpoints are switched o
 
 Production deploys run in **Cloudflare Workers Builds**, connected to this GitHub repository: every push to `main`
 builds and deploys. Nothing in this repo deploys by itself, and there is no `deploy` script. Connecting the
-repository (step 4) is Sean's decision; everything before it is safe to run at any time.
+repository (step 4) is the maintainer's decision; everything before it is safe to run at any time.
 
 ## 1. Prerequisites
 
@@ -85,7 +85,7 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
    If it fails, deploy anyway with `DAILY_UPSTREAM_CAP` set to `"0"` (live calls off; recorded lens data and the
    whole site keep working) and see `docs/llm-provider.md` for the fallbacks.
 
-## 4. Deploy with Workers Builds (Sean, or after his approval)
+## 4. Deploy with Workers Builds (the maintainer, or after their approval)
 
 One-time, in the Cloudflare dashboard: **Workers & Pages → Create → Import a repository**, pick GitHub (authorise
 the Cloudflare app for `geekplux/reasontrail` if asked) and select the repository. Use these settings (later under
@@ -168,12 +168,12 @@ Then, in a browser (v7):
    always work." and branches the recording lacks grow through `/api/next-tokens`.
 5. **Open a session** accepts a `.jsonl`, and the social card shows in a link preview tool.
 
-## 6. Demo URL and custom domain (PLAN D20)
+## 6. Demo URL and custom domain
 
 The site lives at `https://reasontrail.geekplux.com`. `wrangler.jsonc` declares it as a custom domain
 (`"routes": [{ "pattern": "reasontrail.geekplux.com", "custom_domain": true }]`), so `wrangler deploy` keeps the domain
 attached in the dashboard. The placeholder `reasontrail.example` used during development has been replaced in the
-README, `examples/README.md`, `docs/LAUNCH.md`, `cli/src/meta.ts` (`DEFAULT_AI_ENDPOINT`), `index.html` (absolute
+README, `examples/README.md`, `cli/src/meta.ts` (`DEFAULT_AI_ENDPOINT`), `index.html` (absolute
 `og:image`, `og:url`, canonical), `scripts/check-docs.mjs` (`DEMO_ORIGIN`) and its tests. If the domain ever changes,
 update those files and the route, then run `pnpm check:docs` and `pnpm test`.
 
@@ -209,7 +209,7 @@ for an immediate stop set it in the dashboard (Workers → reasontrail → Setti
 ## 9. Cost
 
 - **Workers AI**, `@cf/zai-org/glm-4.7-flash`: $0.0605 per million input tokens and $0.40 per million output tokens
-  (published model schema, checked 2026-10-21; DECISIONS). A lens call is about 100–400 input tokens and one output
+  (published model schema, checked 2026-10-21). A lens call is about 100–400 input tokens and one output
   token, so a full day at the default cap of 1,000 calls costs a few cents. A structure batch (up to 200 step
   summaries, at most 4,096 output tokens) costs at most about $0.002–0.003, and a session sends at most five. Workers
   AI also has a daily free allocation; check the current pricing page.

@@ -1,4 +1,4 @@
-// File history (Edit/Write tools and shell writes) and the session outcome (PLAN §5.11, DESIGN §8.8).
+// File history (Edit/Write tools and shell writes) and the session outcome.
 import type { Outcome, Step } from '../types';
 import { isVerification, resolvePath, shellEffects, verifyCommand } from './shell';
 

@@ -1,5 +1,5 @@
 {
-  "//": "shared/session must run in a Web Worker and in Node: no DOM lib, no Node types (PLAN phase 11, AC5).",
+  "//": "shared/session must run in a Web Worker and in Node: no DOM lib, no Node types.",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],

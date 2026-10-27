@@ -11,7 +11,7 @@ const checks = implementerChecks as SessionGraph;
 const pivot = plannerPivot as SessionGraph;
 const line = (items: ReturnType<typeof sessionMeta>) => items.map((m) => ('strong' in m ? `${m.strong} ${m.rest}` : m.text)).join('  ');
 
-describe('sessionMeta (v7 §12)', () => {
+describe('sessionMeta', () => {
   it('reads agent, wall time, subagents, tool calls and branch, in that order', () => {
     expect(line(sessionMeta(vff, 'phase-12-structure-redact'))).toBe('Claude Code  47 min total  3 subagents  60 tool calls  phase-12-structure-redact');
     expect(sessionMeta(vff).at(-1)).toEqual({ key: 'branch', text: 'main', code: true });
@@ -68,7 +68,7 @@ describe('finalAnswer', () => {
   });
 });
 
-describe('a chat (phase 35, rule 2)', () => {
+describe('a chat', () => {
   const chat = parseChat({ files: [{ path: 'pasted.txt', text: pastedChat }] }) as SessionGraph;
 
   it('keeps only the trouble row in the outcome box, and none without trouble', () => {

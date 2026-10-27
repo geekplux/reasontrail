@@ -1,5 +1,5 @@
 // Wordmark flow (brand, never part of "all"): docs/brand/wordmark-{light,dark}.png for the README's <picture>. The
-// header's Wordmark (v7 §3.4: the veined leaf at 20px, an 8px gap, "Reasontrail" in Geist 600 14px) drawn at 2.5x, so
+// header's Wordmark (docs/DESIGN.md §2: the veined leaf at 20px, an 8px gap, "Reasontrail" in Geist 600 14px) drawn at 2.5x, so
 // the image is 62 px tall at the README's size, at 2x pixels on a transparent background. The vein is cut in the
 // theme's page colour (slate-1), so each file suits GitHub's light or dark page.
 // Usage: pnpm check:browser --flows wordmark

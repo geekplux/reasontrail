@@ -1,7 +1,7 @@
 /*
- * Design tokens, v7 (docs/design/v7/PROMPT.md §3). Every colour is a Radix Colors 3.0 step, used by its role:
+ * Design tokens, v7 (docs/DESIGN.md). Every colour is a Radix Colors 3.0 step, used by its role:
  * 1–2 backgrounds, 3–5 component backgrounds, 6–8 lines, 9–10 solid fills, 11–12 text. The values are copied, not
- * imported (DECISIONS 2026-10-24). tokens.test.ts asserts the values, AA text contrast and CVD distance.
+ * imported. tokens.test.ts asserts the values, AA text contrast and CVD distance.
  */
 :root {
   color-scheme: light dark;
@@ -16,7 +16,7 @@
   /* Marks and text on an orange-9 fill: slate-12 in light (5.52:1), slate-1 in dark (6.35:1). */
   --on-orange-9: var(--slate-12);
 
-  /* Type (§3.2): Geist and Geist Mono, self-hosted (fonts.css); four sizes only, tabular figures everywhere. */
+  /* Type: Geist and Geist Mono, self-hosted (fonts.css); four sizes only, tabular figures everywhere. */
   --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --text-12: 12px; /* labels, meta, numbers, code: 400 / 500 */
@@ -24,7 +24,7 @@
   --text-20: 20px; /* lede 400, titles 600 */
   --text-32: 32px; /* the one headline: 600, 1.1, -0.025em */
 
-  /* Shape (§3.3): 0.5px lines (an inset ring for frames, a solid rule otherwise); radii 6 inner control, 10 outer
+  /* Shape: 0.5px lines (an inset ring for frames, a solid rule otherwise); radii 6 inner control, 10 outer
      control with 4px padding and the outcome box, 14 detail panel, 16 session frame. No shadows. */
   --hair: 0.5px solid var(--slate-7);
   --hair-soft: 0.5px solid var(--slate-6);
@@ -33,7 +33,7 @@
   --radius-14: 14px;
   --radius-16: 16px;
 
-  /* Motion (§2 rule 7): colour and opacity only, 250ms ease-out; zeroed under prefers-reduced-motion (below, and
+  /* Motion (UI rule 7 in docs/DESIGN.md): colour and opacity only, 250ms ease-out; zeroed under prefers-reduced-motion (below, and
      base.css for every transition). Script-driven motion reads --motion-ms and --motion-ease. */
   --motion-ms: 250ms;
   --motion-ease: ease-out;

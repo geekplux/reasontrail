@@ -1,4 +1,4 @@
-// Identity flow (phase 2): fonts, favicon, wordmark, landmarks, layout at both viewports, dark theme, CVD previews.
+// Identity flow: fonts, favicon, wordmark, landmarks, layout at both viewports, dark theme, CVD previews.
 import { axeProblems } from '../axe.mjs';
 import { applyCvd, MATRICES } from '../cvd.mjs';
 import { BUDGETS } from '../../check-size.mjs';
@@ -52,7 +52,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   if (mark.name?.text !== 'Reasontrail' || !/^"?Geist\b/.test(mark.name.family)) fail('the wordmark name is not set in Geist');
   if (!mark.loaded) fail('self-hosted fonts did not load');
   if (mark.landmarks.join() !== '1,1,1') fail(`expected one header, main and footer, got ${mark.landmarks}`);
-  // One name for the brand link, in the header and the footer (the website's chrome, v7 §4); the header also links to the source.
+  // One name for the brand link, in the header and the footer (the website's chrome); the header also links to the source.
   if ((await page.locator('header, footer').getByRole('link', { name: 'Reasontrail', exact: true }).count()) !== 2) fail('brand links are not named "Reasontrail"');
   if (!(await page.title()).includes('Reasontrail')) fail('<title> does not contain "Reasontrail"');
   if ((await page.locator('header').getByRole('link', { name: 'GitHub', exact: true }).count()) !== 1) fail('header has no GitHub link');
@@ -65,7 +65,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   );
   fold.filter((f) => f.bottom > 800 || f.right > 1280).forEach((f) => fail(`desktop: ${f.sel} is below the fold (${JSON.stringify(f)})`));
 
-  // The garden scroll region is never a tab stop (phase 5): the focused branch scrolls itself into view.
+  // The garden scroll region is never a tab stop: the focused branch scrolls itself into view.
   const checkScrollStop = async (where) => {
     const ok = await page
       .waitForFunction(() => {

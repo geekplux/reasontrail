@@ -25,7 +25,7 @@ export function useGarden(provider: LogprobProvider, prompt: string, k: number, 
     };
   }, [provider, prompt, k, ranks]);
 
-  /** Click (or Enter/Space in phase 5): select, then collapse, re-open from cache, or ask the provider once. */
+  /** Click (or Enter/Space): select, then collapse, re-open from cache, or ask the provider once. */
   const activate = useCallback(
     (key: string) => {
       dispatch({ type: 'select', key });

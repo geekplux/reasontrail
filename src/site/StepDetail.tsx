@@ -1,4 +1,4 @@
-// The detail panel (docs/design/v7/PROMPT.md §4.5; docs/design/v7/preview/Step.html `.detail`): in place of the outcome
+// The detail panel: in place of the outcome
 // column while a step is selected. Where the step is, with a close button; its kind (⚠ when it failed) and time; the
 // summary (for a thinking step whose text was stored, a 12px note that written reasoning is the model's own account); the command in a `pre`; its output; the next step; the source file and line, with "Show raw" for the verbatim
 // record when the graph kept it; Previous / Next step. Esc closes it. Everything from the transcript is rendered as text.

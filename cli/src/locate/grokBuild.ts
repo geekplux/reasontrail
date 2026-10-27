@@ -1,4 +1,4 @@
-// Grok Build session store (PLAN §5.12): ${GROK_HOME:-~/.grok}/sessions/<url-encoded cwd>/<id>/updates.jsonl with
+// Grok Build session store: ${GROK_HOME:-~/.grok}/sessions/<url-encoded cwd>/<id>/updates.jsonl with
 // summary.json and subagents/<child id>/meta.json; child sessions sit next to the parent (or inside subagents/).
 // A cwd whose encoding is over 255 bytes uses a slug + hash folder holding a `.cwd` file. Only Node built-ins.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

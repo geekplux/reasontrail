@@ -32,8 +32,8 @@ export function SpecimenFields({ sample, live = false, prompt = true }: { sample
   );
 }
 
-/** The specimen label (PLAN §3): unboxed, the garden's prompt, with the rest of its provenance in a closed "About this
- * garden". Its title is the heading for screen readers only: the picker's selected tab already shows it. `live`: a lens garden grown live (phase 22), so it names the live model
+/** The specimen label: unboxed, the garden's prompt, with the rest of its provenance in a closed "About this
+ * garden". Its title is the heading for screen readers only: the picker's selected tab already shows it. `live`: a lens garden grown live, so it names the live model
  * and has no recording date. `level`: h2 under a page that has its own h1. */
 export function SpecimenLabel({ sample, live = false, level = 'h1' }: { sample: SampleGarden; live?: boolean; level?: 'h1' | 'h2' }) {
   const Heading = level;

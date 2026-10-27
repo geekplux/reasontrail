@@ -8,7 +8,7 @@ export interface GardenState {
   nodes: Readonly<Record<string, TokenChoice[]>>;
   expanded: ReadonlySet<string>;
   status: Readonly<Record<string, NodeStatus>>;
-  /** The single selection source (click in phase 4, focus in phase 5). */
+  /** The single selection source (click and keyboard focus). */
   selectedKey: string | null;
 }
 
@@ -54,7 +54,7 @@ export function gardenReducer(s: GardenState, a: GardenAction): GardenState {
 
 export interface OpenedPath {
   nodes: Record<string, TokenChoice[]>;
-  /** Keys to open: the default branch (PLAN D11) and every recorded key along the path. */
+  /** Keys to open: the default branch and every recorded key along the path. */
   expand: string[];
   /** The last key of the longest valid prefix of the path, or null. */
   select: string | null;
@@ -63,8 +63,8 @@ export interface OpenedPath {
 }
 
 /**
- * Asks the provider for the root, the most probable child (default expansion, D11) and each step of `ranks`
- * (rank indices from the root, D12). Stops at the first step that is not there; never throws for missing data.
+ * Asks the provider for the root, the most probable child (default expansion) and each step of `ranks`
+ * (rank indices from the root). Stops at the first step that is not there; never throws for missing data.
  */
 export async function openPath(provider: LogprobProvider, prompt: string, k: number, ranks: readonly number[]): Promise<OpenedPath> {
   const nodes: Record<string, TokenChoice[]> = {};

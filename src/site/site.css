@@ -1,4 +1,4 @@
-/* The website's pages other than home (open a session, map a chat, install, how to read a map; v7 §4, §7): the home's
+/* The website's pages other than home (open a session, map a chat, install, how to read a map): the home's
    header and footer and its 120px edges (the same gutter), a 20px title 64px under the header, `.btn` buttons (home.css)
    and 16px frames. The home and the chrome: home.css. */
 .site { display: contents; }
@@ -74,7 +74,7 @@ label.btn { position: relative; cursor: pointer; }
 .drop-overlay .logo-mark { width: 64px; height: 64px; }
 
 
-/* Chat import (phase 23, DESIGN §13.8, §18.1): the paste box is the focal point; the export is a quiet text link. */
+/* Chat import: the paste box is the focal point; the export is a quiet text link. */
 .paste-box { display: grid; gap: 8px; max-width: 680px; }
 .paste-box p { margin: 0; }
 .paste-box textarea { width: 100%; min-height: 14rem; padding: 12px; border: 0; box-shadow: inset 0 0 0 0.5px var(--slate-7); border-radius: var(--radius-10); background: var(--slate-1); color: var(--slate-12); font: 400 var(--text-12) / 1.5 var(--font-mono); resize: vertical; }

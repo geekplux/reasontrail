@@ -1,4 +1,4 @@
-// Trouble patterns (PLAN §5.11, D23): six rules, each a "detected pattern" with evidence steps. Thresholds: ./constants.
+// Trouble patterns: six rules, each a "detected pattern" with evidence steps. Thresholds: ./constants.
 import type { Edge, Episode, Step, Trouble } from '../types';
 import { CHURN_MIN_EDITS, ERROR_STREAK_MIN, RETRY_WINDOW } from './constants';
 import { type FileEvent, type Verification, countedPaths, relPath, resultsByCall } from './outcome';

@@ -1,12 +1,12 @@
-// The intake's contract (PLAN phase 19, V1, V5): what the page and the parse worker say to each other, and the limits.
+// The intake's contract: what the page and the parse worker say to each other, and the limits.
 import type { ChatSummary } from '../../shared/session/adapters/chatExports';
 import type { SessionGraph } from '../../shared/session/types';
 
-/** V5: the browser maps files up to 50 MB; the CLI has no limit. */
+/** The browser maps files up to 50 MB; the CLI has no limit. */
 export const MAX_BYTES = 50 * 1024 * 1024;
-/** DESIGN §12: the progress bar is shown only for files over 2 MB (smaller ones finish before it would be read). */
+/** The progress bar is shown only for files over 2 MB (smaller ones finish before it would be read). */
 export const PROGRESS_MIN_BYTES = 2 * 1024 * 1024;
-/** If the worker cannot start, files under 1 MB are parsed on the main thread instead (PLAN phase 19, risks). */
+/** If the worker cannot start, files under 1 MB are parsed on the main thread instead. */
 export const MAIN_THREAD_MAX = 1024 * 1024;
 
 /** `share-link` is the page's own (T3): a pasted share link is never fetched. */

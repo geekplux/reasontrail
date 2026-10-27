@@ -2,7 +2,7 @@ import type { BranchState, Fork, GardenBranch } from './buildTree';
 import { entropyBand, formatEntropy } from './entropy';
 import { DASH_FROM, MAX_GLYPHS } from './metrics';
 
-/** Branch stroke width in px, linear in the conditional probability (PLAN D5): 1.5 px floor, 20 px at p = 1. */
+/** Branch stroke width in px, linear in the conditional probability: 1.5 px floor, 20 px at p = 1. */
 export function branchWidth(p: number): number {
   const clamped = Math.min(1, Math.max(0, p));
   return 1.5 + 18.5 * clamped;

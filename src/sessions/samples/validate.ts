@@ -1,4 +1,4 @@
-// Structural check of a SessionGraph (§5.10) for committed samples. Returns problems; empty means valid.
+// Structural check of a SessionGraph for committed samples. Returns problems; empty means valid.
 import { SCHEMA_VERSION, type SessionGraph } from '../../../shared/session/types';
 
 const STEP_KINDS = new Set(['user', 'assistant', 'thinking', 'tool-call', 'tool-result', 'system', 'compaction']);

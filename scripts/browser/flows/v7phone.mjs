@@ -1,4 +1,4 @@
-// v7 phone and dark flow (docs/design/v7/PROMPT.md §4 "Phone (390)" and "Dark", §9, §13.5 phase 33). At 390×844: no
+// v7 phone and dark flow. At 390×844: no
 // horizontal scroll, the tab track scrolls sideways with the legend under it, the outcome box sits above the list, the
 // list has no header, # or Start column, the card header has no buttons (AI titles, Details and Share sit in a row
 // after the final answer; Details names the branch), every font size is 12, 14, 20 or 32, axe clean; a list tap opens

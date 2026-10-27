@@ -1,4 +1,4 @@
-// The structuring prompt (PLAN phase 20). Bump STRUCTURE_CACHE_VERSION whenever the prompt or the schema changes.
+// The structuring prompt. Bump STRUCTURE_CACHE_VERSION whenever the prompt or the schema changes.
 import type { StructureStep } from '../../shared/session/structure';
 import { RESULT_SCHEMA } from './schema';
 

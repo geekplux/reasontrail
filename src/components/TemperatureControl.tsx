@@ -17,7 +17,7 @@ function openHowToRead(e: MouseEvent) {
 }
 
 /** Temperature (spec §10.4): a native slider with its value, and the top-k approximation note when T ≠ 1. The presets
- * are {@link TemperaturePresets}, folded into More options (DESIGN §18.1). */
+ * are {@link TemperaturePresets}, folded into More options. */
 export function TemperatureControl({ t, onChange }: { t: number; onChange(t: number): void }) {
   const id = useId();
   return (

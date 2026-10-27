@@ -27,7 +27,7 @@ afterEach(() => {
   window.history.replaceState(null, '', '/');
 });
 
-describe('AI titles (phase 21; v7 §7)', () => {
+describe('AI titles', () => {
   it('sends nothing before consent, ⌈n/200⌉ requests after it; tags in the list and rings in the tree; off is the plain map', async () => {
     const fetch = vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async (_url, init) => Response.json(reply(JSON.parse(String(init.body)))));
     vi.stubGlobal('fetch', fetch);

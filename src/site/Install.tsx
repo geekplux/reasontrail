@@ -1,4 +1,4 @@
-// Install (DESIGN §13.3, PLAN phase 19 AC2): the skill one-liner and the CLI. Every command comes from
+// Install: the skill one-liner and the CLI. Every command comes from
 // shared/commands.ts, which the CLI's --help and the skill installer also use; the site flow runs each one.
 import { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -6,7 +6,7 @@ import { COMMANDS, SKILL_CALL, SKILL_HOMES } from '../../shared/commands';
 
 const SAID_MS = 2500;
 
-/** The v7 command box (§4.2): mono text and a copy icon button that turns into a check while "Copied" is said to
+/** The v7 command box: mono text and a copy icon button that turns into a check while "Copied" is said to
  * screen readers. On failure the command is selected so the keyboard copy works. `big`: the page's focal command, the
  * full-width 48px box. */
 export function CommandLine({ command, label, big = false }: { command: string; label?: string; big?: boolean }) {

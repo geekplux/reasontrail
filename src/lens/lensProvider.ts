@@ -1,4 +1,4 @@
-// The lens's provider (PLAN Z1, AC2): a sentence's recording answers first and never touches the network; live growth
+// The lens's provider: a sentence's recording answers first and never touches the network; live growth
 // through the Worker happens only once `live` is switched on (the reader's opt-in), stops LIVE_MAX_DEPTH tokens past the
 // opening words, and goes through the tab's one cached provider, so a repeated prefix costs nothing.
 import { ProviderError, type LogprobProvider, type TokenChoice } from '../../shared/llm/types';

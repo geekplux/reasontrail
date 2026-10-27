@@ -1,4 +1,4 @@
-// The tree's legend (docs/design/v7/gen7.mjs LEGEND), 12px: the five episode glyphs, then the twigs (command with its
+// The tree's legend (as on the design canvas), 12px: the five episode glyphs, then the twigs (command with its
 // leaf, thinking, failed with ✕) and what width means. Thinking is slate-9 like the tree's thinking twigs. `only`: the
 // entries to show (an opened session lists only what its tree draws); the home shows them all, as the canvas does.
 import type { ReactNode } from 'react';

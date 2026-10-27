@@ -1,4 +1,4 @@
-// Lean live growth (old F9 rules, PLAN Z1): a prefix is fetched at most once per tab, concurrent requests for it
+// Lean live growth: a prefix is fetched at most once per tab, concurrent requests for it
 // share one call, smaller k is served by slicing, and a tab makes at most LIVE_MAX_CALLS live calls.
 import { clampK, ProviderError, type LogprobProvider, type TokenChoice } from '../../shared/llm/types';
 import { WorkerProvider } from './workerProvider';

@@ -1,4 +1,4 @@
-// Best-effort reading of shell commands (agents mostly write files through Bash, DESIGN §14.3): which files a command
+// Best-effort reading of shell commands (agents mostly write files through Bash): which files a command
 // writes, deletes or reverts, a normalized key for "the same command", and whether it is a verification run.
 // A small quote-aware lexer, not a shell: globs, variables and command substitution are not expanded (those paths are skipped).
 
@@ -125,7 +125,7 @@ function splitWords(words: string[]): { name: string; args: string[]; redirects:
 
 const plain = (args: string[]) => args.filter((a) => !a.startsWith('-'));
 
-/** Files a shell command writes, deletes or reverts (best effort, documented in DECISIONS.md). */
+/** Files a shell command writes, deletes or reverts (best effort). */
 export function shellEffects(command: string, cwd?: string): ShellEffects {
   const fx: ShellEffects = { writes: [], deletes: [], reverts: [], revertAll: false, dirs: [] };
   let dir = cwd;
@@ -211,7 +211,7 @@ export function commandHead(command: string): string {
 }
 
 /** The verification runs inside a command, without `cd`, flags like `-s` or what follows them: `cd x && pnpm -s lint &&
- * echo OK && pnpm typecheck` → "pnpm lint && pnpm typecheck". Empty when the command runs none (DESIGN §8.9). */
+ * echo OK && pnpm typecheck` → "pnpm lint && pnpm typecheck". Empty when the command runs none. */
 export function verifyCommand(command: string): string {
   const runs: string[] = [];
   for (const s of lex(stripHeredocs(command))) {

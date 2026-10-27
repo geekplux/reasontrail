@@ -1,4 +1,4 @@
-// Pasted chat transcripts (PLAN phase 23, T1): plain text with speaker lines ("You:", "User:", "You said:",
+// Pasted chat transcripts: plain text with speaker lines ("You:", "User:", "You said:",
 // "ChatGPT said:", "## Assistant", "**Claude:**", …). Each turn starts at its speaker line, which is its provenance.
 // Without any speaker line the turns are assumed to alternate (you first) at blank lines, and the map says so.
 import type { SessionAdapter } from '../adapter';

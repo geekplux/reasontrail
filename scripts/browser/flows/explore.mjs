@@ -1,5 +1,5 @@
-// Explore flow (phase 4): grow and collapse recorded branches (anchored on screen), the not-recorded note with no
-// requests, reduced motion, expansion timing (P3), share links (copy, reload, broken), and mobile.
+// Explore flow: grow and collapse recorded branches (anchored on screen), the not-recorded note with no
+// requests, reduced motion, expansion timing, share links (copy, reload, broken), and mobile.
 import { axeProblems } from '../axe.mjs';
 import { loadSample } from '../lib.mjs';
 
@@ -44,7 +44,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   page.on('request', (r) => requests.push(`${r.resourceType()} ${r.url()}`));
   const state = (key) => page.locator(`g.branch[data-key="${key}"]`).getAttribute('data-state');
 
-  // F1: default expansion (D11).
+  // Default expansion.
   await page.setViewportSize({ width: 1280, height: 800 });
   await open(page, `${baseURL}/?sample=lighthouse`);
   if ((await state(' looked')) !== 'expanded' || (await page.locator('g[data-depth="2"]').count()) !== 5) fail('default: " looked" is not open with 5 children');
@@ -60,7 +60,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   log(`transition-duration: ${normal} / reduced ${reduced}`);
   if (!/[1-9]/.test(normal) || reduced.split(',').some((d) => parseFloat(d) !== 0)) fail(`transition-duration ${normal} / reduced ${reduced}`);
 
-  // F3 + spec §4: expand " entered" in place; its children appear and are visible; F6: the readout follows.
+  // Spec §4: expand " entered" in place; its children appear and are visible; the readout follows.
   await clickAnchored(page, ' entered', 'expand', fail, log);
   const kids = await page.$$eval('g[data-depth="2"]', (gs) => gs.map((g) => g.dataset.key).filter((k) => k.startsWith(' entered')));
   if (!same(kids, ENTERED)) fail(`expand: children ${JSON.stringify(kids)}`);

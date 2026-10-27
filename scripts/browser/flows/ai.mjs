@@ -1,5 +1,5 @@
-// AI titles flow (phase 21; v7 §7, phase 34b), from the session card's "AI titles": vite preview has no Worker, so the
-// opt-in ends in the calm "unavailable" note (AC3); with `page.route('**/api/structure')` fakes: zero /api requests
+// AI titles flow, from the session card's "AI titles": vite preview has no Worker, so the
+// opt-in ends in the calm "unavailable" note; with `page.route('**/api/structure')` fakes: zero /api requests
 // before consent, exactly ⌈n/200⌉ ≤ 5 after it, the modal dialog (focus inside, Esc returns focus), a 12px tag beside
 // each titled episode row and a ring on the same episodes in the tree, X3 wording ("suggested by <model>") on every row
 // and in the line under the list, toggling off restores the plain list and tree (DOM compare), the card does not move,

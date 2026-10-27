@@ -1,4 +1,4 @@
-/* AI titles (v7 §7): the session card's control, its status and note, and the consent dialog, on the v7 system.
+/* AI titles: the session card's control, its status and note, and the consent dialog, on the v7 system.
    The list's tags (gitlist.css) and the tree's rings (tree.css) are drawn with the list and the tree. */
 .ai-control { display: inline-flex; align-items: center; gap: 8px; }
 .ai-status { display: inline-flex; align-items: center; gap: 6px; max-width: 36ch; font-size: var(--text-12); line-height: 16px; color: var(--slate-11); }

@@ -1,8 +1,8 @@
 import type { SampleGarden } from '../samples/types';
 
 /**
- * Native radio group of the recorded gardens (F2): Tab enters on the chosen one, arrow keys move and choose. Quiet text
- * radios (DESIGN §18.1, GA1): the chosen one is 600 with an ink underline; one sideways-scrolling line on a phone.
+ * Native radio group of the recorded gardens: Tab enters on the chosen one, arrow keys move and choose. Quiet text
+ * radios: the chosen one is 600 with an ink underline; one sideways-scrolling line on a phone.
  * Each option shows its title; its prompt is part of its accessible name and the specimen label shows it once chosen.
  */
 export function SamplePicker(props: { samples: readonly SampleGarden[]; value: string; onChange(id: string): void }) {

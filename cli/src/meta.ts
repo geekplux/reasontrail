@@ -1,11 +1,11 @@
-// Package identity and exit codes (PLAN D25, C2). Docs and the skill write `npx reasontrail` through PKG_NAME.
+// Package identity and exit codes. Docs and the skill write `npx reasontrail` through PKG_NAME.
 import pkg from '../package.json';
 import { PKG_NAME, SKILL_HOMES } from '../../shared/commands';
 
 export { PKG_NAME };
 export const VERSION: string = pkg.version;
 export const SOURCE_URL = 'https://github.com/geekplux/reasontrail';
-/** `--ai`'s default endpoint: the public site's Worker (a placeholder until deployment, D20). */
+/** `--ai`'s default endpoint: the public site's Worker. */
 export const DEFAULT_AI_ENDPOINT = 'https://reasontrail.geekplux.com/api/structure';
 
 /** Documented exit codes (C2). */

@@ -1,7 +1,7 @@
-// The website's opt-in AI pass (PLAN phase 21, V3, X3): a small state machine around `sendBatches`.
+// The website's opt-in AI pass: a small state machine around `sendBatches`.
 //   idle → consent-needed → sending (k of n) → ready | unavailable | error
 // Nothing is sent until `consent()`; then exactly ⌈steps / 200⌉ ≤ 5 POSTs, one after another, abortable.
-// The overlay is kept apart from the graph (D22), so dropping it restores the deterministic map.
+// The overlay is kept apart from the graph, so dropping it restores the deterministic map.
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { ProviderError, type ProviderErrorCode } from '../../shared/llm/types';
 import { buildBatches, type StructureRequest } from '../../shared/session/structure';

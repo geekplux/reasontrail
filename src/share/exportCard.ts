@@ -1,4 +1,4 @@
-// The map card (DESIGN §13.9, DM37): the glance view as a 1200×630 picture for a PR or a post. Page background,
+// The map card: the glance view as a 1200×630 picture for a PR or a post. Page background,
 // wordmark top-left, the task title in sans 600 48 (2 lines at most), the route alone with numbered blazes at y = 360,
 // the three At a glance rows in UI 24 (with the map's glyphs), and "Redacted copy" in mono at the bottom right. Colours come
 // from the theme tokens (light or night); meaning never rests on colour: open blazes are filled, resolved ones hollow,
@@ -122,7 +122,7 @@ function titleLines(text: string, width: number, font: Font, measure: Measure): 
 export function cardShapes(g: SessionGraph, c: CardColors, measure: Measure): Shape[] {
   const W = CARD_W - 2 * M;
   const s: Shape[] = [{ t: 'rect', x: 0, y: 0, w: CARD_W, h: CARD_H, fill: c.paper }];
-  // Wordmark (v7 §3.4, scaled 2x): the 40 px leaf, a 16 px gap, then "Reasontrail" in sans 600 28, centred on the mark.
+  // Wordmark (docs/DESIGN.md §2, scaled 2x): the 40 px leaf, a 16 px gap, then "Reasontrail" in sans 600 28, centred on the mark.
   const base = 72;
   s.push(...markShapes(M - 2, base - 30, 40 / 64, c.paper));
   s.push({ t: 'text', x: M + 54, y: base, text: 'Reasontrail', font: WORDMARK_FONT, fill: c.ink });

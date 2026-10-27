@@ -1,4 +1,4 @@
-/** What a share link carries (PLAN D12). Other params (e.g. `prompt`) belong to later phases and pass through. */
+/** What a share link carries. Other params (e.g. `prompt`) pass through. */
 export interface UrlState {
   /** Sample id, or null for the default garden. */
   sample: string | null;
@@ -39,7 +39,7 @@ export function writeUrlState(search: string, s: UrlState): string {
   return out ? `?${out}` : '';
 }
 
-/** The website's pages (PLAN phases 16, 19, 23; v7 §4): home with a sample, the drop zone, the chat paste page,
+/** The website's pages: home with a sample, the drop zone, the chat paste page,
  * install, and how to read a map. Any other `view` (an old `?view=outline` link) is the home. */
 export type SiteView = 'map' | 'open' | 'chat' | 'install' | 'how';
 const SITE_VIEWS: readonly SiteView[] = ['open', 'chat', 'install', 'how'];
@@ -49,7 +49,7 @@ const GARDEN_PARAMS = ['sample', 'path', 't', 'seed'];
 /** Which page the website shows: the garden lens when any garden param is set (`?sample=` links keep working), else
  * `?view=open|chat|install|how`, or the home with `?session=<sample id>` (the default when absent).
  * `step`: the selected step (`&step=<id>`; the home ignores an id its sample does not list). `lens`: `?lens=live`, a
- * sentence that grows only live (phase 22); it lives in memory, so a reload drops it. */
+ * sentence that grows only live; it lives in memory, so a reload drops it. */
 export function readSiteState(search: string): { garden: boolean; lens: boolean; session: string | null; step: string | null; view: SiteView } {
   const q = new URLSearchParams(search);
   const view = q.get('view') as SiteView;

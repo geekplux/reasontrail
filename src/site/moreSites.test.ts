@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MAKER, MORE_SITES, shownUrl } from './moreSites';
 
-describe('moreSites (v7 §4.7)', () => {
+describe('moreSites', () => {
   it('lists geekplux.com first, then the four sites in order, with the exact copy and https URLs', () => {
     expect(MAKER).toEqual({ name: 'GeekPlux', line: 'Writing, projects and data visualization', url: 'https://geekplux.com' });
     expect(MORE_SITES.map((s) => [s.name, s.line, s.url])).toEqual([

@@ -1,4 +1,4 @@
-// Temperature flow (phase 7, docs/viz/garden.md §10.5): widths and labels follow the tempered chance with no network,
+// Temperature flow (docs/viz/garden.md §10.5): widths and labels follow the tempered chance with no network,
 // tips never move, the approximation note, entropy labels and table columns, the seeded sampled path (reproducible,
 // shareable, announced, CVD-safe, reduced motion), keyboard-only controls, and P4 (one slider step <= 100 ms).
 import { axeProblems } from '../axe.mjs';
@@ -59,7 +59,7 @@ async function audit(page, nodes, t) {
       if (Math.abs(b.w - width(b.p)) > 0.01) problems.push(`${b.key}: stroke-width ${b.w} != ${width(b.p)}`);
     });
     const rest = drawn.rests.find((r) => r.parent === parent);
-    // The "other" band is capped at the widest real branch of its fork (phase 22, D3).
+    // The "other" band is capped at the widest real branch of its fork.
     const restW = rest && Math.min(width(rest.p), Math.max(...q.slice(0, -1).map(width)));
     if (rest && (Math.abs(rest.p - q.at(-1)) > 0.00051 || Math.abs(rest.w - restW) > 0.01)) problems.push(`remainder ${parent}: ${rest.p} w ${rest.w} != ${q.at(-1)} w ${restW}`);
     if (!rest && q.at(-1) >= 0.0005 && 1 - ps.reduce((s, p) => s + p, 0) >= 0.0005) problems.push(`remainder ${parent}: missing`);
@@ -76,7 +76,7 @@ export async function run({ page, context, baseURL, shot, log, fail }) {
   await open(page, `${baseURL}/?sample=lighthouse`);
   requests.length = 0;
 
-  // F7 + §10.5.3/4: the keyboard alone sets T (Home/End/arrows, preset); every width and label follows; tips never move.
+  // §10.5.3/4: the keyboard alone sets T (Home/End/arrows, preset); every width and label follows; tips never move.
   const settings = [[0.2, ['Home', 'ArrowRight', 'ArrowRight']], [1, null], [1.8, ['End', 'ArrowLeft', 'ArrowLeft']]];
   let tips = null;
   const others = {}; // §10.5.3a: "other" label text per parent at each T

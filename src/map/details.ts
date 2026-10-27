@@ -1,4 +1,4 @@
-// Details on demand (PLAN M3, M9; DESIGN §8.10, §10.1), pure: what a selected map item contains, its step rows, the
+// Details on demand, pure: what a selected map item contains, its step rows, the
 // tool views' text (line diff, output excerpt, exit status), provenance labels and the `?step=` / `#step=` links.
 import type { Episode, Lane, SessionGraph, Step, Trouble } from '../../shared/session/types';
 import type { GlanceLayout } from './layout';
@@ -15,7 +15,7 @@ export interface Row {
   times: number;
 }
 
-/** Rows for `stepIds`, in order. Results join their call; consecutive unstored thinking collapses (DM20). */
+/** Rows for `stepIds`, in order. Results join their call; consecutive unstored thinking collapses. */
 export function stepRows(g: SessionGraph, stepIds: readonly string[]): Row[] {
   const byId = new Map(g.steps.map((s) => [s.id, s]));
   const rows: Row[] = [];
@@ -138,10 +138,10 @@ export function textHead(text: string, lines = 12, chars = 900): { head: string;
   return head.length < all.length ? { head: `${head}…`, cut: true } : { head: all, cut: false };
 }
 
-/** "3f2a…c91" (DESIGN §8.10). */
+/** "3f2a…c91". */
 export const shortId = (id: string) => (id.length > 9 ? `${id.slice(0, 4)}…${id.slice(-3)}` : id);
 
-/** Text split around redaction placeholders, so they can be marked "Redacted" (DM19). */
+/** Text split around redaction placeholders, so they can be marked "Redacted". */
 export function redactionParts(text: string): { text: string; redacted: boolean }[] {
   const out: { text: string; redacted: boolean }[] = [];
   let at = 0;
@@ -238,7 +238,7 @@ export function itemForStep(g: SessionGraph, L: GlanceLayout, stepId: string): {
   return { item: `lep:${top.id}`, ...(lane ? { lane: lane.id } : {}) };
 }
 
-/** The rule behind each pattern, in words (PLAN §5.11). */
+/** The rule behind each pattern, in words. */
 export const RULE_WORDS: Record<Trouble['kind'], string> = {
   'error-streak': '2 or more failed results in a row',
   retry: 'the same tool call made again after a failure',
