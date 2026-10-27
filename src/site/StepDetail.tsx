@@ -4,7 +4,7 @@
 // record when the graph kept it; Previous / Next step. Esc closes it. Everything from the transcript is rendered as text.
 import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { AlertIcon, OkIcon } from '../map/gitlist/marks';
-import type { StepDetail as Detail, StepTone } from './stepDetail';
+import type { StepDetail as Detail, StepTone } from './stepDetailData';
 
 /** Under the title of a step that shows the model's own words (thinking): what written reasoning is, and is not. */
 export const OWN_ACCOUNT = "Written reasoning is the model's own account, not a record of how it computed.";

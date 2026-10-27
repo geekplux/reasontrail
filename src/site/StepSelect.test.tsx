@@ -10,7 +10,7 @@ import type { Box } from '../map/tree/types';
 import { treeCallout, treeFor } from '../map/tree/view';
 import { defaultSessionGraph as g } from '../sessions/samples';
 import { Home } from './Home';
-import { selectableSteps } from './stepDetail';
+import { selectableSteps } from './stepDetailData';
 
 afterEach(() => {
   cleanup();

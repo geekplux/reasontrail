@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The first release: the `reasontrail` CLI on npm and the showcase site on Cloudflare.
 
+### Builds on macOS and Windows
+
+- `src/site/stepDetail.ts` is now `stepDetailData.ts`: next to `StepDetail.tsx` it was the same file on a case-insensitive disk, so `pnpm build:cli` failed there with "StepDetail is not exported". A test fails if two tracked paths ever differ only in case again.
+
 ### Page-view counts on the website
 
 - reasontrail.geekplux.com counts page views with Google Analytics: the path only, never a dropped file or the map's state. The CLI's maps and the local viewer load no analytics.

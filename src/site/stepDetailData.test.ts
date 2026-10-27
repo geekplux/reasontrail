@@ -2,7 +2,7 @@ import readme from '../../examples/README.md?raw';
 import { describe, expect, it } from 'vitest';
 import type { SessionGraph, Step } from '../../shared/session/types';
 import { defaultSessionGraph as g, sessionSamples } from '../sessions/samples';
-import { findStep, selectableSteps, stepDetail, stepFacts } from './stepDetail';
+import { findStep, selectableSteps, stepDetail, stepFacts } from './stepDetailData';
 
 describe('selectable steps (phase 32b)', () => {
   it('lists the tool calls and thinking steps of every episode row, in list order', () => {

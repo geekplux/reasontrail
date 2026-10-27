@@ -14,7 +14,7 @@ import { parseNotes, taskCard } from '../map/outline';
 import { ShareAction } from '../share/ShareAction';
 import { finalAnswer, outcomeRows, runs, sessionMeta, type OutcomeRow, type Run } from './sessionSummary';
 import { StepDetail } from './StepDetail';
-import { findStep, stepDetail } from './stepDetail';
+import { findStep, stepDetail } from './stepDetailData';
 import { usePhone } from './usePhone';
 
 // The AI titles control, its consent dialog and client load only when first used (never in the local viewer, whose
