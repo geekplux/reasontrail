@@ -12,5 +12,5 @@
     "jsx-a11y/prefer-tag-over-role": "off",
     "jsx-a11y/no-noninteractive-tabindex": ["error", { "roles": ["tabpanel", "region"] }]
   },
-  "ignorePatterns": ["dist/**", ".tmp/**", "node_modules/**", "docs/screenshots/**", "docs/design/**"]
+  "ignorePatterns": ["dist/**", ".tmp/**", "node_modules/**", "docs/screenshots/**", "docs/design/**", "src/map/tree/__fixtures__/**"]
 }

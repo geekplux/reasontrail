@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionGraph } from '../../../shared/session/types';
-// @ts-expect-error: the canvas's reference geometry is plain JS (docs/design/v7/tree.mjs)
-import { LANES as REF_LANES, tree as refTree } from '../../../docs/design/v7/tree.mjs';
+// @ts-expect-error: the design canvas's reference geometry is plain JS (__fixtures__/tree.mjs reads __fixtures__/vff.json)
+import { LANES as REF_LANES, tree as refTree } from './__fixtures__/tree.mjs';
 import implementer from '../../sessions/samples/implementer-checks.graph.json';
 import planner from '../../sessions/samples/planner-pivot.graph.json';
 import vff from '../../sessions/samples/verify-fail-fix.graph.json';
@@ -216,7 +216,7 @@ describe.each(GRAPHS)('layoutTree: %s', (name, g) => {
   });
 });
 
-describe('layoutTree: verify-fail-fix against the canvas (docs/design/v7/tree.mjs at 1200 × 520)', () => {
+describe('layoutTree: verify-fail-fix against the canvas (__fixtures__/tree.mjs at 1200 × 520)', () => {
   const t = layoutTree(VFF, DESKTOP);
   const svg = refTree({ width: 1200, icon: { fail: '', ok: '' }, glyph: () => '<svg class="g ">' }) as string;
   const ref = REF_LANES as { key: string; tip: Pt }[];
