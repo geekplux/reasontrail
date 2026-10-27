@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 /** The files checked, relative to the repo root (`docs/*.md` and `examples/README.md` are added when present). */
 export const DOC_FILES = ['README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md', 'CHANGELOG.md', '.github/pull_request_template.md'];
-/** The local CLI from a clone, which takes the same arguments as `npx reasontrail` until the package is published. */
+/** The local CLI from a clone, which takes the same arguments as `npx reasontrail`. */
 export const LOCAL_CLI = 'node cli/dist/cli.mjs';
 
 /** Markdown with fenced code blocks and inline code blanked out (line count kept), so examples are not checked as links. */

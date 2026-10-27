@@ -62,7 +62,7 @@ Drafts and scripts for sharing Reasontrail. Every link uses the demo origin `htt
 3. Read the outcome box: "Passed", `pnpm lint` passed; one trouble spot; six files changed.
 4. Point at the orange twigs on episodes 4 and 5: lint failed, then typecheck. Click the first: the path turns blue and the panel shows the command and its output. Press Esc to go back.
 5. Keyboard: Tab into the list, ↓ to episode 4, → to open it, ↓ to the failed step, Enter for its panel.
-6. Then the same for a real session, in any project folder: `npx reasontrail` (until it is on npm, `node cli/dist/cli.mjs` from a clone, see the README).
+6. Then the same for a real session, in any project folder: `npx reasontrail`.
 
 ### 2. "Review an agent-written PR"
 
@@ -98,7 +98,7 @@ Researched on **2026-10-22** from each project's README or documentation (linked
 ## Pre-launch checklist
 
 - [ ] **Deploy approval:** Sean approves and runs the deploy ([DEPLOY.md](DEPLOY.md)). Nothing is deployed before that.
-- [ ] **npm publish approval (D36):** Sean approves the package name and runs `npm publish` ([PUBLISH.md](PUBLISH.md)). Until then the README's "Not on npm yet" note and the from-a-clone commands stay.
+- [x] **npm publish (D36):** `reasontrail` 0.1.0 published 2026-10-27; later releases go out from a `v*` tag ([PUBLISH.md](PUBLISH.md)).
 - [x] **Demo URL** set to `https://reasontrail.geekplux.com` everywhere (was the `reasontrail.example` placeholder, PLAN D20).
 - [ ] **Upload the social preview:** GitHub repository Settings → General → Social preview → `docs/brand/social-preview.png` (the API cannot do this).
 - [ ] **Enable private vulnerability reporting:** Settings → Code security, so the route in `SECURITY.md` works.

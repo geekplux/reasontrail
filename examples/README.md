@@ -60,6 +60,6 @@ In a project folder where you have used Claude Code, Codex or Grok Build:
 npx reasontrail
 ```
 
-It maps the newest session for that folder into one HTML file and opens it. **Not on npm yet:** until it is published, run `node cli/dist/cli.mjs` from a clone instead, as in [From a clone](../README.md#from-a-clone). Add `--share` for a copy with secrets, emails and paths replaced by pattern; read it before you send it.
+It maps the newest session for that folder into one HTML file and opens it. Add `--share` for a copy with secrets, emails and paths replaced by pattern; read it before you send it.
 
 Have a session that would make a good example? Propose it with the session-sample issue template; [Add a sample](../CONTRIBUTING.md#add-a-sample) says how samples are made and checked.

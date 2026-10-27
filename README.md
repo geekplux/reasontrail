@@ -20,8 +20,6 @@
 
 ## Quick start
 
-**Not on npm yet.** These commands work once it is published; until then use [From a clone](#from-a-clone).
-
 ```sh
 npx reasontrail install-skill   # once: adds the skill to your agents
 npx reasontrail                 # or map this folder's newest session
@@ -31,7 +29,7 @@ Then ask your agent to "map this session" (`/reasontrail`, or `$reasontrail` in 
 
 ### From a clone
 
-Until the package is published, run the same commands from a clone, with `node cli/dist/cli.mjs` in place of `npx reasontrail` (Node 20.19+ and pnpm 9):
+To work on Reasontrail itself, run the same commands from a clone, with `node cli/dist/cli.mjs` in place of `npx reasontrail` (Node 20.19+ and pnpm 9):
 
 ```sh
 git clone https://github.com/geekplux/reasontrail && cd reasontrail

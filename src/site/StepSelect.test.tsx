@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 // Phase 32b: selecting a step from the tree, the list or the URL; the tree's blue path, ring and callout; the detail
 // panel; Previous / Next; Esc; the URL round trip through the site; a tab switch clears the selection.
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Site } from '../Site';
 import { highlight, type HitTarget } from '../map/tree';
@@ -11,6 +11,16 @@ import { treeCallout, treeFor } from '../map/tree/view';
 import { defaultSessionGraph as g } from '../sessions/samples';
 import { Home } from './Home';
 import { selectableSteps } from './stepDetailData';
+
+// The site prefetches its lazy pages when idle; here that import chain could still be loading when the file ends, and
+// Vitest then fails the run on the late import (EnvironmentTeardownError). Nothing here tests the prefetch.
+beforeAll(() => {
+  vi.stubGlobal('requestIdleCallback', () => 0);
+  vi.stubGlobal('cancelIdleCallback', () => {});
+});
+afterAll(() => {
+  vi.unstubAllGlobals();
+});
 
 afterEach(() => {
   cleanup();

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-27
+
+### On npm
+
+- The package page lists keywords, the author, the website as its homepage and the issue tracker.
+- When the skill cannot find its CLI, it says to run `npx reasontrail install-skill` again; it still downloads nothing.
+- The README, the skill's references and the examples drop their "not on npm yet" notes.
+
 ## [0.1.0] - 2026-10-27
 
 The first release: the `reasontrail` CLI on npm and the showcase site on Cloudflare.

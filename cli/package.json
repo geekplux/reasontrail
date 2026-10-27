@@ -1,8 +1,20 @@
 {
   "name": "reasontrail",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "See what your coding agent did: turns a Claude Code, Grok Build or Codex session into a self-contained HTML map. Local only; nothing is uploaded.",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "coding-agent",
+    "ai-agent",
+    "session",
+    "transcript",
+    "visualization",
+    "cli",
+    "skill"
+  ],
   "license": "MIT",
+  "author": "GeekPlux (https://geekplux.com)",
   "type": "module",
   "bin": {
     "reasontrail": "dist/cli.mjs"
@@ -17,5 +29,11 @@
     "type": "git",
     "url": "git+https://github.com/geekplux/reasontrail.git"
   },
-  "homepage": "https://github.com/geekplux/reasontrail#readme"
+  "homepage": "https://reasontrail.geekplux.com",
+  "bugs": {
+    "url": "https://github.com/geekplux/reasontrail/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

@@ -6,8 +6,7 @@
 //   1. REASONTRAIL_CLI (a path to cli.mjs);
 //   2. kit/cli.json, written by `reasontrail install-skill`;
 //   3. this repository's cli/dist/cli.mjs (`pnpm build:cli`).
-// Once the package is published, the last fallback becomes `npx --yes reasontrail@<version> --current`.
-// Until then it is not used, so the kit never touches the network.
+// There is no npx fallback on purpose: the kit never touches the network (SKILL.md, references/privacy.md).
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -29,7 +28,7 @@ function resolveCli(env = process.env, kit = KIT) {
 
 const cli = resolveCli();
 if (!cli) {
-  process.stderr.write('reasontrail: the CLI was not found. In a clone of the repository, run `pnpm install && pnpm build:cli`, then `node cli/dist/cli.mjs install-skill`; or set REASONTRAIL_CLI to the path of cli.mjs. See references/troubleshooting.md.\n');
+  process.stderr.write('reasontrail: the CLI was not found. Run `npx reasontrail install-skill` again (it records where the CLI is), or set REASONTRAIL_CLI to the path of cli.mjs. See references/troubleshooting.md.\n');
   process.exit(1);
 }
 const res = spawnSync(process.execPath, [cli, '--current', ...process.argv.slice(2)], { stdio: ['ignore', 'pipe', 'inherit'], encoding: 'utf8' });
