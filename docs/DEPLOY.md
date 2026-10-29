@@ -55,9 +55,9 @@ through `scripts/serve-dist.mjs`, which applies `public/_headers` the way Worker
 
 ## 3. Before the first deploy
 
-1. **Social image.** Open the site locally (`pnpm preview`), keep the default sample, choose **Share** on the session
-   card → "Download map card (PNG)" (1200×630, light theme), and save it as `public/og-card.png`. Commit it. `index.html`
-   already points `og:image` at `/og-card.png`.
+1. **Social image (done).** `index.html` points `og:image` at `/og.jpg` (a designed 1200×630 JPEG card) and
+   `og:video` at `/og.mp4` (the same card moving, silent H.264). Both live in `public/`, so the build copies them to
+   `dist/`. If you replace them, keep 1200×630 and update the `og:image:alt` text to match.
 2. **KV namespace (done).** The production namespace `REASONTRAIL_CACHE` exists and its id
    (`91c14bfbe1444937a095418ee3a2f6ac`) is pinned on the `TG_CACHE` entry in `wrangler.jsonc`. If you ever recreate
    it, run `pnpm exec wrangler kv namespace create REASONTRAIL_CACHE` and replace the id. Never commit a made-up
@@ -150,7 +150,7 @@ curl -sS -X POST "$SITE/api/structure" -H 'content-type: application/json' \
 curl -sS -o /dev/null -w '%{http_code}\n' "$SITE/api/next-tokens"
 # The site, its headers and the social image
 curl -sSI "$SITE/" | grep -iE 'content-security-policy|x-content-type-options|cache-control'
-curl -sSI "$SITE/og-card.png" | head -1
+curl -sSI "$SITE/og.jpg" | grep -iE '^HTTP|content-type'   # 200, image/jpeg
 ```
 
 Then, in a browser (v7):
