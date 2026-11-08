@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- An unknown path on the site answers 404 with a "Page not found" page (noindex) instead of the home page with 200.
+
 ### Docs
 
 - `docs/ARCHITECTURE.md`: the modules, the data flow, the main design decisions, how to extend it and where the tests live.
