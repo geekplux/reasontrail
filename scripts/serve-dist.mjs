@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // A tiny static server for dist/ that behaves like Cloudflare Workers static assets for what the site relies on: the
 // `_headers` rules (in file order; `! Name` detaches a header set by an earlier rule, a header set twice is joined
-// with ", "), `/x.html` → 307 `/x` (html_handling "auto-trailing-slash"), the single-page-application fallback, and
-// no Worker (`/api/*` is a 404 JSON). `vite preview` ignores `_headers`, so `pnpm check:browser --headers` uses this
-// to run the flows under the real CSP. Usage: node scripts/serve-dist.mjs [--port 4317] [--dir dist]
+// with ", "), `/x.html` → 307 `/x` (html_handling "auto-trailing-slash"), `404.html` at status 404 for any other path
+// (not_found_handling "404-page"), and no Worker (`/api/*` is a 404 JSON). `vite preview` ignores `_headers`, so
+// `pnpm check:browser --headers` uses this to run the flows under the real CSP.
+// Usage: node scripts/serve-dist.mjs [--port 4317] [--dir dist]
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
@@ -73,10 +74,15 @@ export function serveDist({ dir = 'dist', port = 4317, host = '127.0.0.1' } = {}
       return f.startsWith(root) && existsSync(f) && statSync(f).isFile() && !f.endsWith('_headers') ? f : undefined;
     };
     const hit = file(pathname) ?? file(`${pathname}.html`) ?? (pathname.endsWith('/') ? file(`${pathname}index.html`) : undefined);
-    const path = hit ?? join(root, 'index.html'); // single-page-application fallback
+    const missing = file('/404.html'); // not_found_handling "404-page"
+    if (!hit && !missing) {
+      res.writeHead(404).end();
+      return;
+    }
+    const path = hit ?? missing;
     const headers = { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream', 'cache-control': 'public, max-age=0, must-revalidate' };
     for (const [k, v] of headersFor(rules, pathname)) headers[k] = v;
-    res.writeHead(200, headers);
+    res.writeHead(hit ? 200 : 404, headers);
     createReadStream(path).pipe(res);
   });
   return new Promise((ok) => server.listen(port, host, () => ok(server)));
