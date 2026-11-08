@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { notFoundPage } from './scripts/not-found-page.mjs';
 
 /** The website serves the built local-viewer template as `/viewer.html`: "Save shareable copy" writes the redacted
  * graph into it. Built with `build:viewer` before the site, so the two always match. */
@@ -22,7 +23,7 @@ function viewerTemplate(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), viewerTemplate()],
+  plugins: [react(), viewerTemplate(), notFoundPage()], // notFoundPage: dist/404.html, served at 404 for unknown paths
   test: {
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}', 'cli/test/**/*.test.ts', 'shared/**/*.test.ts', 'worker/**/*.test.ts', 'scripts/**/*.test.{js,mjs,ts}', 'skills/**/*.test.mjs'],

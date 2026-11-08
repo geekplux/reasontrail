@@ -115,7 +115,7 @@ export function shareFileName(graph: SessionGraph, ext = 'html'): string {
   return `reasontrail-${id}.${ext}`;
 }
 
-/** The website's built viewer template. The SPA fallback answers unknown paths with index.html: check the slots. */
+/** The website's built viewer template. A missing file comes back as the 404 page (dist/404.html): check the slots. */
 export async function fetchTemplate(url = `${import.meta.env.BASE_URL}viewer.html`): Promise<string> {
   const res = await fetch(url);
   const text = res.ok ? await res.text() : '';
